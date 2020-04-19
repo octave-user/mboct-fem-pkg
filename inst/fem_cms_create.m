@@ -1,0 +1,459 @@
+## Copyright (C) 2019(-2020) Reinhard <octave-user@a1.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+## -*- texinfo -*-
+## @deftypefn {Function File} [@var{mesh}, @var{mat_ass}, @var{dof_map}, @var{sol_eig}, @var{cms_opt}] = fem_cms_create(@var{mesh}, @var{load_case}, @var{cms_opt})
+## Build a reduced order model by using the Craig Bampton approach. That model can be exported to MBDyn by means of fem_cms_export.
+##
+## @var{mesh} @dots{} Finite element mesh data structure containing constraints for the modal node
+##
+## @var{load_case} @dots{} Struct array of load cases. The first load case will be used for assembly of global finite element matrices. Additional load cases may be defined, and it's load vectors will be returned at the end of @var{mat_ass}.R.
+##
+## @var{cms_opt}.nodes.modal @dots{} Struct containing node number and node name of the modal node. Appropriate constraints must be defined for that node in @var{mesh} or @var{load_case}
+##
+## @var{cms_opt}.nodes.interfaces @dots{} Struct array containing node numbers and node names for interface nodes accessible to MBDyn. Static mode shapes will be generated for those nodes.
+##
+## @var{cms_opt}.verbose @dots{} Enable verbose output
+##
+## @var{cms_opt}.algorithm @dots{} Algorithm used for eigenanalysis
+##
+## @var{cms_opt}.number_of_threads @dots{} Number of threads used for the linear solver
+##
+## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver
+##
+## @var{cms_opt}.scaling @dots{} Various options for scaling mode shapes
+##
+## @var{cms_opt}.load_cases @dots{} Define if static mode shapes will be generated for all load cases, or for interface nodes only.
+##
+## @var{cms_opt}.invariants @dots{} Define if in-variants will be assembled directly, or if the are computed by MBDyn from the diagonal mass matrix.
+## @seealso{fem_cms_export}
+## @end deftypefn
+
+function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_case, cms_opt)
+  if (nargin ~= 3 || nargout > 5)
+    print_usage();
+  endif
+  
+  if (~isstruct(load_case))
+    error("load_case must be a scalar struct");
+  endif
+
+  if (~isfield(cms_opt, "verbose"))
+    cms_opt.verbose = int32(0);
+  endif
+
+  if (~isfield(cms_opt, "algorithm"))
+    cms_opt.algorithm = "shift-invert";
+  endif
+
+  if (~isfield(cms_opt, "number_of_threads"))
+    cms_opt.number_of_threads = int32(1);
+  endif
+
+  if (~isfield(cms_opt, "refine_max_iter"))
+    cms_opt.refine_max_iter = int32(10);
+  endif
+
+  if (~isfield(cms_opt, "scaling"))
+    cms_opt.scaling = "diag M";
+  endif
+
+  if (~isfield(cms_opt, "load_cases"))
+    cms_opt.load_cases = "interface";
+  endif
+
+  if (~isfield(cms_opt, "invariants"))
+    cms_opt.invariants = true;
+  endif
+
+  node_idx_itf = int32([cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number]);
+
+  dof_in_use = fem_cms_dof_active(mesh);
+
+  if (isfield(load_case(1), "elements") && isfield(load_case(1).elements, "joints"))
+    cms_opt.first_joint_idx_itf = numel(mesh.elements.joints);
+  else
+    cms_opt.first_joint_idx_itf = int32(0);
+  endif
+
+  cms_opt.num_modes_itf = int32(0);
+
+  master_node_joint_idx_curr = cms_opt.first_joint_idx_itf;
+  master_node_joint_idx = zeros(1, numel(node_idx_itf), "int32");
+
+  for i=1:numel(node_idx_itf)
+    dof_idx_master_node = find(dof_in_use(node_idx_itf(i), :) & ~load_case(1).locked_dof(node_idx_itf(i), :));
+    
+    if (~numel(dof_idx_master_node))
+      continue;
+    endif
+
+    master_node_joint_idx(i) = ++master_node_joint_idx_curr;
+    mesh.elements.joints(master_node_joint_idx(i)).nodes = node_idx_itf(i);
+    mesh.elements.joints(master_node_joint_idx(i)).C = eye(6)(dof_idx_master_node, :);
+
+    for j=1:numel(load_case)
+      load_case(j).joints(master_node_joint_idx(i)).U = zeros(rows(mesh.elements.joints(master_node_joint_idx(i)).C), 1);
+    endfor
+
+    if (i > 1)
+      cms_opt.num_modes_itf += rows(mesh.elements.joints(master_node_joint_idx(i)).C);
+    endif
+  endfor
+
+  ## Reduce memory consumption: do not duplicate load_case.locked_dof!
+  load_case_itf = repmat(setfield(load_case(1), "locked_dof", []), 1, cms_opt.num_modes_itf - 1);
+  
+  load_case_cms = fem_pre_load_case_merge(load_case(1), load_case_itf, load_case(2:end));
+
+  idx_load_case = int32(0);
+
+  for i=2:numel(node_idx_itf)
+    if (master_node_joint_idx(i))
+      for j=1:rows(mesh.elements.joints(master_node_joint_idx(i)).C)
+        load_case_cms(++idx_load_case).joints(master_node_joint_idx(i)).U(j) = 1;
+      endfor
+    endif
+  endfor
+
+  dof_map = fem_ass_dof_map(mesh, load_case(1));
+
+  if (cms_opt.invariants)
+    [mat_ass.M, ...
+     mat_ass.K, ...
+     mat_ass.D, ...
+     mat_ass.R, ...
+     mat_ass.dm, ...
+     mat_ass.S, ...
+     mat_ass.J, ...
+     mat_ass.mat_info] = fem_ass_matrix(mesh, ...
+                                        dof_map, ...
+                                        [FEM_MAT_MASS, ...
+                                         FEM_MAT_STIFFNESS, ...
+                                         FEM_MAT_DAMPING, ...
+                                         FEM_VEC_LOAD_CONSISTENT, ...
+                                         FEM_SCA_TOT_MASS, ...
+                                         FEM_VEC_INERTIA_M1, ...
+                                         FEM_MAT_INERTIA_J], ...
+                                        load_case_cms);
+  else
+    [mat_ass.M, ...
+     mat_ass.K, ...
+     mat_ass.D, ...
+     mat_ass.Mlumped, ...
+     mat_ass.R, ...
+     mat_ass.mat_info] = fem_ass_matrix(mesh, ...
+                                        dof_map, ...
+                                        [FEM_MAT_MASS, ...
+                                         FEM_MAT_STIFFNESS, ...
+                                         FEM_MAT_DAMPING, ...
+                                         FEM_MAT_MASS_LUMPED, ...
+                                         FEM_VEC_LOAD_CONSISTENT], ...
+                                        load_case_cms);
+  endif
+
+  use_pastix = fem_sol_check_func("pastix");
+  use_mumps = fem_sol_check_func("mumps");
+  use_umfpack = fem_sol_check_func("umfpack");
+
+  if (cms_opt.verbose)
+    fprintf(stderr, "K: %d DOF\n", dof_map.totdof);
+    fprintf(stderr, "K: %d nonzeros %.1fMB\n", nnz(mat_ass.K), sizeof(mat_ass.K) / 2^20);
+  endif
+
+  switch (cms_opt.load_cases)
+    case "interface"
+      R_itf = mat_ass.R(:, 1:cms_opt.num_modes_itf);
+    case "all"
+      R_itf = mat_ass.R;
+    otherwise
+      error("invalid option cms_opt.load_cases=\"%s\"", cms_opt.load_cases);
+  endswitch
+
+  if (use_pastix)
+    opt_pastix.matrix_type = PASTIX_API_SYM_YES;
+    opt_pastix.factorization = PASTIX_API_FACT_LDLT;
+    opt_pastix.verbose = cms_opt.verbose;
+    opt_pastix.number_of_threads = cms_opt.number_of_threads;
+    opt_pastix.refine_max_iter = cms_opt.refine_max_iter;
+    opt_pastix.bind_thread_mode = PASTIX_API_BIND_NO;
+
+    Kfact = fem_fact_pastix(mat_ass.K, opt_pastix);
+  elseif (use_mumps)
+    opt_mumps.matrix_type = MUMPS_MAT_SYM;
+    if (cms_opt.verbose)
+      opt_mumps.verbose = MUMPS_VER_WARN;
+    else
+      opt_mumps.verbose = MUMPS_VER_ERR;
+    endif
+    opt_mumps.workspace_inc = int32(50);
+    opt_mumps.refine_max_iter = cms_opt.refine_max_iter;
+    Kfact = fem_fact_mumps(mat_ass.K, opt_mumps);
+  elseif (use_umfpack)
+    opt_umfpack.refine_max_iter = cms_opt.refine_max_iter;
+    Kfact = fem_fact_umfpack(mat_ass.K, opt_umfpack);
+  else
+    Kfact = fem_fact_lu(mat_ass.K);
+  endif
+
+  PHI_s = Kfact \ R_itf;
+
+  if (cms_opt.modes.number > 0)
+    switch (cms_opt.algorithm)
+      case {"unsymmetric", "shift-invert", "diag-shift-invert"}
+        if cms_opt.verbose
+          fprintf(stderr, "solving for normal modes ...\n");
+          tic();
+        endif
+
+        opts.disp = 0;
+        opts.maxit = 50000;
+        opts.tol = 0;
+
+        rndstate = rand("state");
+
+        unwind_protect
+          rand("seed", 0);
+
+          switch (cms_opt.algorithm)
+            case {"shift-invert", "diag-shift-invert"}
+              SIGMA = 0;
+              op{1} = @(x) mat_ass.M * x;
+              op{2} = @(x) Kfact \ x;
+              [PHI_d, mu] = eig_sym(op, columns(mat_ass.M), cms_opt.modes.number, SIGMA, opts);
+            case "unsymmetric"
+              SIGMA = "LM";
+              iter_eig = int32(0);
+              max_iter_eig = int32(100);
+              opts.issym = eigs_sym(Kfact);
+              opts.isreal = true;
+
+              eigs_callback = @(x) eigs_func(Kfact, mat_ass.M, x);
+
+              while true
+                [PHI_d, mu, status] = eigs(eigs_callback, columns(mat_ass.M), cms_opt.modes.number, SIGMA, opts);
+
+                if (status ~= 0)
+                  error("eigs failed with status %d", status);
+                endif
+
+                if (isreal(PHI_d))
+                  break;
+                endif
+
+                ## If PHI_d is not real, call eigs again with a new random starting vector
+
+                if (++iter_eig > max_iter_eig)
+                  error("eigs returned complex eigenvectors");
+                endif
+
+                opts.v0 = real(PHI_d(:, 1));
+              endwhile
+
+              PHI_d = eigs_post(Kfact, PHI_d);
+          endswitch
+        unwind_protect_cleanup
+          rand("state", rndstate);
+        end_unwind_protect
+
+        switch (cms_opt.algorithm)
+          case "unsymmetric"
+            [mu, idx_mu] = sort(1 ./ diag(mu));
+
+            PHI_d = PHI_d(:, idx_mu);
+
+            lambda = sqrt(-mu).';
+          case {"shift-invert", "diag-shift-invert"}
+            lambda = sqrt(-diag(mu)).';
+        endswitch
+
+        PHI_d *= diag(1 ./ max(abs(PHI_d), [], 1)); ## Unit scale results in better condition numbers of Mred and Kred
+
+        err = zeros(columns(PHI_d), 1);
+
+        for i=1:columns(PHI_d)
+          v1 = mat_ass.K * PHI_d(:, i);
+          v2 = mat_ass.M * PHI_d(:, i) * lambda(i)^2;
+          err(i) = norm(v1 + v2) / max(norm(v1), norm(v2));
+        endfor
+
+        if (cms_opt.verbose)
+          for i=1:columns(PHI_d)
+            fprintf(stderr, "mode %d: f=%.1f error = %g\n", i, imag(lambda(i)) / (2 * pi), err(i));
+          endfor
+        endif
+
+        if (any(err > sqrt(eps)))
+          warning("eigs failed to converge max(err)=%g", max(err));
+        endif
+
+        Phi_d = PHI_d(dof_map.idx_node, :);
+
+        if (cms_opt.verbose)
+          toc();
+        endif
+      case "eliminate"
+        if cms_opt.verbose
+          fprintf(stderr, "eliminating multipliers of Lagrange ...\n");
+        endif
+
+        [Tc, Kc, Mc] = fem_cms_constr_elim(mesh, dof_map, mat_ass);
+
+        if (cms_opt.verbose)
+          fprintf(stderr, "solving for normal modes ...\n");
+        endif
+
+        [Phi_d, lambda] = fem_sol_eigs(Kc, Mc, cms_opt.modes.number);
+
+        Phi_d = Tc * Phi_d;
+      otherwise
+        error("unknown algorithm \"%s\"", cms_opt.algorithm);
+    endswitch
+  else
+    Phi_d = zeros(numel(dof_map.idx_node), 0);
+    lambda = [];
+  endif
+
+  clear Kfact;
+
+  if (cms_opt.verbose)
+    fprintf(stderr, "building reduced matrices ...\n");
+  endif
+
+  mat_ass.Tred = [Phi_d, PHI_s(dof_map.idx_node, :)];
+  mat_ass.Mred = fem_cms_matrix_trans(mat_ass.Tred, mat_ass.M(dof_map.idx_node, dof_map.idx_node), "Lower");
+  mat_ass.Kred = fem_cms_matrix_trans(mat_ass.Tred, mat_ass.K(dof_map.idx_node, dof_map.idx_node), "Lower");
+  mat_ass.Dred = fem_cms_matrix_trans(mat_ass.Tred, mat_ass.D(dof_map.idx_node, dof_map.idx_node), "Lower");
+
+  switch (cms_opt.algorithm)
+    case "diag-shift-invert"
+      [PHI_diag, lambda_diag] = eig(mat_ass.Kred, mat_ass.Mred, "chol", "vector");
+      mat_ass.Mred = PHI_diag.' * mat_ass.Mred * PHI_diag;
+      mat_ass.Kred = PHI_diag.' * mat_ass.Kred * PHI_diag;
+      mat_ass.Dred = PHI_diag.' * mat_ass.Dred * PHI_diag;
+      mat_ass.Tred *= PHI_diag;
+  endswitch
+
+  switch (cms_opt.scaling)
+    case "none"
+    otherwise
+      switch (cms_opt.scaling)
+        case "max K"
+          s = max(abs(mat_ass.Kred), [], 2);
+        case "max M"
+          s = max(abs(mat_ass.Mred), [], 2);
+        case "max K,M"
+          s = max(max(abs(mat_ass.Kred), [], 2),  max(abs(mat_ass.Mred), [], 2));
+        case "norm K"
+          s = norm(mat_ass.Kred, "cols");
+        case "norm M"
+          s = norm(mat_ass.Mred, "cols");
+        case "norm K,M"
+          s = max(norm(mat_ass.Kred, "cols"), norm(mat_ass.Mred, "cols"));
+        case "diag K"
+          s = abs(diag(mat_ass.Kred));
+        case "diag M"
+          s = abs(diag(mat_ass.Mred));
+        case "lambda"
+          s = abs(diag(mat_ass.Kred)) ./ abs(diag(mat_ass.Mred));
+        case "Tred"
+          s = max(abs(mat_ass.Tred), [], 1).^2;
+        case "mean M,K"
+          s = diag(mat_ass.Kred) * mean(abs(diag(mat_ass.Mred)) ./ abs(diag(mat_ass.Kred)));
+        case "mean K,M"
+          s = diag(mat_ass.Mred) * mean(abs(diag(mat_ass.Kred)) ./ abs(diag(mat_ass.Mred)));
+        otherwise
+          error("invalid option cms_opt.scaling=\"%s\"", cms_opt.scaling);
+      endswitch
+
+      s = 1 ./ sqrt(s);
+
+      if (cms_opt.verbose)
+        fprintf(stderr, "condition number before scaling ...\n");
+        fprintf(stderr, "condest(Kred)=%e\n", condest(mat_ass.Kred));
+        fprintf(stderr, "condest(Mred)=%e\n", condest(mat_ass.Mred));
+      endif
+
+      mat_ass.Kred = diag(s) * mat_ass.Kred * diag(s);
+      mat_ass.Mred = diag(s) * mat_ass.Mred * diag(s);
+      mat_ass.Dred = diag(s) * mat_ass.Dred * diag(s);
+      mat_ass.Tred *= diag(s);
+
+      if (cms_opt.verbose)
+        fprintf(stderr, "condition number after scaling ...\n");
+      endif
+  endswitch
+
+  warning("error", "Octave:singular-matrix", "local");
+  warning("error", "Octave:nearly-singular-matrix", "local");
+
+  cond_Kred = condest(mat_ass.Kred);
+  cond_Mred = condest(mat_ass.Mred);
+
+  if (cms_opt.verbose)
+    fprintf(stderr, "condest(Kred)=%e\n", cond_Kred);
+    fprintf(stderr, "condest(Mred)=%e\n", cond_Mred);
+  endif
+
+  if (~cms_opt.invariants)
+    diagMlumped = full(diag(mat_ass.Mlumped));
+    mat_ass.diagM = zeros(6 * rows(mesh.nodes), 1);
+  endif
+
+  mat_ass.Phi = zeros(6 * rows(mesh.nodes), columns(mat_ass.Tred));
+  ridx_node(dof_map.idx_node) = 1:length(dof_map.idx_node);
+
+  for i=1:columns(dof_map.ndof)
+    idx_act_dof = find(dof_map.ndof(:, i) > 0);
+    idx_glob_dof = dof_map.ndof(idx_act_dof, i);
+    mat_ass.Phi((idx_act_dof - 1) * 6 + i, :) = mat_ass.Tred(ridx_node(idx_glob_dof), :);
+
+    if (~cms_opt.invariants)
+      mat_ass.diagM((idx_act_dof - 1) * 6 + i) = diagMlumped(idx_glob_dof);
+    endif
+  endfor
+
+  if (nargout >= 2 || cms_opt.invariants)
+    PHI = zeros(columns(mat_ass.K), columns(mat_ass.Tred));
+    PHI(dof_map.idx_node, :) = mat_ass.Tred;
+    sol_eig.def = fem_post_def_nodal(mesh, dof_map, PHI);
+    sol_eig.f = [imag(lambda) / (2 * pi), repmat(-inf, 1, columns(PHI_s))];
+  endif
+
+  if (cms_opt.invariants)
+    if (cms_opt.verbose)
+      fprintf(stderr, "total number of modes: %d\n", size(sol_eig.def, 3));
+      fprintf(stderr, "building invariants ...\n");
+      tic();
+    endif
+
+    [mat_ass.Inv3, ...
+     mat_ass.Inv4, ...
+     mat_ass.Inv5, ...
+     mat_ass.Inv8, ...
+     mat_ass.Inv9] = fem_ass_matrix(setfield(mesh, "nodes", mesh.nodes - mesh.nodes(cms_opt.nodes.modal.number, :)), ...
+                                    dof_map, ...
+                                    [FEM_MAT_INERTIA_INV3, ...
+                                     FEM_MAT_INERTIA_INV4, ...
+                                     FEM_MAT_INERTIA_INV5, ...
+                                     FEM_MAT_INERTIA_INV8, ...
+                                     FEM_MAT_INERTIA_INV9], ...
+                                    load_case_cms, ...
+                                    sol_eig);
+    if (cms_opt.verbose)
+      toc();
+    endif
+  endif
+endfunction

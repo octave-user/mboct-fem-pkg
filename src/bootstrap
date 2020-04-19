@@ -1,0 +1,9 @@
+#!/bin/sh -f
+
+aclocal
+
+autoconf
+
+autoheader -f
+
+automake --foreign --add-missing --copy --force-missing

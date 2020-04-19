@@ -1,0 +1,158 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the <algorithm> header file. */
+#undef HAVE_ALGORITHM
+
+/* Define to 1 if you have the <array> header file. */
+#undef HAVE_ARRAY
+
+/* Define to 1 if you have the <cassert> header file. */
+#undef HAVE_CASSERT
+
+/* Define to 1 if you have the declaration of `NLOPT_FAILURE', and to 0 if you
+   don't. */
+#undef HAVE_DECL_NLOPT_FAILURE
+
+/* Define to 1 if you have the declaration of `NLOPT_LN_COBYLA', and to 0 if
+   you don't. */
+#undef HAVE_DECL_NLOPT_LN_COBYLA
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `fileno' function. */
+#undef HAVE_FILENO
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the <iostream> header file. */
+#undef HAVE_IOSTREAM
+
+/* Define to 1 if you have the <io.h> header file. */
+#undef HAVE_IO_H
+
+/* Define to 1 if you have the <memory> header file. */
+#undef HAVE_MEMORY
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define if nlopt can be used */
+#undef HAVE_NLOPT
+
+/* Define to 1 if you have the `nlopt_add_equality_constraint' function. */
+#undef HAVE_NLOPT_ADD_EQUALITY_CONSTRAINT
+
+/* Define to 1 if you have the `nlopt_create' function. */
+#undef HAVE_NLOPT_CREATE
+
+/* Define to 1 if you have the `nlopt_destroy' function. */
+#undef HAVE_NLOPT_DESTROY
+
+/* Define to 1 if you have the `nlopt_optimize' function. */
+#undef HAVE_NLOPT_OPTIMIZE
+
+/* Define to 1 if you have the `nlopt_set_ftol_abs' function. */
+#undef HAVE_NLOPT_SET_FTOL_ABS
+
+/* Define to 1 if you have the `nlopt_set_lower_bounds' function. */
+#undef HAVE_NLOPT_SET_LOWER_BOUNDS
+
+/* Define to 1 if you have the `nlopt_set_maxeval' function. */
+#undef HAVE_NLOPT_SET_MAXEVAL
+
+/* Define to 1 if you have the `nlopt_set_min_objective' function. */
+#undef HAVE_NLOPT_SET_MIN_OBJECTIVE
+
+/* Define to 1 if you have the `nlopt_set_upper_bounds' function. */
+#undef HAVE_NLOPT_SET_UPPER_BOUNDS
+
+/* Define to 1 if you have the `nlopt_set_xtol_abs1' function. */
+#undef HAVE_NLOPT_SET_XTOL_ABS1
+
+/* Define to 1 if you have the <octave/oct.h> header file. */
+#undef HAVE_OCTAVE_OCT_H
+
+/* Define to 1 if you have the <octave/oct-map.h> header file. */
+#undef HAVE_OCTAVE_OCT_MAP_H
+
+/* Define to 1 if you have the `read' function. */
+#undef HAVE_READ
+
+/* Define to 1 if you have the `setmode' function. */
+#undef HAVE_SETMODE
+
+/* Define to 1 if you have the <stdexcept> header file. */
+#undef HAVE_STDEXCEPT
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <string> header file. */
+#undef HAVE_STRING
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define if Unix IO functions can be used */
+#undef HAVE_UNIX_IO
+
+/* Define to 1 if you have the <vector> header file. */
+#undef HAVE_VECTOR
+
+/* Define if Win32 IO functions can be used */
+#undef HAVE_WIN32_IO
+
+/* Define to 1 if you have the `write' function. */
+#undef HAVE_WRITE
+
+/* macro for alternative Octave symbols */
+#undef OV_ISINTEGER
+
+/* macro for alternative Octave symbols */
+#undef OV_ISREAL
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Version number of package */
+#undef VERSION
+
+#include "oct-alt-includes.h"
