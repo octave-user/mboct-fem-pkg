@@ -141,6 +141,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!   filename(filename == "\\") = "/";
+%! endif
 %! for i=1:numel(a)
 %!   unwind_protect
 %!     unwind_protect

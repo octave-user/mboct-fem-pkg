@@ -229,8 +229,8 @@ int diaphragm(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
 #ifdef HAVE_WIN32_IO
-        setmode(fileno(stdin), O_BINARY);
-        setmode(fileno(stdout), O_BINARY);
+        setmode(fileno(stdin), _O_BINARY);
+        setmode(fileno(stdout), _O_BINARY);
 #endif
 
         if (argc < 2) {

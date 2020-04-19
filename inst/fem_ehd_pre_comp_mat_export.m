@@ -296,6 +296,9 @@ endfunction
 %! have_mesh_size_binary = false;
 %! unwind_protect
 %!   output_file = tempname();
+%!   if (ispc())
+%!     output_file(output_file == "\\") = "/";
+%!   endif
 %!   [status, output] = shell("which fem_pre_mesh_size", true);
 %!   if (status == 0)
 %!     have_mesh_size_binary = true;

@@ -35,6 +35,10 @@ function fem_post_sol_external(mesh, sol, varargin)
 
   unwind_protect
     prefix = tempname();
+
+    if (ispc())
+      prefix(prefix == "\\") = "/";
+    endif
     
     post_pro_geo = fem_post_sol_export(prefix, mesh, sol, varargin{:});
 

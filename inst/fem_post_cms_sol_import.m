@@ -161,6 +161,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
 %!   geometry_file = [filename, ".geo"];
 
 %!   [fd, msg] = fopen(geometry_file, "wt");
