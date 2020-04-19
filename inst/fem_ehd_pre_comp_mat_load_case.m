@@ -139,7 +139,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
-%! filename(find(filename == "\\")) = "/";
+%! if (ispc())
+%!   filename(filename == "\\") = "/";
+%! endif
 %! unwind_protect
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)

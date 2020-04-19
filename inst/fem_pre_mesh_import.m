@@ -599,6 +599,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!   filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -848,6 +851,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -1048,6 +1054,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -1165,6 +1174,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -1388,6 +1400,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -1607,6 +1622,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -1785,6 +1803,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -1968,6 +1989,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -2147,6 +2171,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -2305,6 +2332,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! num_modes = 6;
 %! shift = 0;
 %! scale_eig = 1.5e-3;
@@ -2469,6 +2499,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! num_modes = 6;
 %! shift = 0;
 %! scale_eig = 1.5e-3;
@@ -2690,6 +2723,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! for i=1:4
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
@@ -2923,6 +2959,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -3080,6 +3119,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -3232,6 +3274,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -3362,6 +3407,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
@@ -3496,6 +3544,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! animate = true;
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)
@@ -3661,6 +3712,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
+%! if (ispc())
+%!  filename(filename == "\\") = "/";
+%! endif
 %! for i=1:4
 %! [fd, msg] = fopen([filename, ".geo"], "wt");
 %! if (fd == -1)

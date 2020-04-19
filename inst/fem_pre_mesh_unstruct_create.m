@@ -47,6 +47,11 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   unwind_protect
     if (~isfield(options, "output_file"))
       options.output_file = tempname();
+      
+      if (ispc())
+	options.output_file(options.output_file == "\\") = "/";
+      endif
+      
       f_temp_files = true;
     endif
 
@@ -186,6 +191,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
@@ -302,6 +310,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
@@ -416,6 +427,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
@@ -531,6 +545,9 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];

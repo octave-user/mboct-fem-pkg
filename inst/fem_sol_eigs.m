@@ -48,7 +48,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
 
   blambda = full(any(diag(K) <= 0));
   
-  if (nargin < 7)
+  if (nargin < 7 || ~fem_sol_check_func(solver))
     if (fem_sol_check_func("pastix"))
       solver = "pastix";
     elseif (fem_sol_check_func("mumps"))

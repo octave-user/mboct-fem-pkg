@@ -208,6 +208,9 @@ endfunction
 %!
 %! unwind_protect
 %!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
 %!   mbdyn_filename_suffix = {"cms", "beam"};
 %!   for i=1:numel(mbdyn_filename_suffix)
 %!     mbdyn_filenames{i} = [filename, mbdyn_filename_suffix{i}, ".mbdyn"];

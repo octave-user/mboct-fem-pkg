@@ -66,7 +66,7 @@ if test "${have_fcntl}" = "yes"; then
    AC_CHECK_FUNCS([setmode read write fileno],[have_setmode=yes])
 
    if test "${have_setmode}" = "yes"; then
-      AC_CHECK_DECL([O_BINARY],[have_binary=yes])
+      AC_CHECK_DECL([_O_BINARY],[have_binary=yes],[],[[#include <fcntl.h>]])
 
       if test "${have_binary}" = "yes"; then
          AC_DEFINE([HAVE_WIN32_IO],[1],[Define if Win32 IO functions can be used])

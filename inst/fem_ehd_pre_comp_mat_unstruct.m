@@ -177,9 +177,9 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     idx_ndof_ref_node_act = find(idx_dof_ref_node > 0);
     idx_dof_ref_node_act = idx_dof_ref_node(idx_ndof_ref_node_act);
 
-    have_pastix = (3 == exist("pastix", "file"));
-    have_mumps = (3 == exist("mumps", "file"));
-    have_umfpack = (3 == exist("umfpack", "file"));
+    have_pastix = fem_sol_check_func("pastix");
+    have_mumps = fem_sol_check_func("mumps");
+    have_umfpack = fem_sol_check_func("umfpack");
 
     if (have_pastix)
       opt_pastix.matrix_type = PASTIX_API_SYM_YES;
