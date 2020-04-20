@@ -243,12 +243,14 @@ octave_test_commands = \
 check: $(install_stamp)
 	$(run_in_place) --eval $(octave_test_commands)
 
-
+check_installed:
+	$(OCTAVE) --eval ' pkg ("load", "$(package)"); ' \
+		  --eval $(octave_test_commands)
 ##
 ## CLEAN
 ##
 
-.PHONY: clean
+.PHONY: clean check_installed
 
 clean: clean-tarballs clean-unpacked-release clean-install
 	@echo "## Removing target directory (if empty)..."
