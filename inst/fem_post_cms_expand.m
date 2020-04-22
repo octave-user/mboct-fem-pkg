@@ -29,6 +29,11 @@
 ## @var{options}.scale_type @dots{} options for scaling
 ##
 ## Valid values are "modal node", "modal node*", "least square", "least square*", "reference node", "reference node*"
+## "modal node" @dots{} Deformations of the flexible body are scaled with respect to MBDyn's modal node.
+## "least square" @dots{} Subtract the rigid body motion from nodal displacements before scaling.
+## "reference node" @dots{} Deformations of the flexible body are scaled with respect to an arbitrary point defined by sol_dyn.bodies(i).X_ref and sol_dyn.bodies(i).R_ref.
+## With the options above, rigid body motion of the modal node or reference node will be added.
+## All scaling options ending with an asterisk do not add the rigid body motion to nodal displacements.
 ## @seealso{fem_post_cms_expand_body, fem_post_cms_sol_import}
 ## @end deftypefn
 
