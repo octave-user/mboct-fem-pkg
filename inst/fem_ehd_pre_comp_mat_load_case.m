@@ -183,7 +183,9 @@ endfunction
 %! fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
 %! fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
 %! unwind_protect_cleanup
-%! fclose(fd);
+%!  if (fd ~= -1)
+%!    fclose(fd);
+%!  endif
 %! end_unwind_protect
 %! fprintf(stderr, "meshing ...\n");
 
@@ -250,11 +252,12 @@ endfunction
 %!   deformation_file = sprintf("%s_%d_%03d_post_pro.msh", filename, j, i + 1);
 %!   unwind_protect
 %!   fem_post_sol_step_export(deformation_file, sol_stat, idx_group(j) + i, i + 1, i + 1, 1);
-%!   [fd, msg] = fopen(post_pro_file, "wt");
-%!   if fd == -1
-%!     error(msg);
-%!   endif
+%!   fd = -1;
 %!   unwind_protect
+%!     [fd, msg] = fopen(post_pro_file, "wt");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\": %s", post_pro_file, msg);
+%!     endif
 %!     fprintf(fd, "Merge \"%s\";\n", [filename, ".msh"]);
 %!     fputs(fd, "Mesh.SurfaceEdges = 0;\n");
 %!     fputs(fd, "Mesh.SurfaceFaces = 0;\n");
@@ -282,7 +285,9 @@ endfunction
 %!     fprintf(fd, "Print \"%s_%d_%03d.jpg\";\n", filename, j, i + 1);
 %!     fputs(fd, "Exit;\n");
 %!   unwind_protect_cleanup
-%!     fclose(fd);
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
 %!   end_unwind_protect
 %!   pid = spawn("gmsh", {post_pro_file});
 %!   status = spawn_wait(pid);

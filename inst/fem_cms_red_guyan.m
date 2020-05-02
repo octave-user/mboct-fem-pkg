@@ -42,7 +42,7 @@ function [Kred, Tred] = fem_cms_red_guyan(K, keep_dof)
     opt_pastix.factorization = PASTIX_API_FACT_LDLT;
     opt_pastix.verbose = PASTIX_API_VERBOSE_NOT;
     opt_pastix.number_of_threads = 1;
-    opt_pastix.refine_max_iter = int32(0);
+    opt_pastix.refine_max_iter = int32(3);
 
     KNNfact = fem_fact_pastix(KNN, opt_pastix);
   else
@@ -82,3 +82,36 @@ function [Kr, dof_list, keep_dof, condense_dof] = fem_reorder_equations_of_motio
   keep_dof = 1:N_keep;
   condense_dof = N_keep + (1:N_condense);
 endfunction
+
+%!test
+%! E = 210000e6;
+%! A = 100e-6;
+%! l = 50e-3;
+%! s = A * E / l;
+%! K = [ s,    -s,     0,      0;
+%!      -s, 2 * s,    -s,      0;
+%!       0,    -s, 2 * s,     -s;
+%!       0,     0,    -s,  2 * s];
+%!
+%! [Kred, Tred] = fem_cms_red_guyan(K, [1, columns(K)]);
+%!
+%! Kred2 = [ s / 3,    -s / 3;
+%!          -s / 3,     s + s / 3];
+%! assert(Kred, Kred2, eps * norm(Kred2));
+
+%!demo
+%! E = 210000e6;
+%! A = 100e-6;
+%! l = 50e-3;
+%! s = A * E / l;
+%! K = [ s,    -s,     0,     0;
+%!      -s, 2 * s,    -s,     0;
+%!       0,    -s, 2 * s,    -s;
+%!       0,     0,    -s,     s];
+%!
+%! [Kred, Tred] = fem_cms_red_guyan(K, [1, columns(K)]);
+%!
+%! s2 = A * E / (3 * l);
+%! Kred2 = [ s2,    -s2;
+%!          -s2,     s2];
+%! assert(Kred, Kred2, eps * norm(Kred2));

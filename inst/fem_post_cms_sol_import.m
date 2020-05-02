@@ -46,7 +46,10 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
   ielem_idx = zeros(1, numel(cms_data), "int32");
 
   sol_dyn.t = t;
-  sol_dyn.bodies = repmat(struct("X", [], "R", [], "q", []), 1, numel(cms_data));
+
+  empty_cell = cell(1, numel(cms_data));
+  
+  sol_dyn.bodies = struct("X", empty_cell, "R", empty_cell, "q", empty_cell);
 
   for i=1:numel(cms_data)
     imodal_node_label(i) = getfield(log_dat.vars, cms_data(i).cms_opt.nodes.modal.name);
@@ -150,7 +153,7 @@ endfunction
 %! cms_opt.number_of_threads = int32(4);
 %! cms_opt.verbose = false;
 
-%! ## It is very important here have at least one mode shape which accounts for centrifugal loads!
+%! ## It is very important to have at least one mode shape which accounts for centrifugal loads!
 %! cms_opt.load_cases = "all";
 %! options.number_of_modes = int32(10);
 %! options.scale_def = 10e-3;
@@ -164,17 +167,14 @@ endfunction
 %!   if (ispc())
 %!     filename(filename == "\\") = "/";
 %!   endif
-%!   geometry_file = [filename, ".geo"];
-
-%!   [fd, msg] = fopen(geometry_file, "wt");
-
-%!   if fd == -1
-%!     error("failed to open file \"%s\"", geometry_file);
-%!   endif
-
+%!   fd = -1;
 %!   unwind_protect
+%!     geometry_file = [filename, ".geo"];
+%!     [fd, msg] = fopen(geometry_file, "wt");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\"", geometry_file);
+%!     endif
 %!     fn = fieldnames(param);
-
 %!     for i=1:length(fn)
 %!       fprintf(fd, "%s = %g;\n", fn{i}, getfield(param, fn{i}));
 %!     endfor
@@ -202,7 +202,9 @@ endfunction
 %!     fputs(fd, "  Physical Surface(i) = {B[i]};\n");
 %!     fputs(fd, "EndFor\n");
 %!   unwind_protect_cleanup
-%!     fclose(fd);
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
 %!   end_unwind_protect
 
 %!   fprintf(stderr, "meshing ...\n");
@@ -295,13 +297,15 @@ endfunction
 
 %!   eig_post_pro_file = sprintf("%s_modes_post.geo", filename);
 
-%!   [fd, msg] = fopen(eig_post_pro_file, "wt");
-
-%!   if fd == -1
-%!     error("failed to open file \"%s\"", eig_post_pro_file);
-%!   endif
+%!   fd = -1;
 
 %!   unwind_protect
+%!     [fd, msg] = fopen(eig_post_pro_file, "wt");
+
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\"", eig_post_pro_file);
+%!     endif
+
 %!     fprintf(fd, "Merge \"%s\";\n", mesh_post_pro_file);
 
 %!     for j=1:numel(eig_post_pro_file_mode)
@@ -317,7 +321,9 @@ endfunction
 %!     fputs(fd, "View.IntervalsType = 3;\n");
 %!     fputs(fd, "View.NbIso = 20;\n");
 %!   unwind_protect_cleanup
-%!     fclose(fd);
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
 %!   end_unwind_protect
 
 %!   cms_data.mat_ass.Dred = param.alpha * cms_data.mat_ass.Mred + param.beta * cms_data.mat_ass.Kred;

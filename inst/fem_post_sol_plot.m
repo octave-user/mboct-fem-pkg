@@ -67,10 +67,10 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
     options.elem_groups = struct();
   endif
 
-  nodes = mesh.nodes;
+  nodes = mesh.nodes(:, 1:3);
 
   if (nargin >= 2 && numel(sol))
-    nodes += scale * sol.def(:, :, idx_sol);
+    nodes += scale * sol.def(:, 1:3, idx_sol);
   endif
 
   inumfaces = int32(0);
@@ -82,9 +82,11 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
 
     elements = getfield(mesh.elements, options.elem_types{etype_idx});
 
-    switch options.elem_types{etype_idx}
+    switch (options.elem_types{etype_idx})
       case "iso8"
         inumfaces += 12 * rows(elements);
+      case "iso4"
+        inumfaces += 2 * rows(elements);
       case "tet10"
         inumfaces += 16 * rows(elements);
       case "tria6"
@@ -102,13 +104,13 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   hold on;
 
   for etype_idx=1:length(options.elem_types)
-    if ~isfield(mesh.elements, options.elem_types{etype_idx})
+    if (~isfield(mesh.elements, options.elem_types{etype_idx}))
       continue
     endif
 
     elements = getfield(mesh.elements, options.elem_types{etype_idx});
 
-    switch options.elem_types{etype_idx}
+    switch (options.elem_types{etype_idx})
       case "iso8"
         faces = [1,2,3;
                  1,4,3;
@@ -122,6 +124,9 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
                  3,7,6,
                  6,7,8,
                  6,5,8];
+      case "iso4"
+        faces = [1, 2, 3;
+                 3, 4, 1];
       case "tet10"
         faces = [1, 5, 8; ## 1
                  5, 2, 8;
@@ -177,7 +182,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
 
   if (nargin >= 2 && numel(sol))
     color_table = jet(1024);
-    norm_U = norm(sol.def(:, :, idx_sol), "rows");
+    norm_U = norm(sol.def(:, 1:3, idx_sol), "rows");
     max_U = max(norm_U);
     grid_U = linspace(0, max_U, rows(color_table)).';
 
@@ -189,7 +194,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   endif
 
   if (inumfaces)
-    patch('Faces', face_data(1:inumfaces, :), 'Vertices', nodes(:, 1:3), 'FaceVertexCData', color_data, 'FaceColor', 'flat');
+    patch('Faces', face_data(1:inumfaces, :), 'Vertices', nodes, 'FaceVertexCData', color_data, 'FaceColor', 'interp');
   endif
   
   if (options.node_labels)

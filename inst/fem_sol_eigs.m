@@ -47,7 +47,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
   endif
 
   blambda = full(any(diag(K) <= 0));
-  
+
   if (nargin < 7 || ~fem_sol_check_func(solver))
     if (fem_sol_check_func("pastix"))
       solver = "pastix";
@@ -79,7 +79,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
 
   opts.refine_max_iter = int32(3);
   opts.number_of_threads = num_threads;
-  
+
   switch (solver)
     case "pastix"
       opts.matrix_type = PASTIX_API_SYM_YES;
@@ -122,20 +122,20 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
         iter_eig = int32(0);
         max_iter_eig = int32(10);
 
-        while true
+        while (true)
           [U, mu, status] = eigs(eigs_callback, columns(M), N, SIGMA, opts);
 
-          if status ~= 0
+          if (status ~= 0)
             error("eigs failed to converge");
           endif
 
-          if isreal(U)
+          if (isreal(U))
             break;
           endif
 
           ## If U is not real, call eigs again with a new random starting vector
 
-          if ++iter_eig > max_iter_eig
+          if (++iter_eig > max_iter_eig)
             error("eigs returned complex eigenvectors");
           endif
 
@@ -372,3 +372,21 @@ endfunction
 %!  assert(A * v2(:, k), lambda2(k) * B * v2(:, k), tol2 * norm(A * v2(:, k)));
 %! endfor
 %! endfor
+
+%!demo
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   for N=[2, 10, 50, 100]
+%!     num_modes = ceil(0.1 * N);
+%!     for i=1:100
+%!       K = rand(N, N);
+%!       K *= K.';
+%!       M = rand(N, N);
+%!       M *= M.';
+%!       [U, lambda] = fem_sol_eigs(K, M, num_modes);
+%!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!  rand("state", state);
+%! end_unwind_protect

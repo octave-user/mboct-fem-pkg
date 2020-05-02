@@ -33,13 +33,15 @@ function sol = fem_post_def_import(filename, mesh, num_load_case)
     num_load_case = 1;
   endif
   
-  [fd, msg] = fopen(filename);
+  fd = -1;
+  
+  unwind_protect
+    [fd] = fopen(filename, "rt");
 
-  if (fd == -1)
-    error("failed to open file \"%s\"", filename);
-  endif
+    if (fd == -1)
+      error("failed to open file \"%s\"", filename);
+    endif
 
-  unwind_protect   
     sol.def = zeros(rows(mesh.nodes), 6, num_load_case);
     
     subcase_idx = int32(0);
@@ -67,6 +69,8 @@ function sol = fem_post_def_import(filename, mesh, num_load_case)
       endif
     endwhile
   unwind_protect_cleanup
-    fclose(fd);
+    if (fd ~= -1)
+      fclose(fd);
+    endif
   end_unwind_protect
 endfunction

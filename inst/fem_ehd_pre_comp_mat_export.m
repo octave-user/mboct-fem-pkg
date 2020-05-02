@@ -34,8 +34,6 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
     print_usage();
   endif
 
-  owns_fd = false;
-
   if (nargin < 2)
     options = struct();
   endif
@@ -53,21 +51,24 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
       endif
   endswitch
 
-  if (nargin < 3)
-    fd = stdout;
-  elseif (ischar(varargin{1}))
-    [fd, msg] = fopen(varargin{1}, "wt");
-    if (fd == -1)
-      error("failed to open file \"%s\": %s", varargin{1}, msg);
-    endif
-    owns_fd = true;
-  else
-    fd = varargin{1};
-  endif
-
-  file_format = 12;
-
+  owns_fd = false;
+  fd = -1;
+  
   unwind_protect
+    if (nargin < 3)
+      fd = stdout;
+    elseif (ischar(varargin{1}))
+      owns_fd = true;
+      [fd, msg] = fopen(varargin{1}, "wt");
+      if (fd == -1)
+        error("failed to open file \"%s\": %s", varargin{1}, msg);
+      endif
+    else
+      fd = varargin{1};
+    endif
+
+    file_format = 12;
+
     d = comp_mat.bearing_dimensions.bearing_diameter;
     w = comp_mat.bearing_dimensions.bearing_width;
 
@@ -233,7 +234,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
     endswitch
 
   unwind_protect_cleanup
-    if (owns_fd)
+    if (owns_fd && fd ~= -1)
       fclose(fd);
     endif
   end_unwind_protect
@@ -254,7 +255,7 @@ endfunction
 %! ## Freund, Norman Owen, A thermo-elasto-hydrodynamic study of journal bearings, Doctor of Philosophy thesis, University of
 %! ## Wollongong. Dept. of Mechanical Engineering, University of Wollongong, 1995. http://ro.uow.edu.au/theses/1568
 %! ############################################################################################################################
-%! 
+%!
 %! close all;
 %! ## Figure 46b, page 175
 %! ref_data_w = [  0, 195;
@@ -355,7 +356,7 @@ endfunction
 %!     opt_mesh.mesh.element_size = param.h;
 %!   endif
 %!   opt_mesh.mesh.jacobian_range = [0.5, 1.5];
-%!   opt_mesh.verbose = true;
+%!   opt_mesh.verbose = false;
 %!   opt_mesh.output_file = [output_file, "_msh"];
 %!   options.geo_tol = sqrt(eps);
 %!   options_mbdyn.mbdyn_command = "mbdyn";
@@ -543,7 +544,7 @@ endfunction
 %!   cms_opt.invariants = true;
 %!   cms_opt.refine_max_iter = int32(0);
 %!   cms_opt.number_of_threads = int32(4);
-%!   cms_opt.verbose = true;
+%!   cms_opt.verbose = false;
 %!   cms_opt.modes.number = 0;
 %!   cms_opt.element.name = "elem_id_diaphragm_cms";
 
@@ -640,7 +641,7 @@ endfunction
 %!       fprintf(fd, "set: number_of_nodes_z = %d;\n", numel(comp_mat(j).bearing_surf.grid_z));
 %!     endfor
 %!   unwind_protect_cleanup
-%!     if fd ~= -1
+%!     if (fd ~= -1)
 %!       fclose(fd);
 %!       fd = -1;
 %!     endif

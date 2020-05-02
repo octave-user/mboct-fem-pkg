@@ -41,7 +41,7 @@ function U = fem_sol_linsolve(K, R, options)
   endif
 
   if (~isfield(options, "solver"))
-    options.solver = struct();
+    options.solver = "pastix";
   endif
 
   if (~isfield(options, "refine_max_iter"))
@@ -49,38 +49,105 @@ function U = fem_sol_linsolve(K, R, options)
   endif
 
   if (~isfield(options.solver, "number_of_threads"))
-    options.solver.number_of_threads = int32(1);
+    options.number_of_threads = int32(1);
   endif
-  
-  blambda = full(any(diag(K) <= 0));
-  
-  if (fem_sol_check_func("pastix"))
-    opt_pastix.matrix_type = PASTIX_API_SYM_YES;      
-    opt_pastix.factorization = PASTIX_API_FACT_LDLT;
-    opt_pastix.verbose = PASTIX_API_VERBOSE_NOT;
-    opt_pastix.bind_thread_mode = PASTIX_API_BIND_NO;
-    opt_pastix.number_of_threads = options.solver.number_of_threads;
-    opt_pastix.refine_max_iter = options.refine_max_iter; ## Do not use pastix without refinement (see fem_pre_mesh_import:test13)!
 
-    Kfact = fem_fact_pastix(K, opt_pastix);
-  elseif (fem_sol_check_func("mumps"))
-    if (blambda)
-      opt_mumps.matrix_type = MUMPS_MAT_SYM;
+  blambda = full(any(diag(K) <= 0));
+
+  if (~fem_sol_check_func(options.solver))
+    if (fem_sol_check_func("pastix"))
+      options.solver = "pastix";
+    elseif (fem_sol_check_func("mumps"))
+      options.solver = "mumps";
+    elseif (fem_sol_check_func("umfpack"))
+      options.solver = "umfpack";
+    elseif (blambda)
+      options.solver = "lu";
     else
-      opt_mumps.matrix_type = MUMPS_MAT_DEF;
+      options.solver = "chol";
     endif
-    opt_mumps.refine_max_iter = options.refine_max_iter;
-    opt_mumps.verbose = MUMPS_VER_ERR;
-    Kfact = fem_fact_mumps(K, opt_mumps);    
-  elseif (~blambda) ## If we are using Lagrange multipliers, there will be always zeros at the main diagonal
-    opt_chol = options;
-    Kfact = fem_fact_chol(K, opt_chol);
-  elseif (fem_sol_check_func("umfpack"))
-    opt_umfpack.refine_max_iter = options.refine_max_iter;
-    Kfact = fem_fact_umfpack(K, opt_umfpack);
-  else
-    Kfact = fem_fact(K);
   endif
+
+  switch (options.solver)
+    case "pastix"
+      options.matrix_type = PASTIX_API_SYM_YES;
+      options.factorization = PASTIX_API_FACT_LDLT;
+      options.verbose = PASTIX_API_VERBOSE_NOT;
+      options.bind_thread_mode = PASTIX_API_BIND_NO;
+      Kfact = fem_fact_pastix(K, options);
+    case "mumps"
+      if (blambda)
+        options.matrix_type = MUMPS_MAT_SYM;
+      else
+        options.matrix_type = MUMPS_MAT_DEF;
+      endif
+      options.verbose = MUMPS_VER_ERR;
+      Kfact = fem_fact_mumps(K, options);
+    case "umfpack"
+      Kfact = fem_fact_umfpack(K, options);
+    case "chol"
+      ## If we are using Lagrange multipliers, there will be always zeros at the main diagonal
+      Kfact = fem_fact_chol(K, options);
+    case "lu"
+      Kfact = fem_fact_lu(K, options);
+  endswitch
 
   U = Kfact \ R;
 endfunction
+
+%!test
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   solvers = {"pastix", "mumps", "umfpack", "chol", "lu"};
+%!   tol = sqrt(eps);
+%!   max_f = 0;
+%!   for N=[2,10,100,200]
+%!     for i=1:10
+%!       A = 2 * rand(N, N) - 1;
+%!       A *= A.';
+%!       b = 2 * rand(N, 20) - 1;
+%!       for i=1:numel(solvers)
+%!         options.solver = solvers{i};
+%!         options.refine_max_iter = int32(10);
+%!         options.number_of_threads = int32(1);
+%!         x = fem_sol_linsolve(A, b, options);
+%!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
+%!         max_f = max(f, max_f);
+%!       endfor
+%!     endfor
+%!   endfor
+%!   assert(max_f < tol);
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   for N=[2,10,100,200,300]
+%!     K = gallery("Poisson", N);
+%!     R = rand(columns(K), 10);
+%!     solvers = {"pastix", "mumps", "umfpack", "chol", "lu"};
+%!     tol = sqrt(eps);
+%!     for i=1:numel(solvers)
+%!       options.solver = solvers{i};
+%!       options.refine_max_iter = int32(10);
+%!       U = fem_sol_linsolve(K, R, options);
+%!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
+%!       assert(f < tol);
+%!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!demo
+%! N = 100;
+%! K = gallery("Poisson", N);
+%! R = linspace(0, 1, columns(K)).';
+%! options.solver = "chol";
+%! U = fem_sol_linsolve(K, R, options);
+%! f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
+%! fprintf(stderr, "backward error: %.1e\n", f);

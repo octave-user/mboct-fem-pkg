@@ -34,6 +34,10 @@ function flag = fem_sol_check_func(func)
       return;
   endswitch
 
+  ## If the function was not compiled, but the PKG_ADD file
+  ## was generated from comments in the source code by Octave's package manager,
+  ## then exist incorrectly reports, that the function exists.
+
   fname = which(func);
 
   if (numel(fname))

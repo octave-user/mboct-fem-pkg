@@ -146,9 +146,10 @@ endfunction
 %! endif
 %! for i=1:numel(a)
 %!   unwind_protect
+%!     fd = -1;
 %!     unwind_protect
 %!       [fd, msg] = fopen([filename, ".geo"], "wt");
-%!       if fd == -1
+%!       if (fd == -1)
 %!         error("failed to open file \"%s.geo\"", filename);
 %!       endif
 %!       unwind_protect
@@ -175,7 +176,9 @@ endfunction
 %!         fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
 %!         fputs(fd, "Physical Surface(\"load\",2) = {tmp[3]};\n");
 %!       unwind_protect_cleanup
-%!         fclose(fd);
+%!         if (fd ~= -1)
+%!           fclose(fd);
+%!         endif
 %!       end_unwind_protect
 %!       fprintf(stderr, "meshing ...\n");
 %!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});

@@ -4945,8 +4945,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           "@deftypefn {} [@var{varargout}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type})\n"
           "@deftypefnx {} [@dots{}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type}, @var{load_case})\n"
           "@deftypefnx {} [@dots{}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type}, @var{load_case}, @var{sol})\n"
-          "@deftypefnx {} [@dots{}, @var{mesh_info}] = fem_ass_matrix(@dots{})\n"
-          "@deftypefnx {} [@dots{}, @var{mesh_info}, @var{mat_info}] = fem_ass_matrix(@dots{})\n"
+          "@deftypefnx {} [@dots{}, @var{mat_info}] = fem_ass_matrix(@dots{})\n"
+          "@deftypefnx {} [@dots{}, @var{mat_info}, @var{mesh_info}] = fem_ass_matrix(@dots{})\n"
           "This function is the core of the finite element toolkit.\n\n"
           "Assemble all global finite element matrices requested in the array @var{matrix_type} and return it in @var{varargout}.\n\n"
           "@var{mesh} @dots{} Finite element mesh data structure returned from fem_pre_mesh_struct_create or fem_pre_mesh_unstruct_create.\n\n"
@@ -5468,6 +5468,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                                         const Cell ov_joints = load_case.contents(iter_joints);
 
                                                         for (octave_idx_type k = 0; k < load_case.numel(); ++k) {
+                                                                if (ov_joints(k).isempty()) {
+                                                                        continue;
+                                                                }
+                                                                
                                                                 const octave_map s_joints(ov_joints(k).map_value());
 
                                                                 if (error_state) {

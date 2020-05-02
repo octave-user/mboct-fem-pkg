@@ -31,13 +31,15 @@ function fem_pre_geo_export(param_file, geo_file, param_val)
     print_usage();
   endif
   
-  [fd, msg] = fopen(param_file, "wt");
-
-  if fd == -1
-    error("failed to open file \"%s\": %s", param_file, msg);
-  endif
-
+  fd = -1;
+  
   unwind_protect
+    [fd, msg] = fopen(param_file, "wt");
+
+    if (fd == -1)
+      error("failed to open file \"%s\": %s", param_file, msg);
+    endif
+
     fn = fieldnames(param_val);
 
     for i=1:numel(fn)
@@ -91,8 +93,9 @@ function fem_pre_geo_export(param_file, geo_file, param_val)
 
     fprintf(fd, "Include \"%s\";\n", geo_file);
   unwind_protect_cleanup
-    fclose(fd);
-    fd = -1;
+    if (fd ~= -1)
+      fclose(fd);
+    endif
   end_unwind_protect
 endfunction
 

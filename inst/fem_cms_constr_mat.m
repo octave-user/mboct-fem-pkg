@@ -21,7 +21,7 @@
 ## The set of algebraic constraint equations is defined as @var{C} * @var{U} == 0
 ##
 ## And the resulting reduced set of unknowns is defined as @var{U} = @var{T} * @var{q} and thus @var{C} * @var{T} * @var{q} == 0
-##
+## @seealso{fem_cms_constr_elim}
 ## @end deftypefn
 
 function [T, res] = fem_cms_constr_mat(C)
@@ -42,15 +42,40 @@ endfunction
 
 %!test
 %! C = [eye(3), -eye(3), zeros(3, 6)];
-%! [q, r] = qr(C.');
-%! T = fem_cms_constr_mat(C);
+%! [T, res] = fem_cms_constr_mat(C);
 %! assert(size(T),[12, 9]);
+%! assert(res <= eps^0.9);
 
 %!test
 %! C = [zeros(3, 6), eye(3), -eye(3)];
-%! T = fem_cms_constr_mat(C);
+%! [T, res] = fem_cms_constr_mat(C);
 %! assert(size(T),[12, 9]);
+%! assert(res <= eps^0.9);
 
+%!test
+%! C = [eye(3), zeros(3, 6), -eye(3)];
+%! [T, res] = fem_cms_constr_mat(C);
+%! assert(size(T),[12, 9]);
+%! assert(res <= eps^0.9);
+
+%!test
+%! C = [-eye(3), zeros(3, 6), eye(3)];
+%! [T, res] = fem_cms_constr_mat(C);
+%! assert(size(T),[12, 9]);
+%! assert(res <= eps^0.9);
+
+%!test
+%! C = [1, 2, 3, 0, 0, 0];
+%! [T, res] = fem_cms_constr_mat(C);
+%! assert(size(T),[6, 5]);
+%! assert(res <= eps^0.9);
+
+%!test
+%! C = [1, 2, 3, 0, 0, 0;
+%!      0, 0, 0, 1, 2, 3];
+%! [T, res] = fem_cms_constr_mat(C);
+%! assert(size(T),[6, 4]);
+%! assert(res <= eps^0.9);
 
 %!test
 %! C = [7.00000000e+000 1.00000000e+000 1.00000000e+000
@@ -6790,3 +6815,9 @@ endfunction
 %! C = spconvert(C);
 %! [T,res] = fem_cms_constr_mat(C);
 %! assert(res < eps^0.5);
+
+%!demo
+%! C = [eye(3), -eye(3), zeros(3, 6)];
+%! [T, res] = fem_cms_constr_mat(C);
+%! f = C * T;
+%! assert(all(all(f == 0)));

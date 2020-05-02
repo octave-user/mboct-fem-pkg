@@ -25,14 +25,14 @@ function TAT = fem_cms_matrix_trans(T, A, mat_type)
     print_usage();
   endif
   
-  switch mat_type
+  switch (mat_type)
     case "Upper"
       TAT = zeros(columns(T), columns(T));
       for j=1:columns(T)
         AT = A * T(:, j);
         for i=1:j
           TAT(i, j) = T(:, i).' * AT;
-          if i ~= j
+          if (i ~= j)
             TAT(j, i) = TAT(i, j);
           endif
         endfor
@@ -43,7 +43,7 @@ function TAT = fem_cms_matrix_trans(T, A, mat_type)
         AT = A * T(:, j);
         for i=j:columns(T)
           TAT(i, j) = T(:, i).' * AT;
-          if i ~= j
+          if (i ~= j)
             TAT(j, i) = TAT(i, j);
           endif
         endfor
@@ -122,3 +122,13 @@ endfunction
 %! TAT = fem_cms_matrix_trans(T, A, "Lower");
 %! assert(TAT, T.' * A * T, eps^0.7);
 %! endfor
+
+%!demo
+%! A = rand(10, 10);
+%! A *= A.';
+%! T = rand(10, 3);
+%! TAT1 = fem_cms_matrix_trans(T, A, "Upper");
+%! TAT2 = fem_cms_matrix_trans(T, A, "Lower");
+%! assert(isdefinite(A));
+%! assert(isdefinite(TAT1));
+%! assert(TAT2, TAT1, eps * norm(TAT1));

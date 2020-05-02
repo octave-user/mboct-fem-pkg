@@ -40,20 +40,24 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
   if (~isfield(cms_opt, "invariants"))
     cms_opt.invariants = true;
   endif
-  
-  filename(find(filename == '\')) = '/'; ## Required for MBDyn's parser
-  
-  [fd, msg] = fopen([filename, ".elm"], "wt");
 
-  if (fd == -1)
-    error("failed to open file \"%s\": %s", [filename, ".elm"], msg);
+  if (ispc())
+    filename(find(filename == '\')) = '/'; ## Required for MBDyn's parser
   endif
-
+  
+  fd = -1;
+  
   unwind_protect
+    [fd, msg] = fopen([filename, ".elm"], "wt");
+
+    if (fd == -1)
+      error("failed to open file \"%s\": %s", [filename, ".elm"], msg);
+    endif
+
     warning("error", "Octave:singular-matrix", "local");
     
-    fprintf(fd, "## condest(Mred)=%e\n", condest(mat_ass.Mred));
-    fprintf(fd, "## condest(Kred)=%e\n\n", condest(mat_ass.Kred));
+    fprintf(fd, "## condest(Mred)=%.1e\n", condest(mat_ass.Mred));
+    fprintf(fd, "## condest(Kred)=%.1e\n\n", condest(mat_ass.Kred));
     
     fprintf(fd, "joint: %s, modal, %s,\n", cms_opt.element.name, cms_opt.nodes.modal.name);
     
@@ -89,7 +93,9 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
 
     fprintf(fd, ";\n");
   unwind_protect_cleanup
-    fclose(fd);
+    if (fd ~= -1)
+      fclose(fd);
+    endif
   end_unwind_protect
 
   if (cms_opt.verbose)
@@ -115,33 +121,33 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
     endfor
     
     mbdyn_pre_write_fem_data([filename, ".fem"], ...
-                          mat_ass.Mred, ...
-                          mat_ass.Dred, ...
-                          mat_ass.Kred, ...
-                          mat_ass.Phi(idx_Phi_output, :), ...
-                          mesh.nodes(idx_node_output, 1:3).', ...
-                          zeros(columns(mat_ass.Mred), 1), ...
-                          zeros(columns(mat_ass.Mred), 1), ...
-                          [], ...
-                          mat_ass.dm, ...
-                          Xgc, ...
-                          Jgc, ...
-                          idx_node_output, ...
-                          mat_ass.Inv3, ...
-                          mat_ass.Inv4, ...
-                          mat_ass.Inv5, ...
-                          mat_ass.Inv8, ...
-                          mat_ass.Inv9);
+                             mat_ass.Mred, ...
+                             mat_ass.Dred, ...
+                             mat_ass.Kred, ...
+                             mat_ass.Phi(idx_Phi_output, :), ...
+                             mesh.nodes(idx_node_output, 1:3).', ...
+                             zeros(columns(mat_ass.Mred), 1), ...
+                             zeros(columns(mat_ass.Mred), 1), ...
+                             [], ...
+                             mat_ass.dm, ...
+                             Xgc, ...
+                             Jgc, ...
+                             idx_node_output, ...
+                             mat_ass.Inv3, ...
+                             mat_ass.Inv4, ...
+                             mat_ass.Inv5, ...
+                             mat_ass.Inv8, ...
+                             mat_ass.Inv9);
   else  
     mbdyn_pre_write_fem_data([filename, ".fem"], ...
-                          mat_ass.Mred, ...
-                          mat_ass.Dred, ...
-                          mat_ass.Kred, ...
-                          mat_ass.Phi, ...
-                          mesh.nodes(:, 1:3).', ...
-                          zeros(columns(mat_ass.Mred), 1), ...
-                          zeros(columns(mat_ass.Mred), 1), ...
-                          mat_ass.diagM);
+                             mat_ass.Mred, ...
+                             mat_ass.Dred, ...
+                             mat_ass.Kred, ...
+                             mat_ass.Phi, ...
+                             mesh.nodes(:, 1:3).', ...
+                             zeros(columns(mat_ass.Mred), 1), ...
+                             zeros(columns(mat_ass.Mred), 1), ...
+                             mat_ass.diagM);
   endif
   
   if (cms_opt.verbose)
@@ -149,6 +155,71 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
     toc();
   endif
 endfunction
+
+%!demo
+%! close all;
+%! SI_unit_m = 1e-3;
+%! SI_unit_kg = 1e3;
+%! SI_unit_s = 1e-1;
+%! SI_unit_N = SI_unit_kg * SI_unit_m / SI_unit_s^2;
+%! SI_unit_Pa = SI_unit_N / SI_unit_m^2;
+%! a = 150e-3 / SI_unit_m;
+%! b = 20e-3 / SI_unit_m;
+%! c = 45e-3 / SI_unit_m;
+%! d = 10e-3 / SI_unit_m;
+%! e = 10e-3 / SI_unit_m;
+%! X = [ 0.5 * a,  0.5 * b,  0.5 * c;  ##  1
+%!             0,  0.5 * b,  0.5 * c;  ##  2
+%!             0, -0.5 * b,  0.5 * c;  ##  3
+%!       0.5 * a, -0.5 * b,  0.5 * c;  ##  4
+%!       0.5 * a,  0.5 * b, -0.5 * c;  ##  5
+%!             0,  0.5 * b, -0.5 * c;  ##  6
+%!             0, -0.5 * b, -0.5 * c;  ##  7
+%!       0.5 * a, -0.5 * b, -0.5 * c,  ##  8
+%!             a,  0.5 * b,  0.5 * c;  ##  9
+%!             a, -0.5 * b,  0.5 * c;  ## 10
+%!             a,  0.5 * b, -0.5 * c;  ## 11
+%!             a, -0.5 * b, -0.5 * c,  ## 12
+%!         a + d,        0,        0;  ## 13
+%!            -e,        0,        0]; ## 14
+%! mesh.nodes = [X, zeros(rows(X), 3)];
+%! mesh.elements.iso8 = int32([1:8; 9, 1, 4, 10, 11, 5, 8, 12]);
+%! mesh.materials.iso8 = int32([1; 1]);
+%! mesh.elements.rbe3(1).nodes = int32([13, 9, 10, 11, 12]);
+%! mesh.elements.rbe3(1).weight = ones(1, 4);
+%! mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
+%! mesh.elements.rbe3(2).weight = ones(1, 4);
+%! mesh.material_data.E = 210000e6 / (SI_unit_N / SI_unit_m^2);
+%! mesh.material_data.nu = 0.3;
+%! mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
+%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! load_case.locked_dof = false(rows(mesh.nodes), 6);
+%! cms_opt.element.name = "elem_id_cube";
+%! cms_opt.verbose = false;
+%! cms_opt.modes.number = int32(6);
+%! cms_opt.nodes.modal.number = int32(14);
+%! cms_opt.nodes.modal.name = "node_id_cube_modal";
+%! cms_opt.nodes.interfaces.number = int32(13);
+%! cms_opt.nodes.interfaces.name = "node_id_cube_interface1";
+%! cms_opt.number_of_threads = 1;
+%! cms_opt.algorithm = "eliminate";
+%! cms_opt.invariants = true;
+%! [mesh_cms, ...
+%!  mat_ass_cms, ...
+%!  dof_map_cms, ...
+%!  sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   fem_cms_export(filename, mesh_cms, mat_ass_cms, cms_opt);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
 
 %!demo
 %! close all;
@@ -162,7 +233,7 @@ endfunction
 %! param.alpha = 0 / (1 / SI_unit_second);
 %! param.beta = 1e-7 / (SI_unit_second);
 
-%! param.h = 5e-3 / SI_unit_meter; ## mesh size
+%! param.h = 2.5e-3 / SI_unit_meter; ## mesh size
 %! param.l = 350e-3 / SI_unit_meter; ## bearing distance
 %! param.d = 10e-3 / SI_unit_meter; ## shaft diameter
 %! param.D = 150e-3 / SI_unit_meter; ##disk diameter
@@ -181,7 +252,7 @@ endfunction
 %! param.n = 10;
 
 %! cms_opt.algorithm = "shift-invert";
-%! cms_opt.refine_max_iter = int32(10);
+%! cms_opt.refine_max_iter = int32(3);
 %! cms_opt.element.name = "elem_id_rotor";
 %! cms_opt.nodes.modal.name = "node_id_rotor";
 %! cms_opt.nodes.interfaces(1).name = "node_id_bearing1";
@@ -695,13 +766,14 @@ endfunction
 %!     endif
 %!   end_unwind_protect
 %!   geometry_file = [filename, ".geo"];
-%!   [fd, msg] = fopen(geometry_file, "wt");
-
-%!   if (fd == -1)
-%!     error("failed to open file \"%s\"", geometry_file);
-%!   endif
-
+%!   fd = -1;
 %!   unwind_protect
+%!     [fd, msg] = fopen(geometry_file, "wt");
+
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\"", geometry_file);
+%!     endif
+
 %!     fn = fieldnames(param);
 
 %!     for i=1:length(fn)
@@ -727,22 +799,17 @@ endfunction
 %!     fputs(fd, "Line(8) = {8, 1};\n");
 %!     fputs(fd, "Line Loop(1) = {1, 2, 3, 4, 5, 6, 7, 8};\n");
 %!     fputs(fd, "Plane Surface(1) = {1};\n");
-%!     fputs(fd, "vol1[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{1}; };\n");
-%!     fputs(fd, "vol2[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{vol1[0]}; };\n");
-%!     fputs(fd, "vol3[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{vol2[0]}; };\n");
-%!     fputs(fd, "vol4[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{vol3[0]}; };\n");
-
-%!     fputs(fd, "vol6 = newv;\n");
-%!     fputs(fd, "BooleanUnion(vol6) = { Volume{vol1[1]}; Delete; }{ Volume{vol2[1], vol3[1], vol4[1]}; Delete; };\n");
-%!     fputs(fd, "B[] = Unique(Abs(Boundary{Volume{vol6};}));\n");
-%!     fputs(fd, "Physical Volume(\"V\", 1) = {vol6};\n");
+%!     fputs(fd, "vol1[] = Extrude{{0, 0, 1},{0, 0, 0}, 2 * Pi}{ Surface{1}; };\n");
+%!     fputs(fd, "B[] = Unique(Abs(Boundary{Volume{vol1};}));\n");
+%!     fputs(fd, "Physical Volume(\"V\", 1) = {vol1};\n");
 %!     fputs(fd, "For i In {0:#B[] - 1}\n");
 %!     fputs(fd, "    Physical Surface(i) = {B[i]};\n");
 %!     fputs(fd, "EndFor\n");
 %!   unwind_protect_cleanup
-%!     fclose(fd);
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
 %!   end_unwind_protect
-
 %!   fprintf(stderr, "meshing ...\n");
 %!   pid = spawn("gmsh", {"-format", "msh2", ...
 %!                        "-3", ...
@@ -842,14 +909,14 @@ endfunction
 %!   endfor
 
 %!   eig_post_pro_file = sprintf("%s_modes_post.geo", filename);
-  
-%!   [fd, msg] = fopen(eig_post_pro_file, "wt");
-
-%!   if (fd == -1)
-%!     error("failed to open file \"%s\"", eig_post_pro_file);
-%!   endif
-
+%!   fd = -1;
 %!   unwind_protect
+%!     [fd, msg] = fopen(eig_post_pro_file, "wt");
+
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\"", eig_post_pro_file);
+%!     endif
+
 %!     fprintf(fd, "Merge \"%s\";\n", mesh_post_pro_file);
     
 %!     for j=1:numel(eig_post_pro_file_mode)
@@ -865,7 +932,9 @@ endfunction
 %!     fputs(fd, "View.IntervalsType = 3;\n");
 %!     fputs(fd, "View.NbIso = 20;\n");
 %!   unwind_protect_cleanup
-%!     fclose(fd);
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
 %!   end_unwind_protect
   
 %!   mat_ass.Dred = param.alpha * mat_ass.Mred + param.beta * mat_ass.Kred;

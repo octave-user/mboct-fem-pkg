@@ -33,14 +33,16 @@ function sol = fem_post_stress_import(filename, mesh, num_load_case)
   if (nargin < 3)
     num_load_case = 1;
   endif
-  
-  [fd, msg] = fopen(filename);
 
-  if (fd == -1)
-    error("failed to open file \"%s\"", filename);
-  endif
+  fd = -1;
 
-  unwind_protect   
+  unwind_protect
+    [fd, msg] = fopen(filename);
+
+    if (fd == -1)
+      error("failed to open file \"%s\"", filename);
+    endif
+
     taun = zeros(rows(mesh.nodes), num_load_case);
     subcase_idx = int32(0);
     node_idx = int32(0);
@@ -83,6 +85,8 @@ function sol = fem_post_stress_import(filename, mesh, num_load_case)
       endif
     endfor
   unwind_protect_cleanup
-    fclose(fd);
+    if (fd ~= -1)
+      fclose(fd);
+    endif
   end_unwind_protect
 endfunction

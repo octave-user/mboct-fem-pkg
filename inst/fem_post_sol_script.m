@@ -15,7 +15,7 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {Function File} fem_post_sol_script(@var{post_pro_script_file}, @var{options})
-## Create a Gmsh script named @var{post_pro_script_file} for post-processing within Gmsh.
+## Create a Gmsh script named <@var{post_pro_script_file}> for post-processing within Gmsh.
 ## This function is called from fem_post_sol_external.
 ##
 ## @var{options}.scale_def @dots{} scale factor for deformations
@@ -78,14 +78,16 @@ function fem_post_sol_script(post_pro_script_file, options)
   if (~isfield(options, "intervals_type"))
     options.intervals_type = 3;
   endif
+
+  fd = -1;
   
-  [fd, msg] = fopen(post_pro_script_file, "wt");
-
-  if (fd == -1)
-    error("failed to open file \"%s\"", post_pro_script_file);
-  endif
-
   unwind_protect
+    [fd, msg] = fopen(post_pro_script_file, "wt");
+
+    if (fd == -1)
+      error("failed to open file \"%s\"", post_pro_script_file);
+    endif
+
     fprintf(fd, "Merge \"%s\";\n", options.mesh_filename);
     fprintf(fd, "Mesh.SurfaceEdges = 0;\n");
     fprintf(fd, "Mesh.VolumeFaces = 0;\n");
@@ -208,6 +210,8 @@ function fem_post_sol_script(post_pro_script_file, options)
       endif      
     endif
   unwind_protect_cleanup
-    fclose(fd);
+    if (fd ~= -1)
+      fclose(fd);
+    endif
   end_unwind_protect
 endfunction

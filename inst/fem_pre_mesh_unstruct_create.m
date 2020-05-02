@@ -229,7 +229,9 @@ endfunction
 %!     fputs(fd, "Physical Surface(\"clamp\") = {v[2]};\n");
 %!     fputs(fd, "Physical Surface(\"load\") = {v[7]};\n");
 %!   unwind_protect_cleanup
-%!     fclose(fd);
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
 %!   end_unwind_protect
 %!   opt.mesh.order = 1;
 %!   opt.mesh.optimize = true;
@@ -252,7 +254,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS_SYM_L, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   opt_sol.solver.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(4);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -372,7 +374,7 @@ endfunction
 %!   if (mesh_info.detJ.min <= 0)
 %!     error("Jacobian is singular");
 %!   endif
-%!   opt_sol.solver.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(4);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -487,7 +489,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS_SYM_L, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   opt_sol.solver.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(4);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -606,7 +608,7 @@ endfunction
 %!   if (mesh_info.detJ.min <= 0)
 %!     error("Jacobian is singular");
 %!   endif
-%!   opt_sol.solver.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(4);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
