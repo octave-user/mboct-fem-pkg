@@ -59,7 +59,6 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
   empty_cell = cell(1, numel(bearing_surf));
 
   comp_mat = struct("C", empty_cell, ...
-                    "condest_C", empty_cell, ...
                     "D", empty_cell, ...
                     "E", empty_cell, ...
                     "xi", empty_cell, ...
@@ -177,32 +176,9 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     idx_ndof_ref_node_act = find(idx_dof_ref_node > 0);
     idx_dof_ref_node_act = idx_dof_ref_node(idx_ndof_ref_node_act);
 
-    have_pastix = fem_sol_check_func("pastix");
-    have_mumps = fem_sol_check_func("mumps");
-    have_umfpack = fem_sol_check_func("umfpack");
-
-    if (have_pastix)
-      opt_pastix.matrix_type = PASTIX_API_SYM_YES;
-      opt_pastix.factorization = PASTIX_API_FACT_LDLT;
-      opt_pastix.refine_max_iter = cms_opt.refine_max_iter;
-      opt_pastix.bind_thread_mode = PASTIX_API_BIND_NO;
-      opt_pastix.number_of_threads = cms_opt.number_of_threads;
-      opt_pastix.verbose = cms_opt.verbose;
-    elseif (have_mumps)
-      opt_mumps.matrix_type = MUMPS_MAT_SYM;
-      opt_mumps.refine_max_iter = cms_opt.refine_max_iter;
-
-      if (cms_opt.verbose)
-        opt_mumps.verbose = MUMPS_VER_WARN;
-      else
-        opt_mumps.verbose = MUMPS_VER_ERR;
-      endif
-
-      opt_mumps.workspace_inc = int32(50);
-    elseif (have_umfpack)
-      opt_umfpack.refine_max_iter = cms_opt.refine_max_iter;
-    endif
-
+    opt_sol.refine_max_iter = cms_opt.refine_max_iter;
+    opt_sol.number_of_threads = cms_opt.number_of_threads;
+    
     if (~use_total_substruct)
       K = mat_ass.K; ## Make a copy of the stiffness matrix only but don't copy mat_ass itself
       ## Save stiffness matrix
@@ -216,15 +192,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       K(idx_lambda, idx_dof_master_act) = 0;
       K(idx_lambda, idx_lambda) = eye(numel(idx_lambda));
 
-      if (have_pastix)
-        Kfact = fem_fact_pastix(K, opt_pastix);
-      elseif (have_mumps)
-        Kfact = fem_fact_mumps(K, opt_mumps);
-      elseif (have_umfpack)
-        Kfact = fem_fact_umfpack(K, opt_umfpack);
-      else
-        Kfact = fem_fact_lu(K);
-      endif
+      Kfact = fem_sol_factor(K, opt_sol);
 
       ## Restore stiffness matrix
       K(idx_dof_master_act, idx_lambda) = CC_T;
@@ -300,7 +268,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
 
       a = zeros(columns(PHI), numel(bearing_surf(i).idx_load_case));
     endif
-
+    
     for j=1:chunk_size:numel(bearing_surf(i).idx_load_case)
       idx_rhs = j:min(numel(bearing_surf(i).idx_load_case), (j - 1 + chunk_size));
 
@@ -396,8 +364,16 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
           endfor
         endfor
       endif
+
+      if (cms_opt.verbose)
+        whos();
+      endif
       
       clear Unoderb Umaster Ustatn Rstat Ustat R_master U_master F_master M_master F_k idx_act_dof dof_idx_k;
+
+      if (cms_opt.verbose)
+        whos();
+      endif
     endfor
 
     if (use_modal_contrib && ~use_total_substruct && cms_opt.verbose)
@@ -407,7 +383,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     if (fres > tol_modal_res)
       warning("modal residual error %g for bearing %d out of tolerance %g", fres, i, tol_modal_res);
     endif
-
+    
     clear A Kfact fres;
 
     if (use_modal_contrib)
@@ -453,8 +429,11 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     endif
     
     if (~use_total_substruct)
-      comp_mat(i).condest_C = condest(C_S(1:end - Nxz(2), :));
       comp_mat(i).C = [C_S, C_S(:, 1:Nxz(2))];
+    endif
+
+    if (cms_opt.verbose)
+      whos();
     endif
   endfor
 endfunction

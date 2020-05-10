@@ -39,7 +39,7 @@ install_stamp    := $(installation_dir)/.install_stamp
 ## These can be set by environment variables which allow to easily
 ## test with different Octave versions.
 ifndef OCTAVE
-OCTAVE := octave
+OCTAVE := octave-cli
 endif
 OCTAVE := $(OCTAVE) --no-gui --silent --norc
 MKOCTFILE ?= mkoctfile

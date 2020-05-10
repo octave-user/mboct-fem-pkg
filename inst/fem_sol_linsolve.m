@@ -40,57 +40,7 @@ function U = fem_sol_linsolve(K, R, options)
     options = struct();
   endif
 
-  if (~isfield(options, "solver"))
-    options.solver = "pastix";
-  endif
-
-  if (~isfield(options, "refine_max_iter"))
-    options.refine_max_iter = int32(3);
-  endif
-
-  if (~isfield(options.solver, "number_of_threads"))
-    options.number_of_threads = int32(1);
-  endif
-
-  blambda = full(any(diag(K) <= 0));
-
-  if (~fem_sol_check_func(options.solver))
-    if (fem_sol_check_func("pastix"))
-      options.solver = "pastix";
-    elseif (fem_sol_check_func("mumps"))
-      options.solver = "mumps";
-    elseif (fem_sol_check_func("umfpack"))
-      options.solver = "umfpack";
-    elseif (blambda)
-      options.solver = "lu";
-    else
-      options.solver = "chol";
-    endif
-  endif
-
-  switch (options.solver)
-    case "pastix"
-      options.matrix_type = PASTIX_API_SYM_YES;
-      options.factorization = PASTIX_API_FACT_LDLT;
-      options.verbose = PASTIX_API_VERBOSE_NOT;
-      options.bind_thread_mode = PASTIX_API_BIND_NO;
-      Kfact = fem_fact_pastix(K, options);
-    case "mumps"
-      if (blambda)
-        options.matrix_type = MUMPS_MAT_SYM;
-      else
-        options.matrix_type = MUMPS_MAT_DEF;
-      endif
-      options.verbose = MUMPS_VER_ERR;
-      Kfact = fem_fact_mumps(K, options);
-    case "umfpack"
-      Kfact = fem_fact_umfpack(K, options);
-    case "chol"
-      ## If we are using Lagrange multipliers, there will be always zeros at the main diagonal
-      Kfact = fem_fact_chol(K, options);
-    case "lu"
-      Kfact = fem_fact_lu(K, options);
-  endswitch
+  Kfact = fem_sol_factor(K, options);
 
   U = Kfact \ R;
 endfunction

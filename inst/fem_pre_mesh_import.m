@@ -1139,8 +1139,7 @@ endfunction
 %!   endfor
 %!   [mesh, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
 %!   mat_ass_cms.Dred = alpha * mat_ass_cms.Mred + beta * mat_ass_cms.Kred;
-
-%!   mbdyn_pre_write_fem_data([filename, ".fem"], mat_ass_cms.Mred, mat_ass_cms.Dred, mat_ass_cms.Kred, mat_ass_cms.Phi, mesh.nodes(:, 1:3).', zeros(columns(mat_ass_cms.Mred), 1), zeros(columns(mat_ass_cms.Mred), 1), mat_ass_cms.diagM);
+%!   
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -2916,13 +2915,7 @@ endfunction
 %!   if (eliminate)
 %!     [Tred, Kred, Mred, Rred] = fem_cms_constr_elim(mesh, dof_map, mat_ass);
 %!     opt_ls.refine_max_iter = int32(100);
-%!     if (fem_sol_check_func("mumps"))
-%!       opt_ls.matrix_type = MUMPS_MAT_SYM;
-%!       opt_ls.verbose = MUMPS_VER_ERR;
-%!       Kfact = fem_fact_mumps(Kred, opt_ls);
-%!     else
-%!       Kfact = fem_fact_umfpack(Kred, opt_ls);
-%!     endif
+%!     Kfact = fem_sol_factor(Kred, opt_ls);
 %!     Ured = Kfact \ Rred;
 %!     sol_stat.def = fem_post_def_nodal(mesh, dof_map, Tred * Ured);
 %!   else
@@ -3934,13 +3927,7 @@ endfunction
 %!   if (eliminate)
 %!     [Tred, Kred, Mred, Rred] = fem_cms_constr_elim(mesh, dof_map, mat_ass);
 %!     opt_ls.refine_max_iter = int32(100);
-%!     if (fem_sol_check_func("mumps"))
-%!       opt_ls.matrix_type = MUMPS_MAT_SYM;
-%!       opt_ls.verbose = MUMPS_VER_ERR;
-%!       Kfact = fem_fact_mumps(Kred, opt_ls);
-%!     else
-%!       Kfact = fem_fact_umfpack(Kred, opt_ls);
-%!     endif
+%!     Kfact = fem_sol_factor(Kred, opt_ls);
 %!     Ured = Kfact \ Rred;
 %!     sol_stat.def = fem_post_def_nodal(mesh, dof_map, Tred * Ured);
 %!   else

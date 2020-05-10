@@ -1,3 +1,4 @@
+
 ## Copyright (C) 2018(-2020) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -261,7 +262,7 @@ endfunction
 %! rho = 7850;
 %! m = 3 / 8 * a * b * c * rho;
 %! tol_m = eps^0.9;
-%! tol_f = 5e-2;
+%! tol_f = 6e-2;
 %! N = 10;
 %! r = 1;
 %! X = [0.5 * a, 0.5 * b, c;

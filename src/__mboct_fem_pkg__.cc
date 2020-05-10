@@ -469,25 +469,22 @@ public:
         }
 
         void Insert(double d, octave_idx_type r, octave_idx_type c) {
-                if (r > 0 && c > 0) {
+                if (bNeedToInsertElem(r, c)) {
                         Resize(nnz + 1);
                         InsertRaw(d, r, c);
                 }
         }
 
         void Insert(const Matrix& Ke, const int32NDArray& r, const int32NDArray& c) {
-                Resize(nnz + Ke.rows() * Ke.columns());
-
                 for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
                         for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
-                                if (r(i).value() > 0 && c(j).value() > 0) {
-                                        InsertRaw(Ke(i, j), r(i), c(j));
-                                }
+                                Insert(Ke(i, j), r(i), c(j));
                         }
                 }
         }
 
         void Finish() {
+                // Do not resize the workspace here because it could be reused for other matrices!
         }
 
         const int32NDArray& RowIndex() const { return ridx; }
@@ -505,12 +502,14 @@ public:
                 case Element::VEC_LOAD_LUMPED:
                         iNumCols = iNumLoads;
                         break;
+                        
                 case Element::MAT_ACCEL_LOAD:
                         iNumCols = 3;
                         break;
 #if DEBUG > 0
                 case Element::MAT_UNKNOWN:
                         FEM_ASSERT(0);
+                        break;
 #endif
                 default:
                         iNumCols = iNumRows;
@@ -533,7 +532,7 @@ private:
         void Resize(octave_idx_type nnz_new) {
                 if (data.rows() < nnz_new) {
 #ifdef DEBUG
-                        warning("mboct-fem-pkg(MatrixAss): resizing workspace from %Ld to %Ld nonzeros", static_cast<long long>(data.rows()), static_cast<long long>(nnz_new));
+                        throw std::runtime_error("fem_ass_matrix: allocated workspace size exceeded");
 #endif
                         data.resize(nnz_new, 0.);
                         ridx.resize(dim_vector(nnz_new, 1), 0);
@@ -541,25 +540,38 @@ private:
                 }
         }
 
-        void InsertRaw(double d, octave_idx_type r, octave_idx_type c) {
-                FEM_ASSERT(r > 0);
-                FEM_ASSERT(c > 0);
 
+        bool bNeedToInsertElem(octave_idx_type r, octave_idx_type c) const {
+                if (!(r > 0 && c > 0)) {
+                        return false;
+                }
+                
                 switch (eMatType & Element::MAT_SYM_MASK) {
                 case Element::MAT_SYM_UPPER:
                         if (c < r) {
-                                return;
+                                return false;
                         }
                         break;
                 case Element::MAT_SYM_LOWER:
                         if (c > r) {
-                                return;
+                                return false;
+                        }
+                        break;
+                case Element::MAT_SYM_DIAG:
+                        if (c != r) {
+                                return false;
                         }
                         break;
                 default:
                         break;
                 }
 
+                return true;
+        }
+        
+        void InsertRaw(double d, octave_idx_type r, octave_idx_type c) {
+                FEM_ASSERT(bNeedToInsertElem(r, c));
+                
                 data(nnz) = d;
                 ridx(nnz) = r;
                 cidx(nnz) = c;
@@ -973,7 +985,7 @@ public:
                 case MAT_DAMPING_SYM_L: {
                         const octave_idx_type iNumDof = iGetNumDof();
 
-                        return iNumDof * iNumDof; // FIXME: Needed because of pessimistic strategy for memory allocation in MatrixAss::Insert
+                        return (iNumDof + 1) * iNumDof / 2;
                 }
                 case MAT_MASS_LUMPED:
                         return iGetNumDof();
@@ -1660,7 +1672,7 @@ protected:
                                 rv(j) = oIntegRule.dGetPosition(i, j);
                         }
 
-                        const double detJ = Jacobian(rv, J);
+                        Jacobian(rv, J);
 
                         StrainMatrix(rv, J.inverse(), B);
 

@@ -143,7 +143,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         print_matrix(fd, C, "compliance matrix");
 
-        fprintf(fd, "\n\n## condest(C)=%e\n", condest(C));
+        fprintf(fd, "\n\n## cond(C)=%e\n", cond(C));
       case "nodal substruct"
         if (~isfield(comp_mat, "C"))
           error("missing field \"C\"");
@@ -176,7 +176,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         print_matrix(fd, C, "compliance matrix substruct");
 
-        fprintf(fd, "\n\n## condest(C)=%e\n", condest(C));
+        fprintf(fd, "\n\n## cond(C)=%e\n", cond(C));
 
         print_matrix(fd, D, "substruct contrib matrix");
         print_matrix(fd, E, "substruct residual matrix");
@@ -230,7 +230,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
         print_matrix(fd, Phin, "mode shapes");
         print_matrix(fd, KPhi \ RPhi, "modal load");
 
-        fprintf(fd, "\n\n## condest(KPhi)=%e\n", condest(KPhi));
+        fprintf(fd, "\n\n## cond(KPhi)=%e\n", cond(KPhi));
     endswitch
 
   unwind_protect_cleanup
@@ -305,7 +305,7 @@ endfunction
 %!     have_mesh_size_binary = true;
 %!   endif
 %!   if (~have_mesh_size_binary)
-%!     warning("fem_pre_mesh_size not found");
+%!     error("fem_pre_mesh_size was not installed\nrun ./configure && make install inside the src directory");
 %!   endif
 %!   SI_unit_meter = 1;
 %!   SI_unit_kilogram = 1;
@@ -614,7 +614,7 @@ endfunction
 
 %!   mat_ass.Dred = param.damp_alpha * mat_ass.Mred + param.damp_beta * mat_ass.Kred;
 
-%!   fem_cms_export([output_file, "_cms"], mesh, mat_ass, cms_opt);
+%!   fem_cms_export([output_file, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 
 %!   comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, ...
 %!                                            mat_ass, ...

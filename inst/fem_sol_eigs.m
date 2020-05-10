@@ -46,22 +46,10 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
     alg = "shift-invert";
   endif
 
-  blambda = full(any(diag(K) <= 0));
-
-  if (nargin < 7 || ~fem_sol_check_func(solver))
-    if (fem_sol_check_func("pastix"))
-      solver = "pastix";
-    elseif (fem_sol_check_func("mumps"))
-      solver = "mumps";
-    elseif (fem_sol_check_func("umfpack"))
-      solver = "umfpack";
-    elseif (blambda)
-      solver = "lu";
-    else
-      solver = "chol";
-    endif
+  if (nargin < 7)
+    solver = "pastix";
   endif
-
+  
   if (nargin < 8)
     num_threads = int32(1);
   endif
@@ -77,34 +65,14 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
     Ksh = K - rho * M;
   endif
 
-  opts.refine_max_iter = int32(3);
-  opts.number_of_threads = num_threads;
+  if (nargin >= 7)
+    opts_lin.solver = "solver";
+  endif
 
-  switch (solver)
-    case "pastix"
-      opts.matrix_type = PASTIX_API_SYM_YES;
-      opts.factorization = PASTIX_API_FACT_LDLT;
-      opts.verbose = PASTIX_API_VERBOSE_NOT;
-      Kfact = fem_fact_pastix(Ksh, opts);
-    case "mumps"
-      if (blambda)
-        opts.matrix_type = MUMPS_MAT_SYM;
-      else
-        opts.matrix_type = MUMPS_MAT_DEF;
-      endif
-      opts.verbose = MUMPS_VER_ERR;
-      Kfact = fem_fact_mumps(Ksh, opts);
-    case "umfpack"
-      Kfact = fem_fact_umfpack(Ksh, opts);
-    case "lu"
-      Kfact = fem_fact_lu(Ksh, opts);
-    case "chol"
-      Kfact = fem_fact_chol(Ksh, opts);
-    case "mldivide"
-      Kfact = fem_fact(Ksh, opts);
-    otherwise
-      error("invalid value for parameter solver=\"%s\"", solver);
-  endswitch
+  opt_lin.solver = solver;
+  opt_lin.number_of_threads = num_threads;
+
+  Kfact = fem_sol_factor(Ksh, opt_lin);
 
   rndstate = rand("state");
 

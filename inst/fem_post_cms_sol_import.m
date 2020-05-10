@@ -327,7 +327,7 @@ endfunction
 %!   end_unwind_protect
 
 %!   cms_data.mat_ass.Dred = param.alpha * cms_data.mat_ass.Mred + param.beta * cms_data.mat_ass.Kred;
-%!   fem_cms_export([filename, "_cms"], cms_data.mesh, cms_data.mat_ass, cms_opt);
+%!   fem_cms_export([filename, "_cms"], cms_data.mesh, cms_data.dof_map, cms_data.mat_ass, cms_opt);
 %!   options_mbd.output_file = filename;
 %!   options_mbd.mbdyn_command = options.mbdyn_command;
 

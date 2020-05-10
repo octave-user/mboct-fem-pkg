@@ -35,6 +35,10 @@
 ##
 ## @var{options}.reference_pressure @dots{} Nodal pressure values are scaled by @var{options}.reference_pressure.
 ##
+## @var{options}.solver.number_of_threads @dots{} Number of threads to use for a multithreaded linear solver.
+##
+## @var{options}.solver.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver.
+##
 ## @seealso{fem_ehd_pre_comp_mat_export, fem_ehd_pre_comp_mat_plot}
 ## @end deftypefn
 
@@ -63,6 +67,10 @@ function [comp_mat] = fem_ehd_pre_comp_mat_struct(bearing_dimensions, material, 
     options.number_of_modes = -1;
   endif
 
+  if (~isfield(options, "solver"))
+    options.solver = struct();
+  endif
+  
   if (options.verbose)
     fprintf(stderr, "creating 2D mesh ...\n");
     tic();
@@ -118,7 +126,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_struct(bearing_dimensions, material, 
   N = length(comp_mat.bearing_surf.s) * length(comp_mat.bearing_surf.t);
 
   if (options.number_of_modes <= 0)
-    sol_stat = fem_sol_static(mesh, dof_map, mat_ass, options);
+    sol_stat = fem_sol_static(mesh, dof_map, mat_ass, options.solver);
 
     if (options.output_solution)
       comp_mat.sol_stat = sol_stat;

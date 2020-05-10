@@ -37,17 +37,7 @@ function [Kred, Tred] = fem_cms_red_guyan(K, keep_dof)
   KNN = K(condense_dof, condense_dof);
   KNH = K(condense_dof, keep_dof);
 
-  if (fem_sol_check_func("pastix"))
-    opt_pastix.matrix_type = PASTIX_API_SYM_YES;      
-    opt_pastix.factorization = PASTIX_API_FACT_LDLT;
-    opt_pastix.verbose = PASTIX_API_VERBOSE_NOT;
-    opt_pastix.number_of_threads = 1;
-    opt_pastix.refine_max_iter = int32(3);
-
-    KNNfact = fem_fact_pastix(KNN, opt_pastix);
-  else
-    KNNfact = fem_fact_lu(KNN);
-  endif
+  KNNfact = fem_sol_factor(KNN);
 
   PHI = KNNfact \ KNH;
   

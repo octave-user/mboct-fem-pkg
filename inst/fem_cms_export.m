@@ -14,7 +14,7 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} fem_cms_export(@var{filename}, @var{mesh}, @var{mat_ass}, @var{cms_opt})
+## @deftypefn {Function File} fem_cms_export(@var{filename}, @var{mesh}, @var{dof_map}, @var{mat_ass}, @var{cms_opt})
 ## Create modal element files for MBDyn.
 ##
 ## @var{filename} @dots{} Two output files will be created: "<@var{filename}>.elm" and "<@var{filename}>.fem"
@@ -22,14 +22,16 @@
 ##
 ## @var{mesh} @dots{} Finite Element mesh data structure.
 ##
+## @var{dof_map} @dots{} Degree of freedom mapping
+##
 ## @var{mat_ass} @dots{} Reduced order Finite Element matrices returned from fem_cms_create.
 ##
 ## @var{cms_opt} @dots{} Substructure options returned from fem_cms_create.
 ## @seealso{fem_cms_create}
 ## @end deftypefn
 
-function fem_cms_export(filename, mesh, mat_ass, cms_opt)
-  if (nargin ~= 4 || nargout > 0)
+function fem_cms_export(filename, mesh, dof_map, mat_ass, cms_opt)
+  if (nargin ~= 5 || nargout > 0)
     print_usage();
   endif
   
@@ -56,8 +58,8 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
 
     warning("error", "Octave:singular-matrix", "local");
     
-    fprintf(fd, "## condest(Mred)=%.1e\n", condest(mat_ass.Mred));
-    fprintf(fd, "## condest(Kred)=%.1e\n\n", condest(mat_ass.Kred));
+    fprintf(fd, "## cond(Mred)=%.1e\n", cond(mat_ass.Mred));
+    fprintf(fd, "## cond(Kred)=%.1e\n\n", cond(mat_ass.Kred));
     
     fprintf(fd, "joint: %s, modal, %s,\n", cms_opt.element.name, cms_opt.nodes.modal.name);
     
@@ -67,7 +69,7 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
       fprintf(fd, ", %d", cms_opt.selected_modes);
       fprintf(fd, ",\n");
     else
-      fprintf(fd, "\t%d,\n", columns(mat_ass.Phi));
+      fprintf(fd, "\t%d,\n", columns(mat_ass.Tred));
     endif
     
     fprintf(fd, "\tfrom file,\n");
@@ -104,6 +106,23 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
   endif
 
   if (cms_opt.invariants)
+    idx_node_output = [cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number];
+  else
+    idx_node_output = 1:rows(mesh.nodes);
+  endif
+
+  Phi = zeros(6 * numel(idx_node_output), columns(mat_ass.Tred));
+  ridx_node = zeros(max(dof_map.idx_node), 1, "int32");
+  ridx_node(dof_map.idx_node) = 1:numel(dof_map.idx_node);
+
+  for i=1:columns(dof_map.ndof)
+    idx_dof_output = dof_map.ndof(idx_node_output, i);
+    idx_act_dof = find(idx_dof_output > 0);
+    idx_glob_dof = idx_dof_output(idx_act_dof);
+    Phi((idx_act_dof - 1) * 6 + i, :) = mat_ass.Tred(ridx_node(idx_glob_dof), :);
+  endfor
+  
+  if (cms_opt.invariants)
     ## position of the modal node
     X0 = mesh.nodes(cms_opt.nodes.modal.number, 1:3).';
 
@@ -112,19 +131,12 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
 
     ## moment of inertia with respect to the center of gravity
     Jgc = mat_ass.J + (skew(Xgc) * skew(Xgc)) * mat_ass.dm;
-
-    idx_node_output = [cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number];
-    idx_Phi_output = zeros(1, numel(idx_node_output) * 6, "int32");
-
-    for i=1:6
-      idx_Phi_output(((1:numel(idx_node_output)) - 1) * 6 + i) = (idx_node_output - 1) * 6 + i;
-    endfor
     
     mbdyn_pre_write_fem_data([filename, ".fem"], ...
                              mat_ass.Mred, ...
                              mat_ass.Dred, ...
                              mat_ass.Kred, ...
-                             mat_ass.Phi(idx_Phi_output, :), ...
+                             Phi, ...
                              mesh.nodes(idx_node_output, 1:3).', ...
                              zeros(columns(mat_ass.Mred), 1), ...
                              zeros(columns(mat_ass.Mred), 1), ...
@@ -143,7 +155,7 @@ function fem_cms_export(filename, mesh, mat_ass, cms_opt)
                              mat_ass.Mred, ...
                              mat_ass.Dred, ...
                              mat_ass.Kred, ...
-                             mat_ass.Phi, ...
+                             Phi, ...
                              mesh.nodes(:, 1:3).', ...
                              zeros(columns(mat_ass.Mred), 1), ...
                              zeros(columns(mat_ass.Mred), 1), ...
@@ -211,7 +223,7 @@ endfunction
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
-%!   fem_cms_export(filename, mesh_cms, mat_ass_cms, cms_opt);
+%!   fem_cms_export(filename, mesh_cms, dof_map_cms, mat_ass_cms, cms_opt);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -938,7 +950,7 @@ endfunction
 %!   end_unwind_protect
   
 %!   mat_ass.Dred = param.alpha * mat_ass.Mred + param.beta * mat_ass.Kred;
-%!   fem_cms_export([filename, "_cms"], mesh, mat_ass, cms_opt);
+%!   fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 
 %!   for i=1:numel(mbdyn_filenames)
 %!     options_mbd(i).output_file = sprintf("%s_%d", filename, i);
