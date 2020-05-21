@@ -28,8 +28,8 @@
 ##
 ## @end deftypefn
 
-function [mesh, load_case] = fem_pre_mesh_import(filename, format)
-  if (nargin < 1 || nargin > 2 || nargout > 2)
+function [mesh, load_case] = fem_pre_mesh_import(filename, format, options)
+  if (nargin < 1 || nargin > 3 || nargout > 2)
     print_usage();
   endif
 
@@ -48,9 +48,17 @@ function [mesh, load_case] = fem_pre_mesh_import(filename, format)
     endswitch
   endif
 
+  if (nargin < 3)
+    options = struct();
+  endif
+
+  if (~isfield(options, "promote_elem"))
+    options.promote_elem = {"tet4", "tria3", "prism6"};
+  endif
+
   switch (format)
     case "gmsh"
-      mesh = fem_load_mesh_gmsh(filename, format);
+      mesh = fem_load_mesh_gmsh(filename, format, options);
     case "apdl"
       mesh = fem_load_mesh_apdl(filename, format);
     case "eossp"
@@ -60,7 +68,7 @@ function [mesh, load_case] = fem_pre_mesh_import(filename, format)
   endswitch
 endfunction
 
-function mesh = fem_load_mesh_gmsh(filename, format)
+function mesh = fem_load_mesh_gmsh(filename, format, options)
   mesh.nodes = zeros(0, 6);
   mesh.elements = struct();
   mesh.groups = struct();
@@ -140,18 +148,31 @@ function mesh = fem_load_mesh_gmsh(filename, format)
 
           groups = unique(elem_tags(:, 1));
 
-          persistent eltype = struct("name", {"tet10", "tria6", "tet4", "prism6", "tria3", "iso8", "iso4"}, ...
-                                     "promote", {-1, -1, 6, 6, 7, -1, -1}, ...
-                                     "id", {11, 9, 4, 6, 2, 5, 3}, ...
-                                     "nnodes", {10, 6, 8, 8, 4, 8, 4}, ...
-                                     "dim", {3, 2, 3, 3, 2, 3, 2}, ...
-                                     "norder", {[1:8, 10, 9], ...
-                                                1:6, ...
-                                                [4, 4, 4, 4, 1:3, 3], ...
-                                                [6,4,4,5,3,1,1,2], ...
-                                                [1:3, 3], ...
-                                                [5:8, 1:4], ...
-                                                1:4});
+          eltype = struct("name", {"tet10", "tria6", "tet4", "prism6", "tria3", "iso8", "iso4"}, ...
+                          "promote", {-1, -1, 6, 6, 7, -1, -1}, ...
+                          "id", {11, 9, 4, 6, 2, 5, 3}, ...
+                          "dim", {3, 2, 3, 3, 2, 3, 2}, ...
+                          "norder", {[1:8, 10, 9], ...
+                                     1:6, ...
+                                     [4, 4, 4, 4, 1:3, 3], ...
+                                     [6,4,4,5,3,1,1,2], ...
+                                     [1:3, 3], ...
+                                     [5:8, 1:4], ...
+                                     1:4}, ...
+                         "nordernonp", {[],[],[],[],[1:3],[],[]});
+
+          for i=1:numel(eltype)
+            if (eltype(i).promote > 0)
+              switch (eltype(i).name)
+                case options.promote_elem
+                otherwise
+                  if (~isempty(eltype(i).nordernonp))
+                    eltype(i).promote = -1;
+                    eltype(i).norder = eltype(i).nordernonp;
+                  endif
+              endswitch
+            endif
+          endfor
 
           for k=1:numel(eltype)
             idx_eltype = find(elem_type == eltype(k).id);
@@ -198,7 +219,7 @@ function mesh = fem_load_mesh_gmsh(filename, format)
                 mshgrp(end).elements = idx_eltype_elem(idx_elgrp);
                 mshgrp(end).nodes = unique(reshape(elnodes(mshgrp(end).elements, :), ...
                                                    1, ...
-                                                   eltype(k).nnodes * numel(mshgrp(end).elements)));
+                                                   numel(eltype(k).norder) * numel(mshgrp(end).elements)));
 
                 mesh.groups = setfield(mesh.groups, eltype(k).name, mshgrp);
               endif

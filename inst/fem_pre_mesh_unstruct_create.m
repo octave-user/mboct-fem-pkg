@@ -86,6 +86,10 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
       tic();
     endif
 
+    if (~isfield(options, "mesh"))
+      options.mesh = struct();
+    endif
+    
     if (~isfield(options.mesh, "order"))
       options.mesh.order = 2;
     endif
@@ -149,7 +153,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
       tic();
     endif
     
-    mesh = fem_pre_mesh_import(mesh_file, "gmsh");
+    mesh = fem_pre_mesh_import(mesh_file, "gmsh", options.mesh);
 
     if (options.verbose)
       toc();

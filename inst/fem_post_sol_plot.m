@@ -60,7 +60,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   endif
 
   if (~isfield(options, "elem_types"))
-    options.elem_types = {"iso8", "tet10", "rbe3", "tria6"};
+    options.elem_types = {"iso8", "tet10", "rbe3", "tria6", "iso4", "tria3"};
   endif
 
   if (~isfield(options, "elem_groups"))
@@ -91,6 +91,10 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
         inumfaces += 16 * rows(elements);
       case "tria6"
         inumfaces += 4 * rows(elements);
+      case "iso4"
+        inumfaces += 2 * rows(elements);
+      case "tria3"
+        inumfaces += rows(elements);
       case "rbe3"
       otherwise
         error("unknown element type with %d nodes", columns(elements));
@@ -149,6 +153,8 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
                  2, 5, 4;
                  1, 5, 6;
                  3, 6, 5];
+      case "tria3"
+        faces = [1, 2, 3];
       case "rbe3"
         for elem_idx=1:numel(elements)
           for node_idx=2:numel(elements(elem_idx).nodes)

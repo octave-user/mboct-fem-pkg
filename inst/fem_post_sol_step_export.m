@@ -83,6 +83,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
           for i=1:numel(elem_stress)
             if (isfield(getfield(sol.stress, stress_field{l}), elem_stress{i}))
               switch (elem_stress{i})
+                case "iso3"
+                  idxnode = int32([1:3]);
                 case "iso4"
                   idxnode = int32([1:4]);
                 case "iso8"
