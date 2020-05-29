@@ -4931,7 +4931,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
                 retval.append(sElem);
         } catch (const std::exception& err) {
-                error(err.what());
+                error("%s", err.what());
                 return retval;
         }
 #else
@@ -5901,7 +5901,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                         warning_with_id("mboct-fem-pkg:invalid-mesh", "Jacobian is singular or negative det(J)=%g", detJmin);
                 }
         } catch (const std::exception& err) {
-                error(err.what());
+                error("%s", err.what());
                 return retval;
         }
 

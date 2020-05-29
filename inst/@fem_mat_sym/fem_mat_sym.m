@@ -39,7 +39,7 @@ endfunction
 %! b = rand(columns(Asym), 10);
 %! x1 = A * b;
 %! x2 = Asym * b;
-%! assert(x1, x2, eps * norm(b));
+%! assert(x1, x2, eps^0.8 * norm(b));
 %! x1 = Asym(2:4, 2:4) * b(2:4, :);
 %! x2 = A(2:4, 2:4) * b(2:4, :);
 %! assert(x1, x2, eps * norm(b(2:4, :)));

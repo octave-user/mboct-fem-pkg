@@ -90,6 +90,10 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     cms_opt.modes.number = int32(0);
   endif
 
+  if (~isfield(cms_opt, "tol"))
+    cms_opt.tol = 1e-4;
+  endif
+  
   node_idx_itf = int32([cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number]);
 
   dof_in_use = fem_cms_dof_active(mesh);
@@ -332,7 +336,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
           endfor
         endif
 
-        if (any(err > sqrt(eps)))
+        if (any(err > cms_opt.tol))
           warning("eigs failed to converge max(err)=%g", max(err));
         endif
         
@@ -551,17 +555,22 @@ endfunction
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
+%! cms_opt.tol = 1e-3;
 %! sol = {"pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
+%! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
+%! tol = 1e-7;
 %! for iter=[0,10];
 %! for modes=int32([0, 4, 8, 10])
 %! lambda_ref = [];
 %! Phi_ref = [];
+%! for iscal=1:numel(scaling)
+%! cms_opt.scaling=scaling{iscal};
 %! for isol=1:numel(sol)
 %! cms_opt.solver = sol{isol};
 %! for ialg=1:numel(alg)
 %! for invariants=[true, false]
-%! for verbose=[true, false]
+%! for verbose=[false]
 %! for threads=int32([1, 4])
 %! cms_opt.verbose = verbose;
 %! cms_opt.modes.number = modes;
@@ -579,15 +588,16 @@ endfunction
 %! Phi = mat_ass_cms.Tred * Phi(:, idx);
 %! Phi *= diag(1 ./ max(abs(Phi), [], 1));
 %! if (numel(lambda_ref))
-%!   assert(lambda, lambda_ref, sqrt(eps) * max(abs(lambda)));
+%!   assert(lambda, lambda_ref, tol * max(abs(lambda)));
 %!   for j=1:columns(Phi)
 %!     f = min(max(abs(Phi(:, j) + Phi_ref(:, j))), max(abs(Phi(:, j) - Phi_ref(:, j))));
-%!     assert(f < sqrt(eps));
+%!     assert(f < tol);
 %!   endfor
 %! else
 %!   lambda_ref = lambda;
 %!   Phi_ref = Phi;
 %! endif
+%! endfor
 %! endfor
 %! endfor
 %! endfor
