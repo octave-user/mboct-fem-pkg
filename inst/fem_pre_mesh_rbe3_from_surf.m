@@ -163,11 +163,11 @@ endfunction
 %! mesh.elements.joints(1).nodes = node_id_ground;
 %! mesh.elements.joints(1).C = eye(6);
 %! mesh.elements.joints(2).nodes = node_id_load;
-%! mesh.elements.joints(2).C = [0, 0, 0, 0, 1, 0;];
+%! mesh.elements.joints(2).C = [zeros(3, 3), eye(3)];
 %! load_case.joints(1).U = zeros(6, 1);
-%! load_case.joints(2).U = [1];
-%! ##load_case.loaded_nodes = int32(node_id_load);
-%! ##load_case.loads = [1000, 100, 100, 0, 0, 0];
+%! load_case.joints(2).U = zeros(3, 1);
+%! load_case.loaded_nodes = int32(node_id_load);
+%! load_case.loads = [1000, 100, 100, 0, 0, 0];
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
 %!  mat_ass.R] = fem_ass_matrix(mesh, ...

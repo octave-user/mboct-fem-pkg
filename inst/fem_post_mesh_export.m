@@ -355,7 +355,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   inumelem = int32(0);
   
   for i=1:numel(elem_types)
-    switch elem_types{i}
+    switch (elem_types{i})
       case "iso8"
         elem_type_id = 5;
         elem_node_order = [5:8,1:4];

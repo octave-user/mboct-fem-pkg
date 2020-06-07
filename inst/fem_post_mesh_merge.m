@@ -54,7 +54,9 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   elem_types(3).have_mat = false;
   elem_types(4).name = "tria6";
   elem_types(4).have_mat = false;
-
+  elem_types(5).name = "tria3";
+  elem_types(5).have_mat = false;
+  
   for i=1:numel(mesh_data)
     if (nargout >= 2)
       dof_map.totdof += mesh_data(i).dof_map.totdof;

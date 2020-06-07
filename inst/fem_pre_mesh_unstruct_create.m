@@ -39,7 +39,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   if (~isfield(options, "verbose"))
     options.verbose = false;
   endif
-
+  
   f_temp_files = false;
   geo_file_tmp = "";
   mesh_file = "";
@@ -94,8 +94,12 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
       options.mesh.order = 2;
     endif
 
+    if (~isfield(options.mesh, "dim"))
+      options.mesh.dim = 3;
+    endif
+
     cmdline = {"-format", "msh2", ...
-               "-3", ...
+               sprintf("-%d", options.mesh.dim), ...
                "-order", sprintf("%d", options.mesh.order)};
 
     if (~isfield(options.mesh, "optimize"))
