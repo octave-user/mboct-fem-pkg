@@ -134,7 +134,7 @@ endfunction
 %!   options.number_of_threads = int32(4);
 %!   tol = sqrt(eps);
 %!   for N=2.^(1:8)
-%!     A = gallery("Poisson", N);
+%!     A = gallery("poisson", N);
 %!     A += A.';
 %!     b = rand(columns(A), M);
 %!     for i=1:numel(solvers)

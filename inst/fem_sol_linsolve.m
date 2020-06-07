@@ -52,7 +52,7 @@ endfunction
 %!   solvers = {"pastix", "mumps", "umfpack", "chol", "lu"};
 %!   tol = sqrt(eps);
 %!   max_f = 0;
-%!   for N=[2,10,100,200]
+%!   for N=[2,10,100,200,300]
 %!     for i=1:10
 %!       A = 2 * rand(N, N) - 1;
 %!       A *= A.';

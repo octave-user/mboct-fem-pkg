@@ -50,7 +50,6 @@
 %! mesh_size.num_elem_h = ceil(geometry.h / h);
 %! number_of_modes = 10;
 %! number_of_modes_disp = 3;
-%! options.integration = "full";
 %! plot_def = fem_tests_enable_plotting();
 
 %! f = [ 0; Fy; 0 ];
