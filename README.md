@@ -7,31 +7,38 @@ Copyright<sup>&copy;</sup> 2019-2020
 
 [Reinhard](mailto:octave-user@a1.net)
 
-### MBDyn installation:
-  - clone the source tree of MBDyn
-`git clone https://public.gitlab.polimi.it/DAER/mbdyn.git -b develop`
-  - compile and install MBDyn
-`cd mbdyn && ./bootstrap.sh && ./configure --enable-octave --enable-autodiff --with-static-modules && make install`
-
 ## GNU Octave installation
-  - Follow the instructions on (http://www.gnu.org/software/octave/) to install GNU Octave.
+  - Follow the instructions on (http://www.gnu.org/software/octave/) to install GNU Octave.  
+  - Make sure, that `mkoctfile` is installed.  
+    `mkoctfile --version` 
+
+### MBDyn installation:
+  - Clone the source tree of MBDyn.  
+    `git clone https://public.gitlab.polimi.it/DAER/mbdyn.git -b develop`
+  - Compile and install MBDyn.  
+    `cd mbdyn`  
+    `./bootstrap.sh`  
+    `./configure CXXFLAGS=-O3 --enable-octave --enable-autodiff --with-static-modules`  
+    `make`  
+    `make install`
 
 ### GNU Octave package installation:
-  - make sure that the GNU Octave nurbs package is installed
-      `octave --eval 'pkg install -forge nurbs'`
-  - install the following packages from github
-      `for pkg in octave numerical mbdyn fem; do`
-	  `git clone https://github.com/octave-user/mboct-${pkg}-pkg.git && make -C ${pkg} install_local`
-      `done`
+  - Make sure that the GNU Octave nurbs package is installed.  
+    `octave --eval 'pkg install -forge nurbs'`
+  - Install the following packages from github.  
+    `for pkg in octave numerical mbdyn fem; do`    
+        `git clone https://github.com/octave-user/mboct-${pkg}-pkg.git && make -C mboct-${pkg}-pkg install_local`	  
+    `done`
 
 ### Gmsh installation:
-  - Follow the instructions on (http://www.gmsh.info/) to install Gmsh
+  - Follow the instructions on (http://www.gmsh.info/) to install Gmsh.  
   - Make sure Gmsh is on your path (e.g. `export PATH=/opt/gmsh/bin:${PATH}`)
 
 ### Usage
-  - run Octave
+  - Run Octave.  
     `octave`
-  - at the Octave prompt load the package
+  - At the Octave prompt load the package.   
     `pkg load mboct-fem-pkg`
-  - at the Octave prompt execute a demo
+  - At the Octave prompt execute a demo.  
     `demo fem_cms_export`
+	
