@@ -18,7 +18,7 @@ Copyright<sup>&copy;</sup> 2019-2020
   - Compile and install MBDyn.  
     `cd mbdyn`  
     `./bootstrap.sh`  
-    `./configure CXXFLAGS=-O3 --enable-octave --enable-autodiff --with-static-modules`  
+    `./configure CXXFLAGS=-O3 --enable-octave --enable-autodiff --with-static-modules --with-umfpack`  
     `make`  
     `make install`
 
