@@ -277,7 +277,7 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
 endfunction
 
 function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
-  persistent gmsh_elem_types = {"iso8", "iso4", "tet10", "tria6", "tria3"};
+  persistent gmsh_elem_types = {"iso8", "iso4", "tet4", "tet10", "tria6", "tria3"};
   
   if (~isfield(options, "elem_types"))
     options.elem_types = gmsh_elem_types;
@@ -371,6 +371,9 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
       case "tet10"
         elem_type_id = 11;
         elem_node_order = [1:8,10,9];
+      case "tet4"
+	elem_type_id = 4;
+	elem_node_order = 1:4;
       otherwise
         continue
     endswitch
