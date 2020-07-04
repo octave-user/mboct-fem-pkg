@@ -28,7 +28,7 @@ function dof_in_use = fem_cms_dof_active(mesh)
   
   dof_in_use = false(rows(mesh.nodes), columns(mesh.nodes));
 
-  persistent elem_types = {"iso8", "tet10"};
+  persistent elem_types = {"iso8", "iso20", "tet10"};
 
   for i=1:numel(elem_types)
     if (isfield(mesh.elements, elem_types{i}))

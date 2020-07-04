@@ -46,16 +46,20 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   num_nodes = int32(0);
   num_mat = int32(0);
 
+  elem_types = struct("name", cell(1, 6), "have_mat", cell(1, 6));
+  
   elem_types(1).name = "iso8";
   elem_types(1).have_mat = true;
-  elem_types(2).name = "tet10";
+  elem_types(2).name = "iso20";
   elem_types(2).have_mat = true;
-  elem_types(3).name = "iso4";
-  elem_types(3).have_mat = false;
-  elem_types(4).name = "tria6";
+  elem_types(3).name = "tet10";
+  elem_types(3).have_mat = true;
+  elem_types(4).name = "iso4";
   elem_types(4).have_mat = false;
-  elem_types(5).name = "tria3";
+  elem_types(5).name = "tria6";
   elem_types(5).have_mat = false;
+  elem_types(6).name = "tria3";
+  elem_types(6).have_mat = false;
   
   for i=1:numel(mesh_data)
     if (nargout >= 2)

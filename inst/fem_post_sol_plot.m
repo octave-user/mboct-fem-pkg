@@ -60,7 +60,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   endif
 
   if (~isfield(options, "elem_types"))
-    options.elem_types = {"iso8", "tet10", "rbe3", "tria6", "iso4", "tria3"};
+    options.elem_types = {"iso8", "iso20", "tet10", "rbe3", "tria6", "iso4", "tria3"};
   endif
 
   if (~isfield(options, "elem_groups"))
