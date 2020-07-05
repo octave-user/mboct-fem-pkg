@@ -4735,7 +4735,7 @@ public:
 		case CT_SLIDING:
 			return static_cast<ConstraintType>(constr);
 		default:
-			throw std::runtime_error("invalid value for elements.sfncon{4|6}.constraint");
+			throw std::runtime_error("invalid value for elements.sfncon{4|6|8}.constraint");
 		}
 	}
 
@@ -4747,7 +4747,7 @@ public:
 		const int constr = ov.xelem(j).int_value();
 
 		if (error_state) {
-			throw std::runtime_error("elements.sfncon{4|6}.constraint must be a scalar value");
+			throw std::runtime_error("elements.sfncon{4|6|8}.constraint must be a scalar value");
 		}
 
 		return GetConstraintType(constr);
@@ -4774,7 +4774,7 @@ public:
 };
 
 #if HAVE_NLOPT == 0
-const char SurfToNodeConstrBase::szErrCompileWithNlopt[] = "__mboct_fem_pkg__ must be compiled with nlopt in order to use element types sfncon{4|6}";
+const char SurfToNodeConstrBase::szErrCompileWithNlopt[] = "__mboct_fem_pkg__ must be compiled with nlopt in order to use element types sfncon{4|6|8}";
 #endif
 
 #if HAVE_NLOPT == 1
@@ -5360,7 +5360,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 		}
 
 		if (nidxslave.ndims() != 2 || nidxslave.rows() < 1 || nidxslave.columns() != 1) {
-			throw std::runtime_error("elements.sfncon{4|6}.slave must be an nx1 array");
+			throw std::runtime_error("elements.sfncon{4|6|8}.slave must be an nx1 array");
 		}
 
 		if (maxdist.rows() == 1 && nidxslave.rows() > 1) {
