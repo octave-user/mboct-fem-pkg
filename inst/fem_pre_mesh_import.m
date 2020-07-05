@@ -7206,7 +7206,7 @@ endfunction
 %!                                     [FEM_VEC_STRESS_CAUCH], ...
 %!                                     load_case, ...
 %!                                     sol_eig);
-%!   tolf = eps^0.4;
+%!   tolf = eps^0.3;
 %!   tolt = eps^0.5;
 %!   assert(max(max(max(max(abs(sol_eig.stress.tau.tet10(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.tet10(:, :, :, 7:end)))))));
 %!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
