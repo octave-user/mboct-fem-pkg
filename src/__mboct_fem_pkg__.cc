@@ -2072,7 +2072,7 @@ public:
 	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
 		constexpr octave_idx_type N = 3;
 		static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
-		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {1., 1., 1.}};
+		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
 		static array<IntegrationRule, 2> rgIntegRule;
 
@@ -4115,7 +4115,7 @@ public:
 	static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
 		static const octave_idx_type N =3;
 		static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
-		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {1., 1., 1.}};		
+		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};		
 
 		static array<IntegrationRule, 2> rgIntegRule;
 
