@@ -138,7 +138,7 @@ endfunction
 %! tol = 1e-2;
 %! assert(uz, y(3, :).', tol * max(abs(y(3, :))))
 
-%!demo
+%!test ##demo
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;

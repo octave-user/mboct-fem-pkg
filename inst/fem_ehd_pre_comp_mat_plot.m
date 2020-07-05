@@ -397,7 +397,7 @@ function [t] = line_intersection(X0, n)
   t = A \ b;
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! fd = -1;
 %! filename = "";

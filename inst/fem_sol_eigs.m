@@ -341,7 +341,7 @@ endfunction
 %! endfor
 %! endfor
 
-%!demo
+%!test ##demo
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);

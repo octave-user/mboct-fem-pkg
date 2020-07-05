@@ -260,7 +260,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   daspect([1, 1, 1]);
 endfunction
 
-%!demo
+%!test ##demo
 %! ## DEMO 1
 %! close all;
 %! material.E = 210000e6;
@@ -287,7 +287,7 @@ endfunction
 %! title("undeformed cube mesh");
 %! figure_list();
 
-%!demo
+%!test ##demo
 %! ## DEMO 2
 %! close all;
 %! material.E = 210000e6;

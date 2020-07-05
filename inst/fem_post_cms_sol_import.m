@@ -121,7 +121,7 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
   endfor
 endfunction
 
-%!demo
+%!test ##demo
 %! ## Rotating thin ring
 %! ## W.Beitz, K.-H.Grote, 1997
 %! ## Dubbel page C41, chapter 6.2

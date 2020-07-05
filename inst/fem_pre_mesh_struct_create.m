@@ -303,7 +303,7 @@ function load_case = create_load_case(mesh, geometry, inode_idx, r, s, t, load, 
   load_case.loaded_nodes = load_case.loaded_nodes(1:iload);
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! scale_stat = 2e-3;
 %! scale_eig = 2e-3;
@@ -406,7 +406,7 @@ endfunction
 %!
 %! figure_list();
 
-%!demo
+%!test ##demo
 %! close all;
 %! scale_eig = 0.15;
 %! number_of_modes = 14;
@@ -486,7 +486,7 @@ endfunction
 %! tol = 0.5e-2;
 %! assert(sol_eig.f(1:numel(fref)), sort(fref), tol * max(fref));
 
-%!demo
+%!test ##demo
 %! ## Code_Aster SHLV100 V2.07.100
 %! close all;
 %! a = 0.1;
@@ -637,7 +637,7 @@ endfunction
 %!   endfor
 %! endfor
 
-%!demo
+%!test ##demo
 %! ## shaft with notch/shaft with step
 %! close all;
 %! geo_types = {"notch", "step"};

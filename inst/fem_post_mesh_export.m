@@ -412,7 +412,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   fputs(fd, "$EndElements\n");
 endfunction
 
-%!demo
+%!test ##demo
 %! ## DEMO 1
 %! ## K.J.Bathe 2002, page 328 4.20a
 %! close all;

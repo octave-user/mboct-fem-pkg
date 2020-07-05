@@ -39,7 +39,7 @@ function def = fem_post_def_nodal(mesh, dof_map, U)
   endfor
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;

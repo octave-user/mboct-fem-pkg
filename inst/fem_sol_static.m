@@ -42,7 +42,7 @@ function [sol, U] = fem_sol_static(mesh, dof_map, mat_ass, options)
   sol.def = fem_post_def_nodal(mesh, dof_map, U);
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;

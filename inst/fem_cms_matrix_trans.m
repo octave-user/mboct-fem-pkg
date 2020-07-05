@@ -123,7 +123,7 @@ endfunction
 %! assert(TAT, T.' * A * T, eps^0.7);
 %! endfor
 
-%!demo
+%!test ##demo
 %! A = rand(10, 10);
 %! A *= A.';
 %! T = rand(10, 3);

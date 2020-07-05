@@ -552,7 +552,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test ##demo
 %! close all;
 %! function [geometry, loads, bearing_surf] = bearing_callback(bearing_dimensions, options)
 %!   dx = options.element_size;

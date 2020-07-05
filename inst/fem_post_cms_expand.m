@@ -239,7 +239,7 @@ endfunction
 %!   endif
 %! endfor
 
-%!demo
+%!test ##demo
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;

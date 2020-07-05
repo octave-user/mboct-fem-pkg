@@ -254,7 +254,7 @@ endfunction
 %! assert(all(abs([mat_ass_split.m] - m) < tol * m));
 %! figure_list();
 
-%!demo
+%!test ##demo
 %! close all;
 %! a = 20e-3;
 %! b = 15e-3;

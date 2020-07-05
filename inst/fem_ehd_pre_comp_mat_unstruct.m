@@ -438,7 +438,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
   endfor
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! fd = -1;
 %! filename = "";

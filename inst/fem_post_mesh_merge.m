@@ -291,7 +291,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   endif
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! c = 10e-3;
 %!

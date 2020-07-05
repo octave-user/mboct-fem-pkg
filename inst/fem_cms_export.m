@@ -168,7 +168,7 @@ function fem_cms_export(filename, mesh, dof_map, mat_ass, cms_opt)
   endif
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -233,7 +233,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test ##demo
 %! close all;
 %! ## Define the unit system
 %! SI_unit_meter = 1e-3;

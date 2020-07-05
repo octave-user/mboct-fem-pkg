@@ -128,7 +128,7 @@ function [sol] = fem_post_cms_sol_merge(mesh, dof_map, sol_tot)
   endif
 endfunction
 
-%!demo
+%!test ##demo
 %! ## DEMO
 %! close all;
 %! number_of_modes = 10;

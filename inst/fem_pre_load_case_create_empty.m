@@ -32,7 +32,7 @@ function load_case = fem_pre_load_case_create_empty(num_load_cases)
                      "loaded_nodes", empty_data);
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;

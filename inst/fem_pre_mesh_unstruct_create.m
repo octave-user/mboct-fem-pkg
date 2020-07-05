@@ -175,7 +175,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   end_unwind_protect
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -296,7 +296,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test ##demo
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -413,7 +413,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test ##demo
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -531,7 +531,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test ##demo
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;

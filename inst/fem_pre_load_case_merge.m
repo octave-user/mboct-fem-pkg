@@ -58,7 +58,7 @@ endfunction
 %!test
 %! load_case = fem_pre_load_case_merge();
 
-%!demo
+%!test ##demo
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;

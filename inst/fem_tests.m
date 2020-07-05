@@ -2985,7 +2985,7 @@
 %! assert(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
 %! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
 
-%!demo
+%!test ##demo
 %! ## DEMO 1
 %! ## Cantilever beam with rectangular cross section and lateral load
 %! ## W.Beitz, K.-H.Grothe, 1997, Dubbel, section 2.4.6, page C17, figure 23
@@ -3103,7 +3103,7 @@
 %! assert(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
 %! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 6e-2 * max(abs(tauxz_a(:)(idx_x))));
 
-%!demo
+%!test ##demo
 %! close all;
 %! ## DEMO 2
 %! E1 = 70000e6;
@@ -3221,7 +3221,7 @@
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test ##demo
 %! ## DEMO3
 %! close all;
 
@@ -3313,7 +3313,7 @@
 
 %! figure_list();
 
-%!demo
+%!test ##demo
 %! close all;
 %! ## DEMO 4
 %! E1 = 70000e6;

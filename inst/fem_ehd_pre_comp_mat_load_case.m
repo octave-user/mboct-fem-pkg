@@ -133,7 +133,7 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
   endfor
 endfunction
 
-%!demo
+%!test ##demo
 %! close all;
 %! fd = -1;
 %! filename = "";

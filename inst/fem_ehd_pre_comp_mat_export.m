@@ -249,7 +249,7 @@ function print_matrix(fd, C, C_name)
   endfor
 endfunction
 
-%!demo
+%!test ##demo
 %! ############################################################################################################################
 %! ## EHD TEST CASE according
 %! ## Freund, Norman Owen, A thermo-elasto-hydrodynamic study of journal bearings, Doctor of Philosophy thesis, University of
