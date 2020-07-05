@@ -450,7 +450,7 @@ endfunction
 %!     fclose(fd);
 %!   endif
 %! end_unwind_protect
-%! pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%! pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %! status = spawn_wait(pid);
 %! if (status ~= 0)
 %!  error("gmsh failed with status %d", status);

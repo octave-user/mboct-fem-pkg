@@ -675,7 +675,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -936,7 +936,7 @@ endfunction
 %!     endif
 %!   end_unwind_protect
 %!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -1132,7 +1132,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", "-ho_min", "0.95", "-ho_max", "1.05", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -1260,7 +1260,7 @@ endfunction
 %!     endif
 %!   end_unwind_protect
 %!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -1488,7 +1488,7 @@ endfunction
 %!     endif
 %!   end_unwind_protect
 %!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -1704,7 +1704,7 @@ endfunction
 %!     endif
 %!   end_unwind_protect
 %!   fprintf(stderr, "meshing ...\n");
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -1888,7 +1888,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -2075,7 +2075,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -2258,7 +2258,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -2434,7 +2434,7 @@ endfunction
 %!         endif
 %!       end_unwind_protect
 %!       unlink([filename, ".msh"]);
-%!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", "-clmin", sprintf("%g", 0.75 * mesh_size(m)), "-clmax", sprintf("%g", 1.25 *mesh_size(m)), [filename, ".geo"]});
+%!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size(m)), "-clmax", sprintf("%g", 1.25 *mesh_size(m)), [filename, ".geo"]});
 %!       status = spawn_wait(pid);
 %!       if (status ~= 0)
 %!         warning("gmsh failed with status %d", status);
@@ -2619,9 +2619,9 @@ endfunction
 %!           end_unwind_protect
 %!           unlink([filename, ".msh"]);
 %!           if (orange(o) == 1 || i == 1)
-%!             optargs = {"-order", "1", "-optimize_threshold", "0.95"};
+%!             optargs = {"-order", "1"};
 %!           else
-%!             optargs = {"-order", "2", "-optimize_ho"};
+%!             optargs = {"-order", "2"};
 %!           endif
 %!           pid = spawn("gmsh", {"-format", "msh2", "-3", optargs{:}, "-clmin", sprintf("%g", 0.75 * mesh_size(m) * orange(o)), "-clmax", sprintf("%g", 1.25 *mesh_size(m) * orange(o)), [filename, ".geo"]});
 %!           status = spawn_wait(pid);
@@ -2780,10 +2780,8 @@ endfunction
 %!       switch (i)
 %!         case {1,2}
 %!           order = 1;
-%!           optflags = {"-optimize_threshold", "0.95"};
 %!         otherwise
 %!           order = 2;
-%!           optflags = {"-optimize_ho", "-ho_min", "0.5", "-ho_max", "1.5"};
 %!       endswitch
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "a=%g;\n", a);
@@ -2824,7 +2822,7 @@ endfunction
 %!         fclose(fd);
 %!       endif
 %!     end_unwind_protect
-%!     pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", sprintf("%d", order), optflags{:}, [filename, ".geo"]});
+%!     pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", sprintf("%d", order), [filename, ".geo"]});
 %!     status = spawn_wait(pid);
 %!     if (status ~= 0)
 %!       warning("gmsh failed with status %d", status);
@@ -3036,7 +3034,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -3766,10 +3764,8 @@ endfunction
 %!       switch (i)
 %!         case {1,2}
 %!           order = 1;
-%!           optflags = {"-optimize_threshold", "0.95"};
 %!         otherwise
 %!           order = 2;
-%!           optflags = {"-optimize_ho", "-ho_min", "0.5", "-ho_max", "1.5"};
 %!       endswitch
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "a=%g;\n", a);
@@ -3810,7 +3806,7 @@ endfunction
 %!         fclose(fd);
 %!       endif
 %!     end_unwind_protect
-%!     pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", sprintf("%d", order), optflags{:}, [filename, ".geo"]});
+%!     pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", sprintf("%d", order), [filename, ".geo"]});
 %!     status = spawn_wait(pid);
 %!     if (status ~= 0)
 %!       warning("gmsh failed with status %d", status);
@@ -5535,7 +5531,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
@@ -5708,7 +5704,7 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);

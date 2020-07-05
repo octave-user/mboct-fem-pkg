@@ -181,7 +181,7 @@ endfunction
 %!         endif
 %!       end_unwind_protect
 %!       fprintf(stderr, "meshing ...\n");
-%!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-optimize_ho", [filename, ".geo"]});
+%!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!       status = spawn_wait(pid);
 %!       if (status ~= 0)
 %!         warning("gmsh failed with status %d", status);
