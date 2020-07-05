@@ -31,13 +31,13 @@
 #ifdef DEBUG
 #define OCTAVE_ENABLE_BOUNDS_CHECK
 #define FEM_ASSERT(expr) if (!(expr)) {                         \
-                std::cerr << "assertion " << #expr              \
-                          << " failed at " << __FILE__ << ":"   \
-                          << __LINE__ << ":"                    \
-                          << __FUNCTION__ << std::endl;         \
-                asm("int3");                                    \
-                assert(expr);                                   \
-        }
+		std::cerr << "assertion " << #expr              \
+			  << " failed at " << __FILE__ << ":"   \
+			  << __LINE__ << ":"                    \
+			  << __FUNCTION__ << std::endl;         \
+		asm("int3");                                    \
+		assert(expr);                                   \
+	}
 #else
 #define FEM_ASSERT(expr) static_cast<void>(0)
 #endif
@@ -53,2073 +53,2073 @@
 
 template <typename T, typename A = std::allocator<T> >
 class vector: public std::vector<T, A> {
-        typedef std::vector<T, A> base_vector;
+	typedef std::vector<T, A> base_vector;
 
 public:
-        typedef typename base_vector::size_type size_type;
-        typedef typename base_vector::allocator_type allocator_type;
+	typedef typename base_vector::size_type size_type;
+	typedef typename base_vector::allocator_type allocator_type;
 
-        vector() {
-        }
+	vector() {
+	}
 
-        explicit vector(size_type n, const allocator_type& a = allocator_type())
-                :base_vector(n, a) {
-        }
+	explicit vector(size_type n, const allocator_type& a = allocator_type())
+		:base_vector(n, a) {
+	}
 
-        T& operator[](size_type i) {
-                FEM_ASSERT(i < this->size());
-                return base_vector::operator[](i);
-        }
+	T& operator[](size_type i) {
+		FEM_ASSERT(i < this->size());
+		return base_vector::operator[](i);
+	}
 
-        const T& operator[](size_type i) const {
-                FEM_ASSERT(i < this->size());
-                return base_vector::operator[](i);
-        }
+	const T& operator[](size_type i) const {
+		FEM_ASSERT(i < this->size());
+		return base_vector::operator[](i);
+	}
 };
 
 template <typename T, std::size_t N>
 struct array
 {
-        typedef typename std::array<T, N>::reference reference;
-        typedef typename std::array<T, N>::const_reference const_reference;
-        typedef typename std::array<T, N>::size_type size_type;
-        typedef typename std::array<T, N>::iterator iterator;
-        typedef typename std::array<T, N>::const_iterator const_iterator;
+	typedef typename std::array<T, N>::reference reference;
+	typedef typename std::array<T, N>::const_reference const_reference;
+	typedef typename std::array<T, N>::size_type size_type;
+	typedef typename std::array<T, N>::iterator iterator;
+	typedef typename std::array<T, N>::const_iterator const_iterator;
 
-        reference operator[](size_type i) {
-                FEM_ASSERT(i < data.size());
-                return data[i];
-        }
+	reference operator[](size_type i) {
+		FEM_ASSERT(i < data.size());
+		return data[i];
+	}
 
-        const_reference operator[](size_type i) const {
-                FEM_ASSERT(i < data.size());
-                return data[i];
-        }
+	const_reference operator[](size_type i) const {
+		FEM_ASSERT(i < data.size());
+		return data[i];
+	}
 
-        size_type size() const {
-                return data.size();
-        }
+	size_type size() const {
+		return data.size();
+	}
 
-        iterator begin() {
-                return data.begin();
-        }
+	iterator begin() {
+		return data.begin();
+	}
 
-        iterator end() {
-                return data.end();
-        }
+	iterator end() {
+		return data.end();
+	}
 
-        const_iterator begin() const {
-                return data.begin();
-        }
+	const_iterator begin() const {
+		return data.begin();
+	}
 
-        const_iterator end() const {
-                return data.end();
-        }
+	const_iterator end() const {
+		return data.end();
+	}
 
-        std::array<T, N> data;
+	std::array<T, N> data;
 };
 
 class DofMap {
 public:
-        enum ElementType {
-                ELEM_RBE3 = 0,
-                ELEM_JOINT,
-                ELEM_TYPE_COUNT,
-                ELEM_NODOF = -1
-        };
+	enum ElementType {
+		ELEM_RBE3 = 0,
+		ELEM_JOINT,
+		ELEM_TYPE_COUNT,
+		ELEM_NODOF = -1
+	};
 
-        explicit DofMap(const int32NDArray& ndof, const array<int32NDArray, ELEM_TYPE_COUNT>& edof, octave_idx_type totdof)
-                :ndof(ndof), edof(edof), totdof(totdof) {
-        }
+	explicit DofMap(const int32NDArray& ndof, const array<int32NDArray, ELEM_TYPE_COUNT>& edof, octave_idx_type totdof)
+		:ndof(ndof), edof(edof), totdof(totdof) {
+	}
 
-        explicit DofMap(const int32NDArray& ndof, octave_idx_type totdof)
-                :ndof(ndof), totdof(totdof) {
-        }
+	explicit DofMap(const int32NDArray& ndof, octave_idx_type totdof)
+		:ndof(ndof), totdof(totdof) {
+	}
 
-        octave_idx_type GetNodeDofIndex(octave_idx_type inode, octave_idx_type idof) const {
-                return ndof.xelem(inode, idof);
-        }
+	octave_idx_type GetNodeDofIndex(octave_idx_type inode, octave_idx_type idof) const {
+		return ndof.xelem(inode, idof);
+	}
 
-        octave_idx_type GetElemDofIndex(ElementType eElemType, octave_idx_type ielem, octave_idx_type idof) const {
-                return edof[eElemType].xelem(ielem, idof).value();
-        }
+	octave_idx_type GetElemDofIndex(ElementType eElemType, octave_idx_type ielem, octave_idx_type idof) const {
+		return edof[eElemType].xelem(ielem, idof).value();
+	}
 
-        octave_idx_type iGetNumDof() const {
-                return totdof;
-        }
+	octave_idx_type iGetNumDof() const {
+		return totdof;
+	}
 
 private:
-        int32NDArray ndof;
-        array<int32NDArray, ELEM_TYPE_COUNT> edof;
-        octave_idx_type totdof;
+	int32NDArray ndof;
+	array<int32NDArray, ELEM_TYPE_COUNT> edof;
+	octave_idx_type totdof;
 };
 
 class MatrixAss;
 
 class MeshInfo {
 public:
-        enum InfoType {
-                JACOBIAN_DET = 0,
-                INFO_COUNT
-        };
+	enum InfoType {
+		JACOBIAN_DET = 0,
+		INFO_COUNT
+	};
 
-        enum InfoStat {
-                STAT_MIN = 0,
-                STAT_MAX,
-                STAT_MEAN,
-                STAT_COUNT
-        };
+	enum InfoStat {
+		STAT_MIN = 0,
+		STAT_MAX,
+		STAT_MEAN,
+		STAT_COUNT
+	};
 
-        MeshInfo() {
-                Reset();
-        }
+	MeshInfo() {
+		Reset();
+	}
 
-        octave_value Get() const {
-                octave_scalar_map oMeshInfo;
+	octave_value Get() const {
+		octave_scalar_map oMeshInfo;
 
-                static const char szStatName[STAT_COUNT][5] = {
-                        "min",
-                        "max",
-                        "mean"
-                };
+		static const char szStatName[STAT_COUNT][5] = {
+			"min",
+			"max",
+			"mean"
+		};
 
-                static const char szInfoName[INFO_COUNT][5] = {
-                        "detJ"
-                };
+		static const char szInfoName[INFO_COUNT][5] = {
+			"detJ"
+		};
 
-                for (octave_idx_type i = 0; i < INFO_COUNT; ++i) {
-                        octave_scalar_map oMeshStat;
-                        const InfoType eInfoType = static_cast<InfoType>(i);
+		for (octave_idx_type i = 0; i < INFO_COUNT; ++i) {
+			octave_scalar_map oMeshStat;
+			const InfoType eInfoType = static_cast<InfoType>(i);
 
-                        for (octave_idx_type j = 0; j < STAT_COUNT; ++j) {
-                                const InfoStat eInfoStat = static_cast<InfoStat>(j);
-                                oMeshStat.assign(szStatName[j], dGet(eInfoType, eInfoStat));
-                        }
+			for (octave_idx_type j = 0; j < STAT_COUNT; ++j) {
+				const InfoStat eInfoStat = static_cast<InfoStat>(j);
+				oMeshStat.assign(szStatName[j], dGet(eInfoType, eInfoStat));
+			}
 
-                        oMeshInfo.assign(szInfoName[i], oMeshStat);
-                }
+			oMeshInfo.assign(szInfoName[i], oMeshStat);
+		}
 
-                return oMeshInfo;
-        }
+		return oMeshInfo;
+	}
 
-        void Reset() {
-                for (auto i = std::begin(rgData); i != std::end(rgData); ++i) {
-                        i->rgValue[STAT_MIN] = std::numeric_limits<double>::max();
-                        i->rgValue[STAT_MAX] = -i->rgValue[STAT_MIN];
-                        i->rgValue[STAT_MEAN] = 0;
-                        i->iCount = 0;
-                }
-        }
+	void Reset() {
+		for (auto i = std::begin(rgData); i != std::end(rgData); ++i) {
+			i->rgValue[STAT_MIN] = std::numeric_limits<double>::max();
+			i->rgValue[STAT_MAX] = -i->rgValue[STAT_MIN];
+			i->rgValue[STAT_MEAN] = 0;
+			i->iCount = 0;
+		}
+	}
 
-        void Add(InfoType eInfoType, double dValue) {
-                Data& oData = rgData[eInfoType];
-                oData.rgValue[STAT_MIN] = std::min(oData.rgValue[STAT_MIN], dValue);
-                oData.rgValue[STAT_MAX] = std::max(oData.rgValue[STAT_MAX], dValue);
-                oData.rgValue[STAT_MEAN] += dValue;
-                ++oData.iCount;
-        }
+	void Add(InfoType eInfoType, double dValue) {
+		Data& oData = rgData[eInfoType];
+		oData.rgValue[STAT_MIN] = std::min(oData.rgValue[STAT_MIN], dValue);
+		oData.rgValue[STAT_MAX] = std::max(oData.rgValue[STAT_MAX], dValue);
+		oData.rgValue[STAT_MEAN] += dValue;
+		++oData.iCount;
+	}
 
-        double dGet(InfoType eInfoType, InfoStat eInfoStat) const {
-                double dValue = rgData[eInfoType].rgValue[eInfoStat];
+	double dGet(InfoType eInfoType, InfoStat eInfoStat) const {
+		double dValue = rgData[eInfoType].rgValue[eInfoStat];
 
-                if (eInfoStat == STAT_MEAN) {
-                        dValue /= rgData[eInfoType].iCount;
-                }
+		if (eInfoStat == STAT_MEAN) {
+			dValue /= rgData[eInfoType].iCount;
+		}
 
-                return dValue;
-        }
+		return dValue;
+	}
 
 private:
-        struct Data {
-                array<double, STAT_COUNT> rgValue;
-                int iCount;
-        };
+	struct Data {
+		array<double, STAT_COUNT> rgValue;
+		int iCount;
+	};
 
-        array<Data, INFO_COUNT> rgData;
+	array<Data, INFO_COUNT> rgData;
 };
 
 class Material
 {
 public:
-        Material(const Matrix& C, double rho, double alpha, double beta)
-                :rho(rho), alpha(alpha), beta(beta), C(C) {
-                FEM_ASSERT(C.rows() == 6);
-                FEM_ASSERT(C.columns() == 6);
-        }
+	Material(const Matrix& C, double rho, double alpha, double beta)
+		:rho(rho), alpha(alpha), beta(beta), C(C) {
+		FEM_ASSERT(C.rows() == 6);
+		FEM_ASSERT(C.columns() == 6);
+	}
 
-        Material(const Material& oMat)
-                :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), C(oMat.C) {
-        }       
+	Material(const Material& oMat)
+		:rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), C(oMat.C) {
+	}
 
-        const Matrix& LinearElasticity() const {
-                return C;
-        }
+	const Matrix& LinearElasticity() const {
+		return C;
+	}
 
-        double Density() const { return rho; }
-        double AlphaDamping() const { return alpha; }
-        double BetaDamping() const { return beta; }
+	double Density() const { return rho; }
+	double AlphaDamping() const { return alpha; }
+	double BetaDamping() const { return beta; }
 private:
-        const double rho, alpha, beta;
-        const Matrix C;
+	const double rho, alpha, beta;
+	const Matrix C;
 };
 
 class IntegrationRule
 {
 public:
-        IntegrationRule() {
-        }
+	IntegrationRule() {
+	}
 
-        void SetNumEvalPoints(octave_idx_type iNumEvalPoints, octave_idx_type iNumDirections) {
-                r.resize(iNumEvalPoints, iNumDirections);
-                alpha.resize(iNumEvalPoints);
-        }
+	void SetNumEvalPoints(octave_idx_type iNumEvalPoints, octave_idx_type iNumDirections) {
+		r.resize(iNumEvalPoints, iNumDirections);
+		alpha.resize(iNumEvalPoints);
+	}
 
-        void SetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection, double ri) {
-                r.xelem(iEvalPnt, iDirection) = ri;
-        }
+	void SetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection, double ri) {
+		r.xelem(iEvalPnt, iDirection) = ri;
+	}
 
-        void SetWeight(octave_idx_type iEvalPnt, double alphai) {
-                alpha.xelem(iEvalPnt) = alphai;
-        }
+	void SetWeight(octave_idx_type iEvalPnt, double alphai) {
+		alpha.xelem(iEvalPnt) = alphai;
+	}
 
-        double dGetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection) const {
-                return r.xelem(iEvalPnt, iDirection);
-        }
+	double dGetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection) const {
+		return r.xelem(iEvalPnt, iDirection);
+	}
 
-        double dGetWeight(octave_idx_type iEvalPnt) const {
-                return alpha.xelem(iEvalPnt);
-        }
+	double dGetWeight(octave_idx_type iEvalPnt) const {
+		return alpha.xelem(iEvalPnt);
+	}
 
-        octave_idx_type iGetNumDirections() const {
-                return r.columns();
-        }
+	octave_idx_type iGetNumDirections() const {
+		return r.columns();
+	}
 
-        octave_idx_type iGetNumEvalPoints() const {
-                FEM_ASSERT(r.rows() == alpha.rows());
+	octave_idx_type iGetNumEvalPoints() const {
+		FEM_ASSERT(r.rows() == alpha.rows());
 
-                return r.rows();
-        }
+		return r.rows();
+	}
 
 private:
-        Matrix r;
-        ColumnVector alpha;
+	Matrix r;
+	ColumnVector alpha;
 };
 
 class Element
 {
 public:
-        enum MatSymmetryFlag: unsigned {
-                MAT_SYM_FULL = 0x0u,
-                MAT_SYM_UPPER = 0x1u,
-                MAT_SYM_LOWER = 0x2u,
-                MAT_SYM_DIAG = 0x3u,
-                MAT_SYM_MASK = 0xFu
-        };
+	enum MatSymmetryFlag: unsigned {
+		MAT_SYM_FULL = 0x0u,
+		MAT_SYM_UPPER = 0x1u,
+		MAT_SYM_LOWER = 0x2u,
+		MAT_SYM_DIAG = 0x3u,
+		MAT_SYM_MASK = 0xFu
+	};
 
-        enum MatrixType: unsigned {
-                MAT_UNKNOWN = static_cast<unsigned>(-1),
-                MAT_STIFFNESS = 0x100u,
-                MAT_STIFFNESS_SYM = MAT_STIFFNESS | MAT_SYM_UPPER,
-                MAT_STIFFNESS_SYM_L = MAT_STIFFNESS | MAT_SYM_LOWER,
-                MAT_MASS = 0x200u,
-                MAT_MASS_SYM = MAT_MASS | MAT_SYM_UPPER,
-                MAT_MASS_SYM_L = MAT_MASS | MAT_SYM_LOWER,
-                MAT_MASS_LUMPED = MAT_MASS | MAT_SYM_DIAG,
-                MAT_DAMPING = 0x300u,
-                MAT_DAMPING_SYM = MAT_DAMPING | MAT_SYM_UPPER,
-                MAT_DAMPING_SYM_L = MAT_DAMPING | MAT_SYM_LOWER,
-                SCA_TOT_MASS = 0x400u,
-                VEC_INERTIA_M1 = 0x500u,
-                MAT_INERTIA_J = 0x600u,
-                MAT_INERTIA_INV3 = 0x700u,
-                MAT_INERTIA_INV4 = 0x800u,
-                MAT_INERTIA_INV5 = 0x900u,
-                MAT_INERTIA_INV8 = 0xA00u,
-                MAT_INERTIA_INV9 = 0xB00u,
-                MAT_ACCEL_LOAD = 0xC00u,
-                VEC_LOAD_CONSISTENT = 0xD00u,
-                VEC_LOAD_LUMPED = 0xE00u,
-                VEC_STRESS_CAUCH = 0xF00u,
-                SCA_STRESS_VMIS = 0x1000u,
-        };
+	enum MatrixType: unsigned {
+		MAT_UNKNOWN = static_cast<unsigned>(-1),
+		MAT_STIFFNESS = 0x100u,
+		MAT_STIFFNESS_SYM = MAT_STIFFNESS | MAT_SYM_UPPER,
+		MAT_STIFFNESS_SYM_L = MAT_STIFFNESS | MAT_SYM_LOWER,
+		MAT_MASS = 0x200u,
+		MAT_MASS_SYM = MAT_MASS | MAT_SYM_UPPER,
+		MAT_MASS_SYM_L = MAT_MASS | MAT_SYM_LOWER,
+		MAT_MASS_LUMPED = MAT_MASS | MAT_SYM_DIAG,
+		MAT_DAMPING = 0x300u,
+		MAT_DAMPING_SYM = MAT_DAMPING | MAT_SYM_UPPER,
+		MAT_DAMPING_SYM_L = MAT_DAMPING | MAT_SYM_LOWER,
+		SCA_TOT_MASS = 0x400u,
+		VEC_INERTIA_M1 = 0x500u,
+		MAT_INERTIA_J = 0x600u,
+		MAT_INERTIA_INV3 = 0x700u,
+		MAT_INERTIA_INV4 = 0x800u,
+		MAT_INERTIA_INV5 = 0x900u,
+		MAT_INERTIA_INV8 = 0xA00u,
+		MAT_INERTIA_INV9 = 0xB00u,
+		MAT_ACCEL_LOAD = 0xC00u,
+		VEC_LOAD_CONSISTENT = 0xD00u,
+		VEC_LOAD_LUMPED = 0xE00u,
+		VEC_STRESS_CAUCH = 0xF00u,
+		SCA_STRESS_VMIS = 0x1000u,
+	};
 
-        Element(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-                :id(id), X(X), material(material), nodes(nodes) {
+	Element(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:id(id), X(X), material(material), nodes(nodes) {
 
-                FEM_ASSERT(X.columns() == nodes.numel());
-        }
+		FEM_ASSERT(X.columns() == nodes.numel());
+	}
 
-        Element(const Element& oElem)
-                :id(oElem.id), X(oElem.X), material(oElem.material), nodes(oElem.nodes) {
-        }
+	Element(const Element& oElem)
+		:id(oElem.id), X(oElem.X), material(oElem.material), nodes(oElem.nodes) {
+	}
 
-        virtual ~Element() {
-        }
+	virtual ~Element() {
+	}
 
-        virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const=0;
+	virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const=0;
 
-        virtual void PostProcElem(NDArray& mat, MatrixType eMatType, const NDArray& U) const {
-        }
+	virtual void PostProcElem(NDArray& mat, MatrixType eMatType, const NDArray& U) const {
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const=0;
+	virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const=0;
 
-        virtual double dGetMass() const {
-                return 0.;
-        }
+	virtual double dGetMass() const {
+		return 0.;
+	}
 
-        virtual bool bNeedMatrixInfo(MatrixType eMatType) const {
-                return false;
-        }
+	virtual bool bNeedMatrixInfo(MatrixType eMatType) const {
+		return false;
+	}
 
-        virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
-        }
+	virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
+	}
 
 protected:
-        const octave_idx_type id;
-        const Matrix X;
-        const Material* material;
-        const int32NDArray nodes;
+	const octave_idx_type id;
+	const Matrix X;
+	const Material* material;
+	const int32NDArray nodes;
 };
 
 class MatrixAss {
 public:
-        struct MatrixInfo {
-                MatrixInfo()
-                        :alpha(1.), beta(1.) {
-                }
+	struct MatrixInfo {
+		MatrixInfo()
+			:alpha(1.), beta(1.) {
+		}
 
-                double alpha; // scale factor for double Lagrange multipliers
-                double beta; // scale factor for constraint equations
-        };
+		double alpha; // scale factor for double Lagrange multipliers
+		double beta; // scale factor for constraint equations
+	};
 
-        explicit MatrixAss(octave_idx_type max_nnz)
-                :eMatType(Element::MAT_UNKNOWN),
-                 nnz(0),
-                 ridx(dim_vector(max_nnz, 1), 0),
-                 cidx(dim_vector(max_nnz, 1), 0),
-                 data(max_nnz, 0.) {
-        }
+	explicit MatrixAss(octave_idx_type max_nnz)
+		:eMatType(Element::MAT_UNKNOWN),
+		 nnz(0),
+		 ridx(dim_vector(max_nnz, 1), 0),
+		 cidx(dim_vector(max_nnz, 1), 0),
+		 data(max_nnz, 0.) {
+	}
 
-        const MatrixInfo& GetMatrixInfo() const {
-                return info;
-        }
+	const MatrixInfo& GetMatrixInfo() const {
+		return info;
+	}
 
-        void UpdateMatrixInfo() {
-                ColumnVector diagA(nnz, 0.);
+	void UpdateMatrixInfo() {
+		ColumnVector diagA(nnz, 0.);
 
-                for (octave_idx_type i = 0; i < nnz; ++i) {
-                        if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
-                                diagA.xelem(ridx.xelem(i)) += data.xelem(i);
-                        }
-                }
+		for (octave_idx_type i = 0; i < nnz; ++i) {
+			if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
+				diagA.xelem(ridx.xelem(i)) += data.xelem(i);
+			}
+		}
 
-                constexpr double INIT_MIN = std::numeric_limits<double>::max();
-                constexpr double INIT_MAX = -std::numeric_limits<double>::max();
+		constexpr double INIT_MIN = std::numeric_limits<double>::max();
+		constexpr double INIT_MAX = -std::numeric_limits<double>::max();
 
-                double minA = INIT_MIN;
-                double maxA = INIT_MAX;
+		double minA = INIT_MIN;
+		double maxA = INIT_MAX;
 
-                for (octave_idx_type i = 0; i < nnz; ++i) {
-                        const double absA = fabs(diagA.xelem(i));
+		for (octave_idx_type i = 0; i < nnz; ++i) {
+			const double absA = fabs(diagA.xelem(i));
 
-                        if (absA > maxA) {
-                                maxA = absA;
-                        }
+			if (absA > maxA) {
+				maxA = absA;
+			}
 
-                        if (absA < minA) {
-                                minA = absA;
-                        }
-                }
+			if (absA < minA) {
+				minA = absA;
+			}
+		}
 
-                // According to Code_Aster r3.03.08
-                info.alpha = info.beta = (minA != INIT_MIN && maxA != INIT_MAX) ? 0.5 * (minA + maxA) : 1.;
-        }
+		// According to Code_Aster r3.03.08
+		info.alpha = info.beta = (minA != INIT_MIN && maxA != INIT_MAX) ? 0.5 * (minA + maxA) : 1.;
+	}
 
-        void Insert(double d, octave_idx_type r, octave_idx_type c) {
-                if (bNeedToInsertElem(r, c)) {
-                        Resize(nnz + 1);
-                        InsertRaw(d, r, c);
-                }
-        }
+	void Insert(double d, octave_idx_type r, octave_idx_type c) {
+		if (bNeedToInsertElem(r, c)) {
+			Resize(nnz + 1);
+			InsertRaw(d, r, c);
+		}
+	}
 
-        void Insert(const Matrix& Ke, const int32NDArray& r, const int32NDArray& c) {
-                for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
-                        for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
-                                Insert(Ke.xelem(i, j), r.xelem(i), c.xelem(j));
-                        }
-                }
-        }
+	void Insert(const Matrix& Ke, const int32NDArray& r, const int32NDArray& c) {
+		for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
+			for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
+				Insert(Ke.xelem(i, j), r.xelem(i), c.xelem(j));
+			}
+		}
+	}
 
-        void Finish() {
-                // Do not resize the workspace here because it could be reused for other matrices!
-        }
+	void Finish() {
+		// Do not resize the workspace here because it could be reused for other matrices!
+	}
 
-        const int32NDArray& RowIndex() const { return ridx; }
-        const int32NDArray& ColIndex() const { return cidx; }
-        const ColumnVector& Data() const { return data; }
+	const int32NDArray& RowIndex() const { return ridx; }
+	const int32NDArray& ColIndex() const { return cidx; }
+	const ColumnVector& Data() const { return data; }
 
-        SparseMatrix Assemble(const DofMap& oDofMap, octave_idx_type iNumLoads) const {
-                FEM_ASSERT(eMatType != Element::MAT_UNKNOWN);
+	SparseMatrix Assemble(const DofMap& oDofMap, octave_idx_type iNumLoads) const {
+		FEM_ASSERT(eMatType != Element::MAT_UNKNOWN);
 
-                const octave_idx_type iNumRows = oDofMap.iGetNumDof();
-                octave_idx_type iNumCols = -1;
+		const octave_idx_type iNumRows = oDofMap.iGetNumDof();
+		octave_idx_type iNumCols = -1;
 
-                switch (eMatType) {
-                case Element::VEC_LOAD_CONSISTENT:
-                case Element::VEC_LOAD_LUMPED:
-                        iNumCols = iNumLoads;
-                        break;
-                        
-                case Element::MAT_ACCEL_LOAD:
-                        iNumCols = 3;
-                        break;
+		switch (eMatType) {
+		case Element::VEC_LOAD_CONSISTENT:
+		case Element::VEC_LOAD_LUMPED:
+			iNumCols = iNumLoads;
+			break;
+
+		case Element::MAT_ACCEL_LOAD:
+			iNumCols = 3;
+			break;
 #if DEBUG > 0
-                case Element::MAT_UNKNOWN:
-                        FEM_ASSERT(0);
-                        break;
+		case Element::MAT_UNKNOWN:
+			FEM_ASSERT(0);
+			break;
 #endif
-                default:
-                        iNumCols = iNumRows;
-                }
+		default:
+			iNumCols = iNumRows;
+		}
 
-                return SparseMatrix(data.linear_slice(0, nnz),
-                                    ridx.linear_slice(0, nnz),
-                                    cidx.linear_slice(0, nnz),
-                                    iNumRows,
-                                    iNumCols);
-        }
+		return SparseMatrix(data.linear_slice(0, nnz),
+				    ridx.linear_slice(0, nnz),
+				    cidx.linear_slice(0, nnz),
+				    iNumRows,
+				    iNumCols);
+	}
 
-        void Reset(Element::MatrixType eMatTypeCurr, const MatrixInfo& oMatInfo) {
-                eMatType = eMatTypeCurr;
-                nnz = 0;
-                info = oMatInfo;
-        }
+	void Reset(Element::MatrixType eMatTypeCurr, const MatrixInfo& oMatInfo) {
+		eMatType = eMatTypeCurr;
+		nnz = 0;
+		info = oMatInfo;
+	}
 
 private:
-        void Resize(octave_idx_type nnz_new) {
-                if (data.rows() < nnz_new) {
+	void Resize(octave_idx_type nnz_new) {
+		if (data.rows() < nnz_new) {
 #ifdef DEBUG
-                        throw std::runtime_error("fem_ass_matrix: allocated workspace size exceeded");
+			throw std::runtime_error("fem_ass_matrix: allocated workspace size exceeded");
 #endif
-                        data.resize(nnz_new, 0.);
-                        ridx.resize(dim_vector(nnz_new, 1), 0);
-                        cidx.resize(dim_vector(nnz_new, 1), 0);
-                }
-        }
+			data.resize(nnz_new, 0.);
+			ridx.resize(dim_vector(nnz_new, 1), 0);
+			cidx.resize(dim_vector(nnz_new, 1), 0);
+		}
+	}
 
 
-        bool bNeedToInsertElem(octave_idx_type r, octave_idx_type c) const {
-                if (!(r > 0 && c > 0)) {
-                        return false;
-                }
-                
-                switch (eMatType & Element::MAT_SYM_MASK) {
-                case Element::MAT_SYM_UPPER:
-                        if (c < r) {
-                                return false;
-                        }
-                        break;
-                case Element::MAT_SYM_LOWER:
-                        if (c > r) {
-                                return false;
-                        }
-                        break;
-                case Element::MAT_SYM_DIAG:
-                        if (c != r) {
-                                return false;
-                        }
-                        break;
-                default:
-                        break;
-                }
+	bool bNeedToInsertElem(octave_idx_type r, octave_idx_type c) const {
+		if (!(r > 0 && c > 0)) {
+			return false;
+		}
 
-                return true;
-        }
-        
-        void InsertRaw(double d, octave_idx_type r, octave_idx_type c) {
-                FEM_ASSERT(bNeedToInsertElem(r, c));
-                
-                data.xelem(nnz) = d;
-                ridx.xelem(nnz) = r;
-                cidx.xelem(nnz) = c;
-                ++nnz;
-        }
+		switch (eMatType & Element::MAT_SYM_MASK) {
+		case Element::MAT_SYM_UPPER:
+			if (c < r) {
+				return false;
+			}
+			break;
+		case Element::MAT_SYM_LOWER:
+			if (c > r) {
+				return false;
+			}
+			break;
+		case Element::MAT_SYM_DIAG:
+			if (c != r) {
+				return false;
+			}
+			break;
+		default:
+			break;
+		}
 
-        Element::MatrixType eMatType;
-        octave_idx_type nnz;
-        int32NDArray ridx, cidx;
-        ColumnVector data;
-        MatrixInfo info;
+		return true;
+	}
+
+	void InsertRaw(double d, octave_idx_type r, octave_idx_type c) {
+		FEM_ASSERT(bNeedToInsertElem(r, c));
+
+		data.xelem(nnz) = d;
+		ridx.xelem(nnz) = r;
+		cidx.xelem(nnz) = c;
+		++nnz;
+	}
+
+	Element::MatrixType eMatType;
+	octave_idx_type nnz;
+	int32NDArray ridx, cidx;
+	ColumnVector data;
+	MatrixInfo info;
 };
 
 class ElemJoint: public Element
 {
 public:
-        ElemJoint(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U)
-                :Element(id, X, material, nodes), C(C), U(U) {
-                FEM_ASSERT(C.columns() == nodes.numel() * 6);
-                FEM_ASSERT(C.rows() <= C.columns());
-                FEM_ASSERT(C.rows() >= 1);
-                FEM_ASSERT(U.rows() == C.rows());
-        }
+	ElemJoint(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U)
+		:Element(id, X, material, nodes), C(C), U(U) {
+		FEM_ASSERT(C.columns() == nodes.numel() * 6);
+		FEM_ASSERT(C.rows() <= C.columns());
+		FEM_ASSERT(C.rows() >= 1);
+		FEM_ASSERT(U.rows() == C.rows());
+	}
 
-        ElemJoint(const ElemJoint& oElem)
-                :Element(oElem), C(oElem.C), U(oElem.U) {
-        }
+	ElemJoint(const ElemJoint& oElem)
+		:Element(oElem), C(oElem.C), U(oElem.U) {
+	}
 
-        virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L: {
-                        int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+	virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L: {
+			int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
 
-                        for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
-                                for (octave_idx_type idof = 0; idof < 6; ++idof) {
-                                        ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
-                                }
-                        }
+			for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+				for (octave_idx_type idof = 0; idof < 6; ++idof) {
+					ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
+				}
+			}
 
-                        int32NDArray edofidx(dim_vector(C.rows(), 1));
+			int32NDArray edofidx(dim_vector(C.rows(), 1));
 
-                        for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
-                                edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
-                        }
+			for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
+				edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
+			}
 
-                        const double beta = mat.GetMatrixInfo().beta;
+			const double beta = mat.GetMatrixInfo().beta;
 
-                        for (octave_idx_type j = 0; j < C.columns(); ++j) {
-                                for (octave_idx_type i = 0; i < C.rows(); ++i) {
-                                        const double Cij = beta * C.xelem(i, j);
-                                        mat.Insert(Cij, ndofidx.xelem(j), edofidx.xelem(i));
-                                        mat.Insert(Cij, edofidx.xelem(i), ndofidx.xelem(j));
-                                }
-                        }
-                } break;
-                case VEC_LOAD_CONSISTENT:
-                case VEC_LOAD_LUMPED: {
-                        int32NDArray edofidx(dim_vector(C.rows(), 1));
+			for (octave_idx_type j = 0; j < C.columns(); ++j) {
+				for (octave_idx_type i = 0; i < C.rows(); ++i) {
+					const double Cij = beta * C.xelem(i, j);
+					mat.Insert(Cij, ndofidx.xelem(j), edofidx.xelem(i));
+					mat.Insert(Cij, edofidx.xelem(i), ndofidx.xelem(j));
+				}
+			}
+		} break;
+		case VEC_LOAD_CONSISTENT:
+		case VEC_LOAD_LUMPED: {
+			int32NDArray edofidx(dim_vector(C.rows(), 1));
 
-                        for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
-                                edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
-                        }
+			for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
+				edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
+			}
 
-                        const double beta = mat.GetMatrixInfo().beta;
+			const double beta = mat.GetMatrixInfo().beta;
 
-                        for (octave_idx_type j = 0; j < U.columns(); ++j) {
-                                for (octave_idx_type i = 0; i < U.rows(); ++i) {
-                                        mat.Insert(beta * U.xelem(i, j), edofidx.xelem(i), j + 1);
-                                }
-                        }
-                } break;
-                default:
-                        break;
-                }
-        }
+			for (octave_idx_type j = 0; j < U.columns(); ++j) {
+				for (octave_idx_type i = 0; i < U.rows(); ++i) {
+					mat.Insert(beta * U.xelem(i, j), edofidx.xelem(i), j + 1);
+				}
+			}
+		} break;
+		default:
+			break;
+		}
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                        return 2 * C.rows() * C.columns();
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                        return C.rows() * C.columns();
-                case VEC_LOAD_CONSISTENT:
-                case VEC_LOAD_LUMPED:
-                        return U.rows() * U.columns();
-                default:
-                        return 0;
-                }
-        }
+	virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+			return 2 * C.rows() * C.columns();
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+			return C.rows() * C.columns();
+		case VEC_LOAD_CONSISTENT:
+		case VEC_LOAD_LUMPED:
+			return U.rows() * U.columns();
+		default:
+			return 0;
+		}
+	}
 
-        virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                        return true;
-                default:
-                        return false;
-                }
-        }
+	virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+			return true;
+		default:
+			return false;
+		}
+	}
 
-        virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
-                FEM_ASSERT(sElem.numel() > idx);
+	virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
+		FEM_ASSERT(sElem.numel() > idx);
 
-                Cell& ovC = sElem.contents("C");
-                Cell& ovNodes = sElem.contents("nodes");
+		Cell& ovC = sElem.contents("C");
+		Cell& ovNodes = sElem.contents("nodes");
 
-                ovC(idx) = C;
-                ovNodes(idx) = nodes.transpose();
-                ++idx;
-        }
+		ovC(idx) = C;
+		ovNodes(idx) = nodes.transpose();
+		++idx;
+	}
 private:
-        const Matrix C, U;
+	const Matrix C, U;
 };
 
 class ElemRBE3: public Element
 {
 public:
-        ElemRBE3(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& omega)
-                :Element(id, X, material, nodes),
-                 omega(omega) {
+	ElemRBE3(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& omega)
+		:Element(id, X, material, nodes),
+		 omega(omega) {
 
-                FEM_ASSERT(X.rows() == 6);
-                FEM_ASSERT(X.columns() > 1);
-                FEM_ASSERT(omega.numel() == nodes.numel() - 1);
-        }
+		FEM_ASSERT(X.rows() == 6);
+		FEM_ASSERT(X.columns() > 1);
+		FEM_ASSERT(omega.numel() == nodes.numel() - 1);
+	}
 
-        virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                        break;
+	virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+			break;
 
-                default:
-                        return;
-                }
+		default:
+			return;
+		}
 
-                int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+		int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
 
-                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
-                        for (octave_idx_type idof = 0; idof < 6; ++idof) {
-                                ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
-                        }
-                }
+		for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+			for (octave_idx_type idof = 0; idof < 6; ++idof) {
+				ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
+			}
+		}
 
-                int32NDArray edofidx(dim_vector(6, 1));
+		int32NDArray edofidx(dim_vector(6, 1));
 
-                for (octave_idx_type idof = 0; idof < edofidx.rows(); ++idof) {
-                        edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_RBE3, id - 1, idof);
-                }
+		for (octave_idx_type idof = 0; idof < edofidx.rows(); ++idof) {
+			edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_RBE3, id - 1, idof);
+		}
 
-                Matrix xi(3, nodes.numel() - 1);
+		Matrix xi(3, nodes.numel() - 1);
 
-                for (octave_idx_type j = 1; j < nodes.numel(); ++j) {
-                        for (octave_idx_type i = 0; i < 3; ++i) {
-                                xi.xelem(i, j - 1) = X.xelem(i, j) - X.xelem(i, 0);
-                        }
-                }
+		for (octave_idx_type j = 1; j < nodes.numel(); ++j) {
+			for (octave_idx_type i = 0; i < 3; ++i) {
+				xi.xelem(i, j - 1) = X.xelem(i, j) - X.xelem(i, 0);
+			}
+		}
 
-                FEM_TRACE("xi=[\n" << xi << "];\n");
+		FEM_TRACE("xi=[\n" << xi << "];\n");
 
-                Matrix S(xi.columns() * 6, 6);
+		Matrix S(xi.columns() * 6, 6);
 
-                for (octave_idx_type k = 0; k < xi.columns(); ++k) {
-                        for (octave_idx_type j = 0; j < 6; ++j) {
-                                for (octave_idx_type i = 0; i < 6; ++i) {
-                                        const bool alpha = j < 3 || ndofidx.xelem((k + 1) * 6 + j).value() >= 0;
-                                        S.xelem(6 * k + i, j) = alpha * (i == j);
-                                }
-                        }
+		for (octave_idx_type k = 0; k < xi.columns(); ++k) {
+			for (octave_idx_type j = 0; j < 6; ++j) {
+				for (octave_idx_type i = 0; i < 6; ++i) {
+					const bool alpha = j < 3 || ndofidx.xelem((k + 1) * 6 + j).value() >= 0;
+					S.xelem(6 * k + i, j) = alpha * (i == j);
+				}
+			}
 
-                        /*
-                          skew(xi) =
-                          0  -z   y
-                          z   0  -x
-                          -y   x   0
+			/*
+			  skew(xi) =
+			  0  -z   y
+			  z   0  -x
+			  -y   x   0
 
-                          -skew(xi) =
-                          3   4   5
-                          0   z  -y  0
-                          -z   0   x  1
-                          y  -x   0  2
+			  -skew(xi) =
+			  3   4   5
+			  0   z  -y  0
+			  -z   0   x  1
+			  y  -x   0  2
 
-                          xi =
-                          x 0
-                          y 1
-                          z 2
-                        */
+			  xi =
+			  x 0
+			  y 1
+			  z 2
+			*/
 
-                        S.xelem(6 * k + 0, 4) =  xi.xelem(2, k);
-                        S.xelem(6 * k + 0, 5) = -xi.xelem(1, k);
-                        S.xelem(6 * k + 1, 3) = -xi.xelem(2, k);
-                        S.xelem(6 * k + 1, 5) =  xi.xelem(0, k);
-                        S.xelem(6 * k + 2, 3) =  xi.xelem(1, k);
-                        S.xelem(6 * k + 2, 4) = -xi.xelem(0, k);
-                }
+			S.xelem(6 * k + 0, 4) =  xi.xelem(2, k);
+			S.xelem(6 * k + 0, 5) = -xi.xelem(1, k);
+			S.xelem(6 * k + 1, 3) = -xi.xelem(2, k);
+			S.xelem(6 * k + 1, 5) =  xi.xelem(0, k);
+			S.xelem(6 * k + 2, 3) =  xi.xelem(1, k);
+			S.xelem(6 * k + 2, 4) = -xi.xelem(0, k);
+		}
 
-                FEM_TRACE("S=[\n" << S << "];\n");
+		FEM_TRACE("S=[\n" << S << "];\n");
 
-                double Lc2 = 0.;
+		double Lc2 = 0.;
 
-                for (octave_idx_type k = 0; k < xi.columns(); ++k) {
-                        double norm_xik = 0.;
+		for (octave_idx_type k = 0; k < xi.columns(); ++k) {
+			double norm_xik = 0.;
 
-                        for (octave_idx_type i = 0; i < 3; ++i) {
-                                norm_xik += xi.xelem(i, k) * xi.xelem(i, k);
-                        }
+			for (octave_idx_type i = 0; i < 3; ++i) {
+				norm_xik += xi.xelem(i, k) * xi.xelem(i, k);
+			}
 
-                        Lc2 += sqrt(norm_xik);
-                }
+			Lc2 += sqrt(norm_xik);
+		}
 
-                Lc2 /= xi.columns();
-                Lc2 *= Lc2;
+		Lc2 /= xi.columns();
+		Lc2 *= Lc2;
 
-                FEM_TRACE("Lc2=" << Lc2 << ";\n");
+		FEM_TRACE("Lc2=" << Lc2 << ";\n");
 
-                ColumnVector W(xi.columns() * 6);
+		ColumnVector W(xi.columns() * 6);
 
-                for (octave_idx_type k = 0; k < xi.columns(); ++k) {
-                        const double omegak = omega.xelem(k);
+		for (octave_idx_type k = 0; k < xi.columns(); ++k) {
+			const double omegak = omega.xelem(k);
 
-                        for (octave_idx_type i = 0; i < 6; ++i) {
-                                W.xelem(k * 6 + i) = omegak * (i < 3 ? 1. : Lc2);
-                        }
-                }
+			for (octave_idx_type i = 0; i < 6; ++i) {
+				W.xelem(k * 6 + i) = omegak * (i < 3 ? 1. : Lc2);
+			}
+		}
 
-                Matrix STWS(6, 6, 0.);
+		Matrix STWS(6, 6, 0.);
 
-                for (octave_idx_type j = 0; j < 6; ++j) {
-                        for (octave_idx_type i = 0; i < 6; ++i) {
-                                for (octave_idx_type k = 0; k < S.rows(); ++k) {
-                                        STWS.xelem(i, j) += S.xelem(k, i) * W.xelem(k) * S.xelem(k, j);
-                                }
-                        }
-                }
+		for (octave_idx_type j = 0; j < 6; ++j) {
+			for (octave_idx_type i = 0; i < 6; ++i) {
+				for (octave_idx_type k = 0; k < S.rows(); ++k) {
+					STWS.xelem(i, j) += S.xelem(k, i) * W.xelem(k) * S.xelem(k, j);
+				}
+			}
+		}
 
-                FEM_TRACE("f(S^T*W*S)=[\n" << (S.transpose() * DiagMatrix(W) * S - STWS) << "];\n");
+		FEM_TRACE("f(S^T*W*S)=[\n" << (S.transpose() * DiagMatrix(W) * S - STWS) << "];\n");
 
-                octave_idx_type info;
+		octave_idx_type info;
 
-                Matrix X(STWS.inverse(info));
+		Matrix X(STWS.inverse(info));
 
-                FEM_TRACE("X=[\n" << X << "];\n");
+		FEM_TRACE("X=[\n" << X << "];\n");
 
-                if (info != 0) {
-                        std::ostringstream os;
+		if (info != 0) {
+			std::ostringstream os;
 
-                        os << "rbe3 element id " << id << ": X matrix is singular";
+			os << "rbe3 element id " << id << ": X matrix is singular";
 
-                        throw std::runtime_error(os.str());
-                }
+			throw std::runtime_error(os.str());
+		}
 
-                Matrix B(xi.columns() * 6, 6);
+		Matrix B(xi.columns() * 6, 6);
 
-                for (octave_idx_type l = 0; l < xi.columns(); ++l) {
-                        for (octave_idx_type j = 0; j < 6; ++j) {
-                                for (octave_idx_type i = 0; i < 6; ++i) {
-                                        double Bijl = 0.;
+		for (octave_idx_type l = 0; l < xi.columns(); ++l) {
+			for (octave_idx_type j = 0; j < 6; ++j) {
+				for (octave_idx_type i = 0; i < 6; ++i) {
+					double Bijl = 0.;
 
-                                        for (octave_idx_type k = 0; k < 6; ++k) {
-                                                Bijl += W.xelem(l * 6 + i) * S.xelem(l * 6 + i, k) * X.xelem(k, j);
-                                        }
+					for (octave_idx_type k = 0; k < 6; ++k) {
+						Bijl += W.xelem(l * 6 + i) * S.xelem(l * 6 + i, k) * X.xelem(k, j);
+					}
 
-                                        B.xelem(l * 6 + i, j) = Bijl;
-                                }
-                        }
-                }
+					B.xelem(l * 6 + i, j) = Bijl;
+				}
+			}
+		}
 
-                FEM_TRACE("f=[\n" << (B - DiagMatrix(W) * S * X) << "];\n");
-                FEM_TRACE("W=[\n" << W << "];\n");
-                FEM_TRACE("B=[\n" << B << "];\n");
+		FEM_TRACE("f=[\n" << (B - DiagMatrix(W) * S * X) << "];\n");
+		FEM_TRACE("W=[\n" << W << "];\n");
+		FEM_TRACE("B=[\n" << B << "];\n");
 
-                const double beta = mat.GetMatrixInfo().beta;
+		const double beta = mat.GetMatrixInfo().beta;
 
-                for (octave_idx_type i = 0; i < 6; ++i) {
-                        mat.Insert(-beta, ndofidx.xelem(i), edofidx.xelem(i));
-                        mat.Insert(-beta, edofidx.xelem(i), ndofidx.xelem(i));
-                }
+		for (octave_idx_type i = 0; i < 6; ++i) {
+			mat.Insert(-beta, ndofidx.xelem(i), edofidx.xelem(i));
+			mat.Insert(-beta, edofidx.xelem(i), ndofidx.xelem(i));
+		}
 
-                for (octave_idx_type j = 0; j < 6; ++j) {
-                        for (octave_idx_type i = 0; i < xi.columns() * 6; ++i) {
-                                const double Bij = beta * B.xelem(i, j);
-                                mat.Insert(Bij, ndofidx.xelem(i + 6), edofidx.xelem(j));
-                                mat.Insert(Bij, edofidx.xelem(j), ndofidx.xelem(i + 6));
-                        }
-                }
-        }
+		for (octave_idx_type j = 0; j < 6; ++j) {
+			for (octave_idx_type i = 0; i < xi.columns() * 6; ++i) {
+				const double Bij = beta * B.xelem(i, j);
+				mat.Insert(Bij, ndofidx.xelem(i + 6), edofidx.xelem(j));
+				mat.Insert(Bij, edofidx.xelem(j), ndofidx.xelem(i + 6));
+			}
+		}
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                        return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                        return 4 * 6 + 2 * 6 * 6 * (X.columns() - 1);
-                default:
-                        return 0;
-                }
-        }
+	virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+			return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+			return 4 * 6 + 2 * 6 * 6 * (X.columns() - 1);
+		default:
+			return 0;
+		}
+	}
 
-        virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                        return true;
-                default:
-                        return false;
-                }
-        }
+	virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+			return true;
+		default:
+			return false;
+		}
+	}
 
 private:
-        const RowVector omega;
+	const RowVector omega;
 };
 
 class Element3D: public Element
 {
 public:
-        Element3D(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-                :Element(id, X, material, nodes) {
+	Element3D(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:Element(id, X, material, nodes) {
 
-                FEM_ASSERT(X.rows() == 3);
-        }
+		FEM_ASSERT(X.rows() == 3);
+	}
 
-        virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
-                void (Element3D::*pFunc)(Matrix&, MeshInfo&, MatrixType) const;
+	virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+		void (Element3D::*pFunc)(Matrix&, MeshInfo&, MatrixType) const;
 
-                const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDof = iGetNumDof();
 
-                octave_idx_type iNumRows, iNumCols;
+		octave_idx_type iNumRows, iNumCols;
 
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                        pFunc = &Element3D::StiffnessMatrix;
-                        iNumRows = iNumCols = iNumDof;
-                        break;
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+			pFunc = &Element3D::StiffnessMatrix;
+			iNumRows = iNumCols = iNumDof;
+			break;
 
-                case MAT_MASS:
-                case MAT_MASS_SYM:
-                case MAT_MASS_SYM_L:
-                case MAT_MASS_LUMPED:
-                        pFunc = &Element3D::MassMatrix;
-                        iNumRows = iNumCols = iNumDof;
-                        break;
+		case MAT_MASS:
+		case MAT_MASS_SYM:
+		case MAT_MASS_SYM_L:
+		case MAT_MASS_LUMPED:
+			pFunc = &Element3D::MassMatrix;
+			iNumRows = iNumCols = iNumDof;
+			break;
 
-                case MAT_DAMPING:
-                case MAT_DAMPING_SYM:
-                case MAT_DAMPING_SYM_L:
-                        pFunc = &Element3D::DampingMatrix;
-                        iNumRows = iNumCols = iNumDof;
-                        break;
+		case MAT_DAMPING:
+		case MAT_DAMPING_SYM:
+		case MAT_DAMPING_SYM_L:
+			pFunc = &Element3D::DampingMatrix;
+			iNumRows = iNumCols = iNumDof;
+			break;
 
-                case MAT_ACCEL_LOAD:
-                        pFunc = &Element3D::AccelerationLoad;
-                        iNumRows = iNumDof;
-                        iNumCols = 3;
-                        break;
+		case MAT_ACCEL_LOAD:
+			pFunc = &Element3D::AccelerationLoad;
+			iNumRows = iNumDof;
+			iNumCols = 3;
+			break;
 
-                default:
-                        return;
-                }
+		default:
+			return;
+		}
 
-                int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+		int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
-                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
-                        for (octave_idx_type idof = 0; idof < 3; ++idof) {
-                                dofidx.xelem(inode * 3 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
-                        }
-                }
+		for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+			for (octave_idx_type idof = 0; idof < 3; ++idof) {
+				dofidx.xelem(inode * 3 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
+			}
+		}
 
-                Matrix Ae(iNumRows, iNumCols, 0.);
+		Matrix Ae(iNumRows, iNumCols, 0.);
 
-                (this->*pFunc)(Ae, info, eMatType);
+		(this->*pFunc)(Ae, info, eMatType);
 
-                switch (eMatType) {
-                case MAT_ACCEL_LOAD: {
-                        int32NDArray dofidxcol(dim_vector(iNumCols, 1));
+		switch (eMatType) {
+		case MAT_ACCEL_LOAD: {
+			int32NDArray dofidxcol(dim_vector(iNumCols, 1));
 
-                        for (octave_idx_type i = 0; i < iNumCols; ++i) {
-                                dofidxcol.xelem(i) = i + 1;
-                        }
+			for (octave_idx_type i = 0; i < iNumCols; ++i) {
+				dofidxcol.xelem(i) = i + 1;
+			}
 
-                        mat.Insert(Ae, dofidx, dofidxcol);
-                } break;
-                default:
-                        mat.Insert(Ae, dofidx, dofidx);
-                }
-        }
+			mat.Insert(Ae, dofidx, dofidxcol);
+		} break;
+		default:
+			mat.Insert(Ae, dofidx, dofidx);
+		}
+	}
 
-        octave_idx_type iGetNumDof() const {
-                return nodes.numel() * 3;
-        }
+	octave_idx_type iGetNumDof() const {
+		return nodes.numel() * 3;
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
-                switch (eMatType) {
-                case MAT_MASS:
-                case MAT_STIFFNESS:
-                case MAT_DAMPING: {
-                        const octave_idx_type iNumDof = iGetNumDof();
+	virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+		switch (eMatType) {
+		case MAT_MASS:
+		case MAT_STIFFNESS:
+		case MAT_DAMPING: {
+			const octave_idx_type iNumDof = iGetNumDof();
 
-                        return iNumDof * iNumDof;
-                }
-                case MAT_MASS_SYM:
-                case MAT_MASS_SYM_L:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                case MAT_DAMPING_SYM:
-                case MAT_DAMPING_SYM_L: {
-                        const octave_idx_type iNumDof = iGetNumDof();
+			return iNumDof * iNumDof;
+		}
+		case MAT_MASS_SYM:
+		case MAT_MASS_SYM_L:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+		case MAT_DAMPING_SYM:
+		case MAT_DAMPING_SYM_L: {
+			const octave_idx_type iNumDof = iGetNumDof();
 
-                        return (iNumDof + 1) * iNumDof / 2;
-                }
-                case MAT_MASS_LUMPED:
-                        return iGetNumDof();
+			return (iNumDof + 1) * iNumDof / 2;
+		}
+		case MAT_MASS_LUMPED:
+			return iGetNumDof();
 
-                case MAT_ACCEL_LOAD:
-                        return iGetNumDof() * 3;
+		case MAT_ACCEL_LOAD:
+			return iGetNumDof() * 3;
 
-                default:
-                        return 0;
-                }
-        }
+		default:
+			return 0;
+		}
+	}
 
-        virtual void PostProcElem(NDArray& mat, MatrixType eMatType, const NDArray& U) const {
-                switch (eMatType) {
-                case VEC_INERTIA_M1:
-                        InertiaMoment1(mat, eMatType);
-                        break;
+	virtual void PostProcElem(NDArray& mat, MatrixType eMatType, const NDArray& U) const {
+		switch (eMatType) {
+		case VEC_INERTIA_M1:
+			InertiaMoment1(mat, eMatType);
+			break;
 
-                case MAT_INERTIA_J:
-                        InertiaMatrix(mat, eMatType);
-                        break;
+		case MAT_INERTIA_J:
+			InertiaMatrix(mat, eMatType);
+			break;
 
-                case MAT_INERTIA_INV3:
-                        InertiaInv3(mat, eMatType, U);
-                        break;
+		case MAT_INERTIA_INV3:
+			InertiaInv3(mat, eMatType, U);
+			break;
 
-                case MAT_INERTIA_INV4:
-                        InertiaInv4(mat, eMatType, U);
-                        break;
+		case MAT_INERTIA_INV4:
+			InertiaInv4(mat, eMatType, U);
+			break;
 
-                case MAT_INERTIA_INV5:
-                        InertiaInv5(mat, eMatType, U);
-                        break;
+		case MAT_INERTIA_INV5:
+			InertiaInv5(mat, eMatType, U);
+			break;
 
-                case MAT_INERTIA_INV8:
-                        InertiaInv8(mat, eMatType, U);
-                        break;
+		case MAT_INERTIA_INV8:
+			InertiaInv8(mat, eMatType, U);
+			break;
 
-                case MAT_INERTIA_INV9:
-                        InertiaInv9(mat, eMatType, U);
-                        break;
+		case MAT_INERTIA_INV9:
+			InertiaInv9(mat, eMatType, U);
+			break;
 
-                case VEC_STRESS_CAUCH:
-                        StressNodalElem(mat, eMatType, U);
-                        break;
+		case VEC_STRESS_CAUCH:
+			StressNodalElem(mat, eMatType, U);
+			break;
 
-                default:
-                        break;
-                }
-        }
+		default:
+			break;
+		}
+	}
 
-        double dGetVolume() const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(MAT_MASS);
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                ColumnVector rv(iNumDir);
-                Matrix J(iNumDir, iNumDir);
+	double dGetVolume() const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(MAT_MASS);
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		ColumnVector rv(iNumDir);
+		Matrix J(iNumDir, iNumDir);
 
-                double dV = 0.;
+		double dV = 0.;
 
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
 
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        const double detJ = Jacobian(rv, J);
+			const double detJ = Jacobian(rv, J);
 
-                        dV += alpha * detJ;
-                }
+			dV += alpha * detJ;
+		}
 
-                return dV;
-        }
+		return dV;
+	}
 
-        virtual double dGetMass() const {
-                return dGetVolume() * material->Density();
-        }
+	virtual double dGetMass() const {
+		return dGetVolume() * material->Density();
+	}
 
 protected:
-        virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const=0;
-        virtual double Jacobian(const ColumnVector& rv, Matrix& J) const=0;
-        virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const=0;
-        virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
-        virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taun) const=0;
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const=0;
+	virtual double Jacobian(const ColumnVector& rv, Matrix& J) const=0;
+	virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const=0;
+	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
+	virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taun) const=0;
 
-        void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
-                info.Add(MeshInfo::JACOBIAN_DET, detJ);
-        }
+	void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
+		info.Add(MeshInfo::JACOBIAN_DET, detJ);
+	}
 
-        void StiffnessMatrix(Matrix& Ke, MeshInfo& info, MatrixType eMatType) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                ColumnVector rv(iNumDir);
-                const Matrix& C = material->LinearElasticity();
-                const octave_idx_type iNumStrains = C.rows();
+	void StiffnessMatrix(Matrix& Ke, MeshInfo& info, MatrixType eMatType) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		ColumnVector rv(iNumDir);
+		const Matrix& C = material->LinearElasticity();
+		const octave_idx_type iNumStrains = C.rows();
 
-                FEM_ASSERT(C.rows() == C.columns());
+		FEM_ASSERT(C.rows() == C.columns());
 
-                Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
+		Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
 
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
 
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        const double detJ = Jacobian(rv, J);
+			const double detJ = Jacobian(rv, J);
 
-                        AddMeshInfo(info, oIntegRule, detJ);
+			AddMeshInfo(info, oIntegRule, detJ);
 
-                        StrainMatrix(rv, J.inverse(), B);
+			StrainMatrix(rv, J.inverse(), B);
 
-                        for (octave_idx_type l = 0; l < iNumStrains; ++l) {
-                                for (octave_idx_type m = 0; m < iNumDof; ++m) {
-                                        double CBlm = 0.;
+			for (octave_idx_type l = 0; l < iNumStrains; ++l) {
+				for (octave_idx_type m = 0; m < iNumDof; ++m) {
+					double CBlm = 0.;
 
-                                        for (octave_idx_type n = 0; n < iNumStrains; ++n) {
-                                                CBlm += detJ * alpha * C.xelem(l, n) * B.xelem(n, m);
-                                        }
+					for (octave_idx_type n = 0; n < iNumStrains; ++n) {
+						CBlm += detJ * alpha * C.xelem(l, n) * B.xelem(n, m);
+					}
 
-                                        FEM_ASSERT(std::isfinite(CBlm));
+					FEM_ASSERT(std::isfinite(CBlm));
 
-                                        CB.xelem(l, m) = CBlm;
-                                }
-                        }
-
-#ifdef DEBUG
-                        for (octave_idx_type i = 0; i < CB.rows(); ++i) {
-                                for (octave_idx_type j = 0; j < CB.columns(); ++j) {
-                                        FEM_ASSERT(std::isfinite(CB(i, j)));
-                                }
-                        }
-#endif
-
-                        for (octave_idx_type l = 0; l < iNumDof; ++l) {
-                                for (octave_idx_type m = l; m < iNumDof; ++m) {
-                                        double Kelm = 0.;
-
-                                        for (octave_idx_type n = 0; n < iNumStrains; ++n) {
-                                                Kelm += B.xelem(n, l) * CB.xelem(n, m);
-                                        }
-
-                                        FEM_ASSERT(std::isfinite(Kelm));
-
-                                        Ke.xelem(l, m) += Kelm;
-                                }
-                        }
-                }
-
-                for (octave_idx_type i = 1; i < iNumDof; ++i) {
-                        for (octave_idx_type j = 0; j < i; ++j) {
-                                Ke.xelem(i, j) = Ke.xelem(j, i);
-                        }
-                }
+					CB.xelem(l, m) = CBlm;
+				}
+			}
 
 #ifdef DEBUG
-                for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
-                        for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
-                                FEM_ASSERT(std::isfinite(Ke(i, j)));
-                        }
-                }
+			for (octave_idx_type i = 0; i < CB.rows(); ++i) {
+				for (octave_idx_type j = 0; j < CB.columns(); ++j) {
+					FEM_ASSERT(std::isfinite(CB(i, j)));
+				}
+			}
 #endif
-        }
 
-        void MassMatrix(Matrix& Me, MeshInfo& info, MatrixType eMatType) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                ColumnVector rv(iNumDir);
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
+			for (octave_idx_type l = 0; l < iNumDof; ++l) {
+				for (octave_idx_type m = l; m < iNumDof; ++m) {
+					double Kelm = 0.;
 
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+					for (octave_idx_type n = 0; n < iNumStrains; ++n) {
+						Kelm += B.xelem(n, l) * CB.xelem(n, m);
+					}
 
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
+					FEM_ASSERT(std::isfinite(Kelm));
 
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+					Ke.xelem(l, m) += Kelm;
+				}
+			}
+		}
 
-                        const double detJ = Jacobian(rv, J);
+		for (octave_idx_type i = 1; i < iNumDof; ++i) {
+			for (octave_idx_type j = 0; j < i; ++j) {
+				Ke.xelem(i, j) = Ke.xelem(j, i);
+			}
+		}
 
-                        AddMeshInfo(info, oIntegRule, detJ);
-
-                        DispInterpMatrix(rv, H);
-
-                        for (octave_idx_type l = 0; l < iNumDof; ++l) {
-                                for (octave_idx_type m = l; m < iNumDof; ++m) {
-                                        double Melm = 0.;
-
-                                        for (octave_idx_type n = 0; n < iNumDisp; ++n) {
-                                                Melm += H.xelem(n, l) * H.xelem(n, m);
-                                        }
-
-                                        FEM_ASSERT(std::isfinite(Melm));
-
-                                        Me.xelem(l, m) += Melm * alpha * rho * detJ;
-                                }
-                        }
-                }
-
-                for (octave_idx_type i = 1; i < iNumDof; ++i) {
-                        for (octave_idx_type j = 0; j < i; ++j) {
-                                Me.xelem(i, j) = Me.xelem(j, i);
-                        }
-                }
 #ifdef DEBUG
-                for (octave_idx_type i = 0; i < Me.rows(); ++i) {
-                        for (octave_idx_type j = 0; j < Me.columns(); ++j) {
-                                FEM_ASSERT(std::isfinite(Me(i, j)));
-                        }
-                }
+		for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
+			for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
+				FEM_ASSERT(std::isfinite(Ke(i, j)));
+			}
+		}
 #endif
-        }
+	}
+
+	void MassMatrix(Matrix& Me, MeshInfo& info, MatrixType eMatType) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		ColumnVector rv(iNumDir);
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
 
-        void DampingMatrix(Matrix& De, MeshInfo& info, MatrixType eMatType) const {
-                const double alpha = material->AlphaDamping();
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
 
-                if (alpha) {
-                        MassMatrix(De, info, static_cast<MatrixType>(MAT_MASS | (eMatType & MAT_SYM_MASK)));
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
 
-                        for (octave_idx_type j = 0; j < De.columns(); ++j) {
-                                for (octave_idx_type i = 0; i < De.rows(); ++i) {
-                                        De.xelem(i, j) *= alpha;
-                                }
-                        }
-                }
-
-                const double beta = material->BetaDamping();
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                if (beta) {
-                        Matrix Ke(De.rows(), De.columns(), 0.);
-
-                        StiffnessMatrix(Ke, info, static_cast<MatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
-
-                        for (octave_idx_type j = 0; j < De.columns(); ++j) {
-                                for (octave_idx_type i = 0; i < De.rows(); ++i) {
-                                        De.xelem(i, j) += beta * Ke.xelem(i, j);
-                                }
-                        }
-                }
-        }
-
-        void AccelerationLoad(Matrix& C1, MeshInfo& info, MatrixType eMatType) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                ColumnVector rv(iNumDir);
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
+			const double detJ = Jacobian(rv, J);
 
-                FEM_ASSERT(C1.rows() == iNumDof);
-                FEM_ASSERT(C1.columns() == iNumDisp);
+			AddMeshInfo(info, oIntegRule, detJ);
+
+			DispInterpMatrix(rv, H);
+
+			for (octave_idx_type l = 0; l < iNumDof; ++l) {
+				for (octave_idx_type m = l; m < iNumDof; ++m) {
+					double Melm = 0.;
+
+					for (octave_idx_type n = 0; n < iNumDisp; ++n) {
+						Melm += H.xelem(n, l) * H.xelem(n, m);
+					}
+
+					FEM_ASSERT(std::isfinite(Melm));
+
+					Me.xelem(l, m) += Melm * alpha * rho * detJ;
+				}
+			}
+		}
+
+		for (octave_idx_type i = 1; i < iNumDof; ++i) {
+			for (octave_idx_type j = 0; j < i; ++j) {
+				Me.xelem(i, j) = Me.xelem(j, i);
+			}
+		}
+#ifdef DEBUG
+		for (octave_idx_type i = 0; i < Me.rows(); ++i) {
+			for (octave_idx_type j = 0; j < Me.columns(); ++j) {
+				FEM_ASSERT(std::isfinite(Me(i, j)));
+			}
+		}
+#endif
+	}
+
+	void DampingMatrix(Matrix& De, MeshInfo& info, MatrixType eMatType) const {
+		const double alpha = material->AlphaDamping();
 
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+		if (alpha) {
+			MassMatrix(De, info, static_cast<MatrixType>(MAT_MASS | (eMatType & MAT_SYM_MASK)));
 
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
+			for (octave_idx_type j = 0; j < De.columns(); ++j) {
+				for (octave_idx_type i = 0; i < De.rows(); ++i) {
+					De.xelem(i, j) *= alpha;
+				}
+			}
+		}
+
+		const double beta = material->BetaDamping();
+
+		if (beta) {
+			Matrix Ke(De.rows(), De.columns(), 0.);
+
+			StiffnessMatrix(Ke, info, static_cast<MatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
+
+			for (octave_idx_type j = 0; j < De.columns(); ++j) {
+				for (octave_idx_type i = 0; i < De.rows(); ++i) {
+					De.xelem(i, j) += beta * Ke.xelem(i, j);
+				}
+			}
+		}
+	}
+
+	void AccelerationLoad(Matrix& C1, MeshInfo& info, MatrixType eMatType) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		ColumnVector rv(iNumDir);
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+
+		FEM_ASSERT(C1.rows() == iNumDof);
+		FEM_ASSERT(C1.columns() == iNumDisp);
 
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        const double detJ = Jacobian(rv, J);
+			const double detJ = Jacobian(rv, J);
 
-                        AddMeshInfo(info, oIntegRule, detJ);
-
-                        DispInterpMatrix(rv, H);
-
-                        const double dm = alpha * rho * detJ;
-
-                        for (octave_idx_type k = 0; k < iNumDisp; ++k) {
-                                for (octave_idx_type j = 0; j < iNumDof; ++j) {
-                                        C1.xelem(j, k) += H.xelem(k, j) * dm;
-                                }
-                        }
-                }
-        }
-
-        void InertiaMoment1(NDArray& S, MatrixType eMatType) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(S.ndims() == 2);
-                FEM_ASSERT(S.rows() == 3);
-                FEM_ASSERT(S.columns() == 1);
-                FEM_ASSERT(iNumDisp == S.rows());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+			AddMeshInfo(info, oIntegRule, detJ);
+
+			DispInterpMatrix(rv, H);
+
+			const double dm = alpha * rho * detJ;
+
+			for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+				for (octave_idx_type j = 0; j < iNumDof; ++j) {
+					C1.xelem(j, k) += H.xelem(k, j) * dm;
+				}
+			}
+		}
+	}
+
+	void InertiaMoment1(NDArray& S, MatrixType eMatType) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(S.ndims() == 2);
+		FEM_ASSERT(S.rows() == 3);
+		FEM_ASSERT(S.columns() == 1);
+		FEM_ASSERT(iNumDisp == S.rows());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        const double detJ = Jacobian(rv, J);;
-
-                        DispInterpMatrix(rv, H);
+			const double detJ = Jacobian(rv, J);;
+
+			DispInterpMatrix(rv, H);
 
-                        for (octave_idx_type l = 0; l < S.rows(); ++l) {
-                                double fil = 0.;
-
-                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                fil += H.xelem(l, iNumDisp * n + m) * X.xelem(m, n);
-                                        }
-                                }
-
-                                S.xelem(l) += fil * alpha * rho * detJ;
-                        }
-                }
-        }
-
-        void InertiaMatrix(NDArray& Inv7, MatrixType eMatType) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(Inv7.ndims() == 2);
-                FEM_ASSERT(Inv7.rows() == 3);
-                FEM_ASSERT(Inv7.columns() == 3);
-                FEM_ASSERT(iNumDisp == Inv7.rows());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-                ColumnVector fi(iNumDisp);
-
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        const double detJ = Jacobian(rv, J);
-
-                        DispInterpMatrix(rv, H);
-
-                        for (octave_idx_type l = 0; l < iNumDisp; ++l) {
-                                fi.xelem(l) = 0.;
-
-                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                fi.xelem(l) += H.xelem(l, iNumDisp * n + m) * X.xelem(m, n);
-                                        }
-                                }
-                        }
-
-                        const double dmi = alpha * rho * detJ;
-
-                        Inv7.xelem(0, 0) += (fi.xelem(1) * fi.xelem(1) + fi.xelem(2) * fi.xelem(2)) * dmi;
-                        Inv7.xelem(0, 1) -= (fi.xelem(0) * fi.xelem(1)) * dmi;
-                        Inv7.xelem(0, 2) -= (fi.xelem(0) * fi.xelem(2)) * dmi;
-                        Inv7.xelem(1, 1) += (fi.xelem(0) * fi.xelem(0) + fi.xelem(2) * fi.xelem(2)) * dmi;
-                        Inv7.xelem(1, 2) -= (fi.xelem(1) * fi.xelem(2)) * dmi;
-                        Inv7.xelem(2, 2) += (fi.xelem(0) * fi.xelem(0) + fi.xelem(1) * fi.xelem(1)) * dmi;
-                }
-        }
-
-        void InertiaInv3(NDArray& Inv3, MatrixType eMatType, const NDArray& U) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(U.ndims() == 3);
-                FEM_ASSERT(U.dim2() >= iNumDisp);
-                FEM_ASSERT(Inv3.ndims() == 2);
-                FEM_ASSERT(Inv3.rows() == 3);
-                FEM_ASSERT(Inv3.columns() == U.dim3());
-                FEM_ASSERT(iNumDisp == Inv3.rows());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        const double detJ = Jacobian(rv, J);
-
-                        DispInterpMatrix(rv, H);
-
-                        const double dmi = alpha * rho * detJ;
-
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type l = 0; l < iNumDisp; ++l) {
-                                        double Uil = 0.;
-
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                                        Uil += H.xelem(l, iNumDisp * n + m) * U.xelem(nodes.xelem(n).value() - 1, m, j);
-                                                }
-                                        }
-
-                                        Inv3.xelem(l, j) += dmi * Uil;
-                                }
-                        }
-                }
-        }
-
-        void InertiaInv4(NDArray& Inv4, MatrixType eMatType, const NDArray& U) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(U.ndims() == 3);
-                FEM_ASSERT(U.dim2() >= iNumDisp);
-                FEM_ASSERT(Inv4.rows() == 3);
-                FEM_ASSERT(Inv4.columns() == U.dim3());
-                FEM_ASSERT(iNumDisp == Inv4.rows());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-                ColumnVector Ui(iNumDisp), fi(iNumDisp);
-
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        const double detJ = Jacobian(rv, J);
-
-                        DispInterpMatrix(rv, H);
-
-                        const double dmi = alpha * rho * detJ;
-
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type l = 0; l < iNumDisp; ++l) {
-                                        Ui.xelem(l) = 0.;
-                                        fi.xelem(l) = 0.;
-
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                                        const double Hlmn = H.xelem(l, iNumDisp * n + m);
-                                                        Ui.xelem(l) += Hlmn * U.xelem(nodes.xelem(n).value() - 1, m, j);
-                                                        fi.xelem(l) += Hlmn * X.xelem(m, n);
-                                                }
-                                        }
-                                }
-
-                                Inv4.xelem(0, j) += (fi.xelem(1) * Ui.xelem(2) - Ui.xelem(1) * fi.xelem(2)) * dmi;
-                                Inv4.xelem(1, j) += (Ui.xelem(0) * fi.xelem(2) - fi.xelem(0) * Ui.xelem(2)) * dmi;
-                                Inv4.xelem(2, j) += (fi.xelem(0) * Ui.xelem(1) - Ui.xelem(0) * fi.xelem(1)) * dmi;
-                        }
-                }
-        }
-
-        void InertiaInv5(NDArray& Inv5, MatrixType eMatType, const NDArray& U) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(U.ndims() == 3);
-                FEM_ASSERT(U.dim2() >= iNumDisp);
-                FEM_ASSERT(Inv5.ndims() == 3);
-                FEM_ASSERT(Inv5.dim1() == 3);
-                FEM_ASSERT(Inv5.dim2() == U.dim3());
-                FEM_ASSERT(Inv5.dim3() == U.dim3());
-                FEM_ASSERT(iNumDisp == Inv5.dim1());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-                NDArray Ui(dim_vector(iNumDisp, U.dim3(), iNumGauss), 0.);
-                ColumnVector dmi(iNumGauss);
-
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        const double detJ = Jacobian(rv, J);
-
-                        DispInterpMatrix(rv, H);
-
-                        dmi.xelem(i) = alpha * rho * detJ;
-
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type l = 0; l < iNumDisp; ++l) {
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                                        Ui.xelem(l, j, i) += H.xelem(l, iNumDisp * n + m) * U.xelem(nodes.xelem(n).value() - 1, m, j);
-                                                }
-                                        }
-                                }
-                        }
-                }
-
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type k = 0; k < U.dim3(); ++k) {
-                                        Inv5.xelem(0, k, j) += dmi.xelem(i) * (Ui.xelem(1, j, i) * Ui.xelem(2, k, i) - Ui.xelem(2, j, i) * Ui.xelem(1, k, i));
-                                        Inv5.xelem(1, k, j) += dmi.xelem(i) * (Ui.xelem(2, j, i) * Ui.xelem(0, k, i) - Ui.xelem(0, j, i) * Ui.xelem(2, k, i));
-                                        Inv5.xelem(2, k, j) += dmi.xelem(i) * (Ui.xelem(0, j, i) * Ui.xelem(1, k, i) - Ui.xelem(1, j, i) * Ui.xelem(0, k, i));
-                                }
-                        }
-                }
-        }
-
-        void InertiaInv8(NDArray& Inv8, MatrixType eMatType, const NDArray& U) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(U.ndims() == 3);
-                FEM_ASSERT(U.dim2() >= iNumDisp);
-                FEM_ASSERT(Inv8.ndims() == 3);
-                FEM_ASSERT(Inv8.dim1() == 3);
-                FEM_ASSERT(Inv8.dim2() == 3);
-                FEM_ASSERT(Inv8.dim3() == U.dim3());
-                FEM_ASSERT(iNumDisp == Inv8.dim1());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-                ColumnVector Ui(iNumDisp), fi(iNumDisp);
-
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        const double detJ = Jacobian(rv, J);
-
-                        DispInterpMatrix(rv, H);
-
-                        const double dmi = alpha * rho * detJ;
-
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type l = 0; l < iNumDisp; ++l) {
-                                        Ui.xelem(l) = 0.;
-                                        fi.xelem(l) = 0.;
-
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                                        const double Hlmn = H.xelem(l, iNumDisp * n + m);
-                                                        Ui.xelem(l) += Hlmn * U.xelem(nodes.xelem(n).value() - 1, m, j);
-                                                        fi.xelem(l) += Hlmn * X.xelem(m, n);
-                                                }
-                                        }
-                                }
-
-                                Inv8.xelem(0,0,j) += (fi.xelem(2)*Ui.xelem(2)+fi.xelem(1)*Ui.xelem(1))*dmi;
-                                Inv8.xelem(1,0,j) += -fi.xelem(0)*Ui.xelem(1)*dmi;
-                                Inv8.xelem(2,0,j) += -fi.xelem(0)*Ui.xelem(2)*dmi;
-                                Inv8.xelem(0,1,j) += -Ui.xelem(0)*fi.xelem(1)*dmi;
-                                Inv8.xelem(1,1,j) += (fi.xelem(2)*Ui.xelem(2)+fi.xelem(0)*Ui.xelem(0))*dmi;
-                                Inv8.xelem(2,1,j) += -fi.xelem(1)*Ui.xelem(2)*dmi;
-                                Inv8.xelem(0,2,j) += -Ui.xelem(0)*fi.xelem(2)*dmi;
-                                Inv8.xelem(1,2,j) += -Ui.xelem(1)*fi.xelem(2)*dmi;
-                                Inv8.xelem(2,2,j) += (fi.xelem(1)*Ui.xelem(1)+fi.xelem(0)*Ui.xelem(0))*dmi;
-                        }
-                }
-        }
-
-        void InertiaInv9(NDArray& Inv9, MatrixType eMatType, const NDArray& U) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const double rho = material->Density();
-                const octave_idx_type iNumDisp = X.rows();
-                const octave_idx_type iNumNodes = nodes.numel();
-                const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-                ColumnVector rv(iNumDir);
-
-                FEM_ASSERT(U.ndims() == 3);
-                FEM_ASSERT(U.dim2() >= iNumDisp);
-                FEM_ASSERT(Inv9.ndims() == 4);
-                FEM_ASSERT(Inv9.dim1() == 3);
-                FEM_ASSERT(Inv9.dim2() == 3);
-                FEM_ASSERT(Inv9.dim3() == U.dim3());
-                FEM_ASSERT(Inv9.dims()(3) == U.dim3());
-                FEM_ASSERT(iNumDisp == Inv9.dim1());
-
-                Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
-                NDArray Ui(dim_vector(iNumDisp, U.dim3(), iNumGauss), 0.);
-                ColumnVector dmi(iNumGauss);
-
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
-
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        const double detJ = Jacobian(rv, J);
-
-                        DispInterpMatrix(rv, H);
-
-                        dmi.xelem(i) = alpha * rho * detJ;
-
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type l = 0; l < iNumDisp; ++l) {
-                                        for (octave_idx_type m = 0; m < iNumDisp; ++m) {
-                                                for (octave_idx_type n = 0; n < iNumNodes; ++n) {
-                                                        Ui.xelem(l, j, i) += H.xelem(l, iNumDisp * n + m) * U.xelem(nodes.xelem(n).value() - 1, m, j);
-                                                }
-                                        }
-                                }
-                        }
-                }
-
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                                for (octave_idx_type k = 0; k < U.dim3(); ++k) {
-                                        const octave_idx_type jk = j + k * Inv9.dim3();
-
-                                        Inv9.xelem(0, 0, jk) += (-Ui.xelem(2,j,i)*Ui.xelem(2,k,i)-Ui.xelem(1,j,i)*Ui.xelem(1,k,i))*dmi.xelem(i);
-                                        Inv9.xelem(1, 0, jk) += Ui.xelem(0,j,i)*Ui.xelem(1,k,i)*dmi.xelem(i);
-                                        Inv9.xelem(2, 0, jk) += Ui.xelem(0,j,i)*Ui.xelem(2,k,i)*dmi.xelem(i);
-                                        Inv9.xelem(0, 1, jk) += Ui.xelem(0,k,i)*Ui.xelem(1,j,i)*dmi.xelem(i);
-                                        Inv9.xelem(1, 1, jk) += (-Ui.xelem(2,j,i)*Ui.xelem(2,k,i)-Ui.xelem(0,j,i)*Ui.xelem(0,k,i))*dmi.xelem(i);
-                                        Inv9.xelem(2, 1, jk) += Ui.xelem(1,j,i)*Ui.xelem(2,k,i)*dmi.xelem(i);
-                                        Inv9.xelem(0, 2, jk) += Ui.xelem(0,k,i)*Ui.xelem(2,j,i)*dmi.xelem(i);
-                                        Inv9.xelem(1, 2, jk) += Ui.xelem(1,k,i)*Ui.xelem(2,j,i)*dmi.xelem(i);
-                                        Inv9.xelem(2, 2, jk) += (-Ui.xelem(1,j,i)*Ui.xelem(1,k,i)-Ui.xelem(0,j,i)*Ui.xelem(0,k,i))*dmi.xelem(i);
-                                }
-                        }
-                }
-        }
-
-        void StressNodalElem(NDArray& taun, MatrixType eMatType, const NDArray& U) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
-                const octave_idx_type iNumNodes = nodes.numel();
-
-                ColumnVector rv(iNumDir);
-                const Matrix& C = material->LinearElasticity();
-                const octave_idx_type iNumStrains = C.rows();
-
-                FEM_ASSERT(C.rows() == C.columns());
-                FEM_ASSERT(taun.ndims() >= 3);
-                FEM_ASSERT(id >= 1);
-                FEM_ASSERT(taun.dim1() >= id);
-                FEM_ASSERT(taun.dim2() == iNumNodes);
-                FEM_ASSERT(taun.dim3() == iNumStrains);
-                FEM_ASSERT((iNumLoads == 1 && taun.ndims() == 3) || (taun.dims()(3) == iNumLoads));
-                FEM_ASSERT(U.ndims() >= 2);
-                FEM_ASSERT(U.dim2() >= 3);
-                FEM_ASSERT(iNumDof == 3 * X.columns());
-
-                Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
-                ColumnVector Ue(iNumDof);
-                Matrix taug(iNumGauss, iNumStrains * iNumLoads);
-
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
-
-                        Jacobian(rv, J);
-
-                        StrainMatrix(rv, J.inverse(), B);
-
-                        for (octave_idx_type j = 0; j < iNumStrains; ++j) {
-                                for (octave_idx_type k = 0; k < iNumDof; ++k) {
-                                        double CBjk = 0;
-
-                                        for (octave_idx_type l = 0; l < iNumStrains; ++l) {
-                                                CBjk += C.xelem(j, l) * B.xelem(l, k);
-                                        }
-
-                                        CB.xelem(j, k) = CBjk;
-                                }
-                        }
-
-                        for (octave_idx_type l = 0; l < iNumLoads; ++l) {
-                                for (octave_idx_type j = 0; j < iNumNodes; ++j) {
-                                        for (octave_idx_type k = 0; k < 3; ++k) {
-                                                FEM_ASSERT(nodes(j).value() > 0);
-                                                FEM_ASSERT(nodes(j).value() <= U.dim1());
-                                                Ue.xelem(3 * j + k) = U.xelem(nodes.xelem(j).value() - 1, k, l);
-                                        }
-                                }
-
-                                for (octave_idx_type j = 0; j < iNumStrains; ++j) {
-                                        double taugj = 0;
-
-                                        for (octave_idx_type k = 0; k < iNumDof; ++k) {
-                                                taugj += CB.xelem(j, k) * Ue.xelem(k);
-                                        }
-
-                                        taug.xelem(i, l * iNumStrains + j) = taugj;
-                                }
-                        }
-                }
-
-                const Matrix tauen = InterpGaussToNodal(eMatType, taug);
-
-                FEM_ASSERT(tauen.rows() == iNumNodes);
-                FEM_ASSERT(tauen.columns() == taug.columns());
-
-                for (octave_idx_type k = 0; k < iNumLoads; ++k) {
-                        for (octave_idx_type j = 0; j < iNumStrains; ++j) {
-                                for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                                        taun.xelem(id - 1, i, j + k * iNumStrains) = tauen.xelem(i, k * iNumStrains + j);
-                                }
-                        }
-                }
-        }
+			for (octave_idx_type l = 0; l < S.rows(); ++l) {
+				double fil = 0.;
+
+				for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						fil += H.xelem(l, iNumDisp * n + m) * X.xelem(m, n);
+					}
+				}
+
+				S.xelem(l) += fil * alpha * rho * detJ;
+			}
+		}
+	}
+
+	void InertiaMatrix(NDArray& Inv7, MatrixType eMatType) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(Inv7.ndims() == 2);
+		FEM_ASSERT(Inv7.rows() == 3);
+		FEM_ASSERT(Inv7.columns() == 3);
+		FEM_ASSERT(iNumDisp == Inv7.rows());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+		ColumnVector fi(iNumDisp);
+
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			const double detJ = Jacobian(rv, J);
+
+			DispInterpMatrix(rv, H);
+
+			for (octave_idx_type l = 0; l < iNumDisp; ++l) {
+				fi.xelem(l) = 0.;
+
+				for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						fi.xelem(l) += H.xelem(l, iNumDisp * n + m) * X.xelem(m, n);
+					}
+				}
+			}
+
+			const double dmi = alpha * rho * detJ;
+
+			Inv7.xelem(0, 0) += (fi.xelem(1) * fi.xelem(1) + fi.xelem(2) * fi.xelem(2)) * dmi;
+			Inv7.xelem(0, 1) -= (fi.xelem(0) * fi.xelem(1)) * dmi;
+			Inv7.xelem(0, 2) -= (fi.xelem(0) * fi.xelem(2)) * dmi;
+			Inv7.xelem(1, 1) += (fi.xelem(0) * fi.xelem(0) + fi.xelem(2) * fi.xelem(2)) * dmi;
+			Inv7.xelem(1, 2) -= (fi.xelem(1) * fi.xelem(2)) * dmi;
+			Inv7.xelem(2, 2) += (fi.xelem(0) * fi.xelem(0) + fi.xelem(1) * fi.xelem(1)) * dmi;
+		}
+	}
+
+	void InertiaInv3(NDArray& Inv3, MatrixType eMatType, const NDArray& U) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(U.ndims() == 3);
+		FEM_ASSERT(U.dim2() >= iNumDisp);
+		FEM_ASSERT(Inv3.ndims() == 2);
+		FEM_ASSERT(Inv3.rows() == 3);
+		FEM_ASSERT(Inv3.columns() == U.dim3());
+		FEM_ASSERT(iNumDisp == Inv3.rows());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			const double detJ = Jacobian(rv, J);
+
+			DispInterpMatrix(rv, H);
+
+			const double dmi = alpha * rho * detJ;
+
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type l = 0; l < iNumDisp; ++l) {
+					double Uil = 0.;
+
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+							Uil += H.xelem(l, iNumDisp * n + m) * U.xelem(nodes.xelem(n).value() - 1, m, j);
+						}
+					}
+
+					Inv3.xelem(l, j) += dmi * Uil;
+				}
+			}
+		}
+	}
+
+	void InertiaInv4(NDArray& Inv4, MatrixType eMatType, const NDArray& U) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(U.ndims() == 3);
+		FEM_ASSERT(U.dim2() >= iNumDisp);
+		FEM_ASSERT(Inv4.rows() == 3);
+		FEM_ASSERT(Inv4.columns() == U.dim3());
+		FEM_ASSERT(iNumDisp == Inv4.rows());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+		ColumnVector Ui(iNumDisp), fi(iNumDisp);
+
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			const double detJ = Jacobian(rv, J);
+
+			DispInterpMatrix(rv, H);
+
+			const double dmi = alpha * rho * detJ;
+
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type l = 0; l < iNumDisp; ++l) {
+					Ui.xelem(l) = 0.;
+					fi.xelem(l) = 0.;
+
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+							const double Hlmn = H.xelem(l, iNumDisp * n + m);
+							Ui.xelem(l) += Hlmn * U.xelem(nodes.xelem(n).value() - 1, m, j);
+							fi.xelem(l) += Hlmn * X.xelem(m, n);
+						}
+					}
+				}
+
+				Inv4.xelem(0, j) += (fi.xelem(1) * Ui.xelem(2) - Ui.xelem(1) * fi.xelem(2)) * dmi;
+				Inv4.xelem(1, j) += (Ui.xelem(0) * fi.xelem(2) - fi.xelem(0) * Ui.xelem(2)) * dmi;
+				Inv4.xelem(2, j) += (fi.xelem(0) * Ui.xelem(1) - Ui.xelem(0) * fi.xelem(1)) * dmi;
+			}
+		}
+	}
+
+	void InertiaInv5(NDArray& Inv5, MatrixType eMatType, const NDArray& U) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(U.ndims() == 3);
+		FEM_ASSERT(U.dim2() >= iNumDisp);
+		FEM_ASSERT(Inv5.ndims() == 3);
+		FEM_ASSERT(Inv5.dim1() == 3);
+		FEM_ASSERT(Inv5.dim2() == U.dim3());
+		FEM_ASSERT(Inv5.dim3() == U.dim3());
+		FEM_ASSERT(iNumDisp == Inv5.dim1());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+		NDArray Ui(dim_vector(iNumDisp, U.dim3(), iNumGauss), 0.);
+		ColumnVector dmi(iNumGauss);
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			const double detJ = Jacobian(rv, J);
+
+			DispInterpMatrix(rv, H);
+
+			dmi.xelem(i) = alpha * rho * detJ;
+
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type l = 0; l < iNumDisp; ++l) {
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+							Ui.xelem(l, j, i) += H.xelem(l, iNumDisp * n + m) * U.xelem(nodes.xelem(n).value() - 1, m, j);
+						}
+					}
+				}
+			}
+		}
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type k = 0; k < U.dim3(); ++k) {
+					Inv5.xelem(0, k, j) += dmi.xelem(i) * (Ui.xelem(1, j, i) * Ui.xelem(2, k, i) - Ui.xelem(2, j, i) * Ui.xelem(1, k, i));
+					Inv5.xelem(1, k, j) += dmi.xelem(i) * (Ui.xelem(2, j, i) * Ui.xelem(0, k, i) - Ui.xelem(0, j, i) * Ui.xelem(2, k, i));
+					Inv5.xelem(2, k, j) += dmi.xelem(i) * (Ui.xelem(0, j, i) * Ui.xelem(1, k, i) - Ui.xelem(1, j, i) * Ui.xelem(0, k, i));
+				}
+			}
+		}
+	}
+
+	void InertiaInv8(NDArray& Inv8, MatrixType eMatType, const NDArray& U) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(U.ndims() == 3);
+		FEM_ASSERT(U.dim2() >= iNumDisp);
+		FEM_ASSERT(Inv8.ndims() == 3);
+		FEM_ASSERT(Inv8.dim1() == 3);
+		FEM_ASSERT(Inv8.dim2() == 3);
+		FEM_ASSERT(Inv8.dim3() == U.dim3());
+		FEM_ASSERT(iNumDisp == Inv8.dim1());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+		ColumnVector Ui(iNumDisp), fi(iNumDisp);
+
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			const double detJ = Jacobian(rv, J);
+
+			DispInterpMatrix(rv, H);
+
+			const double dmi = alpha * rho * detJ;
+
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type l = 0; l < iNumDisp; ++l) {
+					Ui.xelem(l) = 0.;
+					fi.xelem(l) = 0.;
+
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+							const double Hlmn = H.xelem(l, iNumDisp * n + m);
+							Ui.xelem(l) += Hlmn * U.xelem(nodes.xelem(n).value() - 1, m, j);
+							fi.xelem(l) += Hlmn * X.xelem(m, n);
+						}
+					}
+				}
+
+				Inv8.xelem(0,0,j) += (fi.xelem(2)*Ui.xelem(2)+fi.xelem(1)*Ui.xelem(1))*dmi;
+				Inv8.xelem(1,0,j) += -fi.xelem(0)*Ui.xelem(1)*dmi;
+				Inv8.xelem(2,0,j) += -fi.xelem(0)*Ui.xelem(2)*dmi;
+				Inv8.xelem(0,1,j) += -Ui.xelem(0)*fi.xelem(1)*dmi;
+				Inv8.xelem(1,1,j) += (fi.xelem(2)*Ui.xelem(2)+fi.xelem(0)*Ui.xelem(0))*dmi;
+				Inv8.xelem(2,1,j) += -fi.xelem(1)*Ui.xelem(2)*dmi;
+				Inv8.xelem(0,2,j) += -Ui.xelem(0)*fi.xelem(2)*dmi;
+				Inv8.xelem(1,2,j) += -Ui.xelem(1)*fi.xelem(2)*dmi;
+				Inv8.xelem(2,2,j) += (fi.xelem(1)*Ui.xelem(1)+fi.xelem(0)*Ui.xelem(0))*dmi;
+			}
+		}
+	}
+
+	void InertiaInv9(NDArray& Inv9, MatrixType eMatType, const NDArray& U) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const double rho = material->Density();
+		const octave_idx_type iNumDisp = X.rows();
+		const octave_idx_type iNumNodes = nodes.numel();
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		ColumnVector rv(iNumDir);
+
+		FEM_ASSERT(U.ndims() == 3);
+		FEM_ASSERT(U.dim2() >= iNumDisp);
+		FEM_ASSERT(Inv9.ndims() == 4);
+		FEM_ASSERT(Inv9.dim1() == 3);
+		FEM_ASSERT(Inv9.dim2() == 3);
+		FEM_ASSERT(Inv9.dim3() == U.dim3());
+		FEM_ASSERT(Inv9.dims()(3) == U.dim3());
+		FEM_ASSERT(iNumDisp == Inv9.dim1());
+
+		Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+		NDArray Ui(dim_vector(iNumDisp, U.dim3(), iNumGauss), 0.);
+		ColumnVector dmi(iNumGauss);
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
+
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			const double detJ = Jacobian(rv, J);
+
+			DispInterpMatrix(rv, H);
+
+			dmi.xelem(i) = alpha * rho * detJ;
+
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type l = 0; l < iNumDisp; ++l) {
+					for (octave_idx_type m = 0; m < iNumDisp; ++m) {
+						for (octave_idx_type n = 0; n < iNumNodes; ++n) {
+							Ui.xelem(l, j, i) += H.xelem(l, iNumDisp * n + m) * U.xelem(nodes.xelem(n).value() - 1, m, j);
+						}
+					}
+				}
+			}
+		}
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+				for (octave_idx_type k = 0; k < U.dim3(); ++k) {
+					const octave_idx_type jk = j + k * Inv9.dim3();
+
+					Inv9.xelem(0, 0, jk) += (-Ui.xelem(2,j,i)*Ui.xelem(2,k,i)-Ui.xelem(1,j,i)*Ui.xelem(1,k,i))*dmi.xelem(i);
+					Inv9.xelem(1, 0, jk) += Ui.xelem(0,j,i)*Ui.xelem(1,k,i)*dmi.xelem(i);
+					Inv9.xelem(2, 0, jk) += Ui.xelem(0,j,i)*Ui.xelem(2,k,i)*dmi.xelem(i);
+					Inv9.xelem(0, 1, jk) += Ui.xelem(0,k,i)*Ui.xelem(1,j,i)*dmi.xelem(i);
+					Inv9.xelem(1, 1, jk) += (-Ui.xelem(2,j,i)*Ui.xelem(2,k,i)-Ui.xelem(0,j,i)*Ui.xelem(0,k,i))*dmi.xelem(i);
+					Inv9.xelem(2, 1, jk) += Ui.xelem(1,j,i)*Ui.xelem(2,k,i)*dmi.xelem(i);
+					Inv9.xelem(0, 2, jk) += Ui.xelem(0,k,i)*Ui.xelem(2,j,i)*dmi.xelem(i);
+					Inv9.xelem(1, 2, jk) += Ui.xelem(1,k,i)*Ui.xelem(2,j,i)*dmi.xelem(i);
+					Inv9.xelem(2, 2, jk) += (-Ui.xelem(1,j,i)*Ui.xelem(1,k,i)-Ui.xelem(0,j,i)*Ui.xelem(0,k,i))*dmi.xelem(i);
+				}
+			}
+		}
+	}
+
+	void StressNodalElem(NDArray& taun, MatrixType eMatType, const NDArray& U) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
+		const octave_idx_type iNumNodes = nodes.numel();
+
+		ColumnVector rv(iNumDir);
+		const Matrix& C = material->LinearElasticity();
+		const octave_idx_type iNumStrains = C.rows();
+
+		FEM_ASSERT(C.rows() == C.columns());
+		FEM_ASSERT(taun.ndims() >= 3);
+		FEM_ASSERT(id >= 1);
+		FEM_ASSERT(taun.dim1() >= id);
+		FEM_ASSERT(taun.dim2() == iNumNodes);
+		FEM_ASSERT(taun.dim3() == iNumStrains);
+		FEM_ASSERT((iNumLoads == 1 && taun.ndims() == 3) || (taun.dims()(3) == iNumLoads));
+		FEM_ASSERT(U.ndims() >= 2);
+		FEM_ASSERT(U.dim2() >= 3);
+		FEM_ASSERT(iNumDof == 3 * X.columns());
+
+		Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
+		ColumnVector Ue(iNumDof);
+		Matrix taug(iNumGauss, iNumStrains * iNumLoads);
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			Jacobian(rv, J);
+
+			StrainMatrix(rv, J.inverse(), B);
+
+			for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+				for (octave_idx_type k = 0; k < iNumDof; ++k) {
+					double CBjk = 0;
+
+					for (octave_idx_type l = 0; l < iNumStrains; ++l) {
+						CBjk += C.xelem(j, l) * B.xelem(l, k);
+					}
+
+					CB.xelem(j, k) = CBjk;
+				}
+			}
+
+			for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+				for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+					for (octave_idx_type k = 0; k < 3; ++k) {
+						FEM_ASSERT(nodes(j).value() > 0);
+						FEM_ASSERT(nodes(j).value() <= U.dim1());
+						Ue.xelem(3 * j + k) = U.xelem(nodes.xelem(j).value() - 1, k, l);
+					}
+				}
+
+				for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+					double taugj = 0;
+
+					for (octave_idx_type k = 0; k < iNumDof; ++k) {
+						taugj += CB.xelem(j, k) * Ue.xelem(k);
+					}
+
+					taug.xelem(i, l * iNumStrains + j) = taugj;
+				}
+			}
+		}
+
+		const Matrix tauen = InterpGaussToNodal(eMatType, taug);
+
+		FEM_ASSERT(tauen.rows() == iNumNodes);
+		FEM_ASSERT(tauen.columns() == taug.columns());
+
+		for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+			for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+				for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+					taun.xelem(id - 1, i, j + k * iNumStrains) = tauen.xelem(i, k * iNumStrains + j);
+				}
+			}
+		}
+	}
 };
 
 class Iso8: public Element3D
 {
 public:
-        Iso8(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-                :Element3D(id, X, material, nodes) {
-                FEM_ASSERT(nodes.numel() == 8);
-        }
+	Iso8(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:Element3D(id, X, material, nodes) {
+		FEM_ASSERT(nodes.numel() == 8);
+	}
 
-        virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
-                static const octave_idx_type N = 2;
-                static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
-                static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+		static const octave_idx_type N = 2;
+		static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
+		static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
 
-                static array<IntegrationRule, 2> rgIntegRule;
+		static array<IntegrationRule, 2> rgIntegRule;
 
-                octave_idx_type iIntegRule;
+		octave_idx_type iIntegRule;
 
-                switch (eMatType) {
-                case MAT_MASS_LUMPED:
-                        iIntegRule = 1;
-                        break;
-                default:
-                        iIntegRule = 0;
-                }
+		switch (eMatType) {
+		case MAT_MASS_LUMPED:
+			iIntegRule = 1;
+			break;
+		default:
+			iIntegRule = 0;
+		}
 
-                if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
-                        rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
+		if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+			rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
 
-                        octave_idx_type l = 0;
+			octave_idx_type l = 0;
 
-                        for (octave_idx_type i = 0; i < N; ++i) {
-                                for (octave_idx_type j = 0; j < N; ++j) {
-                                        for (octave_idx_type k = 0; k < N; ++k) {
-                                                rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
-                                                rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
-                                                rgIntegRule[iIntegRule].SetPosition(l, 2, r[iIntegRule][k]);
-                                                rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j] * alpha[iIntegRule][k]);
-                                                ++l;
-                                        }
-                                }
-                        }
-                }
+			for (octave_idx_type i = 0; i < N; ++i) {
+				for (octave_idx_type j = 0; j < N; ++j) {
+					for (octave_idx_type k = 0; k < N; ++k) {
+						rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
+						rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
+						rgIntegRule[iIntegRule].SetPosition(l, 2, r[iIntegRule][k]);
+						rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j] * alpha[iIntegRule][k]);
+						++l;
+					}
+				}
+			}
+		}
 
-                return rgIntegRule[iIntegRule];
-        }
+		return rgIntegRule[iIntegRule];
+	}
 
 protected:
-        virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
-                FEM_ASSERT(J.rows() == 3);
-                FEM_ASSERT(J.columns() == 3);
-                FEM_ASSERT(rv.numel() == 3);
+	virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+		FEM_ASSERT(J.rows() == 3);
+		FEM_ASSERT(J.columns() == 3);
+		FEM_ASSERT(rv.numel() == 3);
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 
-                J.xelem(0,0) = (-(X.xelem(0,1)*(s+1)*(t+1))/8.0)+(X.xelem(0,0)*(s+1)*(t+1))/8.0+(X.xelem(0,3)*(1-s)*(t+1))/8.0-(X.xelem(0,2)*(1-s)*(t+1))/8.0-(X.xelem(0,5)*(s+1)*(1-t))/8.0+(X.xelem(0,4)*(s+1)*(1-t))/8.0+(X.xelem(0,7)*(1-s)*(1-t))/8.0-(X.xelem(0,6)*(1-s)*(1-t))/8.0;
-                J.xelem(1,0) = (-(X.xelem(0,3)*(r+1)*(t+1))/8.0)+(X.xelem(0,0)*(r+1)*(t+1))/8.0-(X.xelem(0,2)*(1-r)*(t+1))/8.0+(X.xelem(0,1)*(1-r)*(t+1))/8.0-(X.xelem(0,7)*(r+1)*(1-t))/8.0+(X.xelem(0,4)*(r+1)*(1-t))/8.0-(X.xelem(0,6)*(1-r)*(1-t))/8.0+(X.xelem(0,5)*(1-r)*(1-t))/8.0;
-                J.xelem(2,0) = (-(X.xelem(0,4)*(r+1)*(s+1))/8.0)+(X.xelem(0,0)*(r+1)*(s+1))/8.0-(X.xelem(0,5)*(1-r)*(s+1))/8.0+(X.xelem(0,1)*(1-r)*(s+1))/8.0-(X.xelem(0,7)*(r+1)*(1-s))/8.0+(X.xelem(0,3)*(r+1)*(1-s))/8.0-(X.xelem(0,6)*(1-r)*(1-s))/8.0+(X.xelem(0,2)*(1-r)*(1-s))/8.0;
-                J.xelem(0,1) = (-(X.xelem(1,1)*(s+1)*(t+1))/8.0)+(X.xelem(1,0)*(s+1)*(t+1))/8.0+(X.xelem(1,3)*(1-s)*(t+1))/8.0-(X.xelem(1,2)*(1-s)*(t+1))/8.0-(X.xelem(1,5)*(s+1)*(1-t))/8.0+(X.xelem(1,4)*(s+1)*(1-t))/8.0+(X.xelem(1,7)*(1-s)*(1-t))/8.0-(X.xelem(1,6)*(1-s)*(1-t))/8.0;
-                J.xelem(1,1) = (-(X.xelem(1,3)*(r+1)*(t+1))/8.0)+(X.xelem(1,0)*(r+1)*(t+1))/8.0-(X.xelem(1,2)*(1-r)*(t+1))/8.0+(X.xelem(1,1)*(1-r)*(t+1))/8.0-(X.xelem(1,7)*(r+1)*(1-t))/8.0+(X.xelem(1,4)*(r+1)*(1-t))/8.0-(X.xelem(1,6)*(1-r)*(1-t))/8.0+(X.xelem(1,5)*(1-r)*(1-t))/8.0;
-                J.xelem(2,1) = (-(X.xelem(1,4)*(r+1)*(s+1))/8.0)+(X.xelem(1,0)*(r+1)*(s+1))/8.0-(X.xelem(1,5)*(1-r)*(s+1))/8.0+(X.xelem(1,1)*(1-r)*(s+1))/8.0-(X.xelem(1,7)*(r+1)*(1-s))/8.0+(X.xelem(1,3)*(r+1)*(1-s))/8.0-(X.xelem(1,6)*(1-r)*(1-s))/8.0+(X.xelem(1,2)*(1-r)*(1-s))/8.0;
-                J.xelem(0,2) = (-(X.xelem(2,1)*(s+1)*(t+1))/8.0)+(X.xelem(2,0)*(s+1)*(t+1))/8.0+(X.xelem(2,3)*(1-s)*(t+1))/8.0-(X.xelem(2,2)*(1-s)*(t+1))/8.0-(X.xelem(2,5)*(s+1)*(1-t))/8.0+(X.xelem(2,4)*(s+1)*(1-t))/8.0+(X.xelem(2,7)*(1-s)*(1-t))/8.0-(X.xelem(2,6)*(1-s)*(1-t))/8.0;
-                J.xelem(1,2) = (-(X.xelem(2,3)*(r+1)*(t+1))/8.0)+(X.xelem(2,0)*(r+1)*(t+1))/8.0-(X.xelem(2,2)*(1-r)*(t+1))/8.0+(X.xelem(2,1)*(1-r)*(t+1))/8.0-(X.xelem(2,7)*(r+1)*(1-t))/8.0+(X.xelem(2,4)*(r+1)*(1-t))/8.0-(X.xelem(2,6)*(1-r)*(1-t))/8.0+(X.xelem(2,5)*(1-r)*(1-t))/8.0;
-                J.xelem(2,2) = (-(X.xelem(2,4)*(r+1)*(s+1))/8.0)+(X.xelem(2,0)*(r+1)*(s+1))/8.0-(X.xelem(2,5)*(1-r)*(s+1))/8.0+(X.xelem(2,1)*(1-r)*(s+1))/8.0-(X.xelem(2,7)*(r+1)*(1-s))/8.0+(X.xelem(2,3)*(r+1)*(1-s))/8.0-(X.xelem(2,6)*(1-r)*(1-s))/8.0+(X.xelem(2,2)*(1-r)*(1-s))/8.0;
-
-#ifdef DEBUG
-                for (octave_idx_type i = 0; i < J.rows(); ++i) {
-                        for (octave_idx_type j = 0; j < J.columns(); ++j) {
-                                FEM_ASSERT(std::isfinite(J(i, j)));
-                        }
-                }
-#endif
-                return J.determinant();
-        }
-
-        virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
-                FEM_ASSERT(rv.numel() == 3);
-                FEM_ASSERT(H.rows() == 3);
-                FEM_ASSERT(H.columns() == 24);
-
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
-
-                H.xelem(0,0) = ((r+1)*(s+1)*(t+1))/8.0;
-                H.xelem(1,0) = 0;
-                H.xelem(2,0) = 0;
-                H.xelem(0,1) = 0;
-                H.xelem(1,1) = ((r+1)*(s+1)*(t+1))/8.0;
-                H.xelem(2,1) = 0;
-                H.xelem(0,2) = 0;
-                H.xelem(1,2) = 0;
-                H.xelem(2,2) = ((r+1)*(s+1)*(t+1))/8.0;
-                H.xelem(0,3) = ((1-r)*(s+1)*(t+1))/8.0;
-                H.xelem(1,3) = 0;
-                H.xelem(2,3) = 0;
-                H.xelem(0,4) = 0;
-                H.xelem(1,4) = ((1-r)*(s+1)*(t+1))/8.0;
-                H.xelem(2,4) = 0;
-                H.xelem(0,5) = 0;
-                H.xelem(1,5) = 0;
-                H.xelem(2,5) = ((1-r)*(s+1)*(t+1))/8.0;
-                H.xelem(0,6) = ((1-r)*(1-s)*(t+1))/8.0;
-                H.xelem(1,6) = 0;
-                H.xelem(2,6) = 0;
-                H.xelem(0,7) = 0;
-                H.xelem(1,7) = ((1-r)*(1-s)*(t+1))/8.0;
-                H.xelem(2,7) = 0;
-                H.xelem(0,8) = 0;
-                H.xelem(1,8) = 0;
-                H.xelem(2,8) = ((1-r)*(1-s)*(t+1))/8.0;
-                H.xelem(0,9) = ((r+1)*(1-s)*(t+1))/8.0;
-                H.xelem(1,9) = 0;
-                H.xelem(2,9) = 0;
-                H.xelem(0,10) = 0;
-                H.xelem(1,10) = ((r+1)*(1-s)*(t+1))/8.0;
-                H.xelem(2,10) = 0;
-                H.xelem(0,11) = 0;
-                H.xelem(1,11) = 0;
-                H.xelem(2,11) = ((r+1)*(1-s)*(t+1))/8.0;
-                H.xelem(0,12) = ((r+1)*(s+1)*(1-t))/8.0;
-                H.xelem(1,12) = 0;
-                H.xelem(2,12) = 0;
-                H.xelem(0,13) = 0;
-                H.xelem(1,13) = ((r+1)*(s+1)*(1-t))/8.0;
-                H.xelem(2,13) = 0;
-                H.xelem(0,14) = 0;
-                H.xelem(1,14) = 0;
-                H.xelem(2,14) = ((r+1)*(s+1)*(1-t))/8.0;
-                H.xelem(0,15) = ((1-r)*(s+1)*(1-t))/8.0;
-                H.xelem(1,15) = 0;
-                H.xelem(2,15) = 0;
-                H.xelem(0,16) = 0;
-                H.xelem(1,16) = ((1-r)*(s+1)*(1-t))/8.0;
-                H.xelem(2,16) = 0;
-                H.xelem(0,17) = 0;
-                H.xelem(1,17) = 0;
-                H.xelem(2,17) = ((1-r)*(s+1)*(1-t))/8.0;
-                H.xelem(0,18) = ((1-r)*(1-s)*(1-t))/8.0;
-                H.xelem(1,18) = 0;
-                H.xelem(2,18) = 0;
-                H.xelem(0,19) = 0;
-                H.xelem(1,19) = ((1-r)*(1-s)*(1-t))/8.0;
-                H.xelem(2,19) = 0;
-                H.xelem(0,20) = 0;
-                H.xelem(1,20) = 0;
-                H.xelem(2,20) = ((1-r)*(1-s)*(1-t))/8.0;
-                H.xelem(0,21) = ((r+1)*(1-s)*(1-t))/8.0;
-                H.xelem(1,21) = 0;
-                H.xelem(2,21) = 0;
-                H.xelem(0,22) = 0;
-                H.xelem(1,22) = ((r+1)*(1-s)*(1-t))/8.0;
-                H.xelem(2,22) = 0;
-                H.xelem(0,23) = 0;
-                H.xelem(1,23) = 0;
-                H.xelem(2,23) = ((r+1)*(1-s)*(1-t))/8.0;
-        }
-
-        virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
-                FEM_ASSERT(rv.numel() == 3);
-                FEM_ASSERT(invJ.rows() == 3);
-                FEM_ASSERT(invJ.columns() == 3);
-                FEM_ASSERT(B.rows() == 6);
-                FEM_ASSERT(B.columns() == 24);
-
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
-
-                B.xelem(0,0) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
-                B.xelem(1,0) = 0;
-                B.xelem(2,0) = 0;
-                B.xelem(3,0) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
-                B.xelem(4,0) = 0;
-                B.xelem(5,0) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
-                B.xelem(0,1) = 0;
-                B.xelem(1,1) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
-                B.xelem(2,1) = 0;
-                B.xelem(3,1) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
-                B.xelem(4,1) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
-                B.xelem(5,1) = 0;
-                B.xelem(0,2) = 0;
-                B.xelem(1,2) = 0;
-                B.xelem(2,2) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
-                B.xelem(3,2) = 0;
-                B.xelem(4,2) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
-                B.xelem(5,2) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
-                B.xelem(0,3) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
-                B.xelem(1,3) = 0;
-                B.xelem(2,3) = 0;
-                B.xelem(3,3) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
-                B.xelem(4,3) = 0;
-                B.xelem(5,3) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
-                B.xelem(0,4) = 0;
-                B.xelem(1,4) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
-                B.xelem(2,4) = 0;
-                B.xelem(3,4) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
-                B.xelem(4,4) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
-                B.xelem(5,4) = 0;
-                B.xelem(0,5) = 0;
-                B.xelem(1,5) = 0;
-                B.xelem(2,5) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
-                B.xelem(3,5) = 0;
-                B.xelem(4,5) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
-                B.xelem(5,5) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
-                B.xelem(0,6) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
-                B.xelem(1,6) = 0;
-                B.xelem(2,6) = 0;
-                B.xelem(3,6) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
-                B.xelem(4,6) = 0;
-                B.xelem(5,6) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
-                B.xelem(0,7) = 0;
-                B.xelem(1,7) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
-                B.xelem(2,7) = 0;
-                B.xelem(3,7) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
-                B.xelem(4,7) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
-                B.xelem(5,7) = 0;
-                B.xelem(0,8) = 0;
-                B.xelem(1,8) = 0;
-                B.xelem(2,8) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
-                B.xelem(3,8) = 0;
-                B.xelem(4,8) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
-                B.xelem(5,8) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
-                B.xelem(0,9) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
-                B.xelem(1,9) = 0;
-                B.xelem(2,9) = 0;
-                B.xelem(3,9) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
-                B.xelem(4,9) = 0;
-                B.xelem(5,9) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
-                B.xelem(0,10) = 0;
-                B.xelem(1,10) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
-                B.xelem(2,10) = 0;
-                B.xelem(3,10) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
-                B.xelem(4,10) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
-                B.xelem(5,10) = 0;
-                B.xelem(0,11) = 0;
-                B.xelem(1,11) = 0;
-                B.xelem(2,11) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
-                B.xelem(3,11) = 0;
-                B.xelem(4,11) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
-                B.xelem(5,11) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
-                B.xelem(0,12) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
-                B.xelem(1,12) = 0;
-                B.xelem(2,12) = 0;
-                B.xelem(3,12) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
-                B.xelem(4,12) = 0;
-                B.xelem(5,12) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
-                B.xelem(0,13) = 0;
-                B.xelem(1,13) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
-                B.xelem(2,13) = 0;
-                B.xelem(3,13) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
-                B.xelem(4,13) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
-                B.xelem(5,13) = 0;
-                B.xelem(0,14) = 0;
-                B.xelem(1,14) = 0;
-                B.xelem(2,14) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
-                B.xelem(3,14) = 0;
-                B.xelem(4,14) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
-                B.xelem(5,14) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
-                B.xelem(0,15) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
-                B.xelem(1,15) = 0;
-                B.xelem(2,15) = 0;
-                B.xelem(3,15) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
-                B.xelem(4,15) = 0;
-                B.xelem(5,15) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
-                B.xelem(0,16) = 0;
-                B.xelem(1,16) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
-                B.xelem(2,16) = 0;
-                B.xelem(3,16) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
-                B.xelem(4,16) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
-                B.xelem(5,16) = 0;
-                B.xelem(0,17) = 0;
-                B.xelem(1,17) = 0;
-                B.xelem(2,17) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
-                B.xelem(3,17) = 0;
-                B.xelem(4,17) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
-                B.xelem(5,17) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
-                B.xelem(0,18) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
-                B.xelem(1,18) = 0;
-                B.xelem(2,18) = 0;
-                B.xelem(3,18) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
-                B.xelem(4,18) = 0;
-                B.xelem(5,18) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
-                B.xelem(0,19) = 0;
-                B.xelem(1,19) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
-                B.xelem(2,19) = 0;
-                B.xelem(3,19) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
-                B.xelem(4,19) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
-                B.xelem(5,19) = 0;
-                B.xelem(0,20) = 0;
-                B.xelem(1,20) = 0;
-                B.xelem(2,20) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
-                B.xelem(3,20) = 0;
-                B.xelem(4,20) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
-                B.xelem(5,20) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
-                B.xelem(0,21) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
-                B.xelem(1,21) = 0;
-                B.xelem(2,21) = 0;
-                B.xelem(3,21) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
-                B.xelem(4,21) = 0;
-                B.xelem(5,21) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
-                B.xelem(0,22) = 0;
-                B.xelem(1,22) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
-                B.xelem(2,22) = 0;
-                B.xelem(3,22) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
-                B.xelem(4,22) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
-                B.xelem(5,22) = 0;
-                B.xelem(0,23) = 0;
-                B.xelem(1,23) = 0;
-                B.xelem(2,23) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
-                B.xelem(3,23) = 0;
-                B.xelem(4,23) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
-                B.xelem(5,23) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+		J.xelem(0,0) = (-(X.xelem(0,1)*(s+1)*(t+1))/8.0)+(X.xelem(0,0)*(s+1)*(t+1))/8.0+(X.xelem(0,3)*(1-s)*(t+1))/8.0-(X.xelem(0,2)*(1-s)*(t+1))/8.0-(X.xelem(0,5)*(s+1)*(1-t))/8.0+(X.xelem(0,4)*(s+1)*(1-t))/8.0+(X.xelem(0,7)*(1-s)*(1-t))/8.0-(X.xelem(0,6)*(1-s)*(1-t))/8.0;
+		J.xelem(1,0) = (-(X.xelem(0,3)*(r+1)*(t+1))/8.0)+(X.xelem(0,0)*(r+1)*(t+1))/8.0-(X.xelem(0,2)*(1-r)*(t+1))/8.0+(X.xelem(0,1)*(1-r)*(t+1))/8.0-(X.xelem(0,7)*(r+1)*(1-t))/8.0+(X.xelem(0,4)*(r+1)*(1-t))/8.0-(X.xelem(0,6)*(1-r)*(1-t))/8.0+(X.xelem(0,5)*(1-r)*(1-t))/8.0;
+		J.xelem(2,0) = (-(X.xelem(0,4)*(r+1)*(s+1))/8.0)+(X.xelem(0,0)*(r+1)*(s+1))/8.0-(X.xelem(0,5)*(1-r)*(s+1))/8.0+(X.xelem(0,1)*(1-r)*(s+1))/8.0-(X.xelem(0,7)*(r+1)*(1-s))/8.0+(X.xelem(0,3)*(r+1)*(1-s))/8.0-(X.xelem(0,6)*(1-r)*(1-s))/8.0+(X.xelem(0,2)*(1-r)*(1-s))/8.0;
+		J.xelem(0,1) = (-(X.xelem(1,1)*(s+1)*(t+1))/8.0)+(X.xelem(1,0)*(s+1)*(t+1))/8.0+(X.xelem(1,3)*(1-s)*(t+1))/8.0-(X.xelem(1,2)*(1-s)*(t+1))/8.0-(X.xelem(1,5)*(s+1)*(1-t))/8.0+(X.xelem(1,4)*(s+1)*(1-t))/8.0+(X.xelem(1,7)*(1-s)*(1-t))/8.0-(X.xelem(1,6)*(1-s)*(1-t))/8.0;
+		J.xelem(1,1) = (-(X.xelem(1,3)*(r+1)*(t+1))/8.0)+(X.xelem(1,0)*(r+1)*(t+1))/8.0-(X.xelem(1,2)*(1-r)*(t+1))/8.0+(X.xelem(1,1)*(1-r)*(t+1))/8.0-(X.xelem(1,7)*(r+1)*(1-t))/8.0+(X.xelem(1,4)*(r+1)*(1-t))/8.0-(X.xelem(1,6)*(1-r)*(1-t))/8.0+(X.xelem(1,5)*(1-r)*(1-t))/8.0;
+		J.xelem(2,1) = (-(X.xelem(1,4)*(r+1)*(s+1))/8.0)+(X.xelem(1,0)*(r+1)*(s+1))/8.0-(X.xelem(1,5)*(1-r)*(s+1))/8.0+(X.xelem(1,1)*(1-r)*(s+1))/8.0-(X.xelem(1,7)*(r+1)*(1-s))/8.0+(X.xelem(1,3)*(r+1)*(1-s))/8.0-(X.xelem(1,6)*(1-r)*(1-s))/8.0+(X.xelem(1,2)*(1-r)*(1-s))/8.0;
+		J.xelem(0,2) = (-(X.xelem(2,1)*(s+1)*(t+1))/8.0)+(X.xelem(2,0)*(s+1)*(t+1))/8.0+(X.xelem(2,3)*(1-s)*(t+1))/8.0-(X.xelem(2,2)*(1-s)*(t+1))/8.0-(X.xelem(2,5)*(s+1)*(1-t))/8.0+(X.xelem(2,4)*(s+1)*(1-t))/8.0+(X.xelem(2,7)*(1-s)*(1-t))/8.0-(X.xelem(2,6)*(1-s)*(1-t))/8.0;
+		J.xelem(1,2) = (-(X.xelem(2,3)*(r+1)*(t+1))/8.0)+(X.xelem(2,0)*(r+1)*(t+1))/8.0-(X.xelem(2,2)*(1-r)*(t+1))/8.0+(X.xelem(2,1)*(1-r)*(t+1))/8.0-(X.xelem(2,7)*(r+1)*(1-t))/8.0+(X.xelem(2,4)*(r+1)*(1-t))/8.0-(X.xelem(2,6)*(1-r)*(1-t))/8.0+(X.xelem(2,5)*(1-r)*(1-t))/8.0;
+		J.xelem(2,2) = (-(X.xelem(2,4)*(r+1)*(s+1))/8.0)+(X.xelem(2,0)*(r+1)*(s+1))/8.0-(X.xelem(2,5)*(1-r)*(s+1))/8.0+(X.xelem(2,1)*(1-r)*(s+1))/8.0-(X.xelem(2,7)*(r+1)*(1-s))/8.0+(X.xelem(2,3)*(r+1)*(1-s))/8.0-(X.xelem(2,6)*(1-r)*(1-s))/8.0+(X.xelem(2,2)*(1-r)*(1-s))/8.0;
 
 #ifdef DEBUG
-                for (octave_idx_type i = 0; i < B.rows(); ++i) {
-                        for (octave_idx_type j = 0; j < B.columns(); ++j) {
-                                FEM_ASSERT(std::isfinite(B.xelem(i, j)));
-                        }
-                }
+		for (octave_idx_type i = 0; i < J.rows(); ++i) {
+			for (octave_idx_type j = 0; j < J.columns(); ++j) {
+				FEM_ASSERT(std::isfinite(J(i, j)));
+			}
+		}
 #endif
-        }
+		return J.determinant();
+	}
 
-        virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
+	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(H.rows() == 3);
+		FEM_ASSERT(H.columns() == 24);
 
-                Matrix H(iNumGauss, iNumNodes);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+		H.xelem(0,0) = ((r+1)*(s+1)*(t+1))/8.0;
+		H.xelem(1,0) = 0;
+		H.xelem(2,0) = 0;
+		H.xelem(0,1) = 0;
+		H.xelem(1,1) = ((r+1)*(s+1)*(t+1))/8.0;
+		H.xelem(2,1) = 0;
+		H.xelem(0,2) = 0;
+		H.xelem(1,2) = 0;
+		H.xelem(2,2) = ((r+1)*(s+1)*(t+1))/8.0;
+		H.xelem(0,3) = ((1-r)*(s+1)*(t+1))/8.0;
+		H.xelem(1,3) = 0;
+		H.xelem(2,3) = 0;
+		H.xelem(0,4) = 0;
+		H.xelem(1,4) = ((1-r)*(s+1)*(t+1))/8.0;
+		H.xelem(2,4) = 0;
+		H.xelem(0,5) = 0;
+		H.xelem(1,5) = 0;
+		H.xelem(2,5) = ((1-r)*(s+1)*(t+1))/8.0;
+		H.xelem(0,6) = ((1-r)*(1-s)*(t+1))/8.0;
+		H.xelem(1,6) = 0;
+		H.xelem(2,6) = 0;
+		H.xelem(0,7) = 0;
+		H.xelem(1,7) = ((1-r)*(1-s)*(t+1))/8.0;
+		H.xelem(2,7) = 0;
+		H.xelem(0,8) = 0;
+		H.xelem(1,8) = 0;
+		H.xelem(2,8) = ((1-r)*(1-s)*(t+1))/8.0;
+		H.xelem(0,9) = ((r+1)*(1-s)*(t+1))/8.0;
+		H.xelem(1,9) = 0;
+		H.xelem(2,9) = 0;
+		H.xelem(0,10) = 0;
+		H.xelem(1,10) = ((r+1)*(1-s)*(t+1))/8.0;
+		H.xelem(2,10) = 0;
+		H.xelem(0,11) = 0;
+		H.xelem(1,11) = 0;
+		H.xelem(2,11) = ((r+1)*(1-s)*(t+1))/8.0;
+		H.xelem(0,12) = ((r+1)*(s+1)*(1-t))/8.0;
+		H.xelem(1,12) = 0;
+		H.xelem(2,12) = 0;
+		H.xelem(0,13) = 0;
+		H.xelem(1,13) = ((r+1)*(s+1)*(1-t))/8.0;
+		H.xelem(2,13) = 0;
+		H.xelem(0,14) = 0;
+		H.xelem(1,14) = 0;
+		H.xelem(2,14) = ((r+1)*(s+1)*(1-t))/8.0;
+		H.xelem(0,15) = ((1-r)*(s+1)*(1-t))/8.0;
+		H.xelem(1,15) = 0;
+		H.xelem(2,15) = 0;
+		H.xelem(0,16) = 0;
+		H.xelem(1,16) = ((1-r)*(s+1)*(1-t))/8.0;
+		H.xelem(2,16) = 0;
+		H.xelem(0,17) = 0;
+		H.xelem(1,17) = 0;
+		H.xelem(2,17) = ((1-r)*(s+1)*(1-t))/8.0;
+		H.xelem(0,18) = ((1-r)*(1-s)*(1-t))/8.0;
+		H.xelem(1,18) = 0;
+		H.xelem(2,18) = 0;
+		H.xelem(0,19) = 0;
+		H.xelem(1,19) = ((1-r)*(1-s)*(1-t))/8.0;
+		H.xelem(2,19) = 0;
+		H.xelem(0,20) = 0;
+		H.xelem(1,20) = 0;
+		H.xelem(2,20) = ((1-r)*(1-s)*(1-t))/8.0;
+		H.xelem(0,21) = ((r+1)*(1-s)*(1-t))/8.0;
+		H.xelem(1,21) = 0;
+		H.xelem(2,21) = 0;
+		H.xelem(0,22) = 0;
+		H.xelem(1,22) = ((r+1)*(1-s)*(1-t))/8.0;
+		H.xelem(2,22) = 0;
+		H.xelem(0,23) = 0;
+		H.xelem(1,23) = 0;
+		H.xelem(2,23) = ((r+1)*(1-s)*(1-t))/8.0;
+	}
 
-                        StressInterpMatrix(rv, H, i);
-                }
+	virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(invJ.rows() == 3);
+		FEM_ASSERT(invJ.columns() == 3);
+		FEM_ASSERT(B.rows() == 6);
+		FEM_ASSERT(B.columns() == 24);
 
-                return H.solve(taug);
-        }
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+
+		B.xelem(0,0) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
+		B.xelem(1,0) = 0;
+		B.xelem(2,0) = 0;
+		B.xelem(3,0) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
+		B.xelem(4,0) = 0;
+		B.xelem(5,0) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
+		B.xelem(0,1) = 0;
+		B.xelem(1,1) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
+		B.xelem(2,1) = 0;
+		B.xelem(3,1) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
+		B.xelem(4,1) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
+		B.xelem(5,1) = 0;
+		B.xelem(0,2) = 0;
+		B.xelem(1,2) = 0;
+		B.xelem(2,2) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
+		B.xelem(3,2) = 0;
+		B.xelem(4,2) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
+		B.xelem(5,2) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
+		B.xelem(0,3) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
+		B.xelem(1,3) = 0;
+		B.xelem(2,3) = 0;
+		B.xelem(3,3) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
+		B.xelem(4,3) = 0;
+		B.xelem(5,3) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
+		B.xelem(0,4) = 0;
+		B.xelem(1,4) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
+		B.xelem(2,4) = 0;
+		B.xelem(3,4) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
+		B.xelem(4,4) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
+		B.xelem(5,4) = 0;
+		B.xelem(0,5) = 0;
+		B.xelem(1,5) = 0;
+		B.xelem(2,5) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
+		B.xelem(3,5) = 0;
+		B.xelem(4,5) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
+		B.xelem(5,5) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
+		B.xelem(0,6) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
+		B.xelem(1,6) = 0;
+		B.xelem(2,6) = 0;
+		B.xelem(3,6) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
+		B.xelem(4,6) = 0;
+		B.xelem(5,6) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
+		B.xelem(0,7) = 0;
+		B.xelem(1,7) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
+		B.xelem(2,7) = 0;
+		B.xelem(3,7) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
+		B.xelem(4,7) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
+		B.xelem(5,7) = 0;
+		B.xelem(0,8) = 0;
+		B.xelem(1,8) = 0;
+		B.xelem(2,8) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
+		B.xelem(3,8) = 0;
+		B.xelem(4,8) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
+		B.xelem(5,8) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
+		B.xelem(0,9) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+		B.xelem(1,9) = 0;
+		B.xelem(2,9) = 0;
+		B.xelem(3,9) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
+		B.xelem(4,9) = 0;
+		B.xelem(5,9) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
+		B.xelem(0,10) = 0;
+		B.xelem(1,10) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
+		B.xelem(2,10) = 0;
+		B.xelem(3,10) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+		B.xelem(4,10) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
+		B.xelem(5,10) = 0;
+		B.xelem(0,11) = 0;
+		B.xelem(1,11) = 0;
+		B.xelem(2,11) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
+		B.xelem(3,11) = 0;
+		B.xelem(4,11) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
+		B.xelem(5,11) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+		B.xelem(0,12) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
+		B.xelem(1,12) = 0;
+		B.xelem(2,12) = 0;
+		B.xelem(3,12) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
+		B.xelem(4,12) = 0;
+		B.xelem(5,12) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
+		B.xelem(0,13) = 0;
+		B.xelem(1,13) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
+		B.xelem(2,13) = 0;
+		B.xelem(3,13) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
+		B.xelem(4,13) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
+		B.xelem(5,13) = 0;
+		B.xelem(0,14) = 0;
+		B.xelem(1,14) = 0;
+		B.xelem(2,14) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0;
+		B.xelem(3,14) = 0;
+		B.xelem(4,14) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0;
+		B.xelem(5,14) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
+		B.xelem(0,15) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
+		B.xelem(1,15) = 0;
+		B.xelem(2,15) = 0;
+		B.xelem(3,15) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
+		B.xelem(4,15) = 0;
+		B.xelem(5,15) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
+		B.xelem(0,16) = 0;
+		B.xelem(1,16) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
+		B.xelem(2,16) = 0;
+		B.xelem(3,16) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
+		B.xelem(4,16) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
+		B.xelem(5,16) = 0;
+		B.xelem(0,17) = 0;
+		B.xelem(1,17) = 0;
+		B.xelem(2,17) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0;
+		B.xelem(3,17) = 0;
+		B.xelem(4,17) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0;
+		B.xelem(5,17) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0;
+		B.xelem(0,18) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
+		B.xelem(1,18) = 0;
+		B.xelem(2,18) = 0;
+		B.xelem(3,18) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
+		B.xelem(4,18) = 0;
+		B.xelem(5,18) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
+		B.xelem(0,19) = 0;
+		B.xelem(1,19) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
+		B.xelem(2,19) = 0;
+		B.xelem(3,19) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
+		B.xelem(4,19) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
+		B.xelem(5,19) = 0;
+		B.xelem(0,20) = 0;
+		B.xelem(1,20) = 0;
+		B.xelem(2,20) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0;
+		B.xelem(3,20) = 0;
+		B.xelem(4,20) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0;
+		B.xelem(5,20) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0;
+		B.xelem(0,21) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+		B.xelem(1,21) = 0;
+		B.xelem(2,21) = 0;
+		B.xelem(3,21) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
+		B.xelem(4,21) = 0;
+		B.xelem(5,21) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
+		B.xelem(0,22) = 0;
+		B.xelem(1,22) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
+		B.xelem(2,22) = 0;
+		B.xelem(3,22) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+		B.xelem(4,22) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
+		B.xelem(5,22) = 0;
+		B.xelem(0,23) = 0;
+		B.xelem(1,23) = 0;
+		B.xelem(2,23) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0;
+		B.xelem(3,23) = 0;
+		B.xelem(4,23) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0;
+		B.xelem(5,23) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0;
+
+#ifdef DEBUG
+		for (octave_idx_type i = 0; i < B.rows(); ++i) {
+			for (octave_idx_type j = 0; j < B.columns(); ++j) {
+				FEM_ASSERT(std::isfinite(B.xelem(i, j)));
+			}
+		}
+#endif
+	}
+
+	virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		Matrix H(iNumGauss, iNumNodes);
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			StressInterpMatrix(rv, H, i);
+		}
+
+		return H.solve(taug);
+	}
 
 private:
-        void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
-                FEM_ASSERT(rv.numel() == 3);
-                FEM_ASSERT(Hs.columns() == 8);
-                FEM_ASSERT(irow >= 0);
-                FEM_ASSERT(irow < Hs.rows());
+	void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(Hs.columns() == 8);
+		FEM_ASSERT(irow >= 0);
+		FEM_ASSERT(irow < Hs.rows());
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 
-                Hs.xelem(irow, 0) = ((r+1)*(s+1)*(t+1))/8.0;
-                Hs.xelem(irow, 1) = ((1-r)*(s+1)*(t+1))/8.0;
-                Hs.xelem(irow, 2) = ((1-r)*(1-s)*(t+1))/8.0;
-                Hs.xelem(irow, 3) = ((r+1)*(1-s)*(t+1))/8.0;
-                Hs.xelem(irow, 4) = ((r+1)*(s+1)*(1-t))/8.0;
-                Hs.xelem(irow, 5) = ((1-r)*(s+1)*(1-t))/8.0;
-                Hs.xelem(irow, 6) = ((1-r)*(1-s)*(1-t))/8.0;
-                Hs.xelem(irow, 7) = ((r+1)*(1-s)*(1-t))/8.0;
-        }
+		Hs.xelem(irow, 0) = ((r+1)*(s+1)*(t+1))/8.0;
+		Hs.xelem(irow, 1) = ((1-r)*(s+1)*(t+1))/8.0;
+		Hs.xelem(irow, 2) = ((1-r)*(1-s)*(t+1))/8.0;
+		Hs.xelem(irow, 3) = ((r+1)*(1-s)*(t+1))/8.0;
+		Hs.xelem(irow, 4) = ((r+1)*(s+1)*(1-t))/8.0;
+		Hs.xelem(irow, 5) = ((1-r)*(s+1)*(1-t))/8.0;
+		Hs.xelem(irow, 6) = ((1-r)*(1-s)*(1-t))/8.0;
+		Hs.xelem(irow, 7) = ((r+1)*(1-s)*(1-t))/8.0;
+	}
 };
 
 
 class Iso20: public Element3D
 {
 public:
-        Iso20(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-                :Element3D(id, X, material, nodes) {
-                FEM_ASSERT(nodes.numel() == 20);
-        }
+	Iso20(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:Element3D(id, X, material, nodes) {
+		FEM_ASSERT(nodes.numel() == 20);
+	}
 
-        virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
-                constexpr octave_idx_type N = 3;
-                static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
-                static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {1., 1., 1.}};
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+		constexpr octave_idx_type N = 3;
+		static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
+		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {1., 1., 1.}};
 
-                static array<IntegrationRule, 2> rgIntegRule;
+		static array<IntegrationRule, 2> rgIntegRule;
 
-                octave_idx_type iIntegRule;
+		octave_idx_type iIntegRule;
 
-                switch (eMatType) {
-                case MAT_MASS_LUMPED:
-                        iIntegRule = 1;
-                        break;
-                default:
-                        iIntegRule = 0;
-                }
+		switch (eMatType) {
+		case MAT_MASS_LUMPED:
+			iIntegRule = 1;
+			break;
+		default:
+			iIntegRule = 0;
+		}
 
-                if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
-                        rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
+		if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+			rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
 
-                        octave_idx_type l = 0;
+			octave_idx_type l = 0;
 
-                        for (octave_idx_type i = 0; i < N; ++i) {
-                                for (octave_idx_type j = 0; j < N; ++j) {
-                                        for (octave_idx_type k = 0; k < N; ++k) {
-                                                rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
-                                                rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
-                                                rgIntegRule[iIntegRule].SetPosition(l, 2, r[iIntegRule][k]);
-                                                rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j] * alpha[iIntegRule][k]);
-                                                ++l;
-                                        }
-                                }
-                        }
-                }
+			for (octave_idx_type i = 0; i < N; ++i) {
+				for (octave_idx_type j = 0; j < N; ++j) {
+					for (octave_idx_type k = 0; k < N; ++k) {
+						rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
+						rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
+						rgIntegRule[iIntegRule].SetPosition(l, 2, r[iIntegRule][k]);
+						rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j] * alpha[iIntegRule][k]);
+						++l;
+					}
+				}
+			}
+		}
 
-                return rgIntegRule[iIntegRule];
-        }
+		return rgIntegRule[iIntegRule];
+	}
 
 protected:
-        virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
-                FEM_ASSERT(J.rows() == 3);
-                FEM_ASSERT(J.columns() == 3);
-                FEM_ASSERT(rv.numel() == 3);
+	virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+		FEM_ASSERT(J.rows() == 3);
+		FEM_ASSERT(J.columns() == 3);
+		FEM_ASSERT(rv.numel() == 3);
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 		const double r2 = r * r;
 		const double s2 = s * s;
 		const double t2 = t * t;
-		
+
 		J.xelem(0,0) = (-(X.xelem(0,17)*(s+1)*(1-t2))/4.0E+0)+(X.xelem(0,16)*(s+1)*(1-t2))/4.0E+0+(X.xelem(0,19)*(1-s)*(1-t2))/4.0E+0-(X.xelem(0,18)*(1-s)*(1-t2))/4.0E+0+X.xelem(0,0)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+X.xelem(0,4)*(((s+1)*(1-t))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)+X.xelem(0,1)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)-((s+1)*(t+1))/8.0E+0)+X.xelem(0,5)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)-((s+1)*(1-t))/8.0E+0)+X.xelem(0,3)*(((1-s)*(t+1))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)+X.xelem(0,7)*(((1-s)*(1-t))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)+X.xelem(0,2)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)-((1-s)*(t+1))/8.0E+0)+X.xelem(0,6)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)-((1-s)*(1-t))/8.0E+0)+(X.xelem(0,11)*(1-s2)*(t+1))/4.0E+0-(X.xelem(0,9)*(1-s2)*(t+1))/4.0E+0-(X.xelem(0,8)*r*(s+1)*(t+1))/2.0E+0-(X.xelem(0,10)*r*(1-s)*(t+1))/2.0E+0+(X.xelem(0,15)*(1-s2)*(1-t))/4.0E+0-(X.xelem(0,13)*(1-s2)*(1-t))/4.0E+0-(X.xelem(0,12)*r*(s+1)*(1-t))/2.0E+0-(X.xelem(0,14)*r*(1-s)*(1-t))/2.0E+0;
 		J.xelem(1,0) = (-(X.xelem(0,19)*(r+1)*(1-t2))/4.0E+0)+(X.xelem(0,16)*(r+1)*(1-t2))/4.0E+0-(X.xelem(0,18)*(1-r)*(1-t2))/4.0E+0+(X.xelem(0,17)*(1-r)*(1-t2))/4.0E+0+X.xelem(0,0)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+X.xelem(0,4)*(((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+X.xelem(0,3)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0)+X.xelem(0,7)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0)+X.xelem(0,1)*(((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+X.xelem(0,5)*(((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+X.xelem(0,2)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0)+X.xelem(0,6)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0)-(X.xelem(0,11)*(r+1)*s*(t+1))/2.0E+0-(X.xelem(0,9)*(1-r)*s*(t+1))/2.0E+0-(X.xelem(0,10)*(1-r2)*(t+1))/4.0E+0+(X.xelem(0,8)*(1-r2)*(t+1))/4.0E+0-(X.xelem(0,15)*(r+1)*s*(1-t))/2.0E+0-(X.xelem(0,13)*(1-r)*s*(1-t))/2.0E+0-(X.xelem(0,14)*(1-r2)*(1-t))/4.0E+0+(X.xelem(0,12)*(1-r2)*(1-t))/4.0E+0;
 		J.xelem(2,0) = X.xelem(0,0)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0)+X.xelem(0,4)*((-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0)+X.xelem(0,1)*(((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0)+X.xelem(0,5)*((-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0)+X.xelem(0,3)*(((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0)+X.xelem(0,7)*((-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0)+X.xelem(0,2)*(((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0)+X.xelem(0,6)*((-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0)-(X.xelem(0,16)*(r+1)*(s+1)*t)/2.0E+0-(X.xelem(0,17)*(1-r)*(s+1)*t)/2.0E+0-(X.xelem(0,19)*(r+1)*(1-s)*t)/2.0E+0-(X.xelem(0,18)*(1-r)*(1-s)*t)/2.0E+0-(X.xelem(0,15)*(r+1)*(1-s2))/4.0E+0+(X.xelem(0,11)*(r+1)*(1-s2))/4.0E+0-(X.xelem(0,13)*(1-r)*(1-s2))/4.0E+0+(X.xelem(0,9)*(1-r)*(1-s2))/4.0E+0-(X.xelem(0,12)*(1-r2)*(s+1))/4.0E+0+(X.xelem(0,8)*(1-r2)*(s+1))/4.0E+0-(X.xelem(0,14)*(1-r2)*(1-s))/4.0E+0+(X.xelem(0,10)*(1-r2)*(1-s))/4.0E+0;
@@ -2129,22 +2129,22 @@ protected:
 		J.xelem(0,2) = (-(X.xelem(2,17)*(s+1)*(1-t2))/4.0E+0)+(X.xelem(2,16)*(s+1)*(1-t2))/4.0E+0+(X.xelem(2,19)*(1-s)*(1-t2))/4.0E+0-(X.xelem(2,18)*(1-s)*(1-t2))/4.0E+0+X.xelem(2,0)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+X.xelem(2,4)*(((s+1)*(1-t))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)+X.xelem(2,1)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)-((s+1)*(t+1))/8.0E+0)+X.xelem(2,5)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)-((s+1)*(1-t))/8.0E+0)+X.xelem(2,3)*(((1-s)*(t+1))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)+X.xelem(2,7)*(((1-s)*(1-t))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)+X.xelem(2,2)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)-((1-s)*(t+1))/8.0E+0)+X.xelem(2,6)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)-((1-s)*(1-t))/8.0E+0)+(X.xelem(2,11)*(1-s2)*(t+1))/4.0E+0-(X.xelem(2,9)*(1-s2)*(t+1))/4.0E+0-(X.xelem(2,8)*r*(s+1)*(t+1))/2.0E+0-(X.xelem(2,10)*r*(1-s)*(t+1))/2.0E+0+(X.xelem(2,15)*(1-s2)*(1-t))/4.0E+0-(X.xelem(2,13)*(1-s2)*(1-t))/4.0E+0-(X.xelem(2,12)*r*(s+1)*(1-t))/2.0E+0-(X.xelem(2,14)*r*(1-s)*(1-t))/2.0E+0;
 		J.xelem(1,2) = (-(X.xelem(2,19)*(r+1)*(1-t2))/4.0E+0)+(X.xelem(2,16)*(r+1)*(1-t2))/4.0E+0-(X.xelem(2,18)*(1-r)*(1-t2))/4.0E+0+(X.xelem(2,17)*(1-r)*(1-t2))/4.0E+0+X.xelem(2,0)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+X.xelem(2,4)*(((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+X.xelem(2,3)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0)+X.xelem(2,7)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0)+X.xelem(2,1)*(((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+X.xelem(2,5)*(((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+X.xelem(2,2)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0)+X.xelem(2,6)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0)-(X.xelem(2,11)*(r+1)*s*(t+1))/2.0E+0-(X.xelem(2,9)*(1-r)*s*(t+1))/2.0E+0-(X.xelem(2,10)*(1-r2)*(t+1))/4.0E+0+(X.xelem(2,8)*(1-r2)*(t+1))/4.0E+0-(X.xelem(2,15)*(r+1)*s*(1-t))/2.0E+0-(X.xelem(2,13)*(1-r)*s*(1-t))/2.0E+0-(X.xelem(2,14)*(1-r2)*(1-t))/4.0E+0+(X.xelem(2,12)*(1-r2)*(1-t))/4.0E+0;
 		J.xelem(2,2) = X.xelem(2,0)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0)+X.xelem(2,4)*((-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0)+X.xelem(2,1)*(((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0)+X.xelem(2,5)*((-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0)+X.xelem(2,3)*(((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0)+X.xelem(2,7)*((-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0)+X.xelem(2,2)*(((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0)+X.xelem(2,6)*((-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0)-(X.xelem(2,16)*(r+1)*(s+1)*t)/2.0E+0-(X.xelem(2,17)*(1-r)*(s+1)*t)/2.0E+0-(X.xelem(2,19)*(r+1)*(1-s)*t)/2.0E+0-(X.xelem(2,18)*(1-r)*(1-s)*t)/2.0E+0-(X.xelem(2,15)*(r+1)*(1-s2))/4.0E+0+(X.xelem(2,11)*(r+1)*(1-s2))/4.0E+0-(X.xelem(2,13)*(1-r)*(1-s2))/4.0E+0+(X.xelem(2,9)*(1-r)*(1-s2))/4.0E+0-(X.xelem(2,12)*(1-r2)*(s+1))/4.0E+0+(X.xelem(2,8)*(1-r2)*(s+1))/4.0E+0-(X.xelem(2,14)*(1-r2)*(1-s))/4.0E+0+(X.xelem(2,10)*(1-r2)*(1-s))/4.0E+0;
-		
-                return J.determinant();
-        }
 
-        virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
-                FEM_ASSERT(rv.numel() == 3);
-                FEM_ASSERT(H.rows() == 3);
-                FEM_ASSERT(H.columns() == 24);
+		return J.determinant();
+	}
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
+	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(H.rows() == 3);
+		FEM_ASSERT(H.columns() == 24);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 		const double r2 = r * r;
 		const double s2 = s * s;
 		const double t2 = t * t;
-		
+
 		H.xelem(0,0) = ((r+1)*(s+1)*(t+1))/8.0E+0-(((r+1)*(s+1)*(1-t2))/4.0E+0+((r+1)*(1-s2)*(t+1))/4.0E+0+((1-r2)*(s+1)*(t+1))/4.0E+0)/2.0E+0;
 		H.xelem(1,0) = 0;
 		H.xelem(2,0) = 0;
@@ -2325,18 +2325,18 @@ protected:
 		H.xelem(0,59) = 0;
 		H.xelem(1,59) = 0;
 		H.xelem(2,59) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
-        }
+	}
 
-        virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
-                FEM_ASSERT(rv.numel() == 3);
-                FEM_ASSERT(invJ.rows() == 3);
-                FEM_ASSERT(invJ.columns() == 3);
-                FEM_ASSERT(B.rows() == 6);
-                FEM_ASSERT(B.columns() == 24);
+	virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(invJ.rows() == 3);
+		FEM_ASSERT(invJ.columns() == 3);
+		FEM_ASSERT(B.rows() == 6);
+		FEM_ASSERT(B.columns() == 24);
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 		const double r2 = r * r;
 		const double s2 = s * s;
 		const double t2 = t * t;
@@ -2700,39 +2700,39 @@ protected:
 		B.xelem(2,59) = (invJ.xelem(2,0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(2,1)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(2,2)*(r+1)*(1-s)*t)/2.0E+0;
 		B.xelem(3,59) = 0;
 		B.xelem(4,59) = (invJ.xelem(1,0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(1,1)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(1,2)*(r+1)*(1-s)*t)/2.0E+0;
-		B.xelem(5,59) = (invJ.xelem(0,0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(0,1)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(0,2)*(r+1)*(1-s)*t)/2.0E+0;	
-        }
+		B.xelem(5,59) = (invJ.xelem(0,0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(0,1)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(0,2)*(r+1)*(1-s)*t)/2.0E+0;
+	}
 
-        virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const octave_idx_type iNumNodes = nodes.numel();
-                ColumnVector rv(iNumDir);
+	virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
 
-                Matrix H(iNumGauss, iNumNodes);
+		Matrix H(iNumGauss, iNumNodes);
 
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        StressInterpMatrix(rv, H, i);
-                }
+			StressInterpMatrix(rv, H, i);
+		}
 
-                return H.solve(taug);
-        }
+		return H.solve(taug);
+	}
 
 private:
-        void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
-                FEM_ASSERT(rv.numel() == 3);
-                FEM_ASSERT(Hs.columns() == 8);
-                FEM_ASSERT(irow >= 0);
-                FEM_ASSERT(irow < Hs.rows());
+	void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(Hs.columns() == 8);
+		FEM_ASSERT(irow >= 0);
+		FEM_ASSERT(irow < Hs.rows());
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
-                const double t = rv.xelem(2);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
 		const double r2 = r * r;
 		const double s2 = s * s;
 		const double t2 = t * t;
@@ -2756,1675 +2756,2020 @@ private:
 		Hs.xelem(irow, 16) = ((r+1)*(s+1)*(1-t2))/4.0E+0;
 		Hs.xelem(irow, 17) = ((1-r)*(s+1)*(1-t2))/4.0E+0;
 		Hs.xelem(irow, 18) = ((1-r)*(1-s)*(1-t2))/4.0E+0;
-		Hs.xelem(irow, 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;		
-        }
+		Hs.xelem(irow, 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
+	}
 };
 
 class Tet10: public Element3D
 {
-        static constexpr double gamma = 1. / 6.;
+	static constexpr double gamma = 1. / 6.;
 
 public:
-        Tet10(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-                :Element3D(id, X, material, nodes) {
-                FEM_ASSERT(nodes.numel() == 10);
-        }
+	Tet10(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:Element3D(id, X, material, nodes) {
+		FEM_ASSERT(nodes.numel() == 10);
+	}
 
-        virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
-                static IntegrationRule oIntegStiff, oIntegMass, oIntegMassDiag;
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+		static IntegrationRule oIntegStiff, oIntegMass, oIntegMassDiag;
 
-                switch (eMatType) {
-                case MAT_STIFFNESS:
-                case MAT_STIFFNESS_SYM:
-                case MAT_STIFFNESS_SYM_L:
-                case VEC_STRESS_CAUCH:
-                        if (!oIntegStiff.iGetNumEvalPoints()) {
-                                constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
-                                constexpr double beta = (5. - sqrt(5.)) / 20.;
+		switch (eMatType) {
+		case MAT_STIFFNESS:
+		case MAT_STIFFNESS_SYM:
+		case MAT_STIFFNESS_SYM_L:
+		case VEC_STRESS_CAUCH:
+			if (!oIntegStiff.iGetNumEvalPoints()) {
+				constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
+				constexpr double beta = (5. - sqrt(5.)) / 20.;
 
-                                oIntegStiff.SetNumEvalPoints(4, 4);
+				oIntegStiff.SetNumEvalPoints(4, 4);
 
-                                for (octave_idx_type i = 0; i < 4; ++i) {
-                                        oIntegStiff.SetWeight(i, 0.25);
+				for (octave_idx_type i = 0; i < 4; ++i) {
+					oIntegStiff.SetWeight(i, 0.25);
 
-                                        for (octave_idx_type j = 0; j < 4; ++j) {
-                                                oIntegStiff.SetPosition(i, j, i == j ? alpha : beta);
-                                        }
-                                }
-                        }
+					for (octave_idx_type j = 0; j < 4; ++j) {
+						oIntegStiff.SetPosition(i, j, i == j ? alpha : beta);
+					}
+				}
+			}
 
-                        return oIntegStiff;
+			return oIntegStiff;
 
-                case MAT_MASS:
-                case MAT_MASS_SYM:
-                case MAT_MASS_SYM_L:
-                case VEC_INERTIA_M1:
-                case MAT_INERTIA_J:
-                case MAT_INERTIA_INV3:
-                case MAT_INERTIA_INV4:
-                case MAT_INERTIA_INV5:
-                case MAT_INERTIA_INV8:
-                case MAT_INERTIA_INV9:
-                case MAT_ACCEL_LOAD:
-                        if (!oIntegMass.iGetNumEvalPoints()) {
-                                constexpr double g1 = 0.09273525031089122640232391373703060;
-                                constexpr double g2 = 0.31088591926330060979734573376345783;
-                                constexpr double g3 = 0.45449629587435035050811947372066056;
-                                constexpr double w1 = (-1+6*g2*(2+g2*(-7+8*g2))+14*g3-60*g2*(3+4*g2*(-3+4*g2))*g3+4*(-7+30*g2*(3+4*g2*(-3+4*g2)))*g3*g3)/(120*(g1-g2)*(g2*(-3+8*g2)+6*g3+8*g2*(-3+4*g2)*g3-4*(3+4*g2*(-3+4*g2))*g3*g3+8*g1*g1*(1+12*g2*(-1+2*g2)+4*g3-8*g3*g3)+g1*(-3-96*g2*g2+24*g3*(-1+2*g3)+g2*(44+32*(1-2*g3)*g3))));
-                                constexpr double w2 = (-1-20*(1+12*g1*(2*g1-1))*w1+20*g3*(2*g3-1)*(4*w1-1))/(20*(1+12*g2*(2*g2-1)+4*g3-8*g3*g3));
-                                static const octave_idx_type jk6[][2] = {{1 - 1, 2 - 1}, {1 - 1, 3 - 1}, {1 - 1, 4 - 1}, {2 - 1, 3 - 1}, {2 - 1, 4 - 1}, {3 - 1, 4 - 1}};
+		case MAT_MASS:
+		case MAT_MASS_SYM:
+		case MAT_MASS_SYM_L:
+		case VEC_INERTIA_M1:
+		case MAT_INERTIA_J:
+		case MAT_INERTIA_INV3:
+		case MAT_INERTIA_INV4:
+		case MAT_INERTIA_INV5:
+		case MAT_INERTIA_INV8:
+		case MAT_INERTIA_INV9:
+		case MAT_ACCEL_LOAD:
+			if (!oIntegMass.iGetNumEvalPoints()) {
+				constexpr double g1 = 0.09273525031089122640232391373703060;
+				constexpr double g2 = 0.31088591926330060979734573376345783;
+				constexpr double g3 = 0.45449629587435035050811947372066056;
+				constexpr double w1 = (-1+6*g2*(2+g2*(-7+8*g2))+14*g3-60*g2*(3+4*g2*(-3+4*g2))*g3+4*(-7+30*g2*(3+4*g2*(-3+4*g2)))*g3*g3)/(120*(g1-g2)*(g2*(-3+8*g2)+6*g3+8*g2*(-3+4*g2)*g3-4*(3+4*g2*(-3+4*g2))*g3*g3+8*g1*g1*(1+12*g2*(-1+2*g2)+4*g3-8*g3*g3)+g1*(-3-96*g2*g2+24*g3*(-1+2*g3)+g2*(44+32*(1-2*g3)*g3))));
+				constexpr double w2 = (-1-20*(1+12*g1*(2*g1-1))*w1+20*g3*(2*g3-1)*(4*w1-1))/(20*(1+12*g2*(2*g2-1)+4*g3-8*g3*g3));
+				static const octave_idx_type jk6[][2] = {{1 - 1, 2 - 1}, {1 - 1, 3 - 1}, {1 - 1, 4 - 1}, {2 - 1, 3 - 1}, {2 - 1, 4 - 1}, {3 - 1, 4 - 1}};
 
-                                oIntegMass.SetNumEvalPoints(14, 4);
+				oIntegMass.SetNumEvalPoints(14, 4);
 
-                                for (octave_idx_type i = 0; i < 5 - 1; ++i) {
-                                        oIntegMass.SetWeight(i, w1);
+				for (octave_idx_type i = 0; i < 5 - 1; ++i) {
+					oIntegMass.SetWeight(i, w1);
 
-                                        for (octave_idx_type j = 0; j < 4; ++j) {
-                                                oIntegMass.SetPosition(i, j, j == i ?  1 - 3 * g1 : g1);
-                                        }
-                                }
+					for (octave_idx_type j = 0; j < 4; ++j) {
+						oIntegMass.SetPosition(i, j, j == i ?  1 - 3 * g1 : g1);
+					}
+				}
 
-                                for (octave_idx_type i = 5 - 1; i < 9 - 1; ++i) {
-                                        oIntegMass.SetWeight(i, w2);
+				for (octave_idx_type i = 5 - 1; i < 9 - 1; ++i) {
+					oIntegMass.SetWeight(i, w2);
 
-                                        for (octave_idx_type j = 0; j < 4; ++j) {
-                                                oIntegMass.SetPosition(i, j, j == i - 4 ?  1 - 3 * g2 : g2);
-                                        }
-                                }
+					for (octave_idx_type j = 0; j < 4; ++j) {
+						oIntegMass.SetPosition(i, j, j == i - 4 ?  1 - 3 * g2 : g2);
+					}
+				}
 
-                                for (octave_idx_type i = 9 - 1; i < 14; ++i) {
-                                        oIntegMass.SetWeight(i, 1 / 6. - 2. * (w1 + w2) / 3.);
+				for (octave_idx_type i = 9 - 1; i < 14; ++i) {
+					oIntegMass.SetWeight(i, 1 / 6. - 2. * (w1 + w2) / 3.);
 
-                                        for (octave_idx_type j = 0; j < 4; ++j) {
-                                                oIntegMass.SetPosition(i, j, (j == jk6[i - 8][0] || j == jk6[i - 8][1]) ? 1. / 2. - g3 : g3);
-                                        }
-                                }
-                        }
+					for (octave_idx_type j = 0; j < 4; ++j) {
+						oIntegMass.SetPosition(i, j, (j == jk6[i - 8][0] || j == jk6[i - 8][1]) ? 1. / 2. - g3 : g3);
+					}
+				}
+			}
 
-                        return oIntegMass;
+			return oIntegMass;
 
-                case MAT_MASS_LUMPED:
-                        if (!oIntegMassDiag.iGetNumEvalPoints()) {
-                                oIntegMassDiag.SetNumEvalPoints(10, 4);
+		case MAT_MASS_LUMPED:
+			if (!oIntegMassDiag.iGetNumEvalPoints()) {
+				oIntegMassDiag.SetNumEvalPoints(10, 4);
 
-                                constexpr double w1 = 1. / 10.;
-                                constexpr double alpha = 1.;
-                                constexpr double beta = 0.;
+				constexpr double w1 = 1. / 10.;
+				constexpr double alpha = 1.;
+				constexpr double beta = 0.;
 
-                                for (octave_idx_type i = 0; i < 4; ++i) {
-                                        oIntegMassDiag.SetWeight(i, w1);
+				for (octave_idx_type i = 0; i < 4; ++i) {
+					oIntegMassDiag.SetWeight(i, w1);
 
-                                        for (octave_idx_type j = 0; j < 4; ++j) {
-                                                oIntegMassDiag.SetPosition(i, j, i == j ? alpha : beta);
-                                        }
-                                }
+					for (octave_idx_type j = 0; j < 4; ++j) {
+						oIntegMassDiag.SetPosition(i, j, i == j ? alpha : beta);
+					}
+				}
 
-                                constexpr double w2 = 1. / 10.;
-                                static const double g2[][4] = {{0.5,0.5,0,0},
-                                                               {0.5,0,0.5,0},
-                                                               {0.5,0,0,0.5},
-                                                               {0,0.5,0.5,0},
-                                                               {0,0.5,0,0.5},
-                                                               {0,0,0.5,0.5}};
+				constexpr double w2 = 1. / 10.;
+				static const double g2[][4] = {{0.5,0.5,0,0},
+							       {0.5,0,0.5,0},
+							       {0.5,0,0,0.5},
+							       {0,0.5,0.5,0},
+							       {0,0.5,0,0.5},
+							       {0,0,0.5,0.5}};
 
-                                for (octave_idx_type i = 0; i < 6; ++i) {
-                                        oIntegMassDiag.SetWeight(i + 4, w2);
+				for (octave_idx_type i = 0; i < 6; ++i) {
+					oIntegMassDiag.SetWeight(i + 4, w2);
 
-                                        for (octave_idx_type j = 0; j < 4; ++j) {
-                                                oIntegMassDiag.SetPosition(i + 4, j, g2[i][j]);
-                                        }
-                                }
-                        }
+					for (octave_idx_type j = 0; j < 4; ++j) {
+						oIntegMassDiag.SetPosition(i + 4, j, g2[i][j]);
+					}
+				}
+			}
 
-                        return oIntegMassDiag;
+			return oIntegMassDiag;
 
-                default:
-                        throw std::runtime_error("invalid integration rule");
-                }
-        }
+		default:
+			throw std::runtime_error("invalid integration rule");
+		}
+	}
 
 protected:
-        virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
-                FEM_ASSERT(J.rows() == 4);
-                FEM_ASSERT(J.columns() == 4);
-                FEM_ASSERT(rv.numel() == 4);
+	virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+		FEM_ASSERT(J.rows() == 4);
+		FEM_ASSERT(J.columns() == 4);
+		FEM_ASSERT(rv.numel() == 4);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
-                const double Zeta4 = rv.xelem(3);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
+		const double Zeta4 = rv.xelem(3);
 
-                FEM_ASSERT(Zeta1 + Zeta2 + Zeta3 + Zeta4 == 1);
+		FEM_ASSERT(Zeta1 + Zeta2 + Zeta3 + Zeta4 == 1);
 
-                J.xelem(0,0) = 1;
-                J.xelem(1,0) = 4*X.xelem(0,7)*Zeta4+4*X.xelem(0,6)*Zeta3+4*X.xelem(0,4)*Zeta2+X.xelem(0,0)*(4*Zeta1-1);
-                J.xelem(2,0) = 4*X.xelem(1,7)*Zeta4+4*X.xelem(1,6)*Zeta3+4*X.xelem(1,4)*Zeta2+X.xelem(1,0)*(4*Zeta1-1);
-                J.xelem(3,0) = 4*X.xelem(2,7)*Zeta4+4*X.xelem(2,6)*Zeta3+4*X.xelem(2,4)*Zeta2+X.xelem(2,0)*(4*Zeta1-1);
-                J.xelem(0,1) = 1;
-                J.xelem(1,1) = 4*X.xelem(0,8)*Zeta4+4*X.xelem(0,5)*Zeta3+X.xelem(0,1)*(4*Zeta2-1)+4*X.xelem(0,4)*Zeta1;
-                J.xelem(2,1) = 4*X.xelem(1,8)*Zeta4+4*X.xelem(1,5)*Zeta3+X.xelem(1,1)*(4*Zeta2-1)+4*X.xelem(1,4)*Zeta1;
-                J.xelem(3,1) = 4*X.xelem(2,8)*Zeta4+4*X.xelem(2,5)*Zeta3+X.xelem(2,1)*(4*Zeta2-1)+4*X.xelem(2,4)*Zeta1;
-                J.xelem(0,2) = 1;
-                J.xelem(1,2) = 4*X.xelem(0,9)*Zeta4+X.xelem(0,2)*(4*Zeta3-1)+4*X.xelem(0,5)*Zeta2+4*X.xelem(0,6)*Zeta1;
-                J.xelem(2,2) = 4*X.xelem(1,9)*Zeta4+X.xelem(1,2)*(4*Zeta3-1)+4*X.xelem(1,5)*Zeta2+4*X.xelem(1,6)*Zeta1;
-                J.xelem(3,2) = 4*X.xelem(2,9)*Zeta4+X.xelem(2,2)*(4*Zeta3-1)+4*X.xelem(2,5)*Zeta2+4*X.xelem(2,6)*Zeta1;
-                J.xelem(0,3) = 1;
-                J.xelem(1,3) = X.xelem(0,3)*(4*Zeta4-1)+4*X.xelem(0,9)*Zeta3+4*X.xelem(0,8)*Zeta2+4*X.xelem(0,7)*Zeta1;
-                J.xelem(2,3) = X.xelem(1,3)*(4*Zeta4-1)+4*X.xelem(1,9)*Zeta3+4*X.xelem(1,8)*Zeta2+4*X.xelem(1,7)*Zeta1;
-                J.xelem(3,3) = X.xelem(2,3)*(4*Zeta4-1)+4*X.xelem(2,9)*Zeta3+4*X.xelem(2,8)*Zeta2+4*X.xelem(2,7)*Zeta1;
+		J.xelem(0,0) = 1;
+		J.xelem(1,0) = 4*X.xelem(0,7)*Zeta4+4*X.xelem(0,6)*Zeta3+4*X.xelem(0,4)*Zeta2+X.xelem(0,0)*(4*Zeta1-1);
+		J.xelem(2,0) = 4*X.xelem(1,7)*Zeta4+4*X.xelem(1,6)*Zeta3+4*X.xelem(1,4)*Zeta2+X.xelem(1,0)*(4*Zeta1-1);
+		J.xelem(3,0) = 4*X.xelem(2,7)*Zeta4+4*X.xelem(2,6)*Zeta3+4*X.xelem(2,4)*Zeta2+X.xelem(2,0)*(4*Zeta1-1);
+		J.xelem(0,1) = 1;
+		J.xelem(1,1) = 4*X.xelem(0,8)*Zeta4+4*X.xelem(0,5)*Zeta3+X.xelem(0,1)*(4*Zeta2-1)+4*X.xelem(0,4)*Zeta1;
+		J.xelem(2,1) = 4*X.xelem(1,8)*Zeta4+4*X.xelem(1,5)*Zeta3+X.xelem(1,1)*(4*Zeta2-1)+4*X.xelem(1,4)*Zeta1;
+		J.xelem(3,1) = 4*X.xelem(2,8)*Zeta4+4*X.xelem(2,5)*Zeta3+X.xelem(2,1)*(4*Zeta2-1)+4*X.xelem(2,4)*Zeta1;
+		J.xelem(0,2) = 1;
+		J.xelem(1,2) = 4*X.xelem(0,9)*Zeta4+X.xelem(0,2)*(4*Zeta3-1)+4*X.xelem(0,5)*Zeta2+4*X.xelem(0,6)*Zeta1;
+		J.xelem(2,2) = 4*X.xelem(1,9)*Zeta4+X.xelem(1,2)*(4*Zeta3-1)+4*X.xelem(1,5)*Zeta2+4*X.xelem(1,6)*Zeta1;
+		J.xelem(3,2) = 4*X.xelem(2,9)*Zeta4+X.xelem(2,2)*(4*Zeta3-1)+4*X.xelem(2,5)*Zeta2+4*X.xelem(2,6)*Zeta1;
+		J.xelem(0,3) = 1;
+		J.xelem(1,3) = X.xelem(0,3)*(4*Zeta4-1)+4*X.xelem(0,9)*Zeta3+4*X.xelem(0,8)*Zeta2+4*X.xelem(0,7)*Zeta1;
+		J.xelem(2,3) = X.xelem(1,3)*(4*Zeta4-1)+4*X.xelem(1,9)*Zeta3+4*X.xelem(1,8)*Zeta2+4*X.xelem(1,7)*Zeta1;
+		J.xelem(3,3) = X.xelem(2,3)*(4*Zeta4-1)+4*X.xelem(2,9)*Zeta3+4*X.xelem(2,8)*Zeta2+4*X.xelem(2,7)*Zeta1;
 
-                return J.determinant() * gamma;
-        }
+		return J.determinant() * gamma;
+	}
 
-        virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
-                FEM_ASSERT(H.rows() == 3);
-                FEM_ASSERT(H.columns() == 30);
-                FEM_ASSERT(rv.numel() == 4);
+	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+		FEM_ASSERT(H.rows() == 3);
+		FEM_ASSERT(H.columns() == 30);
+		FEM_ASSERT(rv.numel() == 4);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
-                const double Zeta4 = rv.xelem(3);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
+		const double Zeta4 = rv.xelem(3);
 
-                H.xelem(0,0) = Zeta1*(2*Zeta1-1);
-                H.xelem(1,0) = 0;
-                H.xelem(2,0) = 0;
-                H.xelem(0,1) = 0;
-                H.xelem(1,1) = Zeta1*(2*Zeta1-1);
-                H.xelem(2,1) = 0;
-                H.xelem(0,2) = 0;
-                H.xelem(1,2) = 0;
-                H.xelem(2,2) = Zeta1*(2*Zeta1-1);
-                H.xelem(0,3) = Zeta2*(2*Zeta2-1);
-                H.xelem(1,3) = 0;
-                H.xelem(2,3) = 0;
-                H.xelem(0,4) = 0;
-                H.xelem(1,4) = Zeta2*(2*Zeta2-1);
-                H.xelem(2,4) = 0;
-                H.xelem(0,5) = 0;
-                H.xelem(1,5) = 0;
-                H.xelem(2,5) = Zeta2*(2*Zeta2-1);
-                H.xelem(0,6) = Zeta3*(2*Zeta3-1);
-                H.xelem(1,6) = 0;
-                H.xelem(2,6) = 0;
-                H.xelem(0,7) = 0;
-                H.xelem(1,7) = Zeta3*(2*Zeta3-1);
-                H.xelem(2,7) = 0;
-                H.xelem(0,8) = 0;
-                H.xelem(1,8) = 0;
-                H.xelem(2,8) = Zeta3*(2*Zeta3-1);
-                H.xelem(0,9) = Zeta4*(2*Zeta4-1);
-                H.xelem(1,9) = 0;
-                H.xelem(2,9) = 0;
-                H.xelem(0,10) = 0;
-                H.xelem(1,10) = Zeta4*(2*Zeta4-1);
-                H.xelem(2,10) = 0;
-                H.xelem(0,11) = 0;
-                H.xelem(1,11) = 0;
-                H.xelem(2,11) = Zeta4*(2*Zeta4-1);
-                H.xelem(0,12) = 4*Zeta1*Zeta2;
-                H.xelem(1,12) = 0;
-                H.xelem(2,12) = 0;
-                H.xelem(0,13) = 0;
-                H.xelem(1,13) = 4*Zeta1*Zeta2;
-                H.xelem(2,13) = 0;
-                H.xelem(0,14) = 0;
-                H.xelem(1,14) = 0;
-                H.xelem(2,14) = 4*Zeta1*Zeta2;
-                H.xelem(0,15) = 4*Zeta2*Zeta3;
-                H.xelem(1,15) = 0;
-                H.xelem(2,15) = 0;
-                H.xelem(0,16) = 0;
-                H.xelem(1,16) = 4*Zeta2*Zeta3;
-                H.xelem(2,16) = 0;
-                H.xelem(0,17) = 0;
-                H.xelem(1,17) = 0;
-                H.xelem(2,17) = 4*Zeta2*Zeta3;
-                H.xelem(0,18) = 4*Zeta1*Zeta3;
-                H.xelem(1,18) = 0;
-                H.xelem(2,18) = 0;
-                H.xelem(0,19) = 0;
-                H.xelem(1,19) = 4*Zeta1*Zeta3;
-                H.xelem(2,19) = 0;
-                H.xelem(0,20) = 0;
-                H.xelem(1,20) = 0;
-                H.xelem(2,20) = 4*Zeta1*Zeta3;
-                H.xelem(0,21) = 4*Zeta1*Zeta4;
-                H.xelem(1,21) = 0;
-                H.xelem(2,21) = 0;
-                H.xelem(0,22) = 0;
-                H.xelem(1,22) = 4*Zeta1*Zeta4;
-                H.xelem(2,22) = 0;
-                H.xelem(0,23) = 0;
-                H.xelem(1,23) = 0;
-                H.xelem(2,23) = 4*Zeta1*Zeta4;
-                H.xelem(0,24) = 4*Zeta2*Zeta4;
-                H.xelem(1,24) = 0;
-                H.xelem(2,24) = 0;
-                H.xelem(0,25) = 0;
-                H.xelem(1,25) = 4*Zeta2*Zeta4;
-                H.xelem(2,25) = 0;
-                H.xelem(0,26) = 0;
-                H.xelem(1,26) = 0;
-                H.xelem(2,26) = 4*Zeta2*Zeta4;
-                H.xelem(0,27) = 4*Zeta3*Zeta4;
-                H.xelem(1,27) = 0;
-                H.xelem(2,27) = 0;
-                H.xelem(0,28) = 0;
-                H.xelem(1,28) = 4*Zeta3*Zeta4;
-                H.xelem(2,28) = 0;
-                H.xelem(0,29) = 0;
-                H.xelem(1,29) = 0;
-                H.xelem(2,29) = 4*Zeta3*Zeta4;
-        }
+		H.xelem(0,0) = Zeta1*(2*Zeta1-1);
+		H.xelem(1,0) = 0;
+		H.xelem(2,0) = 0;
+		H.xelem(0,1) = 0;
+		H.xelem(1,1) = Zeta1*(2*Zeta1-1);
+		H.xelem(2,1) = 0;
+		H.xelem(0,2) = 0;
+		H.xelem(1,2) = 0;
+		H.xelem(2,2) = Zeta1*(2*Zeta1-1);
+		H.xelem(0,3) = Zeta2*(2*Zeta2-1);
+		H.xelem(1,3) = 0;
+		H.xelem(2,3) = 0;
+		H.xelem(0,4) = 0;
+		H.xelem(1,4) = Zeta2*(2*Zeta2-1);
+		H.xelem(2,4) = 0;
+		H.xelem(0,5) = 0;
+		H.xelem(1,5) = 0;
+		H.xelem(2,5) = Zeta2*(2*Zeta2-1);
+		H.xelem(0,6) = Zeta3*(2*Zeta3-1);
+		H.xelem(1,6) = 0;
+		H.xelem(2,6) = 0;
+		H.xelem(0,7) = 0;
+		H.xelem(1,7) = Zeta3*(2*Zeta3-1);
+		H.xelem(2,7) = 0;
+		H.xelem(0,8) = 0;
+		H.xelem(1,8) = 0;
+		H.xelem(2,8) = Zeta3*(2*Zeta3-1);
+		H.xelem(0,9) = Zeta4*(2*Zeta4-1);
+		H.xelem(1,9) = 0;
+		H.xelem(2,9) = 0;
+		H.xelem(0,10) = 0;
+		H.xelem(1,10) = Zeta4*(2*Zeta4-1);
+		H.xelem(2,10) = 0;
+		H.xelem(0,11) = 0;
+		H.xelem(1,11) = 0;
+		H.xelem(2,11) = Zeta4*(2*Zeta4-1);
+		H.xelem(0,12) = 4*Zeta1*Zeta2;
+		H.xelem(1,12) = 0;
+		H.xelem(2,12) = 0;
+		H.xelem(0,13) = 0;
+		H.xelem(1,13) = 4*Zeta1*Zeta2;
+		H.xelem(2,13) = 0;
+		H.xelem(0,14) = 0;
+		H.xelem(1,14) = 0;
+		H.xelem(2,14) = 4*Zeta1*Zeta2;
+		H.xelem(0,15) = 4*Zeta2*Zeta3;
+		H.xelem(1,15) = 0;
+		H.xelem(2,15) = 0;
+		H.xelem(0,16) = 0;
+		H.xelem(1,16) = 4*Zeta2*Zeta3;
+		H.xelem(2,16) = 0;
+		H.xelem(0,17) = 0;
+		H.xelem(1,17) = 0;
+		H.xelem(2,17) = 4*Zeta2*Zeta3;
+		H.xelem(0,18) = 4*Zeta1*Zeta3;
+		H.xelem(1,18) = 0;
+		H.xelem(2,18) = 0;
+		H.xelem(0,19) = 0;
+		H.xelem(1,19) = 4*Zeta1*Zeta3;
+		H.xelem(2,19) = 0;
+		H.xelem(0,20) = 0;
+		H.xelem(1,20) = 0;
+		H.xelem(2,20) = 4*Zeta1*Zeta3;
+		H.xelem(0,21) = 4*Zeta1*Zeta4;
+		H.xelem(1,21) = 0;
+		H.xelem(2,21) = 0;
+		H.xelem(0,22) = 0;
+		H.xelem(1,22) = 4*Zeta1*Zeta4;
+		H.xelem(2,22) = 0;
+		H.xelem(0,23) = 0;
+		H.xelem(1,23) = 0;
+		H.xelem(2,23) = 4*Zeta1*Zeta4;
+		H.xelem(0,24) = 4*Zeta2*Zeta4;
+		H.xelem(1,24) = 0;
+		H.xelem(2,24) = 0;
+		H.xelem(0,25) = 0;
+		H.xelem(1,25) = 4*Zeta2*Zeta4;
+		H.xelem(2,25) = 0;
+		H.xelem(0,26) = 0;
+		H.xelem(1,26) = 0;
+		H.xelem(2,26) = 4*Zeta2*Zeta4;
+		H.xelem(0,27) = 4*Zeta3*Zeta4;
+		H.xelem(1,27) = 0;
+		H.xelem(2,27) = 0;
+		H.xelem(0,28) = 0;
+		H.xelem(1,28) = 4*Zeta3*Zeta4;
+		H.xelem(2,28) = 0;
+		H.xelem(0,29) = 0;
+		H.xelem(1,29) = 0;
+		H.xelem(2,29) = 4*Zeta3*Zeta4;
+	}
 
-        virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
-                FEM_ASSERT(invJ.rows() == 4);
-                FEM_ASSERT(invJ.columns() == 4);
-                FEM_ASSERT(B.rows() == 6);
-                FEM_ASSERT(B.columns() == 30);
-                FEM_ASSERT(rv.numel() == 4);
+	virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+		FEM_ASSERT(invJ.rows() == 4);
+		FEM_ASSERT(invJ.columns() == 4);
+		FEM_ASSERT(B.rows() == 6);
+		FEM_ASSERT(B.columns() == 30);
+		FEM_ASSERT(rv.numel() == 4);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
-                const double Zeta4 = rv.xelem(3);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
+		const double Zeta4 = rv.xelem(3);
 
-                B.xelem(0,0) = invJ.xelem(0,1)*(4*Zeta1-1);
-                B.xelem(1,0) = 0;
-                B.xelem(2,0) = 0;
-                B.xelem(3,0) = invJ.xelem(0,2)*(4*Zeta1-1);
-                B.xelem(4,0) = 0;
-                B.xelem(5,0) = invJ.xelem(0,3)*(4*Zeta1-1);
-                B.xelem(0,1) = 0;
-                B.xelem(1,1) = invJ.xelem(0,2)*(4*Zeta1-1);
-                B.xelem(2,1) = 0;
-                B.xelem(3,1) = invJ.xelem(0,1)*(4*Zeta1-1);
-                B.xelem(4,1) = invJ.xelem(0,3)*(4*Zeta1-1);
-                B.xelem(5,1) = 0;
-                B.xelem(0,2) = 0;
-                B.xelem(1,2) = 0;
-                B.xelem(2,2) = invJ.xelem(0,3)*(4*Zeta1-1);
-                B.xelem(3,2) = 0;
-                B.xelem(4,2) = invJ.xelem(0,2)*(4*Zeta1-1);
-                B.xelem(5,2) = invJ.xelem(0,1)*(4*Zeta1-1);
-                B.xelem(0,3) = invJ.xelem(1,1)*(4*Zeta2-1);
-                B.xelem(1,3) = 0;
-                B.xelem(2,3) = 0;
-                B.xelem(3,3) = invJ.xelem(1,2)*(4*Zeta2-1);
-                B.xelem(4,3) = 0;
-                B.xelem(5,3) = invJ.xelem(1,3)*(4*Zeta2-1);
-                B.xelem(0,4) = 0;
-                B.xelem(1,4) = invJ.xelem(1,2)*(4*Zeta2-1);
-                B.xelem(2,4) = 0;
-                B.xelem(3,4) = invJ.xelem(1,1)*(4*Zeta2-1);
-                B.xelem(4,4) = invJ.xelem(1,3)*(4*Zeta2-1);
-                B.xelem(5,4) = 0;
-                B.xelem(0,5) = 0;
-                B.xelem(1,5) = 0;
-                B.xelem(2,5) = invJ.xelem(1,3)*(4*Zeta2-1);
-                B.xelem(3,5) = 0;
-                B.xelem(4,5) = invJ.xelem(1,2)*(4*Zeta2-1);
-                B.xelem(5,5) = invJ.xelem(1,1)*(4*Zeta2-1);
-                B.xelem(0,6) = invJ.xelem(2,1)*(4*Zeta3-1);
-                B.xelem(1,6) = 0;
-                B.xelem(2,6) = 0;
-                B.xelem(3,6) = invJ.xelem(2,2)*(4*Zeta3-1);
-                B.xelem(4,6) = 0;
-                B.xelem(5,6) = invJ.xelem(2,3)*(4*Zeta3-1);
-                B.xelem(0,7) = 0;
-                B.xelem(1,7) = invJ.xelem(2,2)*(4*Zeta3-1);
-                B.xelem(2,7) = 0;
-                B.xelem(3,7) = invJ.xelem(2,1)*(4*Zeta3-1);
-                B.xelem(4,7) = invJ.xelem(2,3)*(4*Zeta3-1);
-                B.xelem(5,7) = 0;
-                B.xelem(0,8) = 0;
-                B.xelem(1,8) = 0;
-                B.xelem(2,8) = invJ.xelem(2,3)*(4*Zeta3-1);
-                B.xelem(3,8) = 0;
-                B.xelem(4,8) = invJ.xelem(2,2)*(4*Zeta3-1);
-                B.xelem(5,8) = invJ.xelem(2,1)*(4*Zeta3-1);
-                B.xelem(0,9) = invJ.xelem(3,1)*(4*Zeta4-1);
-                B.xelem(1,9) = 0;
-                B.xelem(2,9) = 0;
-                B.xelem(3,9) = invJ.xelem(3,2)*(4*Zeta4-1);
-                B.xelem(4,9) = 0;
-                B.xelem(5,9) = invJ.xelem(3,3)*(4*Zeta4-1);
-                B.xelem(0,10) = 0;
-                B.xelem(1,10) = invJ.xelem(3,2)*(4*Zeta4-1);
-                B.xelem(2,10) = 0;
-                B.xelem(3,10) = invJ.xelem(3,1)*(4*Zeta4-1);
-                B.xelem(4,10) = invJ.xelem(3,3)*(4*Zeta4-1);
-                B.xelem(5,10) = 0;
-                B.xelem(0,11) = 0;
-                B.xelem(1,11) = 0;
-                B.xelem(2,11) = invJ.xelem(3,3)*(4*Zeta4-1);
-                B.xelem(3,11) = 0;
-                B.xelem(4,11) = invJ.xelem(3,2)*(4*Zeta4-1);
-                B.xelem(5,11) = invJ.xelem(3,1)*(4*Zeta4-1);
-                B.xelem(0,12) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
-                B.xelem(1,12) = 0;
-                B.xelem(2,12) = 0;
-                B.xelem(3,12) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
-                B.xelem(4,12) = 0;
-                B.xelem(5,12) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
-                B.xelem(0,13) = 0;
-                B.xelem(1,13) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
-                B.xelem(2,13) = 0;
-                B.xelem(3,13) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
-                B.xelem(4,13) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
-                B.xelem(5,13) = 0;
-                B.xelem(0,14) = 0;
-                B.xelem(1,14) = 0;
-                B.xelem(2,14) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
-                B.xelem(3,14) = 0;
-                B.xelem(4,14) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
-                B.xelem(5,14) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
-                B.xelem(0,15) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
-                B.xelem(1,15) = 0;
-                B.xelem(2,15) = 0;
-                B.xelem(3,15) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
-                B.xelem(4,15) = 0;
-                B.xelem(5,15) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
-                B.xelem(0,16) = 0;
-                B.xelem(1,16) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
-                B.xelem(2,16) = 0;
-                B.xelem(3,16) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
-                B.xelem(4,16) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
-                B.xelem(5,16) = 0;
-                B.xelem(0,17) = 0;
-                B.xelem(1,17) = 0;
-                B.xelem(2,17) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
-                B.xelem(3,17) = 0;
-                B.xelem(4,17) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
-                B.xelem(5,17) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
-                B.xelem(0,18) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
-                B.xelem(1,18) = 0;
-                B.xelem(2,18) = 0;
-                B.xelem(3,18) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
-                B.xelem(4,18) = 0;
-                B.xelem(5,18) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
-                B.xelem(0,19) = 0;
-                B.xelem(1,19) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
-                B.xelem(2,19) = 0;
-                B.xelem(3,19) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
-                B.xelem(4,19) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
-                B.xelem(5,19) = 0;
-                B.xelem(0,20) = 0;
-                B.xelem(1,20) = 0;
-                B.xelem(2,20) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
-                B.xelem(3,20) = 0;
-                B.xelem(4,20) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
-                B.xelem(5,20) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
-                B.xelem(0,21) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
-                B.xelem(1,21) = 0;
-                B.xelem(2,21) = 0;
-                B.xelem(3,21) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
-                B.xelem(4,21) = 0;
-                B.xelem(5,21) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
-                B.xelem(0,22) = 0;
-                B.xelem(1,22) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
-                B.xelem(2,22) = 0;
-                B.xelem(3,22) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
-                B.xelem(4,22) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
-                B.xelem(5,22) = 0;
-                B.xelem(0,23) = 0;
-                B.xelem(1,23) = 0;
-                B.xelem(2,23) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
-                B.xelem(3,23) = 0;
-                B.xelem(4,23) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
-                B.xelem(5,23) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
-                B.xelem(0,24) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
-                B.xelem(1,24) = 0;
-                B.xelem(2,24) = 0;
-                B.xelem(3,24) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
-                B.xelem(4,24) = 0;
-                B.xelem(5,24) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
-                B.xelem(0,25) = 0;
-                B.xelem(1,25) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
-                B.xelem(2,25) = 0;
-                B.xelem(3,25) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
-                B.xelem(4,25) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
-                B.xelem(5,25) = 0;
-                B.xelem(0,26) = 0;
-                B.xelem(1,26) = 0;
-                B.xelem(2,26) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
-                B.xelem(3,26) = 0;
-                B.xelem(4,26) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
-                B.xelem(5,26) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
-                B.xelem(0,27) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
-                B.xelem(1,27) = 0;
-                B.xelem(2,27) = 0;
-                B.xelem(3,27) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
-                B.xelem(4,27) = 0;
-                B.xelem(5,27) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
-                B.xelem(0,28) = 0;
-                B.xelem(1,28) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
-                B.xelem(2,28) = 0;
-                B.xelem(3,28) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
-                B.xelem(4,28) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
-                B.xelem(5,28) = 0;
-                B.xelem(0,29) = 0;
-                B.xelem(1,29) = 0;
-                B.xelem(2,29) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
-                B.xelem(3,29) = 0;
-                B.xelem(4,29) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
-                B.xelem(5,29) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
-        }
+		B.xelem(0,0) = invJ.xelem(0,1)*(4*Zeta1-1);
+		B.xelem(1,0) = 0;
+		B.xelem(2,0) = 0;
+		B.xelem(3,0) = invJ.xelem(0,2)*(4*Zeta1-1);
+		B.xelem(4,0) = 0;
+		B.xelem(5,0) = invJ.xelem(0,3)*(4*Zeta1-1);
+		B.xelem(0,1) = 0;
+		B.xelem(1,1) = invJ.xelem(0,2)*(4*Zeta1-1);
+		B.xelem(2,1) = 0;
+		B.xelem(3,1) = invJ.xelem(0,1)*(4*Zeta1-1);
+		B.xelem(4,1) = invJ.xelem(0,3)*(4*Zeta1-1);
+		B.xelem(5,1) = 0;
+		B.xelem(0,2) = 0;
+		B.xelem(1,2) = 0;
+		B.xelem(2,2) = invJ.xelem(0,3)*(4*Zeta1-1);
+		B.xelem(3,2) = 0;
+		B.xelem(4,2) = invJ.xelem(0,2)*(4*Zeta1-1);
+		B.xelem(5,2) = invJ.xelem(0,1)*(4*Zeta1-1);
+		B.xelem(0,3) = invJ.xelem(1,1)*(4*Zeta2-1);
+		B.xelem(1,3) = 0;
+		B.xelem(2,3) = 0;
+		B.xelem(3,3) = invJ.xelem(1,2)*(4*Zeta2-1);
+		B.xelem(4,3) = 0;
+		B.xelem(5,3) = invJ.xelem(1,3)*(4*Zeta2-1);
+		B.xelem(0,4) = 0;
+		B.xelem(1,4) = invJ.xelem(1,2)*(4*Zeta2-1);
+		B.xelem(2,4) = 0;
+		B.xelem(3,4) = invJ.xelem(1,1)*(4*Zeta2-1);
+		B.xelem(4,4) = invJ.xelem(1,3)*(4*Zeta2-1);
+		B.xelem(5,4) = 0;
+		B.xelem(0,5) = 0;
+		B.xelem(1,5) = 0;
+		B.xelem(2,5) = invJ.xelem(1,3)*(4*Zeta2-1);
+		B.xelem(3,5) = 0;
+		B.xelem(4,5) = invJ.xelem(1,2)*(4*Zeta2-1);
+		B.xelem(5,5) = invJ.xelem(1,1)*(4*Zeta2-1);
+		B.xelem(0,6) = invJ.xelem(2,1)*(4*Zeta3-1);
+		B.xelem(1,6) = 0;
+		B.xelem(2,6) = 0;
+		B.xelem(3,6) = invJ.xelem(2,2)*(4*Zeta3-1);
+		B.xelem(4,6) = 0;
+		B.xelem(5,6) = invJ.xelem(2,3)*(4*Zeta3-1);
+		B.xelem(0,7) = 0;
+		B.xelem(1,7) = invJ.xelem(2,2)*(4*Zeta3-1);
+		B.xelem(2,7) = 0;
+		B.xelem(3,7) = invJ.xelem(2,1)*(4*Zeta3-1);
+		B.xelem(4,7) = invJ.xelem(2,3)*(4*Zeta3-1);
+		B.xelem(5,7) = 0;
+		B.xelem(0,8) = 0;
+		B.xelem(1,8) = 0;
+		B.xelem(2,8) = invJ.xelem(2,3)*(4*Zeta3-1);
+		B.xelem(3,8) = 0;
+		B.xelem(4,8) = invJ.xelem(2,2)*(4*Zeta3-1);
+		B.xelem(5,8) = invJ.xelem(2,1)*(4*Zeta3-1);
+		B.xelem(0,9) = invJ.xelem(3,1)*(4*Zeta4-1);
+		B.xelem(1,9) = 0;
+		B.xelem(2,9) = 0;
+		B.xelem(3,9) = invJ.xelem(3,2)*(4*Zeta4-1);
+		B.xelem(4,9) = 0;
+		B.xelem(5,9) = invJ.xelem(3,3)*(4*Zeta4-1);
+		B.xelem(0,10) = 0;
+		B.xelem(1,10) = invJ.xelem(3,2)*(4*Zeta4-1);
+		B.xelem(2,10) = 0;
+		B.xelem(3,10) = invJ.xelem(3,1)*(4*Zeta4-1);
+		B.xelem(4,10) = invJ.xelem(3,3)*(4*Zeta4-1);
+		B.xelem(5,10) = 0;
+		B.xelem(0,11) = 0;
+		B.xelem(1,11) = 0;
+		B.xelem(2,11) = invJ.xelem(3,3)*(4*Zeta4-1);
+		B.xelem(3,11) = 0;
+		B.xelem(4,11) = invJ.xelem(3,2)*(4*Zeta4-1);
+		B.xelem(5,11) = invJ.xelem(3,1)*(4*Zeta4-1);
+		B.xelem(0,12) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
+		B.xelem(1,12) = 0;
+		B.xelem(2,12) = 0;
+		B.xelem(3,12) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
+		B.xelem(4,12) = 0;
+		B.xelem(5,12) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
+		B.xelem(0,13) = 0;
+		B.xelem(1,13) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
+		B.xelem(2,13) = 0;
+		B.xelem(3,13) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
+		B.xelem(4,13) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
+		B.xelem(5,13) = 0;
+		B.xelem(0,14) = 0;
+		B.xelem(1,14) = 0;
+		B.xelem(2,14) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
+		B.xelem(3,14) = 0;
+		B.xelem(4,14) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
+		B.xelem(5,14) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
+		B.xelem(0,15) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
+		B.xelem(1,15) = 0;
+		B.xelem(2,15) = 0;
+		B.xelem(3,15) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
+		B.xelem(4,15) = 0;
+		B.xelem(5,15) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
+		B.xelem(0,16) = 0;
+		B.xelem(1,16) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
+		B.xelem(2,16) = 0;
+		B.xelem(3,16) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
+		B.xelem(4,16) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
+		B.xelem(5,16) = 0;
+		B.xelem(0,17) = 0;
+		B.xelem(1,17) = 0;
+		B.xelem(2,17) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
+		B.xelem(3,17) = 0;
+		B.xelem(4,17) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
+		B.xelem(5,17) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
+		B.xelem(0,18) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
+		B.xelem(1,18) = 0;
+		B.xelem(2,18) = 0;
+		B.xelem(3,18) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
+		B.xelem(4,18) = 0;
+		B.xelem(5,18) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
+		B.xelem(0,19) = 0;
+		B.xelem(1,19) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
+		B.xelem(2,19) = 0;
+		B.xelem(3,19) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
+		B.xelem(4,19) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
+		B.xelem(5,19) = 0;
+		B.xelem(0,20) = 0;
+		B.xelem(1,20) = 0;
+		B.xelem(2,20) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
+		B.xelem(3,20) = 0;
+		B.xelem(4,20) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
+		B.xelem(5,20) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
+		B.xelem(0,21) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
+		B.xelem(1,21) = 0;
+		B.xelem(2,21) = 0;
+		B.xelem(3,21) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
+		B.xelem(4,21) = 0;
+		B.xelem(5,21) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
+		B.xelem(0,22) = 0;
+		B.xelem(1,22) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
+		B.xelem(2,22) = 0;
+		B.xelem(3,22) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
+		B.xelem(4,22) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
+		B.xelem(5,22) = 0;
+		B.xelem(0,23) = 0;
+		B.xelem(1,23) = 0;
+		B.xelem(2,23) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
+		B.xelem(3,23) = 0;
+		B.xelem(4,23) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
+		B.xelem(5,23) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
+		B.xelem(0,24) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
+		B.xelem(1,24) = 0;
+		B.xelem(2,24) = 0;
+		B.xelem(3,24) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
+		B.xelem(4,24) = 0;
+		B.xelem(5,24) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
+		B.xelem(0,25) = 0;
+		B.xelem(1,25) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
+		B.xelem(2,25) = 0;
+		B.xelem(3,25) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
+		B.xelem(4,25) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
+		B.xelem(5,25) = 0;
+		B.xelem(0,26) = 0;
+		B.xelem(1,26) = 0;
+		B.xelem(2,26) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
+		B.xelem(3,26) = 0;
+		B.xelem(4,26) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
+		B.xelem(5,26) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
+		B.xelem(0,27) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
+		B.xelem(1,27) = 0;
+		B.xelem(2,27) = 0;
+		B.xelem(3,27) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
+		B.xelem(4,27) = 0;
+		B.xelem(5,27) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
+		B.xelem(0,28) = 0;
+		B.xelem(1,28) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
+		B.xelem(2,28) = 0;
+		B.xelem(3,28) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
+		B.xelem(4,28) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
+		B.xelem(5,28) = 0;
+		B.xelem(0,29) = 0;
+		B.xelem(1,29) = 0;
+		B.xelem(2,29) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
+		B.xelem(3,29) = 0;
+		B.xelem(4,29) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
+		B.xelem(5,29) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
+	}
 
-        virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const octave_idx_type iNumNodesCorner = 4;
-                ColumnVector rv(iNumDir);
+	virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumNodesCorner = 4;
+		ColumnVector rv(iNumDir);
 
-                Matrix H(iNumGauss, iNumNodesCorner);
+		Matrix H(iNumGauss, iNumNodesCorner);
 
-                for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        StressInterpMatrix(rv, H, i);
-                }
+			StressInterpMatrix(rv, H, i);
+		}
 
-                Matrix taun = H.solve(taug);
+		Matrix taun = H.solve(taug);
 
-                taun.resize(nodes.numel(), taun.columns());
+		taun.resize(nodes.numel(), taun.columns());
 
-                static const struct {
-                        octave_idx_type ico1, ico2, imid;
-                } idxint[] = {
-                        {0, 1, 4},
-                        {1, 2, 5},
-                        {2, 0, 6},
-                        {0, 3, 7},
-                        {1, 3, 8},
-                        {2, 3, 9}
-                };
+		static const struct {
+			octave_idx_type ico1, ico2, imid;
+		} idxint[] = {
+			{0, 1, 4},
+			{1, 2, 5},
+			{2, 0, 6},
+			{0, 3, 7},
+			{1, 3, 8},
+			{2, 3, 9}
+		};
 
-                for (octave_idx_type j = 0; j < taun.columns(); ++j) {
-                        for (const auto& idx:idxint) {
-                                taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
-                        }
-                }
+		for (octave_idx_type j = 0; j < taun.columns(); ++j) {
+			for (const auto& idx:idxint) {
+				taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
+			}
+		}
 
-                return taun;
-        }
+		return taun;
+	}
 
 private:
-        void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
-                FEM_ASSERT(rv.numel() == 4);
-                FEM_ASSERT(Hs.columns() == 4);
-                FEM_ASSERT(irow >= 0);
-                FEM_ASSERT(irow < Hs.rows());
+	void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+		FEM_ASSERT(rv.numel() == 4);
+		FEM_ASSERT(Hs.columns() == 4);
+		FEM_ASSERT(irow >= 0);
+		FEM_ASSERT(irow < Hs.rows());
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
-                const double Zeta4 = rv.xelem(3);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
+		const double Zeta4 = rv.xelem(3);
 
-                Hs.xelem(irow, 0) = Zeta1;
-                Hs.xelem(irow, 1) = Zeta2;
-                Hs.xelem(irow, 2) = Zeta3;
-                Hs.xelem(irow, 3) = Zeta4;
-        }
+		Hs.xelem(irow, 0) = Zeta1;
+		Hs.xelem(irow, 1) = Zeta2;
+		Hs.xelem(irow, 2) = Zeta3;
+		Hs.xelem(irow, 3) = Zeta4;
+	}
 };
 
 class ShapeTria6 {
 public:
-        static constexpr octave_idx_type iGetNumNodes() {
-                return 6;
-        }
+	static constexpr octave_idx_type iGetNumNodes() {
+		return 6;
+	}
 
-        static constexpr octave_idx_type iGetNumDirections() {
-                return 3;
-        }
+	static constexpr octave_idx_type iGetNumDirections() {
+		return 3;
+	}
 
-        static constexpr octave_idx_type iGetNumDofNode() {
-                return 3;
-        }
+	static constexpr octave_idx_type iGetNumDofNode() {
+		return 3;
+	}
 
-        static constexpr octave_idx_type iGetNumEqualityConstr() {
-                return 1;
-        }
+	static constexpr octave_idx_type iGetNumEqualityConstr() {
+		return 1;
+	}
 
-        static double EqualityConstr(const ColumnVector& rv) {
-                return rv.xelem(0) + rv.xelem(1) + rv.xelem(2) - 1;
-        }
+	static double EqualityConstr(const ColumnVector& rv) {
+		return rv.xelem(0) + rv.xelem(1) + rv.xelem(2) - 1;
+	}
 
-        static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
-                FEM_ASSERT(rmin.rows() == iGetNumDirections());
-                FEM_ASSERT(rmax.rows() == rmin.rows());
+	static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+		FEM_ASSERT(rmin.rows() == iGetNumDirections());
+		FEM_ASSERT(rmax.rows() == rmin.rows());
 
-                for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
-                        rmin.xelem(i) = 0.;
-                }
+		for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+			rmin.xelem(i) = 0.;
+		}
 
-                for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
-                        rmax.xelem(i) = 1.;
-                }
-        }
+		for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+			rmax.xelem(i) = 1.;
+		}
+	}
 
-        static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
-                FEM_ASSERT(rv.rows() == 3);
-                FEM_ASSERT(HA.columns() == 6);
+	static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+		FEM_ASSERT(rv.rows() == 3);
+		FEM_ASSERT(HA.columns() == 6);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
 
-                HA.xelem(0) = Zeta1*(2*Zeta1-1);
-                HA.xelem(1) = Zeta2*(2*Zeta2-1);
-                HA.xelem(2) = Zeta3*(2*Zeta3-1);
-                HA.xelem(3) = 4*Zeta1*Zeta2;
-                HA.xelem(4) = 4*Zeta2*Zeta3;
-                HA.xelem(5) = 4*Zeta1*Zeta3;
-        }
+		HA.xelem(0) = Zeta1*(2*Zeta1-1);
+		HA.xelem(1) = Zeta2*(2*Zeta2-1);
+		HA.xelem(2) = Zeta3*(2*Zeta3-1);
+		HA.xelem(3) = 4*Zeta1*Zeta2;
+		HA.xelem(4) = 4*Zeta2*Zeta3;
+		HA.xelem(5) = 4*Zeta1*Zeta3;
+	}
 
-        static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
-                FEM_ASSERT(rv.rows() == 3);
-                FEM_ASSERT(Hf.rows() == 3);
-                FEM_ASSERT(Hf.columns() == 18);
+	static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+		FEM_ASSERT(rv.rows() == 3);
+		FEM_ASSERT(Hf.rows() == 3);
+		FEM_ASSERT(Hf.columns() == 18);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
 
-                Hf.xelem(0,0) = Zeta1*(2*Zeta1-1);
-                Hf.xelem(1,0) = 0;
-                Hf.xelem(2,0) = 0;
-                Hf.xelem(0,1) = 0;
-                Hf.xelem(1,1) = Zeta1*(2*Zeta1-1);
-                Hf.xelem(2,1) = 0;
-                Hf.xelem(0,2) = 0;
-                Hf.xelem(1,2) = 0;
-                Hf.xelem(2,2) = Zeta1*(2*Zeta1-1);
-                Hf.xelem(0,3) = Zeta2*(2*Zeta2-1);
-                Hf.xelem(1,3) = 0;
-                Hf.xelem(2,3) = 0;
-                Hf.xelem(0,4) = 0;
-                Hf.xelem(1,4) = Zeta2*(2*Zeta2-1);
-                Hf.xelem(2,4) = 0;
-                Hf.xelem(0,5) = 0;
-                Hf.xelem(1,5) = 0;
-                Hf.xelem(2,5) = Zeta2*(2*Zeta2-1);
-                Hf.xelem(0,6) = Zeta3*(2*Zeta3-1);
-                Hf.xelem(1,6) = 0;
-                Hf.xelem(2,6) = 0;
-                Hf.xelem(0,7) = 0;
-                Hf.xelem(1,7) = Zeta3*(2*Zeta3-1);
-                Hf.xelem(2,7) = 0;
-                Hf.xelem(0,8) = 0;
-                Hf.xelem(1,8) = 0;
-                Hf.xelem(2,8) = Zeta3*(2*Zeta3-1);
-                Hf.xelem(0,9) = 4*Zeta1*Zeta2;
-                Hf.xelem(1,9) = 0;
-                Hf.xelem(2,9) = 0;
-                Hf.xelem(0,10) = 0;
-                Hf.xelem(1,10) = 4*Zeta1*Zeta2;
-                Hf.xelem(2,10) = 0;
-                Hf.xelem(0,11) = 0;
-                Hf.xelem(1,11) = 0;
-                Hf.xelem(2,11) = 4*Zeta1*Zeta2;
-                Hf.xelem(0,12) = 4*Zeta2*Zeta3;
-                Hf.xelem(1,12) = 0;
-                Hf.xelem(2,12) = 0;
-                Hf.xelem(0,13) = 0;
-                Hf.xelem(1,13) = 4*Zeta2*Zeta3;
-                Hf.xelem(2,13) = 0;
-                Hf.xelem(0,14) = 0;
-                Hf.xelem(1,14) = 0;
-                Hf.xelem(2,14) = 4*Zeta2*Zeta3;
-                Hf.xelem(0,15) = 4*Zeta1*Zeta3;
-                Hf.xelem(1,15) = 0;
-                Hf.xelem(2,15) = 0;
-                Hf.xelem(0,16) = 0;
-                Hf.xelem(1,16) = 4*Zeta1*Zeta3;
-                Hf.xelem(2,16) = 0;
-                Hf.xelem(0,17) = 0;
-                Hf.xelem(1,17) = 0;
-                Hf.xelem(2,17) = 4*Zeta1*Zeta3;
-        }
+		Hf.xelem(0,0) = Zeta1*(2*Zeta1-1);
+		Hf.xelem(1,0) = 0;
+		Hf.xelem(2,0) = 0;
+		Hf.xelem(0,1) = 0;
+		Hf.xelem(1,1) = Zeta1*(2*Zeta1-1);
+		Hf.xelem(2,1) = 0;
+		Hf.xelem(0,2) = 0;
+		Hf.xelem(1,2) = 0;
+		Hf.xelem(2,2) = Zeta1*(2*Zeta1-1);
+		Hf.xelem(0,3) = Zeta2*(2*Zeta2-1);
+		Hf.xelem(1,3) = 0;
+		Hf.xelem(2,3) = 0;
+		Hf.xelem(0,4) = 0;
+		Hf.xelem(1,4) = Zeta2*(2*Zeta2-1);
+		Hf.xelem(2,4) = 0;
+		Hf.xelem(0,5) = 0;
+		Hf.xelem(1,5) = 0;
+		Hf.xelem(2,5) = Zeta2*(2*Zeta2-1);
+		Hf.xelem(0,6) = Zeta3*(2*Zeta3-1);
+		Hf.xelem(1,6) = 0;
+		Hf.xelem(2,6) = 0;
+		Hf.xelem(0,7) = 0;
+		Hf.xelem(1,7) = Zeta3*(2*Zeta3-1);
+		Hf.xelem(2,7) = 0;
+		Hf.xelem(0,8) = 0;
+		Hf.xelem(1,8) = 0;
+		Hf.xelem(2,8) = Zeta3*(2*Zeta3-1);
+		Hf.xelem(0,9) = 4*Zeta1*Zeta2;
+		Hf.xelem(1,9) = 0;
+		Hf.xelem(2,9) = 0;
+		Hf.xelem(0,10) = 0;
+		Hf.xelem(1,10) = 4*Zeta1*Zeta2;
+		Hf.xelem(2,10) = 0;
+		Hf.xelem(0,11) = 0;
+		Hf.xelem(1,11) = 0;
+		Hf.xelem(2,11) = 4*Zeta1*Zeta2;
+		Hf.xelem(0,12) = 4*Zeta2*Zeta3;
+		Hf.xelem(1,12) = 0;
+		Hf.xelem(2,12) = 0;
+		Hf.xelem(0,13) = 0;
+		Hf.xelem(1,13) = 4*Zeta2*Zeta3;
+		Hf.xelem(2,13) = 0;
+		Hf.xelem(0,14) = 0;
+		Hf.xelem(1,14) = 0;
+		Hf.xelem(2,14) = 4*Zeta2*Zeta3;
+		Hf.xelem(0,15) = 4*Zeta1*Zeta3;
+		Hf.xelem(1,15) = 0;
+		Hf.xelem(2,15) = 0;
+		Hf.xelem(0,16) = 0;
+		Hf.xelem(1,16) = 4*Zeta1*Zeta3;
+		Hf.xelem(2,16) = 0;
+		Hf.xelem(0,17) = 0;
+		Hf.xelem(1,17) = 0;
+		Hf.xelem(2,17) = 4*Zeta1*Zeta3;
+	}
 
-        static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
-                FEM_ASSERT(rv.rows() == 3);
-                FEM_ASSERT(dHf_dr.rows() == 3);
-                FEM_ASSERT(dHf_dr.columns() == 18);
+	static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+		FEM_ASSERT(rv.rows() == 3);
+		FEM_ASSERT(dHf_dr.rows() == 3);
+		FEM_ASSERT(dHf_dr.columns() == 18);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
 
-                dHf_dr.xelem(0,0) = 4*Zeta1-1;
-                dHf_dr.xelem(1,0) = 0;
-                dHf_dr.xelem(2,0) = 0;
-                dHf_dr.xelem(0,1) = 0;
-                dHf_dr.xelem(1,1) = 4*Zeta1-1;
-                dHf_dr.xelem(2,1) = 0;
-                dHf_dr.xelem(0,2) = 0;
-                dHf_dr.xelem(1,2) = 0;
-                dHf_dr.xelem(2,2) = 4*Zeta1-1;
-                dHf_dr.xelem(0,3) = 0;
-                dHf_dr.xelem(1,3) = 0;
-                dHf_dr.xelem(2,3) = 0;
-                dHf_dr.xelem(0,4) = 0;
-                dHf_dr.xelem(1,4) = 0;
-                dHf_dr.xelem(2,4) = 0;
-                dHf_dr.xelem(0,5) = 0;
-                dHf_dr.xelem(1,5) = 0;
-                dHf_dr.xelem(2,5) = 0;
-                dHf_dr.xelem(0,6) = 1-4*Zeta3;
-                dHf_dr.xelem(1,6) = 0;
-                dHf_dr.xelem(2,6) = 0;
-                dHf_dr.xelem(0,7) = 0;
-                dHf_dr.xelem(1,7) = 1-4*Zeta3;
-                dHf_dr.xelem(2,7) = 0;
-                dHf_dr.xelem(0,8) = 0;
-                dHf_dr.xelem(1,8) = 0;
-                dHf_dr.xelem(2,8) = 1-4*Zeta3;
-                dHf_dr.xelem(0,9) = 4*Zeta2;
-                dHf_dr.xelem(1,9) = 0;
-                dHf_dr.xelem(2,9) = 0;
-                dHf_dr.xelem(0,10) = 0;
-                dHf_dr.xelem(1,10) = 4*Zeta2;
-                dHf_dr.xelem(2,10) = 0;
-                dHf_dr.xelem(0,11) = 0;
-                dHf_dr.xelem(1,11) = 0;
-                dHf_dr.xelem(2,11) = 4*Zeta2;
-                dHf_dr.xelem(0,12) = -4*Zeta2;
-                dHf_dr.xelem(1,12) = 0;
-                dHf_dr.xelem(2,12) = 0;
-                dHf_dr.xelem(0,13) = 0;
-                dHf_dr.xelem(1,13) = -4*Zeta2;
-                dHf_dr.xelem(2,13) = 0;
-                dHf_dr.xelem(0,14) = 0;
-                dHf_dr.xelem(1,14) = 0;
-                dHf_dr.xelem(2,14) = -4*Zeta2;
-                dHf_dr.xelem(0,15) = 4*Zeta3-4*Zeta1;
-                dHf_dr.xelem(1,15) = 0;
-                dHf_dr.xelem(2,15) = 0;
-                dHf_dr.xelem(0,16) = 0;
-                dHf_dr.xelem(1,16) = 4*Zeta3-4*Zeta1;
-                dHf_dr.xelem(2,16) = 0;
-                dHf_dr.xelem(0,17) = 0;
-                dHf_dr.xelem(1,17) = 0;
-                dHf_dr.xelem(2,17) = 4*Zeta3-4*Zeta1;
-        }
+		dHf_dr.xelem(0,0) = 4*Zeta1-1;
+		dHf_dr.xelem(1,0) = 0;
+		dHf_dr.xelem(2,0) = 0;
+		dHf_dr.xelem(0,1) = 0;
+		dHf_dr.xelem(1,1) = 4*Zeta1-1;
+		dHf_dr.xelem(2,1) = 0;
+		dHf_dr.xelem(0,2) = 0;
+		dHf_dr.xelem(1,2) = 0;
+		dHf_dr.xelem(2,2) = 4*Zeta1-1;
+		dHf_dr.xelem(0,3) = 0;
+		dHf_dr.xelem(1,3) = 0;
+		dHf_dr.xelem(2,3) = 0;
+		dHf_dr.xelem(0,4) = 0;
+		dHf_dr.xelem(1,4) = 0;
+		dHf_dr.xelem(2,4) = 0;
+		dHf_dr.xelem(0,5) = 0;
+		dHf_dr.xelem(1,5) = 0;
+		dHf_dr.xelem(2,5) = 0;
+		dHf_dr.xelem(0,6) = 1-4*Zeta3;
+		dHf_dr.xelem(1,6) = 0;
+		dHf_dr.xelem(2,6) = 0;
+		dHf_dr.xelem(0,7) = 0;
+		dHf_dr.xelem(1,7) = 1-4*Zeta3;
+		dHf_dr.xelem(2,7) = 0;
+		dHf_dr.xelem(0,8) = 0;
+		dHf_dr.xelem(1,8) = 0;
+		dHf_dr.xelem(2,8) = 1-4*Zeta3;
+		dHf_dr.xelem(0,9) = 4*Zeta2;
+		dHf_dr.xelem(1,9) = 0;
+		dHf_dr.xelem(2,9) = 0;
+		dHf_dr.xelem(0,10) = 0;
+		dHf_dr.xelem(1,10) = 4*Zeta2;
+		dHf_dr.xelem(2,10) = 0;
+		dHf_dr.xelem(0,11) = 0;
+		dHf_dr.xelem(1,11) = 0;
+		dHf_dr.xelem(2,11) = 4*Zeta2;
+		dHf_dr.xelem(0,12) = -4*Zeta2;
+		dHf_dr.xelem(1,12) = 0;
+		dHf_dr.xelem(2,12) = 0;
+		dHf_dr.xelem(0,13) = 0;
+		dHf_dr.xelem(1,13) = -4*Zeta2;
+		dHf_dr.xelem(2,13) = 0;
+		dHf_dr.xelem(0,14) = 0;
+		dHf_dr.xelem(1,14) = 0;
+		dHf_dr.xelem(2,14) = -4*Zeta2;
+		dHf_dr.xelem(0,15) = 4*Zeta3-4*Zeta1;
+		dHf_dr.xelem(1,15) = 0;
+		dHf_dr.xelem(2,15) = 0;
+		dHf_dr.xelem(0,16) = 0;
+		dHf_dr.xelem(1,16) = 4*Zeta3-4*Zeta1;
+		dHf_dr.xelem(2,16) = 0;
+		dHf_dr.xelem(0,17) = 0;
+		dHf_dr.xelem(1,17) = 0;
+		dHf_dr.xelem(2,17) = 4*Zeta3-4*Zeta1;
+	}
 
-        static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
-                FEM_ASSERT(rv.rows() == 3);
-                FEM_ASSERT(dHf_ds.rows() == 3);
-                FEM_ASSERT(dHf_ds.columns() == 18);
+	static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+		FEM_ASSERT(rv.rows() == 3);
+		FEM_ASSERT(dHf_ds.rows() == 3);
+		FEM_ASSERT(dHf_ds.columns() == 18);
 
-                const double Zeta1 = rv.xelem(0);
-                const double Zeta2 = rv.xelem(1);
-                const double Zeta3 = rv.xelem(2);
+		const double Zeta1 = rv.xelem(0);
+		const double Zeta2 = rv.xelem(1);
+		const double Zeta3 = rv.xelem(2);
 
-                dHf_ds.xelem(0,0) = 0;
-                dHf_ds.xelem(1,0) = 0;
-                dHf_ds.xelem(2,0) = 0;
-                dHf_ds.xelem(0,1) = 0;
-                dHf_ds.xelem(1,1) = 0;
-                dHf_ds.xelem(2,1) = 0;
-                dHf_ds.xelem(0,2) = 0;
-                dHf_ds.xelem(1,2) = 0;
-                dHf_ds.xelem(2,2) = 0;
-                dHf_ds.xelem(0,3) = 4*Zeta2-1;
-                dHf_ds.xelem(1,3) = 0;
-                dHf_ds.xelem(2,3) = 0;
-                dHf_ds.xelem(0,4) = 0;
-                dHf_ds.xelem(1,4) = 4*Zeta2-1;
-                dHf_ds.xelem(2,4) = 0;
-                dHf_ds.xelem(0,5) = 0;
-                dHf_ds.xelem(1,5) = 0;
-                dHf_ds.xelem(2,5) = 4*Zeta2-1;
-                dHf_ds.xelem(0,6) = 1-4*Zeta3;
-                dHf_ds.xelem(1,6) = 0;
-                dHf_ds.xelem(2,6) = 0;
-                dHf_ds.xelem(0,7) = 0;
-                dHf_ds.xelem(1,7) = 1-4*Zeta3;
-                dHf_ds.xelem(2,7) = 0;
-                dHf_ds.xelem(0,8) = 0;
-                dHf_ds.xelem(1,8) = 0;
-                dHf_ds.xelem(2,8) = 1-4*Zeta3;
-                dHf_ds.xelem(0,9) = 4*Zeta1;
-                dHf_ds.xelem(1,9) = 0;
-                dHf_ds.xelem(2,9) = 0;
-                dHf_ds.xelem(0,10) = 0;
-                dHf_ds.xelem(1,10) = 4*Zeta1;
-                dHf_ds.xelem(2,10) = 0;
-                dHf_ds.xelem(0,11) = 0;
-                dHf_ds.xelem(1,11) = 0;
-                dHf_ds.xelem(2,11) = 4*Zeta1;
-                dHf_ds.xelem(0,12) = 4*Zeta3-4*Zeta2;
-                dHf_ds.xelem(1,12) = 0;
-                dHf_ds.xelem(2,12) = 0;
-                dHf_ds.xelem(0,13) = 0;
-                dHf_ds.xelem(1,13) = 4*Zeta3-4*Zeta2;
-                dHf_ds.xelem(2,13) = 0;
-                dHf_ds.xelem(0,14) = 0;
-                dHf_ds.xelem(1,14) = 0;
-                dHf_ds.xelem(2,14) = 4*Zeta3-4*Zeta2;
-                dHf_ds.xelem(0,15) = -4*Zeta1;
-                dHf_ds.xelem(1,15) = 0;
-                dHf_ds.xelem(2,15) = 0;
-                dHf_ds.xelem(0,16) = 0;
-                dHf_ds.xelem(1,16) = -4*Zeta1;
-                dHf_ds.xelem(2,16) = 0;
-                dHf_ds.xelem(0,17) = 0;
-                dHf_ds.xelem(1,17) = 0;
-                dHf_ds.xelem(2,17) = -4*Zeta1;
-        }
+		dHf_ds.xelem(0,0) = 0;
+		dHf_ds.xelem(1,0) = 0;
+		dHf_ds.xelem(2,0) = 0;
+		dHf_ds.xelem(0,1) = 0;
+		dHf_ds.xelem(1,1) = 0;
+		dHf_ds.xelem(2,1) = 0;
+		dHf_ds.xelem(0,2) = 0;
+		dHf_ds.xelem(1,2) = 0;
+		dHf_ds.xelem(2,2) = 0;
+		dHf_ds.xelem(0,3) = 4*Zeta2-1;
+		dHf_ds.xelem(1,3) = 0;
+		dHf_ds.xelem(2,3) = 0;
+		dHf_ds.xelem(0,4) = 0;
+		dHf_ds.xelem(1,4) = 4*Zeta2-1;
+		dHf_ds.xelem(2,4) = 0;
+		dHf_ds.xelem(0,5) = 0;
+		dHf_ds.xelem(1,5) = 0;
+		dHf_ds.xelem(2,5) = 4*Zeta2-1;
+		dHf_ds.xelem(0,6) = 1-4*Zeta3;
+		dHf_ds.xelem(1,6) = 0;
+		dHf_ds.xelem(2,6) = 0;
+		dHf_ds.xelem(0,7) = 0;
+		dHf_ds.xelem(1,7) = 1-4*Zeta3;
+		dHf_ds.xelem(2,7) = 0;
+		dHf_ds.xelem(0,8) = 0;
+		dHf_ds.xelem(1,8) = 0;
+		dHf_ds.xelem(2,8) = 1-4*Zeta3;
+		dHf_ds.xelem(0,9) = 4*Zeta1;
+		dHf_ds.xelem(1,9) = 0;
+		dHf_ds.xelem(2,9) = 0;
+		dHf_ds.xelem(0,10) = 0;
+		dHf_ds.xelem(1,10) = 4*Zeta1;
+		dHf_ds.xelem(2,10) = 0;
+		dHf_ds.xelem(0,11) = 0;
+		dHf_ds.xelem(1,11) = 0;
+		dHf_ds.xelem(2,11) = 4*Zeta1;
+		dHf_ds.xelem(0,12) = 4*Zeta3-4*Zeta2;
+		dHf_ds.xelem(1,12) = 0;
+		dHf_ds.xelem(2,12) = 0;
+		dHf_ds.xelem(0,13) = 0;
+		dHf_ds.xelem(1,13) = 4*Zeta3-4*Zeta2;
+		dHf_ds.xelem(2,13) = 0;
+		dHf_ds.xelem(0,14) = 0;
+		dHf_ds.xelem(1,14) = 0;
+		dHf_ds.xelem(2,14) = 4*Zeta3-4*Zeta2;
+		dHf_ds.xelem(0,15) = -4*Zeta1;
+		dHf_ds.xelem(1,15) = 0;
+		dHf_ds.xelem(2,15) = 0;
+		dHf_ds.xelem(0,16) = 0;
+		dHf_ds.xelem(1,16) = -4*Zeta1;
+		dHf_ds.xelem(2,16) = 0;
+		dHf_ds.xelem(0,17) = 0;
+		dHf_ds.xelem(1,17) = 0;
+		dHf_ds.xelem(2,17) = -4*Zeta1;
+	}
 
-        static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
-                static IntegrationRule oIntegLumped, oIntegConsistent;
-                constexpr double tria_area = 0.5; // Factor for triangular area
+	static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+		static IntegrationRule oIntegLumped, oIntegConsistent;
+		constexpr double tria_area = 0.5; // Factor for triangular area
 
-                switch (eMatType) {
-                case Element::VEC_LOAD_LUMPED: {
-                        if (!oIntegLumped.iGetNumEvalPoints()) {
-                                oIntegLumped.SetNumEvalPoints(6, 3);
+		switch (eMatType) {
+		case Element::VEC_LOAD_LUMPED: {
+			if (!oIntegLumped.iGetNumEvalPoints()) {
+				oIntegLumped.SetNumEvalPoints(6, 3);
 
-                                constexpr double w1 = 1. / 6.;
-                                constexpr double alpha = 1.;
-                                constexpr double beta = 0.;
+				constexpr double w1 = 1. / 6.;
+				constexpr double alpha = 1.;
+				constexpr double beta = 0.;
 
-                                for (octave_idx_type i = 0; i < 3; ++i) {
-                                        oIntegLumped.SetWeight(i, tria_area * w1);
+				for (octave_idx_type i = 0; i < 3; ++i) {
+					oIntegLumped.SetWeight(i, tria_area * w1);
 
-                                        for (octave_idx_type j = 0; j < 3; ++j) {
-                                                oIntegLumped.SetPosition(i, j, i == j ? alpha : beta);
-                                        }
-                                }
+					for (octave_idx_type j = 0; j < 3; ++j) {
+						oIntegLumped.SetPosition(i, j, i == j ? alpha : beta);
+					}
+				}
 
-                                constexpr double w2 = 1. / 6.;
-                                static const double g2[][3] = {{0.5, 0.5, 0.0},
-                                                               {0.0, 0.5, 0.5},
-                                                               {0.5, 0.0, 0.5}};
+				constexpr double w2 = 1. / 6.;
+				static const double g2[][3] = {{0.5, 0.5, 0.0},
+							       {0.0, 0.5, 0.5},
+							       {0.5, 0.0, 0.5}};
 
-                                for (octave_idx_type i = 0; i < 3; ++i) {
-                                        oIntegLumped.SetWeight(i + 3, tria_area * w2); // Factor 0.5 for triangle
+				for (octave_idx_type i = 0; i < 3; ++i) {
+					oIntegLumped.SetWeight(i + 3, tria_area * w2); // Factor 0.5 for triangle
 
-                                        for (octave_idx_type j = 0; j < 3; ++j) {
-                                                oIntegLumped.SetPosition(i + 3, j, g2[i][j]);
-                                        }
-                                }
-                        }
+					for (octave_idx_type j = 0; j < 3; ++j) {
+						oIntegLumped.SetPosition(i + 3, j, g2[i][j]);
+					}
+				}
+			}
 
-                        return oIntegLumped;
-                } break;
-                case Element::VEC_LOAD_CONSISTENT: {
-                        if (!oIntegConsistent.iGetNumEvalPoints()) {
-                                constexpr double g1 = (6. - sqrt(15.)) / 21.;
-                                constexpr double g2 = (6. + sqrt(15.)) / 21.;
-                                constexpr double g3 = 1. / 3.;
-                                constexpr double w1 = (155. - sqrt(15.)) / 1200.;
-                                constexpr double w2 = (155. + sqrt(15.)) / 1200.;
-                                constexpr double w3 = 9. / 40.;
+			return oIntegLumped;
+		} break;
+		case Element::VEC_LOAD_CONSISTENT: {
+			if (!oIntegConsistent.iGetNumEvalPoints()) {
+				constexpr double g1 = (6. - sqrt(15.)) / 21.;
+				constexpr double g2 = (6. + sqrt(15.)) / 21.;
+				constexpr double g3 = 1. / 3.;
+				constexpr double w1 = (155. - sqrt(15.)) / 1200.;
+				constexpr double w2 = (155. + sqrt(15.)) / 1200.;
+				constexpr double w3 = 9. / 40.;
 
-                                oIntegConsistent.SetNumEvalPoints(7, 3);
+				oIntegConsistent.SetNumEvalPoints(7, 3);
 
-                                for (octave_idx_type i = 0; i < 3; ++i) {
-                                        oIntegConsistent.SetWeight(i, tria_area * w1);
+				for (octave_idx_type i = 0; i < 3; ++i) {
+					oIntegConsistent.SetWeight(i, tria_area * w1);
 
-                                        for (octave_idx_type j = 0; j < 3; ++j) {
-                                                oIntegConsistent.SetPosition(i, j, i == j ? 1. - 2. * g1 : g1);
-                                        }
-                                }
+					for (octave_idx_type j = 0; j < 3; ++j) {
+						oIntegConsistent.SetPosition(i, j, i == j ? 1. - 2. * g1 : g1);
+					}
+				}
 
-                                for (octave_idx_type i = 0; i < 3; ++i) {
-                                        oIntegConsistent.SetWeight(i + 3, tria_area * w2);
+				for (octave_idx_type i = 0; i < 3; ++i) {
+					oIntegConsistent.SetWeight(i + 3, tria_area * w2);
 
-                                        for (octave_idx_type j = 0; j < 3; ++j) {
-                                                oIntegConsistent.SetPosition(i + 3, j, i == j ? 1. - 2. * g2 : g2);
-                                        }
-                                }
+					for (octave_idx_type j = 0; j < 3; ++j) {
+						oIntegConsistent.SetPosition(i + 3, j, i == j ? 1. - 2. * g2 : g2);
+					}
+				}
 
-                                oIntegConsistent.SetWeight(6, tria_area * w3);
+				oIntegConsistent.SetWeight(6, tria_area * w3);
 
-                                for (octave_idx_type j = 0; j < 3; ++j) {
-                                        oIntegConsistent.SetPosition(6, j, g3);
-                                }
-                        }
+				for (octave_idx_type j = 0; j < 3; ++j) {
+					oIntegConsistent.SetPosition(6, j, g3);
+				}
+			}
 
-                        return oIntegConsistent;
-                } break;
-                default:
-                        throw std::runtime_error("invalid matrix type");
-                }
-        }
+			return oIntegConsistent;
+		} break;
+		default:
+			throw std::runtime_error("invalid matrix type");
+		}
+	}
 };
 
 class ShapeIso4 {
 public:
-        static constexpr octave_idx_type iGetNumNodes() {
-                return 4;
-        }
+	static constexpr octave_idx_type iGetNumNodes() {
+		return 4;
+	}
 
-        static constexpr octave_idx_type iGetNumDirections() {
-                return 2;
-        }
+	static constexpr octave_idx_type iGetNumDirections() {
+		return 2;
+	}
 
-        static constexpr octave_idx_type iGetNumDofNode() {
-                return 3;
-        }
+	static constexpr octave_idx_type iGetNumDofNode() {
+		return 3;
+	}
 
-        static constexpr octave_idx_type iGetNumEqualityConstr() {
-                return 0;
-        }
+	static constexpr octave_idx_type iGetNumEqualityConstr() {
+		return 0;
+	}
 
-        static constexpr double EqualityConstr(const ColumnVector&) {
-                return 0;
-        }
+	static constexpr double EqualityConstr(const ColumnVector&) {
+		return 0;
+	}
 
-        static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
-                FEM_ASSERT(rmin.rows() == iGetNumDirections());
-                FEM_ASSERT(rmax.rows() == rmin.rows());
+	static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+		FEM_ASSERT(rmin.rows() == iGetNumDirections());
+		FEM_ASSERT(rmax.rows() == rmin.rows());
 
-                for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
-                        rmin.xelem(i) = -1.;
-                }
+		for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+			rmin.xelem(i) = -1.;
+		}
 
-                for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
-                        rmax.xelem(i) = 1.;
-                }
-        }
+		for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+			rmax.xelem(i) = 1.;
+		}
+	}
 
-        static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
-                FEM_ASSERT(rv.rows() == 2);
+	static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+		FEM_ASSERT(rv.rows() == 2);
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
 
-                HA.xelem(0) = ((r+1)*(s+1))/4.0;
-                HA.xelem(1) = ((1-r)*(s+1))/4.0;
-                HA.xelem(2) = ((1-r)*(1-s))/4.0;
-                HA.xelem(3) = ((r+1)*(1-s))/4.0;
-        }
+		HA.xelem(0) = ((r+1)*(s+1))/4.0;
+		HA.xelem(1) = ((1-r)*(s+1))/4.0;
+		HA.xelem(2) = ((1-r)*(1-s))/4.0;
+		HA.xelem(3) = ((r+1)*(1-s))/4.0;
+	}
 
-        static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
-                FEM_ASSERT(rv.rows() == 2);
+	static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+		FEM_ASSERT(rv.rows() == 2);
 
-                const double r = rv.xelem(0);
-                const double s = rv.xelem(1);
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
 
-                Hf.xelem(0,0) = ((r+1)*(s+1))/4.0;
-                Hf.xelem(1,0) = 0;
-                Hf.xelem(2,0) = 0;
-                Hf.xelem(0,1) = 0;
-                Hf.xelem(1,1) = ((r+1)*(s+1))/4.0;
-                Hf.xelem(2,1) = 0;
-                Hf.xelem(0,2) = 0;
-                Hf.xelem(1,2) = 0;
-                Hf.xelem(2,2) = ((r+1)*(s+1))/4.0;
-                Hf.xelem(0,3) = ((1-r)*(s+1))/4.0;
-                Hf.xelem(1,3) = 0;
-                Hf.xelem(2,3) = 0;
-                Hf.xelem(0,4) = 0;
-                Hf.xelem(1,4) = ((1-r)*(s+1))/4.0;
-                Hf.xelem(2,4) = 0;
-                Hf.xelem(0,5) = 0;
-                Hf.xelem(1,5) = 0;
-                Hf.xelem(2,5) = ((1-r)*(s+1))/4.0;
-                Hf.xelem(0,6) = ((1-r)*(1-s))/4.0;
-                Hf.xelem(1,6) = 0;
-                Hf.xelem(2,6) = 0;
-                Hf.xelem(0,7) = 0;
-                Hf.xelem(1,7) = ((1-r)*(1-s))/4.0;
-                Hf.xelem(2,7) = 0;
-                Hf.xelem(0,8) = 0;
-                Hf.xelem(1,8) = 0;
-                Hf.xelem(2,8) = ((1-r)*(1-s))/4.0;
-                Hf.xelem(0,9) = ((r+1)*(1-s))/4.0;
-                Hf.xelem(1,9) = 0;
-                Hf.xelem(2,9) = 0;
-                Hf.xelem(0,10) = 0;
-                Hf.xelem(1,10) = ((r+1)*(1-s))/4.0;
-                Hf.xelem(2,10) = 0;
-                Hf.xelem(0,11) = 0;
-                Hf.xelem(1,11) = 0;
-                Hf.xelem(2,11) = ((r+1)*(1-s))/4.0;
+		Hf.xelem(0,0) = ((r+1)*(s+1))/4.0;
+		Hf.xelem(1,0) = 0;
+		Hf.xelem(2,0) = 0;
+		Hf.xelem(0,1) = 0;
+		Hf.xelem(1,1) = ((r+1)*(s+1))/4.0;
+		Hf.xelem(2,1) = 0;
+		Hf.xelem(0,2) = 0;
+		Hf.xelem(1,2) = 0;
+		Hf.xelem(2,2) = ((r+1)*(s+1))/4.0;
+		Hf.xelem(0,3) = ((1-r)*(s+1))/4.0;
+		Hf.xelem(1,3) = 0;
+		Hf.xelem(2,3) = 0;
+		Hf.xelem(0,4) = 0;
+		Hf.xelem(1,4) = ((1-r)*(s+1))/4.0;
+		Hf.xelem(2,4) = 0;
+		Hf.xelem(0,5) = 0;
+		Hf.xelem(1,5) = 0;
+		Hf.xelem(2,5) = ((1-r)*(s+1))/4.0;
+		Hf.xelem(0,6) = ((1-r)*(1-s))/4.0;
+		Hf.xelem(1,6) = 0;
+		Hf.xelem(2,6) = 0;
+		Hf.xelem(0,7) = 0;
+		Hf.xelem(1,7) = ((1-r)*(1-s))/4.0;
+		Hf.xelem(2,7) = 0;
+		Hf.xelem(0,8) = 0;
+		Hf.xelem(1,8) = 0;
+		Hf.xelem(2,8) = ((1-r)*(1-s))/4.0;
+		Hf.xelem(0,9) = ((r+1)*(1-s))/4.0;
+		Hf.xelem(1,9) = 0;
+		Hf.xelem(2,9) = 0;
+		Hf.xelem(0,10) = 0;
+		Hf.xelem(1,10) = ((r+1)*(1-s))/4.0;
+		Hf.xelem(2,10) = 0;
+		Hf.xelem(0,11) = 0;
+		Hf.xelem(1,11) = 0;
+		Hf.xelem(2,11) = ((r+1)*(1-s))/4.0;
 
-        }
+	}
 
-        static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
-                FEM_ASSERT(rv.rows() == 2);
+	static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+		FEM_ASSERT(rv.rows() == 2);
 
-                // const double r = rv(0);
-                const double s = rv.xelem(1);
+		// const double r = rv(0);
+		const double s = rv.xelem(1);
 
-                dHf_dr.xelem(0,0) = (s+1)/4.0;
-                dHf_dr.xelem(1,0) = 0;
-                dHf_dr.xelem(2,0) = 0;
-                dHf_dr.xelem(0,1) = 0;
-                dHf_dr.xelem(1,1) = (s+1)/4.0;
-                dHf_dr.xelem(2,1) = 0;
-                dHf_dr.xelem(0,2) = 0;
-                dHf_dr.xelem(1,2) = 0;
-                dHf_dr.xelem(2,2) = (s+1)/4.0;
-                dHf_dr.xelem(0,3) = -(s+1)/4.0;
-                dHf_dr.xelem(1,3) = 0;
-                dHf_dr.xelem(2,3) = 0;
-                dHf_dr.xelem(0,4) = 0;
-                dHf_dr.xelem(1,4) = -(s+1)/4.0;
-                dHf_dr.xelem(2,4) = 0;
-                dHf_dr.xelem(0,5) = 0;
-                dHf_dr.xelem(1,5) = 0;
-                dHf_dr.xelem(2,5) = -(s+1)/4.0;
-                dHf_dr.xelem(0,6) = -(1-s)/4.0;
-                dHf_dr.xelem(1,6) = 0;
-                dHf_dr.xelem(2,6) = 0;
-                dHf_dr.xelem(0,7) = 0;
-                dHf_dr.xelem(1,7) = -(1-s)/4.0;
-                dHf_dr.xelem(2,7) = 0;
-                dHf_dr.xelem(0,8) = 0;
-                dHf_dr.xelem(1,8) = 0;
-                dHf_dr.xelem(2,8) = -(1-s)/4.0;
-                dHf_dr.xelem(0,9) = (1-s)/4.0;
-                dHf_dr.xelem(1,9) = 0;
-                dHf_dr.xelem(2,9) = 0;
-                dHf_dr.xelem(0,10) = 0;
-                dHf_dr.xelem(1,10) = (1-s)/4.0;
-                dHf_dr.xelem(2,10) = 0;
-                dHf_dr.xelem(0,11) = 0;
-                dHf_dr.xelem(1,11) = 0;
-                dHf_dr.xelem(2,11) = (1-s)/4.0;
-        }
+		dHf_dr.xelem(0,0) = (s+1)/4.0;
+		dHf_dr.xelem(1,0) = 0;
+		dHf_dr.xelem(2,0) = 0;
+		dHf_dr.xelem(0,1) = 0;
+		dHf_dr.xelem(1,1) = (s+1)/4.0;
+		dHf_dr.xelem(2,1) = 0;
+		dHf_dr.xelem(0,2) = 0;
+		dHf_dr.xelem(1,2) = 0;
+		dHf_dr.xelem(2,2) = (s+1)/4.0;
+		dHf_dr.xelem(0,3) = -(s+1)/4.0;
+		dHf_dr.xelem(1,3) = 0;
+		dHf_dr.xelem(2,3) = 0;
+		dHf_dr.xelem(0,4) = 0;
+		dHf_dr.xelem(1,4) = -(s+1)/4.0;
+		dHf_dr.xelem(2,4) = 0;
+		dHf_dr.xelem(0,5) = 0;
+		dHf_dr.xelem(1,5) = 0;
+		dHf_dr.xelem(2,5) = -(s+1)/4.0;
+		dHf_dr.xelem(0,6) = -(1-s)/4.0;
+		dHf_dr.xelem(1,6) = 0;
+		dHf_dr.xelem(2,6) = 0;
+		dHf_dr.xelem(0,7) = 0;
+		dHf_dr.xelem(1,7) = -(1-s)/4.0;
+		dHf_dr.xelem(2,7) = 0;
+		dHf_dr.xelem(0,8) = 0;
+		dHf_dr.xelem(1,8) = 0;
+		dHf_dr.xelem(2,8) = -(1-s)/4.0;
+		dHf_dr.xelem(0,9) = (1-s)/4.0;
+		dHf_dr.xelem(1,9) = 0;
+		dHf_dr.xelem(2,9) = 0;
+		dHf_dr.xelem(0,10) = 0;
+		dHf_dr.xelem(1,10) = (1-s)/4.0;
+		dHf_dr.xelem(2,10) = 0;
+		dHf_dr.xelem(0,11) = 0;
+		dHf_dr.xelem(1,11) = 0;
+		dHf_dr.xelem(2,11) = (1-s)/4.0;
+	}
 
-        static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
-                FEM_ASSERT(rv.rows() == 2);
+	static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+		FEM_ASSERT(rv.rows() == 2);
 
-                const double r = rv.xelem(0);
-                // const double s = rv(1);
+		const double r = rv.xelem(0);
+		// const double s = rv(1);
 
-                dHf_ds.xelem(0,0) = (r+1)/4.0;
-                dHf_ds.xelem(1,0) = 0;
-                dHf_ds.xelem(2,0) = 0;
-                dHf_ds.xelem(0,1) = 0;
-                dHf_ds.xelem(1,1) = (r+1)/4.0;
-                dHf_ds.xelem(2,1) = 0;
-                dHf_ds.xelem(0,2) = 0;
-                dHf_ds.xelem(1,2) = 0;
-                dHf_ds.xelem(2,2) = (r+1)/4.0;
-                dHf_ds.xelem(0,3) = (1-r)/4.0;
-                dHf_ds.xelem(1,3) = 0;
-                dHf_ds.xelem(2,3) = 0;
-                dHf_ds.xelem(0,4) = 0;
-                dHf_ds.xelem(1,4) = (1-r)/4.0;
-                dHf_ds.xelem(2,4) = 0;
-                dHf_ds.xelem(0,5) = 0;
-                dHf_ds.xelem(1,5) = 0;
-                dHf_ds.xelem(2,5) = (1-r)/4.0;
-                dHf_ds.xelem(0,6) = -(1-r)/4.0;
-                dHf_ds.xelem(1,6) = 0;
-                dHf_ds.xelem(2,6) = 0;
-                dHf_ds.xelem(0,7) = 0;
-                dHf_ds.xelem(1,7) = -(1-r)/4.0;
-                dHf_ds.xelem(2,7) = 0;
-                dHf_ds.xelem(0,8) = 0;
-                dHf_ds.xelem(1,8) = 0;
-                dHf_ds.xelem(2,8) = -(1-r)/4.0;
-                dHf_ds.xelem(0,9) = -(r+1)/4.0;
-                dHf_ds.xelem(1,9) = 0;
-                dHf_ds.xelem(2,9) = 0;
-                dHf_ds.xelem(0,10) = 0;
-                dHf_ds.xelem(1,10) = -(r+1)/4.0;
-                dHf_ds.xelem(2,10) = 0;
-                dHf_ds.xelem(0,11) = 0;
-                dHf_ds.xelem(1,11) = 0;
-                dHf_ds.xelem(2,11) = -(r+1)/4.0;
-        }
+		dHf_ds.xelem(0,0) = (r+1)/4.0;
+		dHf_ds.xelem(1,0) = 0;
+		dHf_ds.xelem(2,0) = 0;
+		dHf_ds.xelem(0,1) = 0;
+		dHf_ds.xelem(1,1) = (r+1)/4.0;
+		dHf_ds.xelem(2,1) = 0;
+		dHf_ds.xelem(0,2) = 0;
+		dHf_ds.xelem(1,2) = 0;
+		dHf_ds.xelem(2,2) = (r+1)/4.0;
+		dHf_ds.xelem(0,3) = (1-r)/4.0;
+		dHf_ds.xelem(1,3) = 0;
+		dHf_ds.xelem(2,3) = 0;
+		dHf_ds.xelem(0,4) = 0;
+		dHf_ds.xelem(1,4) = (1-r)/4.0;
+		dHf_ds.xelem(2,4) = 0;
+		dHf_ds.xelem(0,5) = 0;
+		dHf_ds.xelem(1,5) = 0;
+		dHf_ds.xelem(2,5) = (1-r)/4.0;
+		dHf_ds.xelem(0,6) = -(1-r)/4.0;
+		dHf_ds.xelem(1,6) = 0;
+		dHf_ds.xelem(2,6) = 0;
+		dHf_ds.xelem(0,7) = 0;
+		dHf_ds.xelem(1,7) = -(1-r)/4.0;
+		dHf_ds.xelem(2,7) = 0;
+		dHf_ds.xelem(0,8) = 0;
+		dHf_ds.xelem(1,8) = 0;
+		dHf_ds.xelem(2,8) = -(1-r)/4.0;
+		dHf_ds.xelem(0,9) = -(r+1)/4.0;
+		dHf_ds.xelem(1,9) = 0;
+		dHf_ds.xelem(2,9) = 0;
+		dHf_ds.xelem(0,10) = 0;
+		dHf_ds.xelem(1,10) = -(r+1)/4.0;
+		dHf_ds.xelem(2,10) = 0;
+		dHf_ds.xelem(0,11) = 0;
+		dHf_ds.xelem(1,11) = 0;
+		dHf_ds.xelem(2,11) = -(r+1)/4.0;
+	}
 
-        static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
-                static const octave_idx_type N = 2;
-                static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
-                static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
+	static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+		static const octave_idx_type N = 2;
+		static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
+		static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
 
-                static array<IntegrationRule, 2> rgIntegRule;
+		static array<IntegrationRule, 2> rgIntegRule;
 
-                octave_idx_type iIntegRule;
+		octave_idx_type iIntegRule;
 
-                switch (eMatType) {
-                case Element::VEC_LOAD_LUMPED:
-                        iIntegRule = 1;
-                        break;
-                default:
-                        iIntegRule = 0;
-                }
+		switch (eMatType) {
+		case Element::VEC_LOAD_LUMPED:
+			iIntegRule = 1;
+			break;
+		default:
+			iIntegRule = 0;
+		}
 
-                if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
-                        rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
+		if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+			rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
 
-                        octave_idx_type l = 0;
+			octave_idx_type l = 0;
 
-                        for (octave_idx_type i = 0; i < N; ++i) {
-                                for (octave_idx_type j = 0; j < N; ++j) {
-                                        rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
-                                        rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
-                                        rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j]);
-                                        ++l;
-                                }
-                        }
-                }
+			for (octave_idx_type i = 0; i < N; ++i) {
+				for (octave_idx_type j = 0; j < N; ++j) {
+					rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
+					rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
+					rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j]);
+					++l;
+				}
+			}
+		}
 
-                return rgIntegRule[iIntegRule];
-        }
+		return rgIntegRule[iIntegRule];
+	}
+};
+
+class ShapeQuad8 {
+public:
+	static constexpr octave_idx_type iGetNumNodes() {
+		return 8;
+	}
+
+	static constexpr octave_idx_type iGetNumDirections() {
+		return 2;
+	}
+
+	static constexpr octave_idx_type iGetNumDofNode() {
+		return 3;
+	}
+
+	static constexpr octave_idx_type iGetNumEqualityConstr() {
+		return 0;
+	}
+
+	static constexpr double EqualityConstr(const ColumnVector&) {
+		return 0;
+	}
+
+	static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+		FEM_ASSERT(rmin.rows() == iGetNumDirections());
+		FEM_ASSERT(rmax.rows() == rmin.rows());
+
+		for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+			rmin.xelem(i) = -1.;
+		}
+
+		for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+			rmax.xelem(i) = 1.;
+		}
+	}
+
+	static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+		FEM_ASSERT(rv.rows() == 2);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double r2 = r * r;
+		const double s2 = s * s;
+
+		HA.xelem(0) = ((r+1)*(s+1))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		HA.xelem(1) = ((1-r)*(s+1))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		HA.xelem(2) = ((1-r)*(1-s))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		HA.xelem(3) = ((r+1)*(1-s))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		HA.xelem(4) = ((1-r2)*(s+1))/2.0E+0;
+		HA.xelem(5) = ((1-r)*(1-s2))/2.0E+0;
+		HA.xelem(6) = ((1-r2)*(1-s))/2.0E+0;
+		HA.xelem(7) = ((r+1)*(1-s2))/2.0E+0;
+	}
+
+	static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+		FEM_ASSERT(rv.rows() == 2);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double r2 = r * r;
+		const double s2 = s * s;
+
+		Hf.xelem(0,0) = ((r+1)*(s+1))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		Hf.xelem(1,0) = 0;
+		Hf.xelem(2,0) = 0;
+		Hf.xelem(0,1) = 0;
+		Hf.xelem(1,1) = ((r+1)*(s+1))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		Hf.xelem(2,1) = 0;
+		Hf.xelem(0,2) = 0;
+		Hf.xelem(1,2) = 0;
+		Hf.xelem(2,2) = ((r+1)*(s+1))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		Hf.xelem(0,3) = ((1-r)*(s+1))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		Hf.xelem(1,3) = 0;
+		Hf.xelem(2,3) = 0;
+		Hf.xelem(0,4) = 0;
+		Hf.xelem(1,4) = ((1-r)*(s+1))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		Hf.xelem(2,4) = 0;
+		Hf.xelem(0,5) = 0;
+		Hf.xelem(1,5) = 0;
+		Hf.xelem(2,5) = ((1-r)*(s+1))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+		Hf.xelem(0,6) = ((1-r)*(1-s))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		Hf.xelem(1,6) = 0;
+		Hf.xelem(2,6) = 0;
+		Hf.xelem(0,7) = 0;
+		Hf.xelem(1,7) = ((1-r)*(1-s))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		Hf.xelem(2,7) = 0;
+		Hf.xelem(0,8) = 0;
+		Hf.xelem(1,8) = 0;
+		Hf.xelem(2,8) = ((1-r)*(1-s))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		Hf.xelem(0,9) = ((r+1)*(1-s))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		Hf.xelem(1,9) = 0;
+		Hf.xelem(2,9) = 0;
+		Hf.xelem(0,10) = 0;
+		Hf.xelem(1,10) = ((r+1)*(1-s))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		Hf.xelem(2,10) = 0;
+		Hf.xelem(0,11) = 0;
+		Hf.xelem(1,11) = 0;
+		Hf.xelem(2,11) = ((r+1)*(1-s))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+		Hf.xelem(0,12) = ((1-r2)*(s+1))/2.0E+0;
+		Hf.xelem(1,12) = 0;
+		Hf.xelem(2,12) = 0;
+		Hf.xelem(0,13) = 0;
+		Hf.xelem(1,13) = ((1-r2)*(s+1))/2.0E+0;
+		Hf.xelem(2,13) = 0;
+		Hf.xelem(0,14) = 0;
+		Hf.xelem(1,14) = 0;
+		Hf.xelem(2,14) = ((1-r2)*(s+1))/2.0E+0;
+		Hf.xelem(0,15) = ((1-r)*(1-s2))/2.0E+0;
+		Hf.xelem(1,15) = 0;
+		Hf.xelem(2,15) = 0;
+		Hf.xelem(0,16) = 0;
+		Hf.xelem(1,16) = ((1-r)*(1-s2))/2.0E+0;
+		Hf.xelem(2,16) = 0;
+		Hf.xelem(0,17) = 0;
+		Hf.xelem(1,17) = 0;
+		Hf.xelem(2,17) = ((1-r)*(1-s2))/2.0E+0;
+		Hf.xelem(0,18) = ((1-r2)*(1-s))/2.0E+0;
+		Hf.xelem(1,18) = 0;
+		Hf.xelem(2,18) = 0;
+		Hf.xelem(0,19) = 0;
+		Hf.xelem(1,19) = ((1-r2)*(1-s))/2.0E+0;
+		Hf.xelem(2,19) = 0;
+		Hf.xelem(0,20) = 0;
+		Hf.xelem(1,20) = 0;
+		Hf.xelem(2,20) = ((1-r2)*(1-s))/2.0E+0;
+		Hf.xelem(0,21) = ((r+1)*(1-s2))/2.0E+0;
+		Hf.xelem(1,21) = 0;
+		Hf.xelem(2,21) = 0;
+		Hf.xelem(0,22) = 0;
+		Hf.xelem(1,22) = ((r+1)*(1-s2))/2.0E+0;
+		Hf.xelem(2,22) = 0;
+		Hf.xelem(0,23) = 0;
+		Hf.xelem(1,23) = 0;
+		Hf.xelem(2,23) = ((r+1)*(1-s2))/2.0E+0;
+	}
+
+	static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+		FEM_ASSERT(rv.rows() == 2);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double r2 = r * r;
+		const double s2 = s * s;
+
+		dHf_dr.xelem(0,0) = (s+1)/4.0E+0-((1-s2)/2.0E+0-r*(s+1))/2.0E+0;
+		dHf_dr.xelem(1,0) = 0;
+		dHf_dr.xelem(2,0) = 0;
+		dHf_dr.xelem(0,1) = 0;
+		dHf_dr.xelem(1,1) = (s+1)/4.0E+0-((1-s2)/2.0E+0-r*(s+1))/2.0E+0;
+		dHf_dr.xelem(2,1) = 0;
+		dHf_dr.xelem(0,2) = 0;
+		dHf_dr.xelem(1,2) = 0;
+		dHf_dr.xelem(2,2) = (s+1)/4.0E+0-((1-s2)/2.0E+0-r*(s+1))/2.0E+0;
+		dHf_dr.xelem(0,3) = (-((-(1-s2)/2.0E+0)-r*(s+1))/2.0E+0)-(s+1)/4.0E+0;
+		dHf_dr.xelem(1,3) = 0;
+		dHf_dr.xelem(2,3) = 0;
+		dHf_dr.xelem(0,4) = 0;
+		dHf_dr.xelem(1,4) = (-((-(1-s2)/2.0E+0)-r*(s+1))/2.0E+0)-(s+1)/4.0E+0;
+		dHf_dr.xelem(2,4) = 0;
+		dHf_dr.xelem(0,5) = 0;
+		dHf_dr.xelem(1,5) = 0;
+		dHf_dr.xelem(2,5) = (-((-(1-s2)/2.0E+0)-r*(s+1))/2.0E+0)-(s+1)/4.0E+0;
+		dHf_dr.xelem(0,6) = (-((-(1-s2)/2.0E+0)-r*(1-s))/2.0E+0)-(1-s)/4.0E+0;
+		dHf_dr.xelem(1,6) = 0;
+		dHf_dr.xelem(2,6) = 0;
+		dHf_dr.xelem(0,7) = 0;
+		dHf_dr.xelem(1,7) = (-((-(1-s2)/2.0E+0)-r*(1-s))/2.0E+0)-(1-s)/4.0E+0;
+		dHf_dr.xelem(2,7) = 0;
+		dHf_dr.xelem(0,8) = 0;
+		dHf_dr.xelem(1,8) = 0;
+		dHf_dr.xelem(2,8) = (-((-(1-s2)/2.0E+0)-r*(1-s))/2.0E+0)-(1-s)/4.0E+0;
+		dHf_dr.xelem(0,9) = (1-s)/4.0E+0-((1-s2)/2.0E+0-r*(1-s))/2.0E+0;
+		dHf_dr.xelem(1,9) = 0;
+		dHf_dr.xelem(2,9) = 0;
+		dHf_dr.xelem(0,10) = 0;
+		dHf_dr.xelem(1,10) = (1-s)/4.0E+0-((1-s2)/2.0E+0-r*(1-s))/2.0E+0;
+		dHf_dr.xelem(2,10) = 0;
+		dHf_dr.xelem(0,11) = 0;
+		dHf_dr.xelem(1,11) = 0;
+		dHf_dr.xelem(2,11) = (1-s)/4.0E+0-((1-s2)/2.0E+0-r*(1-s))/2.0E+0;
+		dHf_dr.xelem(0,12) = -r*(s+1);
+		dHf_dr.xelem(1,12) = 0;
+		dHf_dr.xelem(2,12) = 0;
+		dHf_dr.xelem(0,13) = 0;
+		dHf_dr.xelem(1,13) = -r*(s+1);
+		dHf_dr.xelem(2,13) = 0;
+		dHf_dr.xelem(0,14) = 0;
+		dHf_dr.xelem(1,14) = 0;
+		dHf_dr.xelem(2,14) = -r*(s+1);
+		dHf_dr.xelem(0,15) = -(1-s2)/2.0E+0;
+		dHf_dr.xelem(1,15) = 0;
+		dHf_dr.xelem(2,15) = 0;
+		dHf_dr.xelem(0,16) = 0;
+		dHf_dr.xelem(1,16) = -(1-s2)/2.0E+0;
+		dHf_dr.xelem(2,16) = 0;
+		dHf_dr.xelem(0,17) = 0;
+		dHf_dr.xelem(1,17) = 0;
+		dHf_dr.xelem(2,17) = -(1-s2)/2.0E+0;
+		dHf_dr.xelem(0,18) = -r*(1-s);
+		dHf_dr.xelem(1,18) = 0;
+		dHf_dr.xelem(2,18) = 0;
+		dHf_dr.xelem(0,19) = 0;
+		dHf_dr.xelem(1,19) = -r*(1-s);
+		dHf_dr.xelem(2,19) = 0;
+		dHf_dr.xelem(0,20) = 0;
+		dHf_dr.xelem(1,20) = 0;
+		dHf_dr.xelem(2,20) = -r*(1-s);
+		dHf_dr.xelem(0,21) = (1-s2)/2.0E+0;
+		dHf_dr.xelem(1,21) = 0;
+		dHf_dr.xelem(2,21) = 0;
+		dHf_dr.xelem(0,22) = 0;
+		dHf_dr.xelem(1,22) = (1-s2)/2.0E+0;
+		dHf_dr.xelem(2,22) = 0;
+		dHf_dr.xelem(0,23) = 0;
+		dHf_dr.xelem(1,23) = 0;
+		dHf_dr.xelem(2,23) = (1-s2)/2.0E+0;		
+	}
+
+	static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+		FEM_ASSERT(rv.rows() == 2);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double r2 = r * r;
+		const double s2 = s * s;
+		
+		dHf_ds.xelem(0,0) = (r+1)/4.0E+0-((1-r2)/2.0E+0-(r+1)*s)/2.0E+0;
+		dHf_ds.xelem(1,0) = 0;
+		dHf_ds.xelem(2,0) = 0;
+		dHf_ds.xelem(0,1) = 0;
+		dHf_ds.xelem(1,1) = (r+1)/4.0E+0-((1-r2)/2.0E+0-(r+1)*s)/2.0E+0;
+		dHf_ds.xelem(2,1) = 0;
+		dHf_ds.xelem(0,2) = 0;
+		dHf_ds.xelem(1,2) = 0;
+		dHf_ds.xelem(2,2) = (r+1)/4.0E+0-((1-r2)/2.0E+0-(r+1)*s)/2.0E+0;
+		dHf_ds.xelem(0,3) = (1-r)/4.0E+0-((1-r2)/2.0E+0-(1-r)*s)/2.0E+0;
+		dHf_ds.xelem(1,3) = 0;
+		dHf_ds.xelem(2,3) = 0;
+		dHf_ds.xelem(0,4) = 0;
+		dHf_ds.xelem(1,4) = (1-r)/4.0E+0-((1-r2)/2.0E+0-(1-r)*s)/2.0E+0;
+		dHf_ds.xelem(2,4) = 0;
+		dHf_ds.xelem(0,5) = 0;
+		dHf_ds.xelem(1,5) = 0;
+		dHf_ds.xelem(2,5) = (1-r)/4.0E+0-((1-r2)/2.0E+0-(1-r)*s)/2.0E+0;
+		dHf_ds.xelem(0,6) = (-((-(1-r)*s)-(1-r2)/2.0E+0)/2.0E+0)-(1-r)/4.0E+0;
+		dHf_ds.xelem(1,6) = 0;
+		dHf_ds.xelem(2,6) = 0;
+		dHf_ds.xelem(0,7) = 0;
+		dHf_ds.xelem(1,7) = (-((-(1-r)*s)-(1-r2)/2.0E+0)/2.0E+0)-(1-r)/4.0E+0;
+		dHf_ds.xelem(2,7) = 0;
+		dHf_ds.xelem(0,8) = 0;
+		dHf_ds.xelem(1,8) = 0;
+		dHf_ds.xelem(2,8) = (-((-(1-r)*s)-(1-r2)/2.0E+0)/2.0E+0)-(1-r)/4.0E+0;
+		dHf_ds.xelem(0,9) = (-((-(r+1)*s)-(1-r2)/2.0E+0)/2.0E+0)-(r+1)/4.0E+0;
+		dHf_ds.xelem(1,9) = 0;
+		dHf_ds.xelem(2,9) = 0;
+		dHf_ds.xelem(0,10) = 0;
+		dHf_ds.xelem(1,10) = (-((-(r+1)*s)-(1-r2)/2.0E+0)/2.0E+0)-(r+1)/4.0E+0;
+		dHf_ds.xelem(2,10) = 0;
+		dHf_ds.xelem(0,11) = 0;
+		dHf_ds.xelem(1,11) = 0;
+		dHf_ds.xelem(2,11) = (-((-(r+1)*s)-(1-r2)/2.0E+0)/2.0E+0)-(r+1)/4.0E+0;
+		dHf_ds.xelem(0,12) = (1-r2)/2.0E+0;
+		dHf_ds.xelem(1,12) = 0;
+		dHf_ds.xelem(2,12) = 0;
+		dHf_ds.xelem(0,13) = 0;
+		dHf_ds.xelem(1,13) = (1-r2)/2.0E+0;
+		dHf_ds.xelem(2,13) = 0;
+		dHf_ds.xelem(0,14) = 0;
+		dHf_ds.xelem(1,14) = 0;
+		dHf_ds.xelem(2,14) = (1-r2)/2.0E+0;
+		dHf_ds.xelem(0,15) = -(1-r)*s;
+		dHf_ds.xelem(1,15) = 0;
+		dHf_ds.xelem(2,15) = 0;
+		dHf_ds.xelem(0,16) = 0;
+		dHf_ds.xelem(1,16) = -(1-r)*s;
+		dHf_ds.xelem(2,16) = 0;
+		dHf_ds.xelem(0,17) = 0;
+		dHf_ds.xelem(1,17) = 0;
+		dHf_ds.xelem(2,17) = -(1-r)*s;
+		dHf_ds.xelem(0,18) = -(1-r2)/2.0E+0;
+		dHf_ds.xelem(1,18) = 0;
+		dHf_ds.xelem(2,18) = 0;
+		dHf_ds.xelem(0,19) = 0;
+		dHf_ds.xelem(1,19) = -(1-r2)/2.0E+0;
+		dHf_ds.xelem(2,19) = 0;
+		dHf_ds.xelem(0,20) = 0;
+		dHf_ds.xelem(1,20) = 0;
+		dHf_ds.xelem(2,20) = -(1-r2)/2.0E+0;
+		dHf_ds.xelem(0,21) = -(r+1)*s;
+		dHf_ds.xelem(1,21) = 0;
+		dHf_ds.xelem(2,21) = 0;
+		dHf_ds.xelem(0,22) = 0;
+		dHf_ds.xelem(1,22) = -(r+1)*s;
+		dHf_ds.xelem(2,22) = 0;
+		dHf_ds.xelem(0,23) = 0;
+		dHf_ds.xelem(1,23) = 0;
+		dHf_ds.xelem(2,23) = -(r+1)*s;		
+	}
+
+	static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+		static const octave_idx_type N =3;
+		static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
+		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {1., 1., 1.}};		
+
+		static array<IntegrationRule, 2> rgIntegRule;
+
+		octave_idx_type iIntegRule;
+
+		switch (eMatType) {
+		case Element::VEC_LOAD_LUMPED:
+			iIntegRule = 1;
+			break;
+		default:
+			iIntegRule = 0;
+		}
+
+		if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+			rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
+
+			octave_idx_type l = 0;
+
+			for (octave_idx_type i = 0; i < N; ++i) {
+				for (octave_idx_type j = 0; j < N; ++j) {
+					rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
+					rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
+					rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j]);
+					++l;
+				}
+			}
+		}
+
+		return rgIntegRule[iIntegRule];
+	}
 };
 
 class PressureLoad: public Element {
 public:
-        PressureLoad(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-                :Element(id, X, material, nodes), p(p), colidx(colidx) {
+	PressureLoad(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
+		:Element(id, X, material, nodes), p(p), colidx(colidx) {
 
-                FEM_ASSERT(X.rows() == 3);
-                FEM_ASSERT(X.columns() == p.columns());
-                FEM_ASSERT(X.columns() == nodes.numel());
-        }
+		FEM_ASSERT(X.rows() == 3);
+		FEM_ASSERT(X.columns() == p.columns());
+		FEM_ASSERT(X.columns() == nodes.numel());
+	}
 
-        PressureLoad(const PressureLoad& oElem)
-                :Element(oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx)
-        {
-        }
+	PressureLoad(const PressureLoad& oElem)
+		:Element(oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx)
+	{
+	}
 
-        virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
-                switch (eMatType) {
-                case VEC_LOAD_CONSISTENT:
-                case VEC_LOAD_LUMPED:
-                        break;
-                default:
-                        return;
-                }
+	virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+		switch (eMatType) {
+		case VEC_LOAD_CONSISTENT:
+		case VEC_LOAD_LUMPED:
+			break;
+		default:
+			return;
+		}
 
-                const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-                const octave_idx_type iNumNodes = nodes.numel();
-                const octave_idx_type iNumDof = iGetNumDof();
-                const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-                const octave_idx_type iNumLoads = p.rows();
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumNodes = nodes.numel();
+		const octave_idx_type iNumDof = iGetNumDof();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumLoads = p.rows();
 
-                ColumnVector rv(iNumDir);
-                int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+		ColumnVector rv(iNumDir);
+		int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
-                for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
-                        for (octave_idx_type idof = 0; idof < 3; ++idof) {
-                                dofidx(inode * 3 + idof) = dof.GetNodeDofIndex(nodes(inode).value() - 1, idof);
-                        }
-                }
+		for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
+			for (octave_idx_type idof = 0; idof < 3; ++idof) {
+				dofidx(inode * 3 + idof) = dof.GetNodeDofIndex(nodes(inode).value() - 1, idof);
+			}
+		}
 
-                RowVector HA(iNumNodes), HA_p(iNumLoads);
-                ColumnVector n1(3), n2(3), n_detJA(3), HfT_n_dA(iNumDof);
-                Matrix Hf(3, iNumDof), dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), fA(iNumDof, iNumLoads, 0.);
+		RowVector HA(iNumNodes), HA_p(iNumLoads);
+		ColumnVector n1(3), n2(3), n_detJA(3), HfT_n_dA(iNumDof);
+		Matrix Hf(3, iNumDof), dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), fA(iNumDof, iNumLoads, 0.);
 
-                for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
-                        const double alpha = oIntegRule.dGetWeight(i);
+		for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+			const double alpha = oIntegRule.dGetWeight(i);
 
-                        for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                                rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-                        }
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
 
-                        DisplacementInterpMatrix(rv, Hf);
-                        DisplacementInterpMatrixDerR(rv, dHf_dr);
-                        DisplacementInterpMatrixDerS(rv, dHf_ds);
-                        PressureInterpMatrix(rv, HA);
+			DisplacementInterpMatrix(rv, Hf);
+			DisplacementInterpMatrixDerR(rv, dHf_dr);
+			DisplacementInterpMatrixDerS(rv, dHf_ds);
+			PressureInterpMatrix(rv, HA);
 
-                        SurfaceNormalVector(dHf_dr, n1);
-                        SurfaceNormalVector(dHf_ds, n2);
+			SurfaceNormalVector(dHf_dr, n1);
+			SurfaceNormalVector(dHf_ds, n2);
 
-                        n_detJA.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
-                        n_detJA.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
-                        n_detJA.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);
+			n_detJA.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
+			n_detJA.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
+			n_detJA.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);
 
-                        double detJA_2 = 0.;
+			double detJA_2 = 0.;
 
-                        for (octave_idx_type l = 0; l < 3; ++l) {
-                                detJA_2 += n_detJA.xelem(l) * n_detJA.xelem(l);
-                        }
+			for (octave_idx_type l = 0; l < 3; ++l) {
+				detJA_2 += n_detJA.xelem(l) * n_detJA.xelem(l);
+			}
 
-                        for (octave_idx_type l = 0; l < iNumDof; ++l) {
-                                double HfT_nl_detJA = 0.;
+			for (octave_idx_type l = 0; l < iNumDof; ++l) {
+				double HfT_nl_detJA = 0.;
 
-                                for (octave_idx_type m = 0; m < 3; ++m) {
-                                        HfT_nl_detJA -= Hf.xelem(m, l) * n_detJA.xelem(m);
-                                }
+				for (octave_idx_type m = 0; m < 3; ++m) {
+					HfT_nl_detJA -= Hf.xelem(m, l) * n_detJA.xelem(m);
+				}
 
-                                HfT_n_dA.xelem(l) = HfT_nl_detJA * alpha;
-                        }
+				HfT_n_dA.xelem(l) = HfT_nl_detJA * alpha;
+			}
 
-                        for (octave_idx_type l = 0; l < iNumLoads; ++l) {
-                                double HA_pl = 0.;
+			for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+				double HA_pl = 0.;
 
-                                for (octave_idx_type m = 0; m < iNumNodes; ++m) {
-                                        HA_pl += HA.xelem(m) * p.xelem(l, m);
-                                }
+				for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+					HA_pl += HA.xelem(m) * p.xelem(l, m);
+				}
 
-                                HA_p.xelem(l) = HA_pl;
-                        }
+				HA_p.xelem(l) = HA_pl;
+			}
 
-                        for (octave_idx_type l = 0; l < iNumLoads; ++l) {
-                                for (octave_idx_type m = 0; m < iNumDof; ++m) {
-                                        fA.xelem(m, l) += HfT_n_dA.xelem(m) * HA_p.xelem(l);
-                                }
-                        }
-                }
+			for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+				for (octave_idx_type m = 0; m < iNumDof; ++m) {
+					fA.xelem(m, l) += HfT_n_dA.xelem(m) * HA_p.xelem(l);
+				}
+			}
+		}
 
-                for (octave_idx_type j = 0; j < iNumLoads; ++j) {
-                        for (octave_idx_type i = 0; i < iNumDof; ++i) {
-                                mat.Insert(fA.xelem(i, j), dofidx.xelem(i), colidx + j);
-                        }
-                }
-        }
+		for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+			for (octave_idx_type i = 0; i < iNumDof; ++i) {
+				mat.Insert(fA.xelem(i, j), dofidx.xelem(i), colidx + j);
+			}
+		}
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
-                switch (eMatType) {
-                case VEC_LOAD_CONSISTENT:
-                case VEC_LOAD_LUMPED:
-                        return iGetNumDof() * p.rows();
-                default:
-                        return 0;
-                }
-        }
+	virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+		switch (eMatType) {
+		case VEC_LOAD_CONSISTENT:
+		case VEC_LOAD_LUMPED:
+			return iGetNumDof() * p.rows();
+		default:
+			return 0;
+		}
+	}
 
-        octave_idx_type iGetNumDof() const {
-                return nodes.numel() * 3;
-        }
+	octave_idx_type iGetNumDof() const {
+		return nodes.numel() * 3;
+	}
 
 protected:
-        void SurfaceNormalVector(const Matrix& dHf, ColumnVector& n) const {
-                for (octave_idx_type i = 0; i < 3; ++i) {
-                        double ni = 0.;
+	void SurfaceNormalVector(const Matrix& dHf, ColumnVector& n) const {
+		for (octave_idx_type i = 0; i < 3; ++i) {
+			double ni = 0.;
 
-                        for (octave_idx_type j = 0; j < nodes.numel(); ++j) {
-                                for (octave_idx_type k = 0; k < 3; ++k) {
-                                        ni += dHf.xelem(i, j * 3 + k) * X.xelem(k, j);
-                                }
-                        }
+			for (octave_idx_type j = 0; j < nodes.numel(); ++j) {
+				for (octave_idx_type k = 0; k < 3; ++k) {
+					ni += dHf.xelem(i, j * 3 + k) * X.xelem(k, j);
+				}
+			}
 
-                        n.xelem(i) = ni;
-                }
-        }
-        virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const=0;
-        virtual void PressureInterpMatrix(const ColumnVector& r, RowVector& HA) const=0;
-        virtual void DisplacementInterpMatrix(const ColumnVector& r, Matrix& Hf) const=0;
-        virtual void DisplacementInterpMatrixDerR(const ColumnVector& r, Matrix& dHf_dr) const=0;
-        virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;
+			n.xelem(i) = ni;
+		}
+	}
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const=0;
+	virtual void PressureInterpMatrix(const ColumnVector& r, RowVector& HA) const=0;
+	virtual void DisplacementInterpMatrix(const ColumnVector& r, Matrix& Hf) const=0;
+	virtual void DisplacementInterpMatrixDerR(const ColumnVector& r, Matrix& dHf_dr) const=0;
+	virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;
 
 private:
-        const Matrix p;
-        const octave_idx_type colidx;
+	const Matrix p;
+	const octave_idx_type colidx;
 };
 
 template <typename SHAPE_FUNC>
 class PressureLoadImp: public PressureLoad {
 public:
-        PressureLoadImp(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-                :PressureLoad(id, X, material, nodes, p, colidx) {
-                FEM_ASSERT(nodes.numel() == SHAPE_FUNC::iGetNumNodes());
-        }
+	PressureLoadImp(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
+		:PressureLoad(id, X, material, nodes, p, colidx) {
+		FEM_ASSERT(nodes.numel() == SHAPE_FUNC::iGetNumNodes());
+	}
 
 protected:
-        void PressureInterpMatrix(const ColumnVector& rv, RowVector& HA) const {
-                SHAPE_FUNC::ScalarInterpMatrix(rv, HA);
-        }
+	void PressureInterpMatrix(const ColumnVector& rv, RowVector& HA) const {
+		SHAPE_FUNC::ScalarInterpMatrix(rv, HA);
+	}
 
-        void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const {
-                SHAPE_FUNC::VectorInterpMatrix(rv, Hf);
-        }
+	void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const {
+		SHAPE_FUNC::VectorInterpMatrix(rv, Hf);
+	}
 
-        void DisplacementInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) const {
-                SHAPE_FUNC::VectorInterpMatrixDerR(rv, dHf_dr);
-        }
+	void DisplacementInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) const {
+		SHAPE_FUNC::VectorInterpMatrixDerR(rv, dHf_dr);
+	}
 
-        void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const {
-                SHAPE_FUNC::VectorInterpMatrixDerS(rv, dHf_ds);
-        }
+	void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const {
+		SHAPE_FUNC::VectorInterpMatrixDerS(rv, dHf_ds);
+	}
 
-        virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
-                return SHAPE_FUNC::GetIntegrationRule(eMatType);
-        }
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+		return SHAPE_FUNC::GetIntegrationRule(eMatType);
+	}
 };
 
 typedef PressureLoadImp<ShapeIso4> PressureLoadIso4;
+typedef PressureLoadImp<ShapeQuad8> PressureLoadQuad8;
 typedef PressureLoadImp<ShapeTria6> PressureLoadTria6;
 
 class StructForce: public Element {
 public:
-        StructForce(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, octave_idx_type colidx, const Matrix& loads)
-                :Element(id, X, material, nodes),
-                 loads(loads),
-                 colidx(colidx) {
+	StructForce(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, octave_idx_type colidx, const Matrix& loads)
+		:Element(id, X, material, nodes),
+		 loads(loads),
+		 colidx(colidx) {
 
-                FEM_ASSERT(X.rows() == 3);
-                FEM_ASSERT(loads.columns() == 3 || loads.columns() == 6);
-                FEM_ASSERT(loads.rows() == nodes.rows());
-        }
+		FEM_ASSERT(X.rows() == 3);
+		FEM_ASSERT(loads.columns() == 3 || loads.columns() == 6);
+		FEM_ASSERT(loads.rows() == nodes.rows());
+	}
 
-        StructForce(const StructForce& oElem)
-                :Element(oElem.id, oElem.X, oElem.material, oElem.nodes), loads(oElem.loads), colidx(oElem.colidx)
-        {
-        }
+	StructForce(const StructForce& oElem)
+		:Element(oElem.id, oElem.X, oElem.material, oElem.nodes), loads(oElem.loads), colidx(oElem.colidx)
+	{
+	}
 
-        virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
-                switch (eMatType) {
-                case VEC_LOAD_CONSISTENT:
-                case VEC_LOAD_LUMPED:
-                        break;
-                default:
-                        return;
-                }
+	virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+		switch (eMatType) {
+		case VEC_LOAD_CONSISTENT:
+		case VEC_LOAD_LUMPED:
+			break;
+		default:
+			return;
+		}
 
-                for (octave_idx_type j = 0; j < loads.columns(); ++j) {
-                        for (octave_idx_type i = 0; i < loads.rows(); ++i) {
-                                const octave_idx_type inode = nodes.xelem(i).value() - 1;
+		for (octave_idx_type j = 0; j < loads.columns(); ++j) {
+			for (octave_idx_type i = 0; i < loads.rows(); ++i) {
+				const octave_idx_type inode = nodes.xelem(i).value() - 1;
 
-                                mat.Insert(loads.xelem(i, j), dof.GetNodeDofIndex(inode, j), colidx);
-                        }
-                }
-        }
+				mat.Insert(loads.xelem(i, j), dof.GetNodeDofIndex(inode, j), colidx);
+			}
+		}
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
-                switch (eMatType) {
-                case VEC_LOAD_CONSISTENT:
-                case VEC_LOAD_LUMPED:
-                        return loads.rows() * loads.columns();
-                default:
-                        return 0;
-                }
-        }
+	virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+		switch (eMatType) {
+		case VEC_LOAD_CONSISTENT:
+		case VEC_LOAD_LUMPED:
+			return loads.rows() * loads.columns();
+		default:
+			return 0;
+		}
+	}
 
 private:
-        const Matrix loads;
-        const octave_idx_type colidx;
+	const Matrix loads;
+	const octave_idx_type colidx;
 };
 
 class ElementTypes {
 public:
-        enum TypeId {
-                ELEM_ISO8 = 0,
+	enum TypeId {
+		ELEM_ISO8 = 0,
 		ELEM_ISO20,
-                ELEM_TET10,
-                ELEM_RBE3,
-                ELEM_JOINT,
-                ELEM_SFNCON4,
-                ELEM_SFNCON6,
-                ELEM_PRESSURE_ISO4,
-                ELEM_PRESSURE_TRIA6,
-                ELEM_STRUCT_FORCE,
-                ELEM_TYPE_COUNT
-        };
+		ELEM_TET10,
+		ELEM_RBE3,
+		ELEM_JOINT,
+		ELEM_SFNCON4,
+		ELEM_SFNCON6,
+		ELEM_SFNCON8,
+		ELEM_PRESSURE_ISO4,
+		ELEM_PRESSURE_QUAD8,		
+		ELEM_PRESSURE_TRIA6,
+		ELEM_STRUCT_FORCE,
+		ELEM_TYPE_COUNT
+	};
 
-        struct TypeInfo {
-                TypeId type;
-                char name[9];
-                octave_idx_type min_nodes, max_nodes;
-                DofMap::ElementType dof_type;
-        };
+	struct TypeInfo {
+		TypeId type;
+		char name[9];
+		octave_idx_type min_nodes, max_nodes;
+		DofMap::ElementType dof_type;
+	};
 
-        static constexpr octave_idx_type iGetNumTypes() {
-                return ELEM_TYPE_COUNT;
-        }
+	static constexpr octave_idx_type iGetNumTypes() {
+		return ELEM_TYPE_COUNT;
+	}
 
-        static const TypeInfo& GetType(octave_idx_type i) {
-                FEM_ASSERT(i >= 0);
-                FEM_ASSERT(i < iGetNumTypes());
+	static const TypeInfo& GetType(octave_idx_type i) {
+		FEM_ASSERT(i >= 0);
+		FEM_ASSERT(i < iGetNumTypes());
 
-                return rgElemTypes[i];
-        }
+		return rgElemTypes[i];
+	}
 
 private:
-        static const TypeInfo rgElemTypes[ELEM_TYPE_COUNT];
+	static const TypeInfo rgElemTypes[ELEM_TYPE_COUNT];
 };
 
 const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
-        {ElementTypes::ELEM_ISO8,           "iso8",     8,  8, DofMap::ELEM_NODOF},
-        {ElementTypes::ELEM_ISO20,          "iso20",   20, 20, DofMap::ELEM_NODOF},
-        {ElementTypes::ELEM_TET10,          "tet10",   10, 10, DofMap::ELEM_NODOF},
-        {ElementTypes::ELEM_RBE3,           "rbe3",     2, -1, DofMap::ELEM_RBE3},
-        {ElementTypes::ELEM_JOINT,          "joints",   1, -1, DofMap::ELEM_JOINT},
-        {ElementTypes::ELEM_SFNCON4,        "sfncon4",  1, -1, DofMap::ELEM_JOINT},
-        {ElementTypes::ELEM_SFNCON6,        "sfncon6",  1, -1, DofMap::ELEM_JOINT},
-        {ElementTypes::ELEM_PRESSURE_ISO4,  "iso4",     4,  4, DofMap::ELEM_NODOF},
-        {ElementTypes::ELEM_PRESSURE_TRIA6, "tria6",    6,  6, DofMap::ELEM_NODOF},
-        {ElementTypes::ELEM_STRUCT_FORCE,   "force",    1, -1, DofMap::ELEM_NODOF}
+	{ElementTypes::ELEM_ISO8,           "iso8",     8,  8, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_ISO20,          "iso20",   20, 20, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_TET10,          "tet10",   10, 10, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_RBE3,           "rbe3",     2, -1, DofMap::ELEM_RBE3},
+	{ElementTypes::ELEM_JOINT,          "joints",   1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_SFNCON4,        "sfncon4",  1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_SFNCON6,        "sfncon6",  1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_SFNCON8,        "sfncon8",  1, -1, DofMap::ELEM_JOINT},	
+	{ElementTypes::ELEM_PRESSURE_ISO4,  "iso4",     4,  4, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_PRESSURE_QUAD8, "quad8",    8,  8, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_PRESSURE_TRIA6, "tria6",    6,  6, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_STRUCT_FORCE,   "force",    1, -1, DofMap::ELEM_NODOF}
 };
 
 class ElementBlockBase {
 public:
-        explicit ElementBlockBase(ElementTypes::TypeId eltype)
-                :eltype(eltype) {
-        }
+	explicit ElementBlockBase(ElementTypes::TypeId eltype)
+		:eltype(eltype) {
+	}
 
-        virtual ~ElementBlockBase() {
-        }
+	virtual ~ElementBlockBase() {
+	}
 
-        virtual octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const=0;
-        virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::MatrixType eMatType) const=0;
-        virtual void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const=0;
-        virtual double dGetMass() const=0;
-        virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const=0;
+	virtual octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const=0;
+	virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::MatrixType eMatType) const=0;
+	virtual void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const=0;
+	virtual double dGetMass() const=0;
+	virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const=0;
 
-        template <typename ElementType, typename... Args>
-        inline void Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args);
+	template <typename ElementType, typename... Args>
+	inline void Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args);
 
-        ElementTypes::TypeId GetElementType() const { return eltype; }
-        virtual void Extract(octave_idx_type& idx, octave_map& sElem) const=0;
-        virtual octave_idx_type iGetNumElem() const=0;
+	ElementTypes::TypeId GetElementType() const { return eltype; }
+	virtual void Extract(octave_idx_type& idx, octave_map& sElem) const=0;
+	virtual octave_idx_type iGetNumElem() const=0;
 
 private:
-        const ElementTypes::TypeId eltype;
+	const ElementTypes::TypeId eltype;
 };
 
 template <typename ElementType>
 class ElementBlock: public ElementBlockBase {
 public:
-        explicit ElementBlock(ElementTypes::TypeId eltype, octave_idx_type iNumElem = 0)
-                :ElementBlockBase(eltype) {
-                rgElements.reserve(iNumElem);
-        }
+	explicit ElementBlock(ElementTypes::TypeId eltype, octave_idx_type iNumElem = 0)
+		:ElementBlockBase(eltype) {
+		rgElements.reserve(iNumElem);
+	}
 
-        template <typename... Args>
-        ElementBlock(ElementTypes::TypeId eltype, const int32NDArray& elements, const Matrix& nodes, octave_idx_type inumcoord, const int32NDArray& materials, const vector<Material>& rgMaterials, const Args&... args)
-                :ElementBlockBase(eltype) {
-                rgElements.reserve(elements.rows());
+	template <typename... Args>
+	ElementBlock(ElementTypes::TypeId eltype, const int32NDArray& elements, const Matrix& nodes, octave_idx_type inumcoord, const int32NDArray& materials, const vector<Material>& rgMaterials, const Args&... args)
+		:ElementBlockBase(eltype) {
+		rgElements.reserve(elements.rows());
 
-                Matrix X_e(inumcoord, elements.columns());
-                int32NDArray nodes_e(dim_vector(elements.columns(), 1));
+		Matrix X_e(inumcoord, elements.columns());
+		int32NDArray nodes_e(dim_vector(elements.columns(), 1));
 
-                for (octave_idx_type i = 0; i < elements.rows(); ++i) {
-                        X_e.make_unique();
-                        nodes_e.make_unique();
-                        
-                        for (octave_idx_type j = 0; j < elements.columns(); ++j) {
-                                nodes_e.xelem(j) = elements.xelem(i, j);
-                                for (octave_idx_type k = 0; k < X_e.rows(); ++k) {
-                                        X_e.xelem(k, j) = nodes.xelem(nodes_e.xelem(j).value() - 1, k);
-                                }
-                        }
+		for (octave_idx_type i = 0; i < elements.rows(); ++i) {
+			X_e.make_unique();
+			nodes_e.make_unique();
 
-                        const Material* material = nullptr; // Some elements like RBE3 do not need a material
+			for (octave_idx_type j = 0; j < elements.columns(); ++j) {
+				nodes_e.xelem(j) = elements.xelem(i, j);
+				for (octave_idx_type k = 0; k < X_e.rows(); ++k) {
+					X_e.xelem(k, j) = nodes.xelem(nodes_e.xelem(j).value() - 1, k);
+				}
+			}
 
-                        if (materials(i).value() > 0) {
-                                material = &rgMaterials[materials.xelem(i).value() - 1];
-                        }
+			const Material* material = nullptr; // Some elements like RBE3 do not need a material
 
-                        rgElements.emplace_back(i + 1, X_e, material, nodes_e, args...);
-                }
-        }
+			if (materials(i).value() > 0) {
+				material = &rgMaterials[materials.xelem(i).value() - 1];
+			}
 
-        template <typename... Args>
-        void Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args) {
-                rgElements.emplace_back(id, X, material, nodes, args...);
-        }
+			rgElements.emplace_back(i + 1, X_e, material, nodes_e, args...);
+		}
+	}
 
-        octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const {
-                octave_idx_type iWorkSpace = 0;
+	template <typename... Args>
+	void Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args) {
+		rgElements.emplace_back(id, X, material, nodes, args...);
+	}
 
-                for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                        iWorkSpace += i->iGetWorkSpaceSize(eMatType);
-                }
+	octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const {
+		octave_idx_type iWorkSpace = 0;
 
-                return iWorkSpace;
-        }
+		for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
+			iWorkSpace += i->iGetWorkSpaceSize(eMatType);
+		}
 
-        void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::MatrixType eMatType) const {
-                for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                        i->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+		return iWorkSpace;
+	}
 
-                        OCTAVE_QUIT;
-                }
-        }
+	void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::MatrixType eMatType) const {
+		for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
+			i->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
 
-        void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const {
-                for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                        i->PostProcElem(mat, eMatType, U);
+			OCTAVE_QUIT;
+		}
+	}
 
-                        OCTAVE_QUIT;
-                }
-        }
+	void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const {
+		for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
+			i->PostProcElem(mat, eMatType, U);
 
-        double dGetMass() const {
-                double dm = 0.;
+			OCTAVE_QUIT;
+		}
+	}
 
-                for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                        dm += i->dGetMass();
+	double dGetMass() const {
+		double dm = 0.;
 
-                        OCTAVE_QUIT;
-                }
+		for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
+			dm += i->dGetMass();
 
-                return dm;
-        }
+			OCTAVE_QUIT;
+		}
 
-        virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
-                return rgElements.empty() ? false : rgElements.front().bNeedMatrixInfo(eMatType);
-        }
+		return dm;
+	}
 
-        void Reserve(octave_idx_type iNumElem) {
-                rgElements.reserve(iNumElem);
-        }
+	virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
+		return rgElements.empty() ? false : rgElements.front().bNeedMatrixInfo(eMatType);
+	}
 
-        virtual octave_idx_type iGetNumElem() const {
-                return rgElements.size();
-        }
+	void Reserve(octave_idx_type iNumElem) {
+		rgElements.reserve(iNumElem);
+	}
 
-        virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
-                for (const auto& oElem: rgElements) {
-                        FEM_ASSERT(sElem.numel() > idx);
-                        oElem.Extract(idx, sElem);
-                }
-        }
+	virtual octave_idx_type iGetNumElem() const {
+		return rgElements.size();
+	}
+
+	virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
+		for (const auto& oElem: rgElements) {
+			FEM_ASSERT(sElem.numel() > idx);
+			oElem.Extract(idx, sElem);
+		}
+	}
 private:
-        vector<ElementType> rgElements;
+	vector<ElementType> rgElements;
 };
 
 template <typename ElementType, typename... Args>
 void ElementBlockBase::Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args) {
-        typedef ElementBlock<ElementType> ElemBlockType;
+	typedef ElementBlock<ElementType> ElemBlockType;
 
-        FEM_ASSERT(dynamic_cast<ElemBlockType*>(this) == static_cast<ElemBlockType*>(this));
+	FEM_ASSERT(dynamic_cast<ElemBlockType*>(this) == static_cast<ElemBlockType*>(this));
 
-        static_cast<ElemBlockType*>(this)->Insert(id, X, material, nodes, args...);
+	static_cast<ElemBlockType*>(this)->Insert(id, X, material, nodes, args...);
 }
 
 template <typename PressureElemType>
 void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
-        const auto iter_pressure = load_case.seek("pressure");
+	const auto iter_pressure = load_case.seek("pressure");
 
-        if (iter_pressure != load_case.end()) {
-                const Cell cell_pressure = load_case.contents(iter_pressure);
+	if (iter_pressure != load_case.end()) {
+		const Cell cell_pressure = load_case.contents(iter_pressure);
 
-                FEM_ASSERT(cell_pressure.numel() == load_case.numel());
+		FEM_ASSERT(cell_pressure.numel() == load_case.numel());
 
-                std::unique_ptr<ElementBlock<PressureElemType> > pElem(nullptr);
+		std::unique_ptr<ElementBlock<PressureElemType> > pElem(nullptr);
 
-                for (octave_idx_type j = 0; j < 2; ++j) {
-                        octave_idx_type iNumElements = 0;
+		for (octave_idx_type j = 0; j < 2; ++j) {
+			octave_idx_type iNumElements = 0;
 
-                        for (octave_idx_type i = 0; i < cell_pressure.numel(); ++i) {
-                                if (cell_pressure(i).isstruct()) {
-                                        if (!(cell_pressure(i).numel() == 1)) {
-                                                throw std::runtime_error("pressure must be a scalar struct");
-                                        }
+			for (octave_idx_type i = 0; i < cell_pressure.numel(); ++i) {
+				if (cell_pressure(i).isstruct()) {
+					if (!(cell_pressure(i).numel() == 1)) {
+						throw std::runtime_error("pressure must be a scalar struct");
+					}
 
-                                        const octave_scalar_map pressure = cell_pressure.xelem(i).scalar_map_value();
+					const octave_scalar_map pressure = cell_pressure.xelem(i).scalar_map_value();
 
-                                        const auto iter_elem_type = pressure.seek(pszElemName);
+					const auto iter_elem_type = pressure.seek(pszElemName);
 
-                                        if (iter_elem_type == pressure.end()) {
-                                                continue;
-                                        }
+					if (iter_elem_type == pressure.end()) {
+						continue;
+					}
 
-                                        const octave_value ov_elem_type = pressure.contents(iter_elem_type);
+					const octave_value ov_elem_type = pressure.contents(iter_elem_type);
 
-                                        if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-                                                throw std::runtime_error("invalid entry in load_case.pressure");
-                                        }
+					if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+						throw std::runtime_error("invalid entry in load_case.pressure");
+					}
 
-                                        const octave_scalar_map elem_type = ov_elem_type.scalar_map_value();
+					const octave_scalar_map elem_type = ov_elem_type.scalar_map_value();
 
-                                        const auto iter_elements = elem_type.seek("elements");
+					const auto iter_elements = elem_type.seek("elements");
 
-                                        if (iter_elements == elem_type.end()) {
-                                                throw std::runtime_error("field \"elements\" not found in struct pressure");
-                                        }
+					if (iter_elements == elem_type.end()) {
+						throw std::runtime_error("field \"elements\" not found in struct pressure");
+					}
 
-                                        const auto iter_p = elem_type.seek("p");
+					const auto iter_p = elem_type.seek("p");
 
-                                        if (iter_p == elem_type.end()) {
-                                                throw std::runtime_error("field \"p\" not found in struct pressure");
-                                        }
+					if (iter_p == elem_type.end()) {
+						throw std::runtime_error("field \"p\" not found in struct pressure");
+					}
 
-                                        const octave_value ov_elements = elem_type.contents(iter_elements);
+					const octave_value ov_elements = elem_type.contents(iter_elements);
 
-                                        if (!(ov_elements.is_matrix_type() && ov_elements.OV_ISINTEGER())) {
-                                                throw std::runtime_error("pressure.elements must be an integer array");
-                                        }
+					if (!(ov_elements.is_matrix_type() && ov_elements.OV_ISINTEGER())) {
+						throw std::runtime_error("pressure.elements must be an integer array");
+					}
 
-                                        const int32NDArray elements = ov_elements.int32_array_value();
+					const int32NDArray elements = ov_elements.int32_array_value();
 
-                                        if (elements.columns() != iNumNodesElem) {
-                                                throw std::runtime_error("pressure.elements number of columns does not match");
-                                        }
+					if (elements.columns() != iNumNodesElem) {
+						throw std::runtime_error("pressure.elements number of columns does not match");
+					}
 
-                                        const octave_value ov_p = elem_type.contents(iter_p);
+					const octave_value ov_p = elem_type.contents(iter_p);
 
-                                        if (!(ov_p.is_matrix_type() && ov_p.OV_ISREAL())) {
-                                                throw std::runtime_error("pressure.p must be a real matrix");
-                                        }
+					if (!(ov_p.is_matrix_type() && ov_p.OV_ISREAL())) {
+						throw std::runtime_error("pressure.p must be a real matrix");
+					}
 
-                                        const Matrix p = ov_p.matrix_value();
+					const Matrix p = ov_p.matrix_value();
 
-                                        if (p.columns() != elements.columns() || p.rows() != elements.rows()) {
-                                                throw std::runtime_error("pressure.p must have the same shape like pressure.elements");
-                                        }
+					if (p.columns() != elements.columns() || p.rows() != elements.rows()) {
+						throw std::runtime_error("pressure.p must have the same shape like pressure.elements");
+					}
 
-                                        switch (j) {
-                                        case 0:
-                                                iNumElements += elements.rows();
-                                                break;
+					switch (j) {
+					case 0:
+						iNumElements += elements.rows();
+						break;
 
-                                        case 1: {
-                                                Matrix X(3, iNumNodesElem);
+					case 1: {
+						Matrix X(3, iNumNodesElem);
 
-                                                for (octave_idx_type k = 0; k < elements.rows(); ++k) {
-                                                        X.make_unique();
-                                                        
-                                                        for (octave_idx_type l = 0; l < X.columns(); ++l) {
-                                                                for (octave_idx_type m = 0; m < X.rows(); ++m) {
-                                                                        octave_idx_type inode = elements.xelem(k, l).value() - 1;
+						for (octave_idx_type k = 0; k < elements.rows(); ++k) {
+							X.make_unique();
 
-                                                                        if (inode < 0 || inode >= nodes.rows()) {
-                                                                                throw std::runtime_error("node index out of range in pressure.elements");
-                                                                        }
+							for (octave_idx_type l = 0; l < X.columns(); ++l) {
+								for (octave_idx_type m = 0; m < X.rows(); ++m) {
+									octave_idx_type inode = elements.xelem(k, l).value() - 1;
 
-                                                                        X.xelem(m, l) = nodes.xelem(inode, m);
-                                                                }
-                                                        }
+									if (inode < 0 || inode >= nodes.rows()) {
+										throw std::runtime_error("node index out of range in pressure.elements");
+									}
 
-                                                        pElem->Insert(++iNumElements,
-                                                                      X,
-                                                                      nullptr,
-                                                                      elements.index(idx_vector::make_range(k, 1, 1),
-                                                                                     idx_vector::make_range(0, 1, elements.columns())),
-                                                                      p.row(k),
-                                                                      i + 1);
-                                                }
-                                        } break;
+									X.xelem(m, l) = nodes.xelem(inode, m);
+								}
+							}
 
-                                        default:
-                                                FEM_ASSERT(false);
-                                        }
-                                }
-                        }
+							pElem->Insert(++iNumElements,
+								      X,
+								      nullptr,
+								      elements.index(idx_vector::make_range(k, 1, 1),
+										     idx_vector::make_range(0, 1, elements.columns())),
+								      p.row(k),
+								      i + 1);
+						}
+					} break;
 
-                        if (iNumElements) {
-                                if (j == 0) {
-                                        pElem.reset(new ElementBlock<PressureElemType>(eltype));
-                                        pElem->Reserve(iNumElements);
-                                }
-                        } else {
-                                break;
-                        }
-                }
+					default:
+						FEM_ASSERT(false);
+					}
+				}
+			}
 
-                if (pElem) {
-                        rgElemBlocks.emplace_back(std::move(pElem));
-                }
-        }
+			if (iNumElements) {
+				if (j == 0) {
+					pElem.reset(new ElementBlock<PressureElemType>(eltype));
+					pElem->Reserve(iNumElements);
+				}
+			} else {
+				break;
+			}
+		}
+
+		if (pElem) {
+			rgElemBlocks.emplace_back(std::move(pElem));
+		}
+	}
 }
 
 namespace shape_func_util {
-        template <typename T>
-        struct SelectElemPerSlaveNode {
-        };
+	template <typename T>
+	struct SelectElemPerSlaveNode {
+	};
 
-        template <>
-        struct SelectElemPerSlaveNode<ShapeIso4> {
-                static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
-        };
+	template <>
+	struct SelectElemPerSlaveNode<ShapeIso4> {
+		static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
+	};
 
-        template <>
-        struct SelectElemPerSlaveNode<ShapeTria6> {
-                static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
-        };
+     	template <>
+	struct SelectElemPerSlaveNode<ShapeQuad8> {
+	     static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
+	};
+
+	template <>
+	struct SelectElemPerSlaveNode<ShapeTria6> {
+		static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
+	};
 };
 
 class SurfToNodeConstrBase {
 public:
-        enum ConstraintType {
-                CT_FIXED = 0,
-                CT_SLIDING
-        };
+	enum ConstraintType {
+		CT_FIXED = 0,
+		CT_SLIDING
+	};
 
 #if HAVE_NLOPT == 1
-        enum ConstraintFlags: unsigned {
-                CF_DEFAULT = 0x0u,
-                CF_IGNORE_NODES_OUT_OF_RANGE = 0x1u,
-                CF_ELEM_DOF_PRE_ALLOCATED = 0x2u
-        };
+	enum ConstraintFlags: unsigned {
+		CF_DEFAULT = 0x0u,
+		CF_IGNORE_NODES_OUT_OF_RANGE = 0x1u,
+		CF_ELEM_DOF_PRE_ALLOCATED = 0x2u
+	};
 
-        typedef std::unique_ptr<ElementBlock<ElemJoint>> ElemBlockPtr;
+	typedef std::unique_ptr<ElementBlock<ElemJoint>> ElemBlockPtr;
 
-        static ConstraintType GetConstraintType(int constr) {
-                switch (constr) {
-                case CT_FIXED:
-                case CT_SLIDING:
-                        return static_cast<ConstraintType>(constr);
-                default:
-                        throw std::runtime_error("invalid value for elements.sfncon{4|6}.constraint");
-                }
-        }
+	static ConstraintType GetConstraintType(int constr) {
+		switch (constr) {
+		case CT_FIXED:
+		case CT_SLIDING:
+			return static_cast<ConstraintType>(constr);
+		default:
+			throw std::runtime_error("invalid value for elements.sfncon{4|6}.constraint");
+		}
+	}
 
-        static ConstraintType GetConstraintType(const Cell& ov, octave_idx_type j) {
-                if (!ov.numel()) {
-                        return CT_FIXED;
-                }
+	static ConstraintType GetConstraintType(const Cell& ov, octave_idx_type j) {
+		if (!ov.numel()) {
+			return CT_FIXED;
+		}
 
-                const int constr = ov.xelem(j).int_value();
+		const int constr = ov.xelem(j).int_value();
 
-                if (error_state) {
-                        throw std::runtime_error("elements.sfncon{4|6}.constraint must be a scalar value");
-                }
+		if (error_state) {
+			throw std::runtime_error("elements.sfncon{4|6}.constraint must be a scalar value");
+		}
 
-                return GetConstraintType(constr);
-        }
+		return GetConstraintType(constr);
+	}
 
-        static octave_idx_type iGetNumDof(ConstraintType eType) {
-                return eType == CT_FIXED ? 3 : 1;
-        }
+	static octave_idx_type iGetNumDof(ConstraintType eType) {
+		return eType == CT_FIXED ? 3 : 1;
+	}
 
-        static octave_idx_type iGetNumDof(const Cell& ov, octave_idx_type j) {
-                return iGetNumDof(GetConstraintType(ov, j));
-        }
+	static octave_idx_type iGetNumDof(const Cell& ov, octave_idx_type j) {
+		return iGetNumDof(GetConstraintType(ov, j));
+	}
 
-        static void BuildJoints(const Matrix& nodes,
-                                const octave_scalar_map& elements,
-                                const array<int32NDArray, DofMap::ELEM_TYPE_COUNT>& edof,
-                                array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
-                                const ElementTypes::TypeInfo& oElemType,
-                                const unsigned uConstraintFlags,
-                                vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks);
+	static void BuildJoints(const Matrix& nodes,
+				const octave_scalar_map& elements,
+				const array<int32NDArray, DofMap::ELEM_TYPE_COUNT>& edof,
+				array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
+				const ElementTypes::TypeInfo& oElemType,
+				const unsigned uConstraintFlags,
+				vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks);
 #else
-        static const char szErrCompileWithNlopt[90];
+	static const char szErrCompileWithNlopt[90];
 #endif
 };
 
@@ -4436,642 +4781,654 @@ const char SurfToNodeConstrBase::szErrCompileWithNlopt[] = "__mboct_fem_pkg__ mu
 template <typename SHAPE_FUNC>
 class SurfToNodeConstr: public SurfToNodeConstrBase {
 public:
-        static ElemBlockPtr
-        BuildJoints(octave_idx_type& id,
-                    const Matrix& X,
-                    const int32NDArray& nidxmaster,
-                    const int32NDArray& nidxslave,
-                    const ColumnVector& maxdist,
-                    const ConstraintType eType,
-                    const unsigned uConstraintFlags) {
-                ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(ElementTypes::ELEM_JOINT, nidxslave.numel()));
+	static ElemBlockPtr
+	BuildJoints(octave_idx_type& id,
+		    const Matrix& X,
+		    const int32NDArray& nidxmaster,
+		    const int32NDArray& nidxslave,
+		    const ColumnVector& maxdist,
+		    const ConstraintType eType,
+		    const unsigned uConstraintFlags) {
+		ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(ElementTypes::ELEM_JOINT, nidxslave.numel()));
 
-                FEM_ASSERT(X.columns() >= iNumDofNode);
-                FEM_ASSERT(X.columns() == 6);
-                FEM_ASSERT(nidxmaster.columns() == iNumNodesElem);
-                FEM_ASSERT(nidxslave.rows() == maxdist.rows());
+		FEM_ASSERT(X.columns() >= iNumDofNode);
+		FEM_ASSERT(X.columns() == 6);
+		FEM_ASSERT(nidxmaster.columns() == iNumNodesElem);
+		FEM_ASSERT(nidxslave.rows() == maxdist.rows());
 
-                ColumnVector Xs(iNumDofNode);
+		ColumnVector Xs(iNumDofNode);
 
-                vector<ElemIndexVector> eidxmaster(nidxslave.numel());
+		vector<ElemIndexVector> eidxmaster(nidxslave.numel());
 
-                for (octave_idx_type k = 0; k < nidxslave.numel(); ++k) {
-                        for (octave_idx_type l = 0; l < Xs.rows(); ++l) {
-                                Xs.xelem(l) = X.xelem(nidxslave.xelem(k).value() - 1, l);
-                        }
+		for (octave_idx_type k = 0; k < nidxslave.numel(); ++k) {
+			for (octave_idx_type l = 0; l < Xs.rows(); ++l) {
+				Xs.xelem(l) = X.xelem(nidxslave.xelem(k).value() - 1, l);
+			}
 
-                        for (octave_idx_type i = 0; i < nidxmaster.rows(); ++i) {
-                                double dXmin = std::numeric_limits<double>::max();
+			for (octave_idx_type i = 0; i < nidxmaster.rows(); ++i) {
+				double dXmin = std::numeric_limits<double>::max();
 
-                                for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                                        double dX = 0;
+				for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+					double dX = 0;
 
-                                        for (octave_idx_type l = 0; l < Xs.rows(); ++l) {
-                                                dX += std::pow(X.xelem(nidxmaster.xelem(i, j).value() - 1, l) - Xs.xelem(l), 2);
-                                        }
+					for (octave_idx_type l = 0; l < Xs.rows(); ++l) {
+						dX += std::pow(X.xelem(nidxmaster.xelem(i, j).value() - 1, l) - Xs.xelem(l), 2);
+					}
 
-                                        dXmin = std::min(dX, dXmin);
-                                }
+					dXmin = std::min(dX, dXmin);
+				}
 
-                                eidxmaster[k].insert(ElemIndexRecord(dXmin, i));
-                        }
+				eidxmaster[k].insert(ElemIndexRecord(dXmin, i));
+			}
 
-                        OCTAVE_QUIT;
-                }
+			OCTAVE_QUIT;
+		}
 
-                ColumnVector Xm(iNumDofNode * iNumNodesElem);
-                Matrix Xe(6, nidxmaster.columns() + 1);
-                ColumnVector rv(iNumDir), rvopt(iNumDir, 0.);
-                ColumnVector Xi(iNumDofNode), Xiopt(iNumDofNode, 0);
-                Matrix Hf(iNumDofNode, iNumDofNode * iNumNodesElem);
-                Matrix dHf_dr(iNumDofNode, iNumDofNode * iNumNodesElem);
-                Matrix dHf_ds(iNumDofNode, iNumDofNode * iNumNodesElem);
-                ColumnVector n1(3), n2(3);
-                RowVector n(3);
+		ColumnVector Xm(iNumDofNode * iNumNodesElem);
+		Matrix Xe(6, nidxmaster.columns() + 1);
+		ColumnVector rv(iNumDir), rvopt(iNumDir, 0.);
+		ColumnVector Xi(iNumDofNode), Xiopt(iNumDofNode, 0);
+		Matrix Hf(iNumDofNode, iNumDofNode * iNumNodesElem);
+		Matrix dHf_dr(iNumDofNode, iNumDofNode * iNumNodesElem);
+		Matrix dHf_ds(iNumDofNode, iNumDofNode * iNumNodesElem);
+		ColumnVector n1(3), n2(3);
+		RowVector n(3);
 
-                Matrix C(iNumDofNode, 6 * (nidxmaster.columns() + 1));
-                Matrix U(C.rows(), 0);
-                RowVector nC(C.columns());
-                Matrix nU(1, 0);
-                int32NDArray enodes(dim_vector(nidxmaster.columns() + 1, 1));
+		Matrix C(iNumDofNode, 6 * (nidxmaster.columns() + 1));
+		Matrix U(C.rows(), 0);
+		RowVector nC(C.columns());
+		Matrix nU(1, 0);
+		int32NDArray enodes(dim_vector(nidxmaster.columns() + 1, 1));
 
-                for (size_t i = 0; i < eidxmaster.size(); ++i) {
-                        for (octave_idx_type j = 0; j < Xs.rows(); ++j) {
-                                Xs.xelem(j) = X.xelem(nidxslave.xelem(i).value() - 1, j);
-                        }
+		for (size_t i = 0; i < eidxmaster.size(); ++i) {
+			for (octave_idx_type j = 0; j < Xs.rows(); ++j) {
+				Xs.xelem(j) = X.xelem(nidxslave.xelem(i).value() - 1, j);
+			}
 
-                        double fopt = std::numeric_limits<double>::max();
-                        nlopt_result rcopt = NLOPT_FAILURE;
-                        octave_idx_type lopt = -1;
-                        rvopt.fill(0.);
+			double fopt = std::numeric_limits<double>::max();
+			nlopt_result rcopt = NLOPT_FAILURE;
+			octave_idx_type lopt = -1;
+			rvopt.fill(0.);
 
-                        for (octave_idx_type l = 0; l < eidxmaster[i].size(); ++l) {
-                                for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                                        for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
-                                                Xm.xelem(j * iNumDofNode + k) = X.xelem(nidxmaster.xelem(eidxmaster[i][l].eidx, j).value() - 1, k);
-                                        }
-                                }
+			for (octave_idx_type l = 0; l < eidxmaster[i].size(); ++l) {
+				for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+					for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
+						Xm.xelem(j * iNumDofNode + k) = X.xelem(nidxmaster.xelem(eidxmaster[i][l].eidx, j).value() - 1, k);
+					}
+				}
 
-                                rv.fill(0.);
+				rv.fill(0.);
 
-                                double f = std::numeric_limits<double>::max();
+				double f = std::numeric_limits<double>::max();
 
-                                nlopt_result rc = Solve(Xm, Xs, Xi, rv, f);
+				nlopt_result rc = Solve(Xm, Xs, Xi, rv, f);
 
-                                if (rc > 0 && f < fopt) {
-                                        rcopt = rc;
-                                        rvopt = rv;
-                                        fopt = f;
-                                        lopt = l;
-                                        Xiopt = Xi;
-                                }
-                        }
+				if (rc > 0 && f < fopt) {
+					rcopt = rc;
+					rvopt = rv;
+					fopt = f;
+					lopt = l;
+					Xiopt = Xi;
+				}
+			}
 
-                        if (rcopt < 0 || fopt > maxdist(i) || lopt < 0) {
-                                if (uConstraintFlags & CF_IGNORE_NODES_OUT_OF_RANGE) {
-                                        continue;
-                                }
+			if (rcopt < 0 || fopt > maxdist(i) || lopt < 0) {
+				if (uConstraintFlags & CF_IGNORE_NODES_OUT_OF_RANGE) {
+					continue;
+				}
 
-                                std::ostringstream os;
+				std::ostringstream os;
 
-                                os << "nlopt failed to project slave node #" << i + 1 << " (" << nidxslave(i).value()
-                                   << ") to element #";
+				os << "nlopt failed to project slave node #" << i + 1 << " (" << nidxslave(i).value()
+				   << ") to element #";
 
-                                octave_idx_type eidx = -1;
+				octave_idx_type eidx = -1;
 
-                                if (lopt >= 0) {
-                                        eidx = eidxmaster[i][lopt].eidx;
+				if (lopt >= 0) {
+					eidx = eidxmaster[i][lopt].eidx;
 
-                                        os << eidx + 1 << " (";
+					os << eidx + 1 << " (";
 
-                                        for (octave_idx_type k = 0; k < iNumNodesElem; ++k) {
-                                                os << nidxmaster.xelem(eidx, k).value() << ' ';
-                                        }
+					for (octave_idx_type k = 0; k < iNumNodesElem; ++k) {
+						os << nidxmaster.xelem(eidx, k).value() << ' ';
+					}
 
-                                        os << ')';
-                                } else {
-                                        os << '?';
-                                }
+					os << ')';
+				} else {
+					os << '?';
+				}
 
-                                os << std::endl;
-                                os << "status=" << rcopt
-                                   << " distance=" << fopt
-                                   << " maximum distance= " << maxdist(i)
-                                   << " position=" << rvopt.transpose()
-                                   << std::endl;
+				os << std::endl;
+				os << "status=" << rcopt
+				   << " distance=" << fopt
+				   << " maximum distance= " << maxdist(i)
+				   << " position=" << rvopt.transpose()
+				   << std::endl;
 
-                                os << "Xs=";
+				os << "Xs=";
 
-                                for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
-                                        os << X.xelem(nidxslave.xelem(i).value() - 1, k) << ' ';
-                                }
+				for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
+					os << X.xelem(nidxslave.xelem(i).value() - 1, k) << ' ';
+				}
 
-                                os << std::endl;
+				os << std::endl;
 
-                                os << "Xi=" << Xiopt.transpose() << std::endl;
-                                os << "Xm=" << std::endl;
+				os << "Xi=" << Xiopt.transpose() << std::endl;
+				os << "Xm=" << std::endl;
 
-                                if (eidx >= 0) {
-                                        for (octave_idx_type k = 0; k < iNumNodesElem; ++k) {
-                                                for (octave_idx_type j = 0; j < iNumDofNode; ++j) {
-                                                        os << X.xelem(nidxmaster.xelem(eidx, k).value() - 1, j) << " ";
-                                                }
-                                                os << std::endl;
-                                        }
-                                } else {
-                                        os << '?';
-                                }
+				if (eidx >= 0) {
+					for (octave_idx_type k = 0; k < iNumNodesElem; ++k) {
+						for (octave_idx_type j = 0; j < iNumDofNode; ++j) {
+							os << X.xelem(nidxmaster.xelem(eidx, k).value() - 1, j) << " ";
+						}
+						os << std::endl;
+					}
+				} else {
+					os << '?';
+				}
 
-                                os << std::ends;
+				os << std::ends;
 
-                                throw std::runtime_error(os.str());
-                        }
+				throw std::runtime_error(os.str());
+			}
 
-                        FEM_TRACE("nlopt: i=" << i << " l=" << lopt << " rc=" << rcopt << " f=" << fopt << " maxdist=" << maxdist(i) << std::endl);
+			FEM_TRACE("nlopt: i=" << i << " l=" << lopt << " rc=" << rcopt << " f=" << fopt << " maxdist=" << maxdist(i) << std::endl);
 
-                        SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
+			SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
 
-                        C.make_unique();
-                        C.fill(0.);
+			C.make_unique();
+			C.fill(0.);
 
-                        for (octave_idx_type j = 0; j < 6; ++j) {
-                                for (octave_idx_type k = 0; k < C.rows(); ++k) {
-                                        C.xelem(k, j) = (k == j);
-                                }
-                        }
+			for (octave_idx_type j = 0; j < 6; ++j) {
+				for (octave_idx_type k = 0; k < C.rows(); ++k) {
+					C.xelem(k, j) = (k == j);
+				}
+			}
 
-                        for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                                for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
-                                        for (octave_idx_type l = 0; l < C.rows(); ++l) {
-                                                C.xelem(l, (j + 1) * 6 + k) = -Hf.xelem(l, j * iNumDofNode + k);
-                                        }
-                                }
-                        }
+			for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+				for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
+					for (octave_idx_type l = 0; l < C.rows(); ++l) {
+						C.xelem(l, (j + 1) * 6 + k) = -Hf.xelem(l, j * iNumDofNode + k);
+					}
+				}
+			}
 
-                        enodes.make_unique();
-                        enodes.xelem(0) = nidxslave.xelem(i);
+			enodes.make_unique();
+			enodes.xelem(0) = nidxslave.xelem(i);
 
-                        for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                                enodes.xelem(j + 1) = nidxmaster.xelem(eidxmaster[i][lopt].eidx, j).value();
-                        }
+			for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+				enodes.xelem(j + 1) = nidxmaster.xelem(eidxmaster[i][lopt].eidx, j).value();
+			}
 
-                        for (octave_idx_type j = 0; j < X.columns(); ++j) {
-                                Xe.xelem(j, 0) = X.xelem(nidxslave.xelem(i).value() - 1, j);
-                        }
+			for (octave_idx_type j = 0; j < X.columns(); ++j) {
+				Xe.xelem(j, 0) = X.xelem(nidxslave.xelem(i).value() - 1, j);
+			}
 
-                        for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                                for (octave_idx_type k = 0; k < X.columns(); ++k) {
-                                        Xe.xelem(k, j + 1) = X.xelem(nidxmaster.xelem(eidxmaster[i][lopt].eidx, j).value() - 1, k);
-                                }
-                        }
+			for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+				for (octave_idx_type k = 0; k < X.columns(); ++k) {
+					Xe.xelem(k, j + 1) = X.xelem(nidxmaster.xelem(eidxmaster[i][lopt].eidx, j).value() - 1, k);
+				}
+			}
 
-                        switch (eType) {
-                        case CT_SLIDING: {
-                                SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
-                                SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
-                                SurfaceNormalVector(Xe, dHf_dr, n1);
-                                SurfaceNormalVector(Xe, dHf_ds, n2);
+			switch (eType) {
+			case CT_SLIDING: {
+				SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
+				SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
+				SurfaceNormalVector(Xe, dHf_dr, n1);
+				SurfaceNormalVector(Xe, dHf_ds, n2);
 
-                                n.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
-                                n.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
-                                n.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);
+				n.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
+				n.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
+				n.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);
 
-                                double norm_n = 0.;
+				double norm_n = 0.;
 
-                                for (octave_idx_type l = 0; l < 3; ++l) {
-                                        norm_n += n.xelem(l) * n(l);
-                                }
+				for (octave_idx_type l = 0; l < 3; ++l) {
+					norm_n += n.xelem(l) * n(l);
+				}
 
-                                if (norm_n <= 0) {
-                                        std::ostringstream os;
+				if (norm_n <= 0) {
+					std::ostringstream os;
 
-                                        os << "Jacobian of sfncon"
-                                           << SHAPE_FUNC::iGetNumNodes()
-                                           << " element " << id << " is singular"
-                                           << std::ends;
+					os << "Jacobian of sfncon"
+					   << SHAPE_FUNC::iGetNumNodes()
+					   << " element " << id << " is singular"
+					   << std::ends;
 
-                                        throw std::runtime_error(os.str());
-                                }
+					throw std::runtime_error(os.str());
+				}
 
-                                norm_n = sqrt(norm_n);
+				norm_n = sqrt(norm_n);
 
-                                for (octave_idx_type l = 0; l < 3; ++l) {
-                                        n.xelem(l) /= norm_n;
-                                }
+				for (octave_idx_type l = 0; l < 3; ++l) {
+					n.xelem(l) /= norm_n;
+				}
 
-                                nC.make_unique();
-                                nC.fill(0.);
+				nC.make_unique();
+				nC.fill(0.);
 
-                                for (octave_idx_type j = 0; j < C.columns(); ++j) {
-                                        for (octave_idx_type k = 0; k < C.rows(); ++k) {
-                                                nC.xelem(j) += n.xelem(k) * C.xelem(k, j);
-                                        }
-                                }
+				for (octave_idx_type j = 0; j < C.columns(); ++j) {
+					for (octave_idx_type k = 0; k < C.rows(); ++k) {
+						nC.xelem(j) += n.xelem(k) * C.xelem(k, j);
+					}
+				}
 
-                                FEM_TRACE("n=" << n << std::endl);
-                                FEM_TRACE("C=" << C << std::endl);
-                                FEM_TRACE("n.'*C=" << nC << std::endl);
+				FEM_TRACE("n=" << n << std::endl);
+				FEM_TRACE("C=" << C << std::endl);
+				FEM_TRACE("n.'*C=" << nC << std::endl);
 
-                                pElemBlock->Insert(++id, Xe, nullptr, enodes, nC, nU);
-                        } break;
-                        default:
-                                pElemBlock->Insert(++id, Xe, nullptr, enodes, C, U);
-                                break;
-                        }
-                }
+				pElemBlock->Insert(++id, Xe, nullptr, enodes, nC, nU);
+			} break;
+			default:
+				pElemBlock->Insert(++id, Xe, nullptr, enodes, C, U);
+				break;
+			}
+		}
 
-                return pElemBlock;
-        }
+		return pElemBlock;
+	}
 
 private:
-        static void SurfaceNormalVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
-                for (octave_idx_type i = 0; i < 3; ++i) {
-                        double ni = 0.;
+	static void SurfaceNormalVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
+		for (octave_idx_type i = 0; i < 3; ++i) {
+			double ni = 0.;
 
-                        for (octave_idx_type j = 0; j < X.columns() - 1; ++j) {
-                                for (octave_idx_type k = 0; k < 3; ++k) {
-                                        ni += dHf.xelem(i, j * 3 + k) * X.xelem(k, j + 1);
-                                }
-                        }
+			for (octave_idx_type j = 0; j < X.columns() - 1; ++j) {
+				for (octave_idx_type k = 0; k < 3; ++k) {
+					ni += dHf.xelem(i, j * 3 + k) * X.xelem(k, j + 1);
+				}
+			}
 
-                        n.xelem(i) = ni;
-                }
-        }
+			n.xelem(i) = ni;
+		}
+	}
 
-        static nlopt_result
-        Solve(const ColumnVector& Xm,
-              const ColumnVector& Xs,
-              ColumnVector& Xi,
-              ColumnVector& rv,
-              double& f) {
+	static nlopt_result
+	Solve(const ColumnVector& Xm,
+	      const ColumnVector& Xs,
+	      ColumnVector& Xi,
+	      ColumnVector& rv,
+	      double& f) {
 
-                constexpr double dTolX = std::pow(std::numeric_limits<double>::epsilon(), 0.8);
+		constexpr double dTolX = std::pow(std::numeric_limits<double>::epsilon(), 0.8);
 
-                FuncData oFuncData(Xm, Xs);
+		FuncData oFuncData(Xm, Xs);
 
-                nlopt_set_min_objective(oFuncData.opt, &SurfToNodeConstr::Objective, &oFuncData);
+		nlopt_set_min_objective(oFuncData.opt, &SurfToNodeConstr::Objective, &oFuncData);
 
-                if (SHAPE_FUNC::iGetNumEqualityConstr()) {
-                        nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX);
-                }
+		if (SHAPE_FUNC::iGetNumEqualityConstr()) {
+			nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX);
+		}
 
-                Matrix dX(iNumDofNode, 2);
+		Matrix dX(iNumDofNode, 2);
 
-                for (octave_idx_type i = 0; i < iNumDofNode; ++i) {
-                        dX.xelem(i, 0) = std::numeric_limits<double>::max();
-                        dX.xelem(i, 1) = -dX.xelem(i, 0);
+		for (octave_idx_type i = 0; i < iNumDofNode; ++i) {
+			dX.xelem(i, 0) = std::numeric_limits<double>::max();
+			dX.xelem(i, 1) = -dX.xelem(i, 0);
 
-                        for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
-                                dX.xelem(i, 0) = std::min(dX.xelem(i, 0), Xm.xelem(j * iNumDofNode + i));
-                                dX.xelem(i, 1) = std::max(dX.xelem(i, 1), Xm.xelem(j * iNumDofNode + i));
-                        }
-                }
+			for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
+				dX.xelem(i, 0) = std::min(dX.xelem(i, 0), Xm.xelem(j * iNumDofNode + i));
+				dX.xelem(i, 1) = std::max(dX.xelem(i, 1), Xm.xelem(j * iNumDofNode + i));
+			}
+		}
 
-                double dTolF = 0;
+		double dTolF = 0;
 
-                for (octave_idx_type i = 0; i < iNumDofNode; ++i) {
-                        dTolF = std::max(dTolF, dTolX * (dX.xelem(i, 1) - dX.xelem(i, 0)));
-                }
+		for (octave_idx_type i = 0; i < iNumDofNode; ++i) {
+			dTolF = std::max(dTolF, dTolX * (dX.xelem(i, 1) - dX.xelem(i, 0)));
+		}
 
-                dTolF *= dTolF;
+		dTolF *= dTolF;
 
-                ColumnVector rmin(iNumDir);
-                ColumnVector rmax(iNumDir);
+		ColumnVector rmin(iNumDir);
+		ColumnVector rmax(iNumDir);
 
-                SHAPE_FUNC::GetElemLimits(rmin, rmax);
+		SHAPE_FUNC::GetElemLimits(rmin, rmax);
 
-                nlopt_set_lower_bounds(oFuncData.opt, rmin.fortran_vec());
-                nlopt_set_upper_bounds(oFuncData.opt, rmax.fortran_vec());
-                nlopt_set_maxeval(oFuncData.opt, 10000);
-                nlopt_set_xtol_abs1(oFuncData.opt, dTolX);
-                nlopt_set_ftol_abs(oFuncData.opt, dTolF);
-                auto rc = nlopt_optimize(oFuncData.opt, rv.fortran_vec(), &f);
-                oFuncData.oSNCO.Position(rv, Xi, oFuncData.Hf);
+		nlopt_set_lower_bounds(oFuncData.opt, rmin.fortran_vec());
+		nlopt_set_upper_bounds(oFuncData.opt, rmax.fortran_vec());
+		nlopt_set_maxeval(oFuncData.opt, 10000);
+		nlopt_set_xtol_abs1(oFuncData.opt, dTolX);
+		nlopt_set_ftol_abs(oFuncData.opt, dTolF);
+		auto rc = nlopt_optimize(oFuncData.opt, rv.fortran_vec(), &f);
+		oFuncData.oSNCO.Position(rv, Xi, oFuncData.Hf);
 
-                f = sqrt(f);
+		f = sqrt(f);
 
-                return rc;
-        }
+		return rc;
+	}
 
-        static constexpr octave_idx_type iNumDofNode = SHAPE_FUNC::iGetNumDofNode();
-        static constexpr octave_idx_type iNumDir = SHAPE_FUNC::iGetNumDirections();
-        static constexpr octave_idx_type iNumNodesElem = SHAPE_FUNC::iGetNumNodes();
+	static constexpr octave_idx_type iNumDofNode = SHAPE_FUNC::iGetNumDofNode();
+	static constexpr octave_idx_type iNumDir = SHAPE_FUNC::iGetNumDirections();
+	static constexpr octave_idx_type iNumNodesElem = SHAPE_FUNC::iGetNumNodes();
 
-        SurfToNodeConstr(const ColumnVector& Xm, const ColumnVector& Xs)
-                :Xm(Xm),
-                 Xs(Xs) {
+	SurfToNodeConstr(const ColumnVector& Xm, const ColumnVector& Xs)
+		:Xm(Xm),
+		 Xs(Xs) {
 
-                FEM_ASSERT(Xm.rows() == iNumNodesElem * Xs.rows());
-                FEM_ASSERT(Xs.rows() == iNumDofNode);
-        }
+		FEM_ASSERT(Xm.rows() == iNumNodesElem * Xs.rows());
+		FEM_ASSERT(Xs.rows() == iNumDofNode);
+	}
 
-        static double Objective(unsigned n, const double x[], double gradient[], void* pData) {
-                auto pFuncData = static_cast<FuncData*>(pData);
+	static double Objective(unsigned n, const double x[], double gradient[], void* pData) {
+		auto pFuncData = static_cast<FuncData*>(pData);
 
-                FEM_ASSERT(n == pFuncData->rv.rows());
+		FEM_ASSERT(n == pFuncData->rv.rows());
 
-                for (octave_idx_type i = 0; i < pFuncData->rv.rows(); ++i) {
-                        pFuncData->rv.xelem(i) = x[i];
-                }
+		for (octave_idx_type i = 0; i < pFuncData->rv.rows(); ++i) {
+			pFuncData->rv.xelem(i) = x[i];
+		}
 
-                return pFuncData->oSNCO.Objective(pFuncData->rv, pFuncData->f, pFuncData->Hf);
-        }
+		return pFuncData->oSNCO.Objective(pFuncData->rv, pFuncData->f, pFuncData->Hf);
+	}
 
-        static double EqualityConstr(unsigned n, const double x[], double gradient[], void* pData) {
-                auto pFuncData = static_cast<FuncData*>(pData);
+	static double EqualityConstr(unsigned n, const double x[], double gradient[], void* pData) {
+		auto pFuncData = static_cast<FuncData*>(pData);
 
-                FEM_ASSERT(n == pFuncData->rv.rows());
+		FEM_ASSERT(n == pFuncData->rv.rows());
 
-                for (octave_idx_type i = 0; i < pFuncData->rv.rows(); ++i) {
-                        pFuncData->rv.xelem(i) = x[i];
-                }
+		for (octave_idx_type i = 0; i < pFuncData->rv.rows(); ++i) {
+			pFuncData->rv.xelem(i) = x[i];
+		}
 
-                return pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
-        }
+		return pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
+	}
 
-        double Objective(const ColumnVector& rv, ColumnVector& f, Matrix& Hf) const {
-                FEM_ASSERT(f.rows() == iNumDofNode);
-                FEM_ASSERT(f.rows() == Xs.rows());
+	double Objective(const ColumnVector& rv, ColumnVector& f, Matrix& Hf) const {
+		FEM_ASSERT(f.rows() == iNumDofNode);
+		FEM_ASSERT(f.rows() == Xs.rows());
 
-                Position(rv, f, Hf);
+		Position(rv, f, Hf);
 
-                for (octave_idx_type i = 0; i < f.rows(); ++i) {
-                        f.xelem(i) -= Xs.xelem(i);
-                }
+		for (octave_idx_type i = 0; i < f.rows(); ++i) {
+			f.xelem(i) -= Xs.xelem(i);
+		}
 
-                double ftot = 0.;
+		double ftot = 0.;
 
-                for (octave_idx_type i = 0; i < f.rows(); ++i) {
-                        ftot += f.xelem(i) * f.xelem(i);
-                }
+		for (octave_idx_type i = 0; i < f.rows(); ++i) {
+			ftot += f.xelem(i) * f.xelem(i);
+		}
 
-                OCTAVE_QUIT;
+		OCTAVE_QUIT;
 
-                FEM_TRACE("f=" << sqrt(ftot) << std::endl);
+		FEM_TRACE("f=" << sqrt(ftot) << std::endl);
 
-                return ftot;
-        }
+		return ftot;
+	}
 
-        static double EqualityConstr(const ColumnVector& rv) {
-                FEM_ASSERT(SHAPE_FUNC::iGetNumEqualityConstr());
+	static double EqualityConstr(const ColumnVector& rv) {
+		FEM_ASSERT(SHAPE_FUNC::iGetNumEqualityConstr());
 
-                double f = SHAPE_FUNC::EqualityConstr(rv);
+		double f = SHAPE_FUNC::EqualityConstr(rv);
 
-                OCTAVE_QUIT;
+		OCTAVE_QUIT;
 
-                return f;
-        }
+		return f;
+	}
 
-        void Position(const ColumnVector& rv, ColumnVector& Xi, Matrix& Hf) const {
-                FEM_ASSERT(rv.rows() == iNumDir);
-                FEM_ASSERT(Xi.rows() == iNumDofNode);
-                FEM_ASSERT(Hf.rows() == iNumDofNode);
-                FEM_ASSERT(Hf.columns() == Xi.rows() * iNumNodesElem);
-                FEM_ASSERT(Xm.rows() == Hf.columns());
+	void Position(const ColumnVector& rv, ColumnVector& Xi, Matrix& Hf) const {
+		FEM_ASSERT(rv.rows() == iNumDir);
+		FEM_ASSERT(Xi.rows() == iNumDofNode);
+		FEM_ASSERT(Hf.rows() == iNumDofNode);
+		FEM_ASSERT(Hf.columns() == Xi.rows() * iNumNodesElem);
+		FEM_ASSERT(Xm.rows() == Hf.columns());
 
-                SHAPE_FUNC::VectorInterpMatrix(rv, Hf);
+		SHAPE_FUNC::VectorInterpMatrix(rv, Hf);
 
-                for (octave_idx_type i = 0; i < Xi.rows(); ++i) {
-                        Xi.xelem(i) = 0;
-                }
+		for (octave_idx_type i = 0; i < Xi.rows(); ++i) {
+			Xi.xelem(i) = 0;
+		}
 
-                for (octave_idx_type j = 0; j < Hf.columns(); ++j) {
-                        for (octave_idx_type i = 0; i < Hf.rows(); ++i) {
-                                Xi.xelem(i) += Hf.xelem(i, j) * Xm.xelem(j);
-                        }
-                }
-        }
+		for (octave_idx_type j = 0; j < Hf.columns(); ++j) {
+			for (octave_idx_type i = 0; i < Hf.rows(); ++i) {
+				Xi.xelem(i) += Hf.xelem(i, j) * Xm.xelem(j);
+			}
+		}
+	}
 
 private:
-        const ColumnVector Xm, Xs;
+	const ColumnVector Xm, Xs;
 
-        struct FuncData {
-                FuncData(const ColumnVector& Xm, const ColumnVector& Xs)
-                        :oSNCO(Xm, Xs),
-                         opt(nlopt_create(NLOPT_LN_COBYLA, iNumDir)),
-                         Hf(iNumDofNode, iNumNodesElem * iNumDofNode),
-                         rv(iNumDir, 0.),
-                         f(iNumDofNode) {
-                }
+	struct FuncData {
+		FuncData(const ColumnVector& Xm, const ColumnVector& Xs)
+			:oSNCO(Xm, Xs),
+			 opt(nlopt_create(NLOPT_LN_COBYLA, iNumDir)),
+			 Hf(iNumDofNode, iNumNodesElem * iNumDofNode),
+			 rv(iNumDir, 0.),
+			 f(iNumDofNode) {
+		}
 
-                ~FuncData() {
-                        nlopt_destroy(opt);
-                }
+		~FuncData() {
+			nlopt_destroy(opt);
+		}
 
-                const SurfToNodeConstr oSNCO;
-                nlopt_opt opt;
-                Matrix Hf;
-                ColumnVector rv, f;
-        };
+		const SurfToNodeConstr oSNCO;
+		nlopt_opt opt;
+		Matrix Hf;
+		ColumnVector rv, f;
+	};
 
-        static constexpr octave_idx_type iNumElemPerSlaveNode = shape_func_util::SelectElemPerSlaveNode<SHAPE_FUNC>::iNumElemPerSlaveNode;
+	static constexpr octave_idx_type iNumElemPerSlaveNode = shape_func_util::SelectElemPerSlaveNode<SHAPE_FUNC>::iNumElemPerSlaveNode;
 
-        struct ElemIndexRecord {
-                ElemIndexRecord(double dX = std::numeric_limits<double>::max(), octave_idx_type eidx = -1)
-                        :dX(dX),
-                         eidx(eidx) {
-                }
+	struct ElemIndexRecord {
+		ElemIndexRecord(double dX = std::numeric_limits<double>::max(), octave_idx_type eidx = -1)
+			:dX(dX),
+			 eidx(eidx) {
+		}
 
-                bool operator<(const ElemIndexRecord& rhs) const {
-                        return dX < rhs.dX;
-                }
+		bool operator<(const ElemIndexRecord& rhs) const {
+			return dX < rhs.dX;
+		}
 
-                double dX;
-                octave_idx_type eidx;
-        };
+		double dX;
+		octave_idx_type eidx;
+	};
 
-        class ElemIndexVector {
-        public:
-                ElemIndexVector()
-                        :isize(0) {
-                }
+	class ElemIndexVector {
+	public:
+		ElemIndexVector()
+			:isize(0) {
+		}
 
-                octave_idx_type size() const {
-                        return isize;
-                }
+		octave_idx_type size() const {
+			return isize;
+		}
 
-                void insert(const ElemIndexRecord& oRec) {
-                        decltype(data.begin()) newrecord;
+		void insert(const ElemIndexRecord& oRec) {
+			decltype(data.begin()) newrecord;
 
-                        if (size() >= iNumElemPerSlaveNode) {
-                                newrecord = std::max_element(data.begin(), data.end());
-                        } else {
-                                newrecord = data.begin() + size();
-                                ++isize;
-                        }
+			if (size() >= iNumElemPerSlaveNode) {
+				newrecord = std::max_element(data.begin(), data.end());
+			} else {
+				newrecord = data.begin() + size();
+				++isize;
+			}
 
-                        if (oRec.dX <= newrecord->dX) {
-                                *newrecord = oRec;
-                        }
-                }
+			if (oRec.dX <= newrecord->dX) {
+				*newrecord = oRec;
+			}
+		}
 
-                ElemIndexRecord& operator[](octave_idx_type i) {
-                        FEM_ASSERT(i >= 0);
-                        FEM_ASSERT(i < size());
-                        return data[i];
-                }
+		ElemIndexRecord& operator[](octave_idx_type i) {
+			FEM_ASSERT(i >= 0);
+			FEM_ASSERT(i < size());
+			return data[i];
+		}
 
-        private:
-                array<ElemIndexRecord, iNumElemPerSlaveNode> data;
-                octave_idx_type isize;
-        };
+	private:
+		array<ElemIndexRecord, iNumElemPerSlaveNode> data;
+		octave_idx_type isize;
+	};
 };
 
 void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
-                                       const octave_scalar_map& elements,
-                                       const array<int32NDArray, DofMap::ELEM_TYPE_COUNT>& edof,
-                                       array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
-                                       const ElementTypes::TypeInfo& oElemType,
-                                       const unsigned uConstraintFlags,
-                                       vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
-        const auto iter_elem = elements.seek(oElemType.name);
+				       const octave_scalar_map& elements,
+				       const array<int32NDArray, DofMap::ELEM_TYPE_COUNT>& edof,
+				       array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
+				       const ElementTypes::TypeInfo& oElemType,
+				       const unsigned uConstraintFlags,
+				       vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+	const auto iter_elem = elements.seek(oElemType.name);
 
-        if (iter_elem == elements.end()) {
-                return;
-        }
+	if (iter_elem == elements.end()) {
+		return;
+	}
 
-        const octave_map s_elem(elements.contents(iter_elem).map_value());
+	const octave_map s_elem(elements.contents(iter_elem).map_value());
 
-        if (error_state) {
-                throw std::runtime_error("elements.sfncon{4|6} must be a struct array");
-        }
+	if (error_state) {
+		throw std::runtime_error("elements.sfncon{4|6|8} must be a struct array");
+	}
 
-        const auto iter_nidxmaster = s_elem.seek("master");
+	const auto iter_nidxmaster = s_elem.seek("master");
 
-        if (iter_nidxmaster == s_elem.end()) {
-                throw std::runtime_error("elements.sfncon{4|6}.master not defined");
-        }
+	if (iter_nidxmaster == s_elem.end()) {
+		throw std::runtime_error("elements.sfncon{4|6|8}.master not defined");
+	}
 
-        const Cell ov_nidxmaster = s_elem.contents(iter_nidxmaster);
+	const Cell ov_nidxmaster = s_elem.contents(iter_nidxmaster);
 
-        const auto iter_nidxslave = s_elem.seek("slave");
+	const auto iter_nidxslave = s_elem.seek("slave");
 
-        if (iter_nidxslave == s_elem.end()) {
-                throw std::runtime_error("elements.sfncon{4|6}.slave not defined");
-        }
+	if (iter_nidxslave == s_elem.end()) {
+		throw std::runtime_error("elements.sfncon{4|6|8}.slave not defined");
+	}
 
-        const Cell ov_nidxslave = s_elem.contents(iter_nidxslave);
+	const Cell ov_nidxslave = s_elem.contents(iter_nidxslave);
 
-        const auto iter_maxdist = s_elem.seek("maxdist");
+	const auto iter_maxdist = s_elem.seek("maxdist");
 
-        if (iter_maxdist == s_elem.end()) {
-                throw std::runtime_error("elements.sfncon{4|6}.maxdist not defined");
-        }
+	if (iter_maxdist == s_elem.end()) {
+		throw std::runtime_error("elements.sfncon{4|6|8}.maxdist not defined");
+	}
 
-        const Cell ov_maxdist = s_elem.contents(iter_maxdist);
+	const Cell ov_maxdist = s_elem.contents(iter_maxdist);
 
-        const auto iter_constr = s_elem.seek("constraint");
+	const auto iter_constr = s_elem.seek("constraint");
 
-        Cell ov_constr;
+	Cell ov_constr;
 
-        if (iter_constr != s_elem.end()) {
-                ov_constr = s_elem.contents(iter_constr);
-        }
+	if (iter_constr != s_elem.end()) {
+		ov_constr = s_elem.contents(iter_constr);
+	}
 
-        FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
-        FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
-        FEM_ASSERT(ov_maxdist.numel() == s_elem.numel());
-        FEM_ASSERT(ov_constr.numel() == 0 || ov_constr.numel() == s_elem.numel());
+	FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
+	FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
+	FEM_ASSERT(ov_maxdist.numel() == s_elem.numel());
+	FEM_ASSERT(ov_constr.numel() == 0 || ov_constr.numel() == s_elem.numel());
 
-        for (octave_idx_type l = 0; l < s_elem.numel(); ++l) {
-                const int32NDArray nidxmaster = ov_nidxmaster(l).int32_array_value();
+	for (octave_idx_type l = 0; l < s_elem.numel(); ++l) {
+		const int32NDArray nidxmaster = ov_nidxmaster(l).int32_array_value();
 
-                if (error_state) {
-                        throw std::runtime_error("elements.sfncon{4|6}.master must be an integer array");
-                }
+		if (error_state) {
+			throw std::runtime_error("elements.sfncon{4|6|8}.master must be an integer array");
+		}
 
-                const int32NDArray nidxslave = ov_nidxslave(l).int32_array_value();
+		const int32NDArray nidxslave = ov_nidxslave(l).int32_array_value();
 
-                if (error_state) {
-                        throw std::runtime_error("elements.sfncon{4|6}.slave must be an integer array");
-                }
+		if (error_state) {
+			throw std::runtime_error("elements.sfncon{4|6|8}.slave must be an integer array");
+		}
 
-                ColumnVector maxdist = ov_maxdist(l).column_vector_value();
+		ColumnVector maxdist = ov_maxdist(l).column_vector_value();
 
-                if (error_state) {
-                        throw std::runtime_error("elements.sfncon{4|6}.maxdist must be a column vector");
-                }
+		if (error_state) {
+			throw std::runtime_error("elements.sfncon{4|6|8}.maxdist must be a column vector");
+		}
 
-                const auto eConstrType = SurfToNodeConstrBase::GetConstraintType(ov_constr, l);
+		const auto eConstrType = SurfToNodeConstrBase::GetConstraintType(ov_constr, l);
 
-                octave_idx_type iNumNodesElem = -1;
+		octave_idx_type iNumNodesElem = -1;
 
-                switch (oElemType.type) {
-                case ElementTypes::ELEM_SFNCON4:
-                        iNumNodesElem = ShapeIso4::iGetNumNodes();
-                        break;
-                case ElementTypes::ELEM_SFNCON6:
-                        iNumNodesElem = ShapeTria6::iGetNumNodes();
-                        break;
-                default:
-                        FEM_ASSERT(false);
-                }
+		switch (oElemType.type) {
+		case ElementTypes::ELEM_SFNCON4:
+			iNumNodesElem = ShapeIso4::iGetNumNodes();
+			break;	
+		case ElementTypes::ELEM_SFNCON6:
+			iNumNodesElem = ShapeTria6::iGetNumNodes();
+			break;
+		case ElementTypes::ELEM_SFNCON8:
+			iNumNodesElem = ShapeQuad8::iGetNumNodes();
+			break;					
+		default:
+			FEM_ASSERT(false);
+		}
 
-                if (nidxmaster.ndims() != 2 || nidxmaster.rows() < 1 || nidxmaster.columns() != iNumNodesElem) {
-                        throw std::runtime_error("elements.sfncon{4|6}.master must be an nx{4|6} array");
-                }
+		if (nidxmaster.ndims() != 2 || nidxmaster.rows() < 1 || nidxmaster.columns() != iNumNodesElem) {
+			throw std::runtime_error("elements.sfncon{4|6|8}.master must be an nx{4|6|8} array");
+		}
 
-                if (nidxslave.ndims() != 2 || nidxslave.rows() < 1 || nidxslave.columns() != 1) {
-                        throw std::runtime_error("elements.sfncon{4|6}.slave must be an nx1 array");
-                }
+		if (nidxslave.ndims() != 2 || nidxslave.rows() < 1 || nidxslave.columns() != 1) {
+			throw std::runtime_error("elements.sfncon{4|6}.slave must be an nx1 array");
+		}
 
-                if (maxdist.rows() == 1 && nidxslave.rows() > 1) {
-                        const double maxdistval = maxdist(0);
-                        maxdist.resize(nidxslave.rows(), maxdistval);
-                }
+		if (maxdist.rows() == 1 && nidxslave.rows() > 1) {
+			const double maxdistval = maxdist(0);
+			maxdist.resize(nidxslave.rows(), maxdistval);
+		}
 
-                if (maxdist.rows() != nidxslave.rows()) {
-                        throw std::runtime_error("elements.sfncon{4|6}.maxdist must have "
-                                                 "the same dimensions like elements.sfncon{4|6}.slave");
-                }
+		if (maxdist.rows() != nidxslave.rows()) {
+			throw std::runtime_error("elements.sfncon{4|6|8}.maxdist must have "
+						 "the same dimensions like elements.sfncon{4|6|8}.slave");
+		}
 
-                for (octave_idx_type i = 0; i < nidxmaster.rows(); ++i) {
-                        for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                                if (nidxmaster(i, j).value() < 1 || nidxmaster(i, j).value() > nodes.rows()) {
-                                        throw std::runtime_error("elements.sfncon{4|6}.master: node index out of range");
-                                }
-                        }
-                }
+		for (octave_idx_type i = 0; i < nidxmaster.rows(); ++i) {
+			for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+				if (nidxmaster(i, j).value() < 1 || nidxmaster(i, j).value() > nodes.rows()) {
+					throw std::runtime_error("elements.sfncon{4|6|8}.master: node index out of range");
+				}
+			}
+		}
 
-                for (octave_idx_type i = 0; i < nidxslave.rows(); ++i) {
-                        if (nidxslave(i).value() < 1 || nidxslave(i).value() > nodes.rows()) {
-                                throw std::runtime_error("elements.sfncon{4|6}.slave: node index out of range");
-                        }
-                }
+		for (octave_idx_type i = 0; i < nidxslave.rows(); ++i) {
+			if (nidxslave(i).value() < 1 || nidxslave(i).value() > nodes.rows()) {
+				throw std::runtime_error("elements.sfncon{4|6|8}.slave: node index out of range");
+			}
+		}
 
-                std::unique_ptr<ElementBlock<ElemJoint> > pElem;
+		std::unique_ptr<ElementBlock<ElemJoint> > pElem;
 
-                switch (oElemType.type) {
-                case ElementTypes::ELEM_SFNCON4:
-                        pElem = SurfToNodeConstr<ShapeIso4>::BuildJoints(dofelemid[oElemType.dof_type],
-                                                                         nodes,
-                                                                         nidxmaster,
-                                                                         nidxslave,
-                                                                         maxdist,
-                                                                         eConstrType,
-                                                                         uConstraintFlags);
-                        break;
-                case ElementTypes::ELEM_SFNCON6:
-                        pElem = SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
-                                                                          nodes,
-                                                                          nidxmaster,
-                                                                          nidxslave,
-                                                                          maxdist,
-                                                                          eConstrType,
-                                                                          uConstraintFlags);
-                        break;
-                default:
-                        FEM_ASSERT(false);
-                }
+		switch (oElemType.type) {
+		case ElementTypes::ELEM_SFNCON4:
+			pElem = SurfToNodeConstr<ShapeIso4>::BuildJoints(dofelemid[oElemType.dof_type],
+									 nodes,
+									 nidxmaster,
+									 nidxslave,
+									 maxdist,
+									 eConstrType,
+									 uConstraintFlags);
+			break;	
+		case ElementTypes::ELEM_SFNCON6:
+			pElem = SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
+									  nodes,
+									  nidxmaster,
+									  nidxslave,
+									  maxdist,
+									  eConstrType,
+									  uConstraintFlags);
+			break;
+		case ElementTypes::ELEM_SFNCON8:
+		     pElem = SurfToNodeConstr<ShapeQuad8>::BuildJoints(dofelemid[oElemType.dof_type],
+								       nodes,
+								       nidxmaster,
+								       nidxslave,
+								       maxdist,
+								       eConstrType,
+								       uConstraintFlags);
+			break;					
+		default:
+			FEM_ASSERT(false);
+		}
 
-                if ((uConstraintFlags & CF_ELEM_DOF_PRE_ALLOCATED) && dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
-                        throw std::runtime_error("dof_map.edof is not consistent with elements");
-                }
+		if ((uConstraintFlags & CF_ELEM_DOF_PRE_ALLOCATED) && dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
+			throw std::runtime_error("dof_map.edof is not consistent with elements");
+		}
 
-                FEM_ASSERT(pElem != nullptr);
+		FEM_ASSERT(pElem != nullptr);
 
-                rgElemBlocks.emplace_back(std::move(pElem));
-        }
+		rgElemBlocks.emplace_back(std::move(pElem));
+	}
 }
 #endif
 
@@ -5135,1499 +5492,1510 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
-          "-*- texinfo -*-\n"
-          "@deftypefn {} @var{dof_map} = fem_ass_dof_map(@var{mesh}, @var{load_case})\n"
-          "Build a data structure which assigns global degrees of freedom to each node and each element with Lagrange multipliers.\n\n"
-          "@var{mesh} @dots{} Finite element mesh data structure\n\n"
-          "@var{load_case} @dots{} Scalar struct for defining nodal constraints.\n\n"
-          "@var{dof_map} @dots{} Degree of freedom mapping\n\n"
-          "@seealso{fem_tests}\n\n"
-          "@end deftypefn\n")
+	  "-*- texinfo -*-\n"
+	  "@deftypefn {} @var{dof_map} = fem_ass_dof_map(@var{mesh}, @var{load_case})\n"
+	  "Build a data structure which assigns global degrees of freedom to each node and each element with Lagrange multipliers.\n\n"
+	  "@var{mesh} @dots{} Finite element mesh data structure\n\n"
+	  "@var{load_case} @dots{} Scalar struct for defining nodal constraints.\n\n"
+	  "@var{dof_map} @dots{} Degree of freedom mapping\n\n"
+	  "@seealso{fem_tests}\n\n"
+	  "@end deftypefn\n")
 {
-        octave_value_list retval;
+	octave_value_list retval;
 
-        if (args.length() != 2) {
-                print_usage();
-                return retval;
-        }
+	if (args.length() != 2) {
+		print_usage();
+		return retval;
+	}
 
-        const octave_scalar_map m_mesh = args(0).scalar_map_value();
+	const octave_scalar_map m_mesh = args(0).scalar_map_value();
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        const auto it_nodes = m_mesh.seek("nodes");
+	const auto it_nodes = m_mesh.seek("nodes");
 
-        if (it_nodes == m_mesh.end()) {
-                error("field mesh.nodes not found");
-                return retval;
-        }
+	if (it_nodes == m_mesh.end()) {
+		error("field mesh.nodes not found");
+		return retval;
+	}
 
-        const Matrix nodes = m_mesh.contents(it_nodes).matrix_value();
+	const Matrix nodes = m_mesh.contents(it_nodes).matrix_value();
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        if (nodes.ndims() != 2 || nodes.columns() != 6) {
-                error("mesh.nodes must be a Nx6 matrix");
-                return retval;
-        }
+	if (nodes.ndims() != 2 || nodes.columns() != 6) {
+		error("mesh.nodes must be a Nx6 matrix");
+		return retval;
+	}
 
-        const octave_scalar_map m_load_case = args(1).scalar_map_value();
+	const octave_scalar_map m_load_case = args(1).scalar_map_value();
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        const auto it_locked_dof = m_load_case.seek("locked_dof");
+	const auto it_locked_dof = m_load_case.seek("locked_dof");
 
-        if (it_locked_dof == m_load_case.end()) {
-                error("field load_case.locked_dof not found");
-                return retval;
-        }
+	if (it_locked_dof == m_load_case.end()) {
+		error("field load_case.locked_dof not found");
+		return retval;
+	}
 
-        const boolNDArray locked_dof = m_load_case.contents(it_locked_dof).bool_array_value();
+	const boolNDArray locked_dof = m_load_case.contents(it_locked_dof).bool_array_value();
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        if (locked_dof.ndims() != 2 ||
-            locked_dof.columns() != nodes.columns() ||
-            locked_dof.rows() != nodes.rows()) {
-                error("size of load_case.locked_dof does not match size of mesh.nodes");
-                return retval;
-        }
+	if (locked_dof.ndims() != 2 ||
+	    locked_dof.columns() != nodes.columns() ||
+	    locked_dof.rows() != nodes.rows()) {
+		error("size of load_case.locked_dof does not match size of mesh.nodes");
+		return retval;
+	}
 
-        const auto iter_elements = m_mesh.seek("elements");
+	const auto iter_elements = m_mesh.seek("elements");
 
-        if (iter_elements == m_mesh.end()) {
-                error("field mesh.elements not found");
-                return retval;
-        }
+	if (iter_elements == m_mesh.end()) {
+		error("field mesh.elements not found");
+		return retval;
+	}
 
-        const octave_scalar_map m_elements = m_mesh.contents(iter_elements).scalar_map_value();
+	const octave_scalar_map m_elements = m_mesh.contents(iter_elements).scalar_map_value();
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        boolNDArray dof_in_use(dim_vector(nodes.rows(), nodes.columns()), false);
+	boolNDArray dof_in_use(dim_vector(nodes.rows(), nodes.columns()), false);
 
-        for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
-                const auto& oElemType = ElementTypes::GetType(i);
+	for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
+		const auto& oElemType = ElementTypes::GetType(i);
 
-                const auto iter_elem_type = m_elements.seek(oElemType.name);
+		const auto iter_elem_type = m_elements.seek(oElemType.name);
 
-                if (iter_elem_type == m_elements.end()) {
-                        continue;
-                }
+		if (iter_elem_type == m_elements.end()) {
+			continue;
+		}
 
-                switch (oElemType.type) {
-                case ElementTypes::ELEM_ISO8:
+		switch (oElemType.type) {
+		case ElementTypes::ELEM_ISO8:
 		case ElementTypes::ELEM_ISO20:
-                case ElementTypes::ELEM_TET10: {
-                        const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
+		case ElementTypes::ELEM_TET10: {
+			const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
 
-                        if (error_state) {
-                                return retval;
-                        }
+			if (error_state) {
+				return retval;
+			}
 
-                        for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
-                                for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
-                                        const octave_idx_type idxnode = elnodes.xelem(j, k).value();
+			for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
+				for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
+					const octave_idx_type idxnode = elnodes.xelem(j, k).value();
 
-                                        if (idxnode < 1 || idxnode > nodes.rows()) {
-                                                error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
-                                                      static_cast<long long>(idxnode),
-                                                      oElemType.name,
-                                                      static_cast<long long>(j),
-                                                      static_cast<long long>(k),
-                                                      1LL,
-                                                      static_cast<long long>(nodes.rows()));
-                                                return retval;
-                                        }
+					if (idxnode < 1 || idxnode > nodes.rows()) {
+						error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
+						      static_cast<long long>(idxnode),
+						      oElemType.name,
+						      static_cast<long long>(j),
+						      static_cast<long long>(k),
+						      1LL,
+						      static_cast<long long>(nodes.rows()));
+						return retval;
+					}
 
-                                        for (octave_idx_type l = 0; l < 3; ++l) {
-                                                dof_in_use.xelem(idxnode - 1, l) = true;
-                                        }
-                                }
-                        }
-                } break;
-                case ElementTypes::ELEM_RBE3: {
-                        const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
+					for (octave_idx_type l = 0; l < 3; ++l) {
+						dof_in_use.xelem(idxnode - 1, l) = true;
+					}
+				}
+			}
+		} break;
+		case ElementTypes::ELEM_RBE3: {
+			const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
 
-                        if (error_state) {
-                                return retval;
-                        }
+			if (error_state) {
+				return retval;
+			}
 
-                        const auto iter_nodesr = m_rbe3.seek("nodes");
+			const auto iter_nodesr = m_rbe3.seek("nodes");
 
-                        if (iter_nodesr == m_rbe3.end()) {
-                                error("missing field mesh.elements.rbe3.nodes");
-                                return retval;
-                        }
+			if (iter_nodesr == m_rbe3.end()) {
+				error("missing field mesh.elements.rbe3.nodes");
+				return retval;
+			}
 
-                        const Cell& ov_nodesr = m_rbe3.contents(iter_nodesr);
+			const Cell& ov_nodesr = m_rbe3.contents(iter_nodesr);
 
-                        for (octave_idx_type j = 0; j < ov_nodesr.numel(); ++j) {
-                                const int32NDArray elnodes = ov_nodesr(j).int32_array_value();
+			for (octave_idx_type j = 0; j < ov_nodesr.numel(); ++j) {
+				const int32NDArray elnodes = ov_nodesr(j).int32_array_value();
 
-                                if (error_state) {
-                                        return retval;
-                                }
+				if (error_state) {
+					return retval;
+				}
 
-                                if (!elnodes.numel()) {
-                                        error("invalid number of nodes for mesh.elements.%s(%Ld).nodes", oElemType.name, static_cast<long long>(j));
-                                        return retval;
-                                }
+				if (!elnodes.numel()) {
+					error("invalid number of nodes for mesh.elements.%s(%Ld).nodes", oElemType.name, static_cast<long long>(j));
+					return retval;
+				}
 
-                                const octave_idx_type idxnode = elnodes(0).value();
+				const octave_idx_type idxnode = elnodes(0).value();
 
-                                if (idxnode < 1 || idxnode > nodes.rows()) {
-                                        error("invalid node index for mesh.elements.%s(%Ld).nodes(1)=%Ld",
-                                              oElemType.name,
-                                              static_cast<long long>(j),
-                                              static_cast<long long>(idxnode));
-                                        return retval;
-                                }
+				if (idxnode < 1 || idxnode > nodes.rows()) {
+					error("invalid node index for mesh.elements.%s(%Ld).nodes(1)=%Ld",
+					      oElemType.name,
+					      static_cast<long long>(j),
+					      static_cast<long long>(idxnode));
+					return retval;
+				}
 
-                                for (octave_idx_type k = 0; k < 6; ++k) {
-                                        dof_in_use(idxnode - 1, k) = true;
-                                }
-                        }
-                } break;
+				for (octave_idx_type k = 0; k < 6; ++k) {
+					dof_in_use(idxnode - 1, k) = true;
+				}
+			}
+		} break;
 
-                default:
-                        continue;
-                }
-        }
+		default:
+			continue;
+		}
+	}
 
-        octave_idx_type icurrdof = 0;
+	octave_idx_type icurrdof = 0;
 
-        int32NDArray ndof(dim_vector(nodes.rows(), nodes.columns()), -1);
+	int32NDArray ndof(dim_vector(nodes.rows(), nodes.columns()), -1);
 
-        for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
-                for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
-                        if (dof_in_use.xelem(i, j)) {
-                                ndof.xelem(i, j) = locked_dof.xelem(i, j) ? 0 : ++icurrdof;
-                        }
-                }
-        }
+	for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
+		for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
+			if (dof_in_use.xelem(i, j)) {
+				ndof.xelem(i, j) = locked_dof.xelem(i, j) ? 0 : ++icurrdof;
+			}
+		}
+	}
 
-        octave_map dof_map;
+	octave_map dof_map;
 
-        dof_map.assign("ndof", octave_value(ndof));
+	dof_map.assign("ndof", octave_value(ndof));
 
-        int32NDArray idx_node(dim_vector(icurrdof, 1), -1);
-        octave_idx_type icurrndof = 0;
+	int32NDArray idx_node(dim_vector(icurrdof, 1), -1);
+	octave_idx_type icurrndof = 0;
 
-        for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
-                for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
-                        if (ndof.xelem(i, j).value() > 0) {
-                                idx_node.xelem(icurrndof++) = ndof.xelem(i, j);
-                        }
-                }
-        }
+	for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
+		for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
+			if (ndof.xelem(i, j).value() > 0) {
+				idx_node.xelem(icurrndof++) = ndof.xelem(i, j);
+			}
+		}
+	}
 
-        FEM_ASSERT(icurrndof == icurrdof);
+	FEM_ASSERT(icurrndof == icurrdof);
 
-        dof_map.assign("idx_node", octave_value(idx_node));
+	dof_map.assign("idx_node", octave_value(idx_node));
 
-        octave_scalar_map m_edof;
+	octave_scalar_map m_edof;
 
-        enum {
-                CS_JOINT = 0,
-                CS_RBE3,
-                CS_COUNT
-        };
+	enum {
+		CS_JOINT = 0,
+		CS_RBE3,
+		CS_COUNT
+	};
 
-        struct ElemDof {
-                int32NDArray dof;
-                octave_idx_type elem_count = 0;
-                octave_idx_type elem_idx = 0;
-                octave_idx_type maxdof = 0;
-        };
+	struct ElemDof {
+		int32NDArray dof;
+		octave_idx_type elem_count = 0;
+		octave_idx_type elem_idx = 0;
+		octave_idx_type maxdof = 0;
+	};
 
-        array<ElemDof, CS_COUNT> edof;
-        octave_idx_type inumlambda = 0;
+	array<ElemDof, CS_COUNT> edof;
+	octave_idx_type inumlambda = 0;
 
-        enum {
-                STAGE_RESERVE = 0,
-                STAGE_FILL
-        };
+	enum {
+		STAGE_RESERVE = 0,
+		STAGE_FILL
+	};
 
-        for (octave_idx_type s = STAGE_RESERVE; s <= STAGE_FILL; ++s) {
-                for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
-                        const auto& oElemType = ElementTypes::GetType(i);
+	for (octave_idx_type s = STAGE_RESERVE; s <= STAGE_FILL; ++s) {
+		for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
+			const auto& oElemType = ElementTypes::GetType(i);
 
-                        switch (oElemType.type) {
-                        case ElementTypes::ELEM_RBE3:
-                        case ElementTypes::ELEM_JOINT:
-                        case ElementTypes::ELEM_SFNCON4:
-                        case ElementTypes::ELEM_SFNCON6:
-                                break;
+			switch (oElemType.type) {
+			case ElementTypes::ELEM_RBE3:
+			case ElementTypes::ELEM_JOINT:
+			case ElementTypes::ELEM_SFNCON4:
+			case ElementTypes::ELEM_SFNCON6:
+			case ElementTypes::ELEM_SFNCON8:
+				break;
 
-                        default:
-                                continue;
-                        }
+			default:
+				continue;
+			}
 
-                        const auto iter_etype = m_elements.seek(oElemType.name);
+			const auto iter_etype = m_elements.seek(oElemType.name);
 
-                        if (iter_etype == m_elements.end()) {
-                                continue;
-                        }
+			if (iter_etype == m_elements.end()) {
+				continue;
+			}
 
-                        const octave_map m_etype = m_elements.contents(iter_etype).map_value();
+			const octave_map m_etype = m_elements.contents(iter_etype).map_value();
 
-                        if (error_state) {
-                                return retval;
-                        }
+			if (error_state) {
+				return retval;
+			}
 
-                        if (!m_etype.numel()) {
-                                continue;
-                        }
+			if (!m_etype.numel()) {
+				continue;
+			}
 
-                        switch (oElemType.type) {
-                        case ElementTypes::ELEM_JOINT:
-                        case ElementTypes::ELEM_SFNCON4:
-                        case ElementTypes::ELEM_SFNCON6: {
-                                const char* const fn = oElemType.type == ElementTypes::ELEM_JOINT
-                                        ? "C"
-                                        : "slave";
+			switch (oElemType.type) {
+			case ElementTypes::ELEM_JOINT:
+			case ElementTypes::ELEM_SFNCON4:
+			case ElementTypes::ELEM_SFNCON6:
+			case ElementTypes::ELEM_SFNCON8: {
+				const char* const fn = oElemType.type == ElementTypes::ELEM_JOINT
+					? "C"
+					: "slave";
 
-                                const auto iter_fn = m_etype.seek(fn);
+				const auto iter_fn = m_etype.seek(fn);
 
-                                if (iter_fn == m_etype.end()) {
-                                        error("missing field mesh.elements.%s.%s", oElemType.name, fn);
-                                        return retval;
-                                }
+				if (iter_fn == m_etype.end()) {
+					error("missing field mesh.elements.%s.%s", oElemType.name, fn);
+					return retval;
+				}
 
-                                const Cell ov_fn = m_etype.contents(iter_fn);
+				const Cell ov_fn = m_etype.contents(iter_fn);
 
-                                Cell ov_constr;
+				Cell ov_constr;
 
-                                switch (oElemType.type) {
-                                case ElementTypes::ELEM_SFNCON4:
-                                case ElementTypes::ELEM_SFNCON6: {
-                                        const auto iter_constr = m_etype.seek("constraint");
+				switch (oElemType.type) {
+				case ElementTypes::ELEM_SFNCON4:
+				case ElementTypes::ELEM_SFNCON6:
+				case ElementTypes::ELEM_SFNCON8: {
+					const auto iter_constr = m_etype.seek("constraint");
 
-                                        if (iter_constr != m_etype.end()) {
-                                                ov_constr = m_etype.contents(iter_constr);
-                                        }
-                                } break;
-                                default:
-                                        break;
-                                };
+					if (iter_constr != m_etype.end()) {
+						ov_constr = m_etype.contents(iter_constr);
+					}
+				} break;
+				default:
+					break;
+				};
 
-                                switch (s) {
-                                case STAGE_RESERVE:
-                                        for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
-                                                octave_idx_type icurrconstr = 0;
+				switch (s) {
+				case STAGE_RESERVE:
+					for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
+						octave_idx_type icurrconstr = 0;
 
-                                                switch (oElemType.type) {
-                                                case ElementTypes::ELEM_JOINT:
-                                                        icurrconstr = ov_fn(j).rows();
-                                                        edof[CS_JOINT].elem_count++;
-                                                        break;
-                                                case ElementTypes::ELEM_SFNCON4:
-                                                case ElementTypes::ELEM_SFNCON6:
+						switch (oElemType.type) {
+						case ElementTypes::ELEM_JOINT:
+							icurrconstr = ov_fn(j).rows();
+							edof[CS_JOINT].elem_count++;
+							break;
+						case ElementTypes::ELEM_SFNCON4:
+						case ElementTypes::ELEM_SFNCON6:
+						case ElementTypes::ELEM_SFNCON8:
 #if HAVE_NLOPT == 1
-                                                        icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
-                                                        edof[CS_JOINT].elem_count += ov_fn(j).numel();
+							icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
+							edof[CS_JOINT].elem_count += ov_fn(j).numel();
 #else
-                                                        error(SurfToNodeConstrBase::szErrCompileWithNlopt);
-                                                        return retval;
+							error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+							return retval;
 #endif
-                                                        break;
-                                                default:
-                                                        FEM_ASSERT(false);
-                                                }
+							break;
+						default:
+							FEM_ASSERT(false);
+						}
 
-                                                edof[CS_JOINT].maxdof = std::max(edof[CS_JOINT].maxdof, icurrconstr);
-                                        }
-                                        break;
-                                case STAGE_FILL:
-                                        FEM_ASSERT(edof[CS_JOINT].dof.rows() == edof[CS_JOINT].elem_count ||
-                                                   edof[CS_JOINT].dof.rows() == 0);
+						edof[CS_JOINT].maxdof = std::max(edof[CS_JOINT].maxdof, icurrconstr);
+					}
+					break;
+				case STAGE_FILL:
+					FEM_ASSERT(edof[CS_JOINT].dof.rows() == edof[CS_JOINT].elem_count ||
+						   edof[CS_JOINT].dof.rows() == 0);
 
-                                        edof[CS_JOINT].dof.resize(dim_vector(edof[CS_JOINT].elem_count,
-                                                                             edof[CS_JOINT].maxdof),
-                                                                  0);
+					edof[CS_JOINT].dof.resize(dim_vector(edof[CS_JOINT].elem_count,
+									     edof[CS_JOINT].maxdof),
+								  0);
 
-                                        for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
-                                                octave_idx_type icurrconstr = 0, icurrjoints = 0;
+					for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
+						octave_idx_type icurrconstr = 0, icurrjoints = 0;
 
-                                                switch (oElemType.type) {
-                                                case ElementTypes::ELEM_JOINT:
-                                                        icurrconstr = ov_fn(j).rows();
-                                                        icurrjoints = 1;
-                                                        break;
-                                                case ElementTypes::ELEM_SFNCON4:
-                                                case ElementTypes::ELEM_SFNCON6:
+						switch (oElemType.type) {
+						case ElementTypes::ELEM_JOINT:
+							icurrconstr = ov_fn(j).rows();
+							icurrjoints = 1;
+							break;
+						case ElementTypes::ELEM_SFNCON4:
+						case ElementTypes::ELEM_SFNCON6:
+						case ElementTypes::ELEM_SFNCON8:
 #if HAVE_NLOPT == 1
-                                                        icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
-                                                        icurrjoints += ov_fn(j).numel();
+							icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
+							icurrjoints += ov_fn(j).numel();
 #else
-                                                        error(SurfToNodeConstrBase::szErrCompileWithNlopt);
-                                                        return retval;
+							error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+							return retval;
 #endif
-                                                        break;
-                                                default:
-                                                        FEM_ASSERT(false);
-                                                }
+							break;
+						default:
+							FEM_ASSERT(false);
+						}
 
-                                                for (octave_idx_type k = 0; k < icurrjoints; ++k) {
-                                                        for (octave_idx_type l = 0; l < icurrconstr; ++l) {
-                                                                edof[CS_JOINT].dof.xelem(edof[CS_JOINT].elem_idx, l) = ++icurrdof;
-                                                                ++inumlambda;
-                                                        }
-                                                        edof[CS_JOINT].elem_idx++;
-                                                }
-                                        }
+						for (octave_idx_type k = 0; k < icurrjoints; ++k) {
+							for (octave_idx_type l = 0; l < icurrconstr; ++l) {
+								edof[CS_JOINT].dof.xelem(edof[CS_JOINT].elem_idx, l) = ++icurrdof;
+								++inumlambda;
+							}
+							edof[CS_JOINT].elem_idx++;
+						}
+					}
 
-                                        m_edof.assign("joints", edof[CS_JOINT].dof);
-                                }
-                        } break;
-                        case ElementTypes::ELEM_RBE3:
-                                switch (s) {
-                                case STAGE_RESERVE:
-                                        break;
-                                case STAGE_FILL:
-                                        edof[CS_RBE3].elem_count = m_etype.numel();
-                                        edof[CS_RBE3].maxdof = 6;
+					m_edof.assign("joints", edof[CS_JOINT].dof);
+				}
+			} break;
+			case ElementTypes::ELEM_RBE3:
+				switch (s) {
+				case STAGE_RESERVE:
+					break;
+				case STAGE_FILL:
+					edof[CS_RBE3].elem_count = m_etype.numel();
+					edof[CS_RBE3].maxdof = 6;
 
-                                        edof[CS_RBE3].dof.resize(dim_vector(edof[CS_RBE3].elem_count,
-                                                                            edof[CS_RBE3].maxdof),
-                                                                 0);
+					edof[CS_RBE3].dof.resize(dim_vector(edof[CS_RBE3].elem_count,
+									    edof[CS_RBE3].maxdof),
+								 0);
 
-                                        for (octave_idx_type j = 0; j < edof[CS_RBE3].elem_count; ++j) {
-                                                for (octave_idx_type l = 0; l < edof[CS_RBE3].maxdof; ++l) {
-                                                        edof[CS_RBE3].dof.xelem(j, l) = ++icurrdof;
-                                                        ++inumlambda;
-                                                }
-                                        }
+					for (octave_idx_type j = 0; j < edof[CS_RBE3].elem_count; ++j) {
+						for (octave_idx_type l = 0; l < edof[CS_RBE3].maxdof; ++l) {
+							edof[CS_RBE3].dof.xelem(j, l) = ++icurrdof;
+							++inumlambda;
+						}
+					}
 
-                                        m_edof.assign("rbe3", edof[CS_RBE3].dof);
-                                } break;
-                        default:
-                                continue;
-                        }
-                }
-        }
+					m_edof.assign("rbe3", edof[CS_RBE3].dof);
+				} break;
+			default:
+				continue;
+			}
+		}
+	}
 
-        int32NDArray idx_lambda(dim_vector(inumlambda, 1), -1);
-        octave_idx_type icurrlambda = 0;
+	int32NDArray idx_lambda(dim_vector(inumlambda, 1), -1);
+	octave_idx_type icurrlambda = 0;
 
-        for (octave_idx_type k = 0; k < CS_COUNT; ++k) {
-                for (octave_idx_type i = 0; i < edof[k].dof.rows(); ++i) {
-                        for (octave_idx_type j = 0; j < edof[k].dof.columns(); ++j) {
-                                const octave_idx_type idxedof = edof[k].dof.xelem(i, j).value();
+	for (octave_idx_type k = 0; k < CS_COUNT; ++k) {
+		for (octave_idx_type i = 0; i < edof[k].dof.rows(); ++i) {
+			for (octave_idx_type j = 0; j < edof[k].dof.columns(); ++j) {
+				const octave_idx_type idxedof = edof[k].dof.xelem(i, j).value();
 
-                                if (idxedof > 0) {
-                                        idx_lambda(icurrlambda++) = idxedof;
-                                }
-                        }
-                }
-        }
+				if (idxedof > 0) {
+					idx_lambda(icurrlambda++) = idxedof;
+				}
+			}
+		}
+	}
 
-        idx_lambda.sort();
+	idx_lambda.sort();
 
-        FEM_ASSERT(icurrlambda == inumlambda);
+	FEM_ASSERT(icurrlambda == inumlambda);
 
-        if (m_edof.nfields()) {
-                dof_map.assign("edof", octave_value(m_edof));
-        }
+	if (m_edof.nfields()) {
+		dof_map.assign("edof", octave_value(m_edof));
+	}
 
-        if (inumlambda) {
-                dof_map.assign("idx_lambda", octave_value(idx_lambda));
-        }
+	if (inumlambda) {
+		dof_map.assign("idx_lambda", octave_value(idx_lambda));
+	}
 
-        dof_map.assign("totdof", octave_value(icurrdof));
+	dof_map.assign("totdof", octave_value(icurrdof));
 
-        retval.append(dof_map);
+	retval.append(dof_map);
 
-        return retval;
+	return retval;
 }
 
 DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
-          "-*- texinfo -*-\n"
-          "@deftypefn {} @var{joints} = fem_pre_mesh_constr_surf_to_node(@var{nodes}, @var{elements})\n"
-          "Convert elements of type sfncon4 or sfncon6 to joints.\n"
-          "Slave nodes outside @var{elements}.sfncon4.maxdist or @var{elements}.sfncon6.maxdist are ignored.\n\n"
-          "@var{nodes} @dots{} The node position matrix of the unconstrained finite element mesh.\n\n"
-          "@var{elements}.sfncon4 @dots{} Struct array of elements which are connecting slave nodes to quadrilateral elements.\n\n"
-          "@var{elements}.sfncon4.slave @dots{} Array of slave node numbers.\n\n"
-          "@var{elements}.sfncon4.master @dots{} Master mesh defined by four node quadrilateral surface elements.\n\n"
-          "@var{elements}.sfncon4.maxdist @dots{} Maximum distance between slave nodes and master mesh.\n\n"
-          "@var{elements}.sfncon6 @dots{} Struct array of elements which are connecting slave nodes to triangular elements.\n\n"
-          "@var{elements}.sfncon6.slave @dots{} Array of slave node numbers.\n\n"
-          "@var{elements}.sfncon6.master @dots{} Master mesh defined by six node triangular surface elements.\n\n"
-          "@var{elements}.sfncon6.maxdist @dots{} Maximum distance between slave nodes and master mesh.\n\n"
-          "@var{joints} @dots{} Struct array of joint elements, one for each slave node within a distance of\n"
-          "<@var{maxdist}> from the master mesh.\n\n"
-          "@seealso{fem_tests}\n\n"
-          "@end deftypefn\n")
+	  "-*- texinfo -*-\n"
+	  "@deftypefn {} @var{joints} = fem_pre_mesh_constr_surf_to_node(@var{nodes}, @var{elements})\n"
+	  "Convert elements of type sfncon4 or sfncon6 to joints.\n"
+	  "Slave nodes outside @var{elements}.sfncon4.maxdist or @var{elements}.sfncon6.maxdist are ignored.\n\n"
+	  "@var{nodes} @dots{} The node position matrix of the unconstrained finite element mesh.\n\n"
+	  "@var{elements}.sfncon4 @dots{} Struct array of elements which are connecting slave nodes to quadrilateral elements.\n\n"
+	  "@var{elements}.sfncon4.slave @dots{} Array of slave node numbers.\n\n"
+	  "@var{elements}.sfncon4.master @dots{} Master mesh defined by four node quadrilateral surface elements.\n\n"
+	  "@var{elements}.sfncon4.maxdist @dots{} Maximum distance between slave nodes and master mesh.\n\n"
+	  "@var{elements}.sfncon6 @dots{} Struct array of elements which are connecting slave nodes to triangular elements.\n\n"
+	  "@var{elements}.sfncon6.slave @dots{} Array of slave node numbers.\n\n"
+	  "@var{elements}.sfncon6.master @dots{} Master mesh defined by six node triangular surface elements.\n\n"
+	  "@var{elements}.sfncon6.maxdist @dots{} Maximum distance between slave nodes and master mesh.\n\n"
+	  "@var{joints} @dots{} Struct array of joint elements, one for each slave node within a distance of\n"
+	  "<@var{maxdist}> from the master mesh.\n\n"
+	  "@seealso{fem_tests}\n\n"
+	  "@end deftypefn\n")
 {
-        octave_value_list retval;
+	octave_value_list retval;
 #if HAVE_NLOPT == 1
-        const octave_idx_type nargin = args.length();
+	const octave_idx_type nargin = args.length();
 
-        if (nargin != 2) {
-                print_usage();
-                return retval;
-        }
+	if (nargin != 2) {
+		print_usage();
+		return retval;
+	}
 
-        const Matrix nodes(args(0).matrix_value());
+	const Matrix nodes(args(0).matrix_value());
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        const octave_scalar_map elements(args(1).scalar_map_value());
+	const octave_scalar_map elements(args(1).scalar_map_value());
 
-        if (error_state) {
-                return retval;
-        }
+	if (error_state) {
+		return retval;
+	}
 
-        try {
-                if (nodes.columns() != 6) {
-                        throw std::runtime_error("invalid number of columns for matrix nodes");
-                }
+	try {
+		if (nodes.columns() != 6) {
+			throw std::runtime_error("invalid number of columns for matrix nodes");
+		}
 
-                array<int32NDArray, DofMap::ELEM_TYPE_COUNT> edof;
-                array<octave_idx_type, DofMap::ELEM_TYPE_COUNT> dofelemid = {0};
+		array<int32NDArray, DofMap::ELEM_TYPE_COUNT> edof;
+		array<octave_idx_type, DofMap::ELEM_TYPE_COUNT> dofelemid = {0};
 
-                vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
+		vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
 
-                rgElemBlocks.reserve(2);
+		rgElemBlocks.reserve(2);
 
-                for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON6; ++k) {
-                        constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
-                        const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
+		for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON8; ++k) {
+			constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
+			const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
 
-                        FEM_ASSERT(oElemType.type == k);
+			FEM_ASSERT(oElemType.type == k);
 
-                        SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks);
-                }
+			SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks);
+		}
 
-                octave_idx_type iNumElem = 0;
+		octave_idx_type iNumElem = 0;
 
-                for (const auto& oElemBlk: rgElemBlocks) {
-                        iNumElem += oElemBlk->iGetNumElem();
-                }
+		for (const auto& oElemBlk: rgElemBlocks) {
+			iNumElem += oElemBlk->iGetNumElem();
+		}
 
-                constexpr size_t nFields = 2;
-                static const char* const rgFields[nFields] = {"C", "nodes"};
-                const string_vector strFields(rgFields, nFields);
+		constexpr size_t nFields = 2;
+		static const char* const rgFields[nFields] = {"C", "nodes"};
+		const string_vector strFields(rgFields, nFields);
 
-                octave_map sElem(dim_vector(1, iNumElem), strFields);
-                octave_idx_type idx = 0;
+		octave_map sElem(dim_vector(1, iNumElem), strFields);
+		octave_idx_type idx = 0;
 
-                for (const auto& oElemBlk: rgElemBlocks) {
-                        oElemBlk->Extract(idx, sElem);
-                }
+		for (const auto& oElemBlk: rgElemBlocks) {
+			oElemBlk->Extract(idx, sElem);
+		}
 
-                sElem.resize(dim_vector(1, idx));
+		sElem.resize(dim_vector(1, idx));
 
-                retval.append(sElem);
-        } catch (const std::exception& err) {
-                error("%s", err.what());
-                return retval;
-        }
+		retval.append(sElem);
+	} catch (const std::exception& err) {
+		error("%s", err.what());
+		return retval;
+	}
 #else
-        error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+	error(SurfToNodeConstrBase::szErrCompileWithNlopt);
 #endif
-        return retval;
+	return retval;
 }
 
 DEFUN_DLD(fem_ass_matrix, args, nargout,
-          "-*- texinfo -*-\n"
-          "@deftypefn {} [@var{varargout}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type})\n"
-          "@deftypefnx {} [@dots{}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type}, @var{load_case})\n"
-          "@deftypefnx {} [@dots{}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type}, @var{load_case}, @var{sol})\n"
-          "@deftypefnx {} [@dots{}, @var{mat_info}] = fem_ass_matrix(@dots{})\n"
-          "@deftypefnx {} [@dots{}, @var{mat_info}, @var{mesh_info}] = fem_ass_matrix(@dots{})\n"
-          "This function is the core of the finite element toolkit.\n\n"
-          "Assemble all global finite element matrices requested in the array @var{matrix_type} and return it in @var{varargout}.\n\n"
-          "@var{mesh} @dots{} Finite element mesh data structure returned from fem_pre_mesh_struct_create or fem_pre_mesh_unstruct_create.\n\n"
-          "@var{dof_map} @dots{} Degree of freedom mapping returned from fem_ass_dof_map.\n\n"
-          "@var{matrix_type} @dots{} Array of integer numbers identifying the matrix type (e.g. FEM_MAT_*, FEM_VEC_*, FEM_SCA_*).\n\n"
-          "@var{load_case} @dots{} Struct Array of loads.\n\n"
-          "@var{sol} @dots{} Finite element solution returned from fem_sol_static, fem_sol_modal or fem_post_cms_expand.\n\n"
-          "@seealso{fem_tests}\n\n"
-          "@end deftypefn\n")
+	  "-*- texinfo -*-\n"
+	  "@deftypefn {} [@var{varargout}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type})\n"
+	  "@deftypefnx {} [@dots{}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type}, @var{load_case})\n"
+	  "@deftypefnx {} [@dots{}] = fem_ass_matrix(@var{mesh}, @var{dof_map}, @var{matrix_type}, @var{load_case}, @var{sol})\n"
+	  "@deftypefnx {} [@dots{}, @var{mat_info}] = fem_ass_matrix(@dots{})\n"
+	  "@deftypefnx {} [@dots{}, @var{mat_info}, @var{mesh_info}] = fem_ass_matrix(@dots{})\n"
+	  "This function is the core of the finite element toolkit.\n\n"
+	  "Assemble all global finite element matrices requested in the array @var{matrix_type} and return it in @var{varargout}.\n\n"
+	  "@var{mesh} @dots{} Finite element mesh data structure returned from fem_pre_mesh_struct_create or fem_pre_mesh_unstruct_create.\n\n"
+	  "@var{dof_map} @dots{} Degree of freedom mapping returned from fem_ass_dof_map.\n\n"
+	  "@var{matrix_type} @dots{} Array of integer numbers identifying the matrix type (e.g. FEM_MAT_*, FEM_VEC_*, FEM_SCA_*).\n\n"
+	  "@var{load_case} @dots{} Struct Array of loads.\n\n"
+	  "@var{sol} @dots{} Finite element solution returned from fem_sol_static, fem_sol_modal or fem_post_cms_expand.\n\n"
+	  "@seealso{fem_tests}\n\n"
+	  "@end deftypefn\n")
 {
-        octave_value_list retval;
+	octave_value_list retval;
 
-        const octave_idx_type nargin = args.length();
+	const octave_idx_type nargin = args.length();
 
-        if (nargin < 3 || nargin > 5)
-        {
-                print_usage();
-                return retval;
-        }
+	if (nargin < 3 || nargin > 5)
+	{
+		print_usage();
+		return retval;
+	}
 
-        try {
-                const octave_scalar_map mesh(args(0).scalar_map_value());
+	try {
+		const octave_scalar_map mesh(args(0).scalar_map_value());
 
-                if (error_state) {
-                        throw std::runtime_error("argument mesh must be a scalar struct");
-                }
+		if (error_state) {
+			throw std::runtime_error("argument mesh must be a scalar struct");
+		}
 
-                const auto it_nodes = mesh.seek("nodes");
+		const auto it_nodes = mesh.seek("nodes");
 
-                if (it_nodes == mesh.end()) {
-                        throw std::runtime_error("missing field mesh.nodes in argument mesh");
-                }
+		if (it_nodes == mesh.end()) {
+			throw std::runtime_error("missing field mesh.nodes in argument mesh");
+		}
 
-                const Matrix nodes(mesh.contents(it_nodes).matrix_value());
+		const Matrix nodes(mesh.contents(it_nodes).matrix_value());
 
-                if (error_state) {
-                        throw std::runtime_error("mesh.nodes must be a real matrix in argument mesh");
-                }
+		if (error_state) {
+			throw std::runtime_error("mesh.nodes must be a real matrix in argument mesh");
+		}
 
-                const auto it_elements = mesh.seek("elements");
+		const auto it_elements = mesh.seek("elements");
 
-                if (it_elements == mesh.end()) {
-                        throw std::runtime_error("missing field mesh.elements in argument mesh");
-                }
+		if (it_elements == mesh.end()) {
+			throw std::runtime_error("missing field mesh.elements in argument mesh");
+		}
 
-                const octave_scalar_map elements(mesh.contents(it_elements).scalar_map_value());
+		const octave_scalar_map elements(mesh.contents(it_elements).scalar_map_value());
 
-                if (error_state) {
-                        throw std::runtime_error("mesh.elements must be a scalar struct in argument mesh");
-                }
+		if (error_state) {
+			throw std::runtime_error("mesh.elements must be a scalar struct in argument mesh");
+		}
 
-                const auto it_materials = mesh.seek("materials");
+		const auto it_materials = mesh.seek("materials");
 
-                if (it_materials == mesh.end()) {
-                        throw std::runtime_error("missing field mesh.materials in argument mesh");
-                }
+		if (it_materials == mesh.end()) {
+			throw std::runtime_error("missing field mesh.materials in argument mesh");
+		}
 
-                const octave_scalar_map materials(mesh.contents(it_materials).scalar_map_value());
+		const octave_scalar_map materials(mesh.contents(it_materials).scalar_map_value());
 
-                if (error_state) {
-                        throw std::runtime_error("mesh.materials must be a scalar struct in argument mesh");
-                }
+		if (error_state) {
+			throw std::runtime_error("mesh.materials must be a scalar struct in argument mesh");
+		}
 
-                const auto it_material_data = mesh.seek("material_data");
+		const auto it_material_data = mesh.seek("material_data");
 
-                if (it_material_data == mesh.end()) {
-                        throw std::runtime_error("missing field mesh.material_data in argument mesh");
-                }
+		if (it_material_data == mesh.end()) {
+			throw std::runtime_error("missing field mesh.material_data in argument mesh");
+		}
 
-                const octave_map material_data(mesh.contents(it_material_data).map_value());
+		const octave_map material_data(mesh.contents(it_material_data).map_value());
 
-                if (error_state) {
-                        throw std::runtime_error("mesh.material_data must be a struct array in argument mesh");
-                }
+		if (error_state) {
+			throw std::runtime_error("mesh.material_data must be a struct array in argument mesh");
+		}
 
-                const octave_scalar_map dof_map(args(1).scalar_map_value());
+		const octave_scalar_map dof_map(args(1).scalar_map_value());
 
-                if (error_state) {
-                        throw std::runtime_error("argument dof_map must be a scalar struct");
-                }
+		if (error_state) {
+			throw std::runtime_error("argument dof_map must be a scalar struct");
+		}
 
-                const int32NDArray matrix_type(args(2).int32_array_value());
+		const int32NDArray matrix_type(args(2).int32_array_value());
 
-                if (error_state) {
-                        throw std::runtime_error("argument matrix_type must be an array of integers");
-                }
+		if (error_state) {
+			throw std::runtime_error("argument matrix_type must be an array of integers");
+		}
 
-                const octave_map load_case(nargin > 3 ? args(3).map_value() : octave_map());
+		const octave_map load_case(nargin > 3 ? args(3).map_value() : octave_map());
 
-                if (error_state) {
-                        throw std::runtime_error("argument load case must be a struct array");
-                }
+		if (error_state) {
+			throw std::runtime_error("argument load case must be a struct array");
+		}
 
-                const octave_scalar_map sol(nargin > 4 ? args(4).scalar_map_value() : octave_scalar_map());
+		const octave_scalar_map sol(nargin > 4 ? args(4).scalar_map_value() : octave_scalar_map());
 
-                if (error_state) {
-                        throw std::runtime_error("argument sol must be scalar struct");
-                }
+		if (error_state) {
+			throw std::runtime_error("argument sol must be scalar struct");
+		}
 
-                if (nodes.columns() != 6) {
-                        throw std::runtime_error("invalid number of columns for matrix mesh.nodes in argument mesh");
-                }
+		if (nodes.columns() != 6) {
+			throw std::runtime_error("invalid number of columns for matrix mesh.nodes in argument mesh");
+		}
 
-                const auto iter_ndof = dof_map.seek("ndof");
+		const auto iter_ndof = dof_map.seek("ndof");
 
-                if (iter_ndof == dof_map.end()) {
-                        throw std::runtime_error("field \"ndof\" not found in argument dof_map");
-                }
+		if (iter_ndof == dof_map.end()) {
+			throw std::runtime_error("field \"ndof\" not found in argument dof_map");
+		}
 
-                const int32NDArray ndof(dof_map.contents(iter_ndof).int32_array_value());
+		const int32NDArray ndof(dof_map.contents(iter_ndof).int32_array_value());
 
-                if (error_state) {
-                        throw std::runtime_error("field dof_map.ndof must be an integer array in argument dof_map");
-                }
-
-                const auto iter_totdof = dof_map.seek("totdof");
-
-                if (iter_totdof == dof_map.end()) {
-                        throw std::runtime_error("field \"totdof\" not found in argument dof_map");
-                }
-
-                const octave_idx_type inumdof = dof_map.contents(iter_totdof).int32_scalar_value();
-
-                if (error_state) {
-                        throw std::runtime_error("field dof_map.totdof must be an scalar integer in argument dof_map");
-                }
+		if (error_state) {
+			throw std::runtime_error("field dof_map.ndof must be an integer array in argument dof_map");
+		}
+
+		const auto iter_totdof = dof_map.seek("totdof");
+
+		if (iter_totdof == dof_map.end()) {
+			throw std::runtime_error("field \"totdof\" not found in argument dof_map");
+		}
+
+		const octave_idx_type inumdof = dof_map.contents(iter_totdof).int32_scalar_value();
+
+		if (error_state) {
+			throw std::runtime_error("field dof_map.totdof must be an scalar integer in argument dof_map");
+		}
 
-                if (ndof.rows() != nodes.rows() || ndof.columns() != nodes.columns()) {
-                        throw std::runtime_error("shape of dof_map.ndof does not match shape of nodes in argument dof_map");
-                }
+		if (ndof.rows() != nodes.rows() || ndof.columns() != nodes.columns()) {
+			throw std::runtime_error("shape of dof_map.ndof does not match shape of nodes in argument dof_map");
+		}
 
-                for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
-                        for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
-                                octave_idx_type idof = ndof(i, j).value();
-                                if (idof > inumdof) {
-                                        throw std::runtime_error("invalid index in matrix dof_map.ndof in argument dof_map");
-                                }
-                        }
-                }
+		for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
+			for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
+				octave_idx_type idof = ndof(i, j).value();
+				if (idof > inumdof) {
+					throw std::runtime_error("invalid index in matrix dof_map.ndof in argument dof_map");
+				}
+			}
+		}
 
-                const auto iter_U = sol.seek("def");
+		const auto iter_U = sol.seek("def");
 
-                const NDArray sol_U = (iter_U != sol.end()) ? sol.contents(iter_U).array_value() : NDArray();
+		const NDArray sol_U = (iter_U != sol.end()) ? sol.contents(iter_U).array_value() : NDArray();
 
-                if (error_state) {
-                        throw std::runtime_error("field sol.def must be an array in argument sol");
-                }
+		if (error_state) {
+			throw std::runtime_error("field sol.def must be an array in argument sol");
+		}
 
-                const auto iter_edof = dof_map.seek("edof");
+		const auto iter_edof = dof_map.seek("edof");
 
-                array<int32NDArray, DofMap::ELEM_TYPE_COUNT> edof;
-                array<octave_idx_type, DofMap::ELEM_TYPE_COUNT> dofelemid = {0};
+		array<int32NDArray, DofMap::ELEM_TYPE_COUNT> edof;
+		array<octave_idx_type, DofMap::ELEM_TYPE_COUNT> dofelemid = {0};
 
-                if (iter_edof != dof_map.end()) {
-                        const octave_scalar_map s_edof(dof_map.contents(iter_edof).scalar_map_value());
+		if (iter_edof != dof_map.end()) {
+			const octave_scalar_map s_edof(dof_map.contents(iter_edof).scalar_map_value());
 
-                        if (error_state) {
-                                throw std::runtime_error("dof_map.edof must be a scalar struct in argument dof_map");
-                        }
+			if (error_state) {
+				throw std::runtime_error("dof_map.edof must be a scalar struct in argument dof_map");
+			}
 
-                        static const struct DofEntries {
-                                DofMap::ElementType type;
-                                char name[7];
-                                octave_idx_type col_min, col_max;
-                        } rgDofEntries[] = {
-                                {DofMap::ELEM_RBE3, "rbe3", 6, 6},
-                                {DofMap::ELEM_JOINT, "joints", 1, -1}
-                        };
+			static const struct DofEntries {
+				DofMap::ElementType type;
+				char name[7];
+				octave_idx_type col_min, col_max;
+			} rgDofEntries[] = {
+				{DofMap::ELEM_RBE3, "rbe3", 6, 6},
+				{DofMap::ELEM_JOINT, "joints", 1, -1}
+			};
 
-                        for (auto k = std::begin(rgDofEntries); k != std::end(rgDofEntries); ++k) {
-                                const auto iter_dof = s_edof.seek(k->name);
+			for (auto k = std::begin(rgDofEntries); k != std::end(rgDofEntries); ++k) {
+				const auto iter_dof = s_edof.seek(k->name);
 
-                                if (iter_dof != s_edof.end()) {
-                                        const int32NDArray a_edof(s_edof.contents(iter_dof).int32_array_value());
+				if (iter_dof != s_edof.end()) {
+					const int32NDArray a_edof(s_edof.contents(iter_dof).int32_array_value());
 
-                                        if (error_state) {
-                                                std::ostringstream os;
-                                                os << "dof_map.edof." << k->name << " must be an integer array in argument dof_map";
-                                                throw std::runtime_error(os.str());
-                                        }
-
-                                        if (a_edof.columns() < k->col_min || (k->col_max > 0 && a_edof.columns() > k->col_max)) {
-                                                std::ostringstream os;
-                                                os << "dof_map.edof." << k->name << " numer of columns = " << a_edof.columns() << " not in range [" << k->col_min << ":" << k->col_max << "] in argument dof_map";
-                                                throw std::runtime_error(os.str());
-                                        }
-
-                                        edof[k->type] = a_edof;
-                                }
-                        }
-                }
-
-                for (auto k = std::begin(edof); k != std::end(edof); ++k) {
-                        for (octave_idx_type j = 0; j < k->columns(); ++j) {
-                                for (octave_idx_type i = 0; i < k->rows(); ++i) {
-                                        if ((*k)(i, j).value() > inumdof) {
-                                                throw std::runtime_error("dof_map.edof dof index out of range in argument dof_map");
-                                        }
-                                }
-                        }
-                }
-
-                const auto iterC = material_data.seek("C");
-                const auto iterRho = material_data.seek("rho");
-                const auto iterAlpha = material_data.seek("alpha");
-                const auto iterBeta = material_data.seek("beta");
-
-                if (iterC == material_data.end()) {
-                        throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
-                }
-
-                if (iterRho == material_data.end()) {
-                        throw std::runtime_error("field \"rho\" not found in mesh.material_data in argument mesh");
-                }
-
-                const Cell cellC = material_data.contents(iterC);
-                const Cell cellRho = material_data.contents(iterRho);
-                const Cell cellAlpha = iterAlpha != material_data.end() ? material_data.contents(iterAlpha) : Cell();
-                const Cell cellBeta = iterBeta != material_data.end() ? material_data.contents(iterBeta) : Cell();
-
-                vector<Material> rgMaterials;
-
-                rgMaterials.reserve(material_data.numel());
-
-                Matrix C(6, 6);
-
-                for (octave_idx_type i = 0; i < material_data.numel(); ++i) {
-                        C = cellC(i).matrix_value();
-
-                        const double rho = cellRho(i).scalar_value();
-
-                        if (error_state) {
-                                throw std::runtime_error("mesh.material_data.rho is not a valid scalar in argument mesh");
-                        }
-
-                        if (C.rows() != 6 || C.columns() != 6) {
-                                throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
-                        }
-
-                        const double alpha = iterAlpha != material_data.end() ? cellAlpha(i).scalar_value() : 0.;
-
-                        if (error_state) {
-                                throw std::runtime_error("mesh.material_data.alpha is not a valid scalar in argument mesh");
-                        }
-
-                        const double beta = iterBeta != material_data.end() ? cellBeta(i).scalar_value() : 0.;
-
-                        if (error_state) {
-                                throw std::runtime_error("mesh.material_data.beta is not a valid scalar in argument mesh");
-                        }
-
-                        rgMaterials.emplace_back(C, rho, alpha, beta);
-                }
-
-                DofMap oDof(ndof, edof, inumdof);
-
-                array<bool, ElementTypes::iGetNumTypes()> rgElemUse;
-
-                std::fill(std::begin(rgElemUse), std::end(rgElemUse), false);
-
-                for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
-                        switch (matrix_type(i).value()) {
-                        case Element::MAT_STIFFNESS:
-                        case Element::MAT_STIFFNESS_SYM:
-                        case Element::MAT_STIFFNESS_SYM_L:
-                                rgElemUse[ElementTypes::ELEM_RBE3] = true;
-                                rgElemUse[ElementTypes::ELEM_JOINT] = true;
-                                rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
-                                rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
-                                // fall through
-                        case Element::MAT_MASS:
-                        case Element::MAT_MASS_SYM:
-                        case Element::MAT_MASS_SYM_L:
-                        case Element::MAT_MASS_LUMPED:
-                        case Element::MAT_DAMPING:
-                        case Element::MAT_DAMPING_SYM:
-                        case Element::MAT_DAMPING_SYM_L:
-                        case Element::SCA_TOT_MASS:
-                        case Element::VEC_INERTIA_M1:
-                        case Element::MAT_INERTIA_J:
-                        case Element::MAT_INERTIA_INV3:
-                        case Element::MAT_INERTIA_INV4:
-                        case Element::MAT_INERTIA_INV5:
-                        case Element::MAT_INERTIA_INV8:
-                        case Element::MAT_INERTIA_INV9:
-                        case Element::MAT_ACCEL_LOAD:
-                        case Element::VEC_STRESS_CAUCH:
-                        case Element::SCA_STRESS_VMIS:
-			        rgElemUse[ElementTypes::ELEM_ISO8] = true;
+					if (error_state) {
+						std::ostringstream os;
+						os << "dof_map.edof." << k->name << " must be an integer array in argument dof_map";
+						throw std::runtime_error(os.str());
+					}
+
+					if (a_edof.columns() < k->col_min || (k->col_max > 0 && a_edof.columns() > k->col_max)) {
+						std::ostringstream os;
+						os << "dof_map.edof." << k->name << " numer of columns = " << a_edof.columns() << " not in range [" << k->col_min << ":" << k->col_max << "] in argument dof_map";
+						throw std::runtime_error(os.str());
+					}
+
+					edof[k->type] = a_edof;
+				}
+			}
+		}
+
+		for (auto k = std::begin(edof); k != std::end(edof); ++k) {
+			for (octave_idx_type j = 0; j < k->columns(); ++j) {
+				for (octave_idx_type i = 0; i < k->rows(); ++i) {
+					if ((*k)(i, j).value() > inumdof) {
+						throw std::runtime_error("dof_map.edof dof index out of range in argument dof_map");
+					}
+				}
+			}
+		}
+
+		const auto iterC = material_data.seek("C");
+		const auto iterRho = material_data.seek("rho");
+		const auto iterAlpha = material_data.seek("alpha");
+		const auto iterBeta = material_data.seek("beta");
+
+		if (iterC == material_data.end()) {
+			throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
+		}
+
+		if (iterRho == material_data.end()) {
+			throw std::runtime_error("field \"rho\" not found in mesh.material_data in argument mesh");
+		}
+
+		const Cell cellC = material_data.contents(iterC);
+		const Cell cellRho = material_data.contents(iterRho);
+		const Cell cellAlpha = iterAlpha != material_data.end() ? material_data.contents(iterAlpha) : Cell();
+		const Cell cellBeta = iterBeta != material_data.end() ? material_data.contents(iterBeta) : Cell();
+
+		vector<Material> rgMaterials;
+
+		rgMaterials.reserve(material_data.numel());
+
+		Matrix C(6, 6);
+
+		for (octave_idx_type i = 0; i < material_data.numel(); ++i) {
+			C = cellC(i).matrix_value();
+
+			const double rho = cellRho(i).scalar_value();
+
+			if (error_state) {
+				throw std::runtime_error("mesh.material_data.rho is not a valid scalar in argument mesh");
+			}
+
+			if (C.rows() != 6 || C.columns() != 6) {
+				throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
+			}
+
+			const double alpha = iterAlpha != material_data.end() ? cellAlpha(i).scalar_value() : 0.;
+
+			if (error_state) {
+				throw std::runtime_error("mesh.material_data.alpha is not a valid scalar in argument mesh");
+			}
+
+			const double beta = iterBeta != material_data.end() ? cellBeta(i).scalar_value() : 0.;
+
+			if (error_state) {
+				throw std::runtime_error("mesh.material_data.beta is not a valid scalar in argument mesh");
+			}
+
+			rgMaterials.emplace_back(C, rho, alpha, beta);
+		}
+
+		DofMap oDof(ndof, edof, inumdof);
+
+		array<bool, ElementTypes::iGetNumTypes()> rgElemUse;
+
+		std::fill(std::begin(rgElemUse), std::end(rgElemUse), false);
+
+		for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
+			switch (matrix_type(i).value()) {
+			case Element::MAT_STIFFNESS:
+			case Element::MAT_STIFFNESS_SYM:
+			case Element::MAT_STIFFNESS_SYM_L:
+				rgElemUse[ElementTypes::ELEM_RBE3] = true;
+				rgElemUse[ElementTypes::ELEM_JOINT] = true;
+				rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
+				rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
+				rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+				// fall through
+			case Element::MAT_MASS:
+			case Element::MAT_MASS_SYM:
+			case Element::MAT_MASS_SYM_L:
+			case Element::MAT_MASS_LUMPED:
+			case Element::MAT_DAMPING:
+			case Element::MAT_DAMPING_SYM:
+			case Element::MAT_DAMPING_SYM_L:
+			case Element::SCA_TOT_MASS:
+			case Element::VEC_INERTIA_M1:
+			case Element::MAT_INERTIA_J:
+			case Element::MAT_INERTIA_INV3:
+			case Element::MAT_INERTIA_INV4:
+			case Element::MAT_INERTIA_INV5:
+			case Element::MAT_INERTIA_INV8:
+			case Element::MAT_INERTIA_INV9:
+			case Element::MAT_ACCEL_LOAD:
+			case Element::VEC_STRESS_CAUCH:
+			case Element::SCA_STRESS_VMIS:
+				rgElemUse[ElementTypes::ELEM_ISO8] = true;
 				rgElemUse[ElementTypes::ELEM_ISO20] = true;
-                                rgElemUse[ElementTypes::ELEM_TET10] = true;
-                                break;
+				rgElemUse[ElementTypes::ELEM_TET10] = true;
+				break;
 
-                        case Element::VEC_LOAD_CONSISTENT:
-                        case Element::VEC_LOAD_LUMPED:
-                                if (load_case.numel() == 0) {
-                                        throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
-                                }
+			case Element::VEC_LOAD_CONSISTENT:
+			case Element::VEC_LOAD_LUMPED:
+				if (load_case.numel() == 0) {
+					throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
+				}
 
-                                rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
-                                rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
-                                rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
-                                rgElemUse[ElementTypes::ELEM_JOINT] = true;
-                                break;
+				rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
+				rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
+				rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+				rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
+				rgElemUse[ElementTypes::ELEM_JOINT] = true;
+				break;
 
-                        default:
-                                throw std::runtime_error("invalid value for argument matrix_type");
-                        }
-                }
+			default:
+				throw std::runtime_error("invalid value for argument matrix_type");
+			}
+		}
 
-                vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
+		vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
 
-                rgElemBlocks.reserve(ElementTypes::iGetNumTypes());
+		rgElemBlocks.reserve(ElementTypes::iGetNumTypes());
 
-                for (octave_idx_type k = 0; k < ElementTypes::iGetNumTypes(); ++k) {
-                        const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
+		for (octave_idx_type k = 0; k < ElementTypes::iGetNumTypes(); ++k) {
+			const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
 
-                        if (!rgElemUse[oElemType.type]) {
-                                continue;
-                        }
+			if (!rgElemUse[oElemType.type]) {
+				continue;
+			}
 
-                        switch (oElemType.type) {
-                        case ElementTypes::ELEM_ISO8:
+			switch (oElemType.type) {
+			case ElementTypes::ELEM_ISO8:
 			case ElementTypes::ELEM_ISO20:
-                        case ElementTypes::ELEM_TET10: {
-                                const auto iter_elem = elements.seek(oElemType.name);
+			case ElementTypes::ELEM_TET10: {
+				const auto iter_elem = elements.seek(oElemType.name);
 
-                                if (iter_elem == elements.end()) {
-                                        continue;
-                                }
+				if (iter_elem == elements.end()) {
+					continue;
+				}
 
-                                const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
+				const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
 
-                                if (error_state) {
-                                        throw std::runtime_error(std::string("mesh.elements.") + oElemType.name
-                                                                 + " must be an array of integers in argument mesh");
-                                }
+				if (error_state) {
+					throw std::runtime_error(std::string("mesh.elements.") + oElemType.name
+								 + " must be an array of integers in argument mesh");
+				}
 
-                                if (elem_nodes.columns() < oElemType.min_nodes) {
-                                        throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
-                                                                 +  " in argument mesh");
-                                }
+				if (elem_nodes.columns() < oElemType.min_nodes) {
+					throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
+								 +  " in argument mesh");
+				}
 
-                                if (oElemType.max_nodes > 0 && elem_nodes.columns() > oElemType.max_nodes) {
-                                        throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
-                                                                 + " in argument mesh");
-                                }
+				if (oElemType.max_nodes > 0 && elem_nodes.columns() > oElemType.max_nodes) {
+					throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
+								 + " in argument mesh");
+				}
 
-                                for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
-                                        for (octave_idx_type i = 0; i < elem_nodes.rows(); ++i) {
-                                                octave_idx_type inode = elem_nodes(i, j);
-                                                if (inode < 1 || inode > nodes.rows()) {
-                                                        throw std::runtime_error(std::string("invalid node index for element type ")
-                                                                                 + oElemType.name + " in argument mesh");
-                                                }
-                                        }
-                                }
+				for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
+					for (octave_idx_type i = 0; i < elem_nodes.rows(); ++i) {
+						octave_idx_type inode = elem_nodes(i, j);
+						if (inode < 1 || inode > nodes.rows()) {
+							throw std::runtime_error(std::string("invalid node index for element type ")
+										 + oElemType.name + " in argument mesh");
+						}
+					}
+				}
 
-                                const auto iter_mat = materials.seek(oElemType.name);
+				const auto iter_mat = materials.seek(oElemType.name);
 
-                                if (iter_mat == materials.end()) {
-                                        throw std::runtime_error("material not defined for all element types in argument mesh");
-                                }
+				if (iter_mat == materials.end()) {
+					throw std::runtime_error("material not defined for all element types in argument mesh");
+				}
 
-                                const int32NDArray elem_mat = materials.contents(iter_mat).int32_array_value();
+				const int32NDArray elem_mat = materials.contents(iter_mat).int32_array_value();
 
-                                if (elem_mat.rows() != elem_nodes.rows()) {
-                                        throw std::runtime_error("invalid number of rows for matrix mesh.materials in argument mesh");
-                                }
+				if (elem_mat.rows() != elem_nodes.rows()) {
+					throw std::runtime_error("invalid number of rows for matrix mesh.materials in argument mesh");
+				}
 
-                                for (octave_idx_type i = 0; i < elem_mat.rows(); ++i) {
-                                        octave_idx_type imaterial = elem_mat(i);
-                                        if (imaterial <= 0 || imaterial > material_data.numel()) {
-                                                throw std::runtime_error("invalid index in matrix mesh.materials in argument mesh");
-                                        }
-                                }
+				for (octave_idx_type i = 0; i < elem_mat.rows(); ++i) {
+					octave_idx_type imaterial = elem_mat(i);
+					if (imaterial <= 0 || imaterial > material_data.numel()) {
+						throw std::runtime_error("invalid index in matrix mesh.materials in argument mesh");
+					}
+				}
 
-                                switch (oElemType.type) {
-                                case ElementTypes::ELEM_ISO8:
-                                        rgElemBlocks.emplace_back(new ElementBlock<Iso8>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
-                                        break;
+				switch (oElemType.type) {
+				case ElementTypes::ELEM_ISO8:
+					rgElemBlocks.emplace_back(new ElementBlock<Iso8>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
+					break;
 
-                                case ElementTypes::ELEM_ISO20:
-                                        rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
-                                        break;
-					
-                                case ElementTypes::ELEM_TET10:
-                                        rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
-                                        break;
+				case ElementTypes::ELEM_ISO20:
+					rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
+					break;
 
-                                default:
-                                        throw std::runtime_error("invalid element type");
-                                }
-                        } break;
-                        case ElementTypes::ELEM_RBE3:
-                        case ElementTypes::ELEM_JOINT: {
-                                const auto iter_elem = elements.seek(oElemType.name);
+				case ElementTypes::ELEM_TET10:
+					rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
+					break;
 
-                                if (iter_elem == elements.end()) {
-                                        continue;
-                                }
+				default:
+					throw std::runtime_error("invalid element type");
+				}
+			} break;
+			case ElementTypes::ELEM_RBE3:
+			case ElementTypes::ELEM_JOINT: {
+				const auto iter_elem = elements.seek(oElemType.name);
 
-                                const octave_map s_elem(elements.contents(iter_elem).map_value());
+				if (iter_elem == elements.end()) {
+					continue;
+				}
 
-                                if (error_state) {
-                                        throw std::runtime_error("mesh.elements.rbe3 must be an struct array in argument mesh");
-                                }
+				const octave_map s_elem(elements.contents(iter_elem).map_value());
 
-                                const auto iter_nodes = s_elem.seek("nodes");
+				if (error_state) {
+					throw std::runtime_error("mesh.elements.rbe3 must be an struct array in argument mesh");
+				}
 
-                                if (iter_nodes == s_elem.end()) {
-                                        throw std::runtime_error("missing field mesh.elements.rbe3.nodes in argument mesh");
-                                }
+				const auto iter_nodes = s_elem.seek("nodes");
 
-                                const Cell ov_nodes(s_elem.contents(iter_nodes));
+				if (iter_nodes == s_elem.end()) {
+					throw std::runtime_error("missing field mesh.elements.rbe3.nodes in argument mesh");
+				}
 
-                                FEM_ASSERT(ov_nodes.numel() == s_elem.numel());
+				const Cell ov_nodes(s_elem.contents(iter_nodes));
 
-                                Cell ov_C;
+				FEM_ASSERT(ov_nodes.numel() == s_elem.numel());
 
-                                if (oElemType.type == ElementTypes::ELEM_JOINT) {
-                                        const auto iter_C = s_elem.seek("C");
+				Cell ov_C;
 
-                                        if (iter_C == s_elem.end()) {
-                                                throw std::runtime_error("missing field mesh.elements.joints.C in argument mesh");
-                                        }
+				if (oElemType.type == ElementTypes::ELEM_JOINT) {
+					const auto iter_C = s_elem.seek("C");
 
-                                        ov_C = s_elem.contents(iter_C);
+					if (iter_C == s_elem.end()) {
+						throw std::runtime_error("missing field mesh.elements.joints.C in argument mesh");
+					}
 
-                                        FEM_ASSERT(ov_C.numel() == s_elem.numel());
-                                }
+					ov_C = s_elem.contents(iter_C);
 
-                                Cell ov_weight;
+					FEM_ASSERT(ov_C.numel() == s_elem.numel());
+				}
 
-                                if (oElemType.type == ElementTypes::ELEM_RBE3) {
-                                        const auto iter_weight = s_elem.seek("weight");
+				Cell ov_weight;
 
-                                        if (iter_weight != s_elem.end()) {
-                                                ov_weight = s_elem.contents(iter_weight);
+				if (oElemType.type == ElementTypes::ELEM_RBE3) {
+					const auto iter_weight = s_elem.seek("weight");
 
-                                                FEM_ASSERT(ov_weight.numel() == s_elem.numel());
-                                        }
-                                }
+					if (iter_weight != s_elem.end()) {
+						ov_weight = s_elem.contents(iter_weight);
 
-                                std::unique_ptr<ElementBlockBase> pElem;
+						FEM_ASSERT(ov_weight.numel() == s_elem.numel());
+					}
+				}
 
-                                switch (oElemType.type) {
-                                case ElementTypes::ELEM_RBE3:
-                                        pElem.reset(new ElementBlock<ElemRBE3>(oElemType.type, s_elem.numel()));
-                                        break;
-                                case ElementTypes::ELEM_JOINT:
-                                        pElem.reset(new ElementBlock<ElemJoint>(oElemType.type, s_elem.numel()));
-                                        break;
-                                default:
-                                        FEM_ASSERT(false);
-                                }
+				std::unique_ptr<ElementBlockBase> pElem;
 
-                                for (octave_idx_type i = 0; i < s_elem.numel(); ++i) {
-                                        const int32NDArray elem_nodes(ov_nodes(i).int32_array_value());
+				switch (oElemType.type) {
+				case ElementTypes::ELEM_RBE3:
+					pElem.reset(new ElementBlock<ElemRBE3>(oElemType.type, s_elem.numel()));
+					break;
+				case ElementTypes::ELEM_JOINT:
+					pElem.reset(new ElementBlock<ElemJoint>(oElemType.type, s_elem.numel()));
+					break;
+				default:
+					FEM_ASSERT(false);
+				}
 
-                                        if (error_state) {
-                                                throw std::runtime_error("mesh.elements.rbe3.nodes must be an array of integers in argument mesh");
-                                        }
+				for (octave_idx_type i = 0; i < s_elem.numel(); ++i) {
+					const int32NDArray elem_nodes(ov_nodes(i).int32_array_value());
 
-                                        if (elem_nodes.columns() < oElemType.min_nodes) {
-                                                throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name + " in argument mesh");
-                                        }
+					if (error_state) {
+						throw std::runtime_error("mesh.elements.rbe3.nodes must be an array of integers in argument mesh");
+					}
 
-                                        if (elem_nodes.rows() != 1) {
-                                                throw std::runtime_error(std::string("invalid number of rows in node matrix for element type ") + oElemType.name + " in argument mesh");
-                                        }
+					if (elem_nodes.columns() < oElemType.min_nodes) {
+						throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name + " in argument mesh");
+					}
 
-                                        for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
-                                                octave_idx_type inode = elem_nodes(j);
+					if (elem_nodes.rows() != 1) {
+						throw std::runtime_error(std::string("invalid number of rows in node matrix for element type ") + oElemType.name + " in argument mesh");
+					}
 
-                                                if (inode < 1 || inode > nodes.rows()) {
-                                                        throw std::runtime_error(std::string("invalid node index for element type ") + oElemType.name + " in argument mesh");
-                                                }
-                                        }
+					for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
+						octave_idx_type inode = elem_nodes(j);
 
-                                        Matrix X(6, elem_nodes.columns());
+						if (inode < 1 || inode > nodes.rows()) {
+							throw std::runtime_error(std::string("invalid node index for element type ") + oElemType.name + " in argument mesh");
+						}
+					}
 
-                                        for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
-                                                for (octave_idx_type k = 0; k < X.rows(); ++k) {
-                                                        X.xelem(k, j) = nodes.xelem(elem_nodes(j).value() - 1, k);
-                                                }
-                                        }
+					Matrix X(6, elem_nodes.columns());
 
-                                        switch (oElemType.type) {
-                                        case ElementTypes::ELEM_RBE3: {
-                                                RowVector weight;
+					for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
+						for (octave_idx_type k = 0; k < X.rows(); ++k) {
+							X.xelem(k, j) = nodes.xelem(elem_nodes(j).value() - 1, k);
+						}
+					}
 
-                                                if (ov_weight.numel() > i) {
-                                                        weight = ov_weight(i).row_vector_value();
+					switch (oElemType.type) {
+					case ElementTypes::ELEM_RBE3: {
+						RowVector weight;
 
-                                                        if (error_state) {
-                                                                throw std::runtime_error("mesh.elements.rbe3.weight must be a row vector in argument mesh");
-                                                        }
-                                                } else {
-                                                        weight.resize(elem_nodes.numel(), 1.);
-                                                }
+						if (ov_weight.numel() > i) {
+							weight = ov_weight(i).row_vector_value();
 
-                                                if (weight.numel() != elem_nodes.numel() - 1) {
-                                                        throw std::runtime_error("numel(mesh.elements.rbe3.weight) does not match numel(mesh.elements.rbe3.nodes) - 1 in argument mesh");
-                                                }
+							if (error_state) {
+								throw std::runtime_error("mesh.elements.rbe3.weight must be a row vector in argument mesh");
+							}
+						} else {
+							weight.resize(elem_nodes.numel(), 1.);
+						}
 
-                                                pElem->Insert<ElemRBE3>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, weight);
-                                        } break;
-                                        case ElementTypes::ELEM_JOINT: {
-                                                const Matrix C(ov_C(i).matrix_value());
+						if (weight.numel() != elem_nodes.numel() - 1) {
+							throw std::runtime_error("numel(mesh.elements.rbe3.weight) does not match numel(mesh.elements.rbe3.nodes) - 1 in argument mesh");
+						}
 
-                                                if (error_state) {
-                                                        throw std::runtime_error("mesh.elements.joints.C must be a real matrix in argument mesh");
-                                                }
+						pElem->Insert<ElemRBE3>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, weight);
+					} break;
+					case ElementTypes::ELEM_JOINT: {
+						const Matrix C(ov_C(i).matrix_value());
 
-                                                if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != 6 * elem_nodes.columns() || C.rows() > C.columns()) {
-                                                        throw std::runtime_error("invalid size for field elements.joints.C");
-                                                }
+						if (error_state) {
+							throw std::runtime_error("mesh.elements.joints.C must be a real matrix in argument mesh");
+						}
 
-                                                Matrix U(C.rows(), load_case.numel(), 0.); // By default displacement is set to zero
+						if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != 6 * elem_nodes.columns() || C.rows() > C.columns()) {
+							throw std::runtime_error("invalid size for field elements.joints.C");
+						}
 
-                                                const auto iter_joints = load_case.seek("joints");
+						Matrix U(C.rows(), load_case.numel(), 0.); // By default displacement is set to zero
 
-                                                if (iter_joints != load_case.end()) {
-                                                        const Cell ov_joints = load_case.contents(iter_joints);
+						const auto iter_joints = load_case.seek("joints");
 
-                                                        for (octave_idx_type k = 0; k < load_case.numel(); ++k) {
-                                                                if (ov_joints(k).isempty()) {
-                                                                        continue;
-                                                                }
-                                                                
-                                                                const octave_map s_joints(ov_joints(k).map_value());
+						if (iter_joints != load_case.end()) {
+							const Cell ov_joints = load_case.contents(iter_joints);
 
-                                                                if (error_state) {
-                                                                        throw std::runtime_error("load_case.joints must be an struct array in argument load_case");
-                                                                }
+							for (octave_idx_type k = 0; k < load_case.numel(); ++k) {
+								if (ov_joints(k).isempty()) {
+									continue;
+								}
 
-                                                                const auto iter_U = s_joints.seek("U");
+								const octave_map s_joints(ov_joints(k).map_value());
 
-                                                                if (iter_U == s_elem.end()) {
-                                                                        throw std::runtime_error("missing field load_case.joints.U in argument load case");
-                                                                }
+								if (error_state) {
+									throw std::runtime_error("load_case.joints must be an struct array in argument load_case");
+								}
 
-                                                                const Cell ov_U(s_joints.contents(iter_U));
+								const auto iter_U = s_joints.seek("U");
 
-                                                                if (ov_U.numel() != s_elem.numel()) {
-                                                                        throw std::runtime_error("load_case.joints must have the same size like mesh.elements.joints in argument load case");
-                                                                }
+								if (iter_U == s_elem.end()) {
+									throw std::runtime_error("missing field load_case.joints.U in argument load case");
+								}
 
-                                                                const ColumnVector Uk(ov_U(i).column_vector_value());
+								const Cell ov_U(s_joints.contents(iter_U));
 
-                                                                if (error_state || Uk.rows() != C.rows()) {
-                                                                        throw std::runtime_error("load_case.joints.U must be a real column vector of the same number of rows like mesh.elements.joints.C in argument load_case");
-                                                                }
+								if (ov_U.numel() != s_elem.numel()) {
+									throw std::runtime_error("load_case.joints must have the same size like mesh.elements.joints in argument load case");
+								}
 
-                                                                for (octave_idx_type l = 0; l < C.rows(); ++l) {
-                                                                        U.xelem(l, k) = Uk.xelem(l);
-                                                                }
-                                                        }
-                                                }
+								const ColumnVector Uk(ov_U(i).column_vector_value());
 
-                                                pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U);
-                                        } break;
-                                        default:
-                                                FEM_ASSERT(false);
-                                        }
-                                }
+								if (error_state || Uk.rows() != C.rows()) {
+									throw std::runtime_error("load_case.joints.U must be a real column vector of the same number of rows like mesh.elements.joints.C in argument load_case");
+								}
 
-                                if (dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
-                                        throw std::runtime_error("dof_map.edof is not consistent with elements in argument dof_map");
-                                }
+								for (octave_idx_type l = 0; l < C.rows(); ++l) {
+									U.xelem(l, k) = Uk.xelem(l);
+								}
+							}
+						}
 
-                                rgElemBlocks.emplace_back(std::move(pElem));
-                        } break;
-                        case ElementTypes::ELEM_SFNCON4:
-                        case ElementTypes::ELEM_SFNCON6: {
+						pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U);
+					} break;
+					default:
+						FEM_ASSERT(false);
+					}
+				}
+
+				if (dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
+					throw std::runtime_error("dof_map.edof is not consistent with elements in argument dof_map");
+				}
+
+				rgElemBlocks.emplace_back(std::move(pElem));
+			} break;
+			case ElementTypes::ELEM_SFNCON4:
+			case ElementTypes::ELEM_SFNCON6:
+			case ElementTypes::ELEM_SFNCON8: {
 #if HAVE_NLOPT == 1
-                                constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
-                                SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks);
+				constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
+				SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks);
 #else
-                                throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+				throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
 #endif
-                        } break;
-                        case ElementTypes::ELEM_PRESSURE_ISO4:
-                                InsertPressureElem<PressureLoadIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
-                                break;
-                        case ElementTypes::ELEM_PRESSURE_TRIA6:
-                                InsertPressureElem<PressureLoadTria6>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
-                                break;
-                        case ElementTypes::ELEM_STRUCT_FORCE: {
-                                const auto iter_loads = load_case.seek("loads");
-                                const auto iter_loaded_nodes = load_case.seek("loaded_nodes");
+			} break;
+			case ElementTypes::ELEM_PRESSURE_ISO4:
+				InsertPressureElem<PressureLoadIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+				break;
+			case ElementTypes::ELEM_PRESSURE_QUAD8:
+				InsertPressureElem<PressureLoadQuad8>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+				break;				
+			case ElementTypes::ELEM_PRESSURE_TRIA6:
+				InsertPressureElem<PressureLoadTria6>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+				break;
+			case ElementTypes::ELEM_STRUCT_FORCE: {
+				const auto iter_loads = load_case.seek("loads");
+				const auto iter_loaded_nodes = load_case.seek("loaded_nodes");
 
-                                if (iter_loads != load_case.end() && iter_loaded_nodes != load_case.end()) {
-                                        const Cell cell_loads = load_case.contents(iter_loads);
-                                        const Cell cell_loaded_nodes = load_case.contents(iter_loaded_nodes);
+				if (iter_loads != load_case.end() && iter_loaded_nodes != load_case.end()) {
+					const Cell cell_loads = load_case.contents(iter_loads);
+					const Cell cell_loaded_nodes = load_case.contents(iter_loaded_nodes);
 
-                                        FEM_ASSERT(cell_loads.numel() == cell_loaded_nodes.numel());
-                                        FEM_ASSERT(cell_loads.numel() == load_case.numel());
+					FEM_ASSERT(cell_loads.numel() == cell_loaded_nodes.numel());
+					FEM_ASSERT(cell_loads.numel() == load_case.numel());
 
-                                        octave_idx_type iNumForces = 0;
+					octave_idx_type iNumForces = 0;
 
-                                        for (octave_idx_type i = 0; i < cell_loads.numel(); ++i) {
-                                                if (cell_loads(i).numel()) {
-                                                        ++iNumForces;
-                                                }
-                                        }
+					for (octave_idx_type i = 0; i < cell_loads.numel(); ++i) {
+						if (cell_loads(i).numel()) {
+							++iNumForces;
+						}
+					}
 
-                                        if (iNumForces) {
-                                                std::unique_ptr<ElementBlock<StructForce> > pElem(new ElementBlock<StructForce>(oElemType.type, iNumForces));
+					if (iNumForces) {
+						std::unique_ptr<ElementBlock<StructForce> > pElem(new ElementBlock<StructForce>(oElemType.type, iNumForces));
 
-                                                for (octave_idx_type i = 0; i < cell_loads.numel(); ++i) {
-                                                        if (cell_loads(i).numel()) {
-                                                                const Matrix loads = cell_loads(i).matrix_value();
+						for (octave_idx_type i = 0; i < cell_loads.numel(); ++i) {
+							if (cell_loads(i).numel()) {
+								const Matrix loads = cell_loads(i).matrix_value();
 
-                                                                if (error_state) {
-                                                                        throw std::runtime_error("field load_case.loads must be a real matrix in argument load_case");
-                                                                }
+								if (error_state) {
+									throw std::runtime_error("field load_case.loads must be a real matrix in argument load_case");
+								}
 
-                                                                if (loads.columns() != 3 && loads.columns() != 6) {
-                                                                        throw std::runtime_error("load_case.loads must be a n x 3 or n x 6 matrix in argument load_case");
-                                                                }
+								if (loads.columns() != 3 && loads.columns() != 6) {
+									throw std::runtime_error("load_case.loads must be a n x 3 or n x 6 matrix in argument load_case");
+								}
 
-                                                                const int32NDArray loaded_nodes = cell_loaded_nodes(i).int32_array_value();
+								const int32NDArray loaded_nodes = cell_loaded_nodes(i).int32_array_value();
 
-                                                                if (error_state) {
-                                                                        throw std::runtime_error("field load_case.loaded_nodes must be an integer matrix in argument load_case");
-                                                                }
+								if (error_state) {
+									throw std::runtime_error("field load_case.loaded_nodes must be an integer matrix in argument load_case");
+								}
 
-                                                                if (loaded_nodes.columns() != 1 || loaded_nodes.rows() != loads.rows()) {
-                                                                        throw std::runtime_error("load_case.loaded_nodes must be a column vector with the same number of rows like load_case.loads");
-                                                                }
+								if (loaded_nodes.columns() != 1 || loaded_nodes.rows() != loads.rows()) {
+									throw std::runtime_error("load_case.loaded_nodes must be a column vector with the same number of rows like load_case.loads");
+								}
 
-                                                                Matrix X(3, loaded_nodes.rows());
+								Matrix X(3, loaded_nodes.rows());
 
-                                                                for (octave_idx_type l = 0; l < X.columns(); ++l) {
-                                                                        for (octave_idx_type m = 0; m < X.rows(); ++m) {
-                                                                                octave_idx_type inode = loaded_nodes(l).value() - 1;
+								for (octave_idx_type l = 0; l < X.columns(); ++l) {
+									for (octave_idx_type m = 0; m < X.rows(); ++m) {
+										octave_idx_type inode = loaded_nodes(l).value() - 1;
 
-                                                                                if (inode < 0 || inode >= nodes.rows()) {
-                                                                                        throw std::runtime_error("node index out of range in load_case.pressure.elements in argument load_case");
-                                                                                }
+										if (inode < 0 || inode >= nodes.rows()) {
+											throw std::runtime_error("node index out of range in load_case.pressure.elements in argument load_case");
+										}
 
-                                                                                X.xelem(m, l) = nodes.xelem(inode, m);
-                                                                        }
-                                                                }
+										X.xelem(m, l) = nodes.xelem(inode, m);
+									}
+								}
 
-                                                                pElem->Insert(i + 1, X, nullptr, loaded_nodes, i + 1, loads);
-                                                        }
-                                                }
+								pElem->Insert(i + 1, X, nullptr, loaded_nodes, i + 1, loads);
+							}
+						}
 
-                                                rgElemBlocks.emplace_back(std::move(pElem));
-                                        }
-                                }
-                        } break;
-                        default:
-                                FEM_ASSERT(false);
-                        }
-                }
+						rgElemBlocks.emplace_back(std::move(pElem));
+					}
+				}
+			} break;
+			default:
+				FEM_ASSERT(false);
+			}
+		}
 
-                for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
-                        const auto eDofType = ElementTypes::GetType(j).dof_type;
-                        if (rgElemUse[j] &&
-                            eDofType != DofMap::ELEM_NODOF &&
-                            dofelemid[eDofType] != edof[eDofType].rows()) {
-                                throw std::runtime_error("dof_map.edof is not consistent with mesh.elements in argument dof_map");
-                        }
-                }
+		for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+			const auto eDofType = ElementTypes::GetType(j).dof_type;
+			if (rgElemUse[j] &&
+			    eDofType != DofMap::ELEM_NODOF &&
+			    dofelemid[eDofType] != edof[eDofType].rows()) {
+				throw std::runtime_error("dof_map.edof is not consistent with mesh.elements in argument dof_map");
+			}
+		}
 
-                octave_idx_type iMaxWorkSpaceSize = 0;
+		octave_idx_type iMaxWorkSpaceSize = 0;
 
-                for (octave_idx_type j = 0; j < matrix_type.numel(); ++j) {
-                        const Element::MatrixType eMatType = static_cast<Element::MatrixType>(matrix_type(j).value());
-                        octave_idx_type iWorkSpaceSize = 0;
+		for (octave_idx_type j = 0; j < matrix_type.numel(); ++j) {
+			const Element::MatrixType eMatType = static_cast<Element::MatrixType>(matrix_type(j).value());
+			octave_idx_type iWorkSpaceSize = 0;
 
-                        for (auto i = rgElemBlocks.cbegin(); i != rgElemBlocks.cend(); ++i) {
-                                iWorkSpaceSize += (*i)->iGetWorkSpaceSize(eMatType);
-                        }
+			for (auto i = rgElemBlocks.cbegin(); i != rgElemBlocks.cend(); ++i) {
+				iWorkSpaceSize += (*i)->iGetWorkSpaceSize(eMatType);
+			}
 
-                        iMaxWorkSpaceSize = std::max(iMaxWorkSpaceSize, iWorkSpaceSize);
-                }
+			iMaxWorkSpaceSize = std::max(iMaxWorkSpaceSize, iWorkSpaceSize);
+		}
 
-                MatrixAss oMatAss(iMaxWorkSpaceSize);
-                MeshInfo oMeshInfo;
-                MatrixAss::MatrixInfo oMatInfo;
-                bool bMatInfo = false;
+		MatrixAss oMatAss(iMaxWorkSpaceSize);
+		MeshInfo oMeshInfo;
+		MatrixAss::MatrixInfo oMatInfo;
+		bool bMatInfo = false;
 
-                for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
-                        const Element::MatrixType eMatType = static_cast<Element::MatrixType>(matrix_type.xelem(i).value());
+		for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
+			const Element::MatrixType eMatType = static_cast<Element::MatrixType>(matrix_type.xelem(i).value());
 
-                        switch (eMatType) {
-                        case Element::MAT_STIFFNESS:
-                        case Element::MAT_STIFFNESS_SYM:
-                        case Element::MAT_STIFFNESS_SYM_L:
-                        case Element::MAT_MASS:
-                        case Element::MAT_MASS_SYM:
-                        case Element::MAT_MASS_SYM_L:
-                        case Element::MAT_MASS_LUMPED:
-                        case Element::MAT_DAMPING:
-                        case Element::MAT_DAMPING_SYM:
-                        case Element::MAT_DAMPING_SYM_L:
-                        case Element::VEC_LOAD_CONSISTENT:
-                        case Element::VEC_LOAD_LUMPED:
-                        case Element::MAT_ACCEL_LOAD: {
-                                oMatAss.Reset(eMatType, oMatInfo);
+			switch (eMatType) {
+			case Element::MAT_STIFFNESS:
+			case Element::MAT_STIFFNESS_SYM:
+			case Element::MAT_STIFFNESS_SYM_L:
+			case Element::MAT_MASS:
+			case Element::MAT_MASS_SYM:
+			case Element::MAT_MASS_SYM_L:
+			case Element::MAT_MASS_LUMPED:
+			case Element::MAT_DAMPING:
+			case Element::MAT_DAMPING_SYM:
+			case Element::MAT_DAMPING_SYM_L:
+			case Element::VEC_LOAD_CONSISTENT:
+			case Element::VEC_LOAD_LUMPED:
+			case Element::MAT_ACCEL_LOAD: {
+				oMatAss.Reset(eMatType, oMatInfo);
 
-                                for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                                        const bool bNeedMatInfo = (*j)->bNeedMatrixInfo(eMatType);
+				for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
+					const bool bNeedMatInfo = (*j)->bNeedMatrixInfo(eMatType);
 
-                                        if (!bMatInfo && bNeedMatInfo) {
-                                                oMatAss.UpdateMatrixInfo();
-                                                oMatInfo = oMatAss.GetMatrixInfo();
-                                                bMatInfo = true;
-                                        }
+					if (!bMatInfo && bNeedMatInfo) {
+						oMatAss.UpdateMatrixInfo();
+						oMatInfo = oMatAss.GetMatrixInfo();
+						bMatInfo = true;
+					}
 
-                                        FEM_TRACE("i=" << i << " beta=" << oMatInfo.beta << "\nalpha=" << oMatInfo.alpha << "\n");
+					FEM_TRACE("i=" << i << " beta=" << oMatInfo.beta << "\nalpha=" << oMatInfo.alpha << "\n");
 
-                                        (*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
-                                }
+					(*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+				}
 
-                                oMatAss.Finish();
-                                retval.append(oMatAss.Assemble(oDof, load_case.numel()));
-                        } break;
-                        case Element::SCA_TOT_MASS: {
-                                double dMass = 0.;
+				oMatAss.Finish();
+				retval.append(oMatAss.Assemble(oDof, load_case.numel()));
+			} break;
+			case Element::SCA_TOT_MASS: {
+				double dMass = 0.;
 
-                                for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                                        dMass += (*j)->dGetMass();
-                                }
+				for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
+					dMass += (*j)->dGetMass();
+				}
 
-                                retval.append(dMass);
-                        } break;
-                        case Element::VEC_INERTIA_M1:
-                        case Element::MAT_INERTIA_J:
-                        case Element::MAT_INERTIA_INV3:
-                        case Element::MAT_INERTIA_INV4:
-                        case Element::MAT_INERTIA_INV5:
-                        case Element::MAT_INERTIA_INV8:
-                        case Element::MAT_INERTIA_INV9: {
-                                const octave_idx_type iNumModes = sol_U.ndims() == 3 ? sol_U.dim3() : 0;
-                                bool bNeedSolution = false;
-                                dim_vector mat_dim;
+				retval.append(dMass);
+			} break;
+			case Element::VEC_INERTIA_M1:
+			case Element::MAT_INERTIA_J:
+			case Element::MAT_INERTIA_INV3:
+			case Element::MAT_INERTIA_INV4:
+			case Element::MAT_INERTIA_INV5:
+			case Element::MAT_INERTIA_INV8:
+			case Element::MAT_INERTIA_INV9: {
+				const octave_idx_type iNumModes = sol_U.ndims() == 3 ? sol_U.dim3() : 0;
+				bool bNeedSolution = false;
+				dim_vector mat_dim;
 
-                                switch (eMatType) {
-                                case Element::VEC_INERTIA_M1:
-                                        mat_dim = dim_vector(3, 1);
-                                        break;
+				switch (eMatType) {
+				case Element::VEC_INERTIA_M1:
+					mat_dim = dim_vector(3, 1);
+					break;
 
-                                case Element::MAT_INERTIA_J:
-                                        mat_dim = dim_vector(3, 3);
-                                        break;
+				case Element::MAT_INERTIA_J:
+					mat_dim = dim_vector(3, 3);
+					break;
 
-                                case Element::MAT_INERTIA_INV3:
-                                case Element::MAT_INERTIA_INV4:
-                                        mat_dim = dim_vector(3, iNumModes);
-                                        bNeedSolution = true;
-                                        break;
+				case Element::MAT_INERTIA_INV3:
+				case Element::MAT_INERTIA_INV4:
+					mat_dim = dim_vector(3, iNumModes);
+					bNeedSolution = true;
+					break;
 
-                                case Element::MAT_INERTIA_INV5:
-                                        mat_dim = dim_vector(3, iNumModes, iNumModes);
-                                        bNeedSolution = true;
-                                        break;
+				case Element::MAT_INERTIA_INV5:
+					mat_dim = dim_vector(3, iNumModes, iNumModes);
+					bNeedSolution = true;
+					break;
 
-                                case Element::MAT_INERTIA_INV8:
-                                        mat_dim = dim_vector(3, 3, iNumModes);
-                                        bNeedSolution = true;
-                                        break;
+				case Element::MAT_INERTIA_INV8:
+					mat_dim = dim_vector(3, 3, iNumModes);
+					bNeedSolution = true;
+					break;
 
-                                case Element::MAT_INERTIA_INV9:
-                                        mat_dim = dim_vector(3, 3, iNumModes, iNumModes);
-                                        bNeedSolution = true;
-                                        break;
-                                default:
-                                        FEM_ASSERT(false);
-                                }
+				case Element::MAT_INERTIA_INV9:
+					mat_dim = dim_vector(3, 3, iNumModes, iNumModes);
+					bNeedSolution = true;
+					break;
+				default:
+					FEM_ASSERT(false);
+				}
 
-                                if (bNeedSolution) {
-                                        if (nargin <= 4) {
-                                                throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
-                                        }
+				if (bNeedSolution) {
+					if (nargin <= 4) {
+						throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
+					}
 
-                                        if (sol_U.rows() != nodes.rows() || sol_U.columns() != nodes.columns()) {
-                                                throw std::runtime_error("dimensions of argument sol.def does not match dimension of mesh.nodes in argument mesh");
-                                        }
+					if (sol_U.rows() != nodes.rows() || sol_U.columns() != nodes.columns()) {
+						throw std::runtime_error("dimensions of argument sol.def does not match dimension of mesh.nodes in argument mesh");
+					}
 
-                                        if (sol_U.ndims() != 3) {
-                                                throw std::runtime_error("sol.def must be a three dimensional array in argument sol");
-                                        }
-                                }
+					if (sol_U.ndims() != 3) {
+						throw std::runtime_error("sol.def must be a three dimensional array in argument sol");
+					}
+				}
 
-                                NDArray mat(mat_dim, 0.);
+				NDArray mat(mat_dim, 0.);
 
-                                for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                                        (*j)->PostProcElem(mat, eMatType, sol_U);
-                                }
+				for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
+					(*j)->PostProcElem(mat, eMatType, sol_U);
+				}
 
-                                switch (eMatType) {
-                                case Element::MAT_INERTIA_J:
-                                        FEM_ASSERT(mat.ndims() == 2);
-                                        FEM_ASSERT(mat.rows() == 3);
-                                        FEM_ASSERT(mat.columns() == 3);
+				switch (eMatType) {
+				case Element::MAT_INERTIA_J:
+					FEM_ASSERT(mat.ndims() == 2);
+					FEM_ASSERT(mat.rows() == 3);
+					FEM_ASSERT(mat.columns() == 3);
 
-                                        for (octave_idx_type i = 1; i < mat.rows(); ++i) {
-                                                for (octave_idx_type j = 0; j < i; ++j) {
-                                                        mat.xelem(i, j) = mat.xelem(j, i);
-                                                }
-                                        }
-                                        break;
+					for (octave_idx_type i = 1; i < mat.rows(); ++i) {
+						for (octave_idx_type j = 0; j < i; ++j) {
+							mat.xelem(i, j) = mat.xelem(j, i);
+						}
+					}
+					break;
 
-                                default:
-                                        break;
-                                }
+				default:
+					break;
+				}
 
-                                retval.append(mat);
-                        } break;
-                        case Element::VEC_STRESS_CAUCH:
-                        case Element::SCA_STRESS_VMIS: {
-                                if (nargin <= 4) {
-                                        throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
-                                }
+				retval.append(mat);
+			} break;
+			case Element::VEC_STRESS_CAUCH:
+			case Element::SCA_STRESS_VMIS: {
+				if (nargin <= 4) {
+					throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
+				}
 
-                                if (sol_U.rows() != nodes.rows() || sol_U.columns() != nodes.columns()) {
-                                        throw std::runtime_error("dimensions of argument sol.def does not match dimension of mesh.nodes in argument mesh");
-                                }
+				if (sol_U.rows() != nodes.rows() || sol_U.columns() != nodes.columns()) {
+					throw std::runtime_error("dimensions of argument sol.def does not match dimension of mesh.nodes in argument mesh");
+				}
 
-                                if (sol_U.ndims() < 2) {
-                                        throw std::runtime_error("sol.def must be a three dimensional array in argument sol");
-                                }
+				if (sol_U.ndims() < 2) {
+					throw std::runtime_error("sol.def must be a three dimensional array in argument sol");
+				}
 
-                                constexpr octave_idx_type iNumStress = 6;
-                                const octave_idx_type iNumLoads = sol_U.ndims() >= 3 ? sol_U.dim3() : 1;
+				constexpr octave_idx_type iNumStress = 6;
+				const octave_idx_type iNumLoads = sol_U.ndims() >= 3 ? sol_U.dim3() : 1;
 
-                                octave_scalar_map s_tau, s_taum, s_vmis;
+				octave_scalar_map s_tau, s_taum, s_vmis;
 
-                                for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
-                                        const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
+				for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+					const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
 
-                                        if (!rgElemUse[oElemType.type]) {
-                                                continue;
-                                        }
+					if (!rgElemUse[oElemType.type]) {
+						continue;
+					}
 
-                                        switch (oElemType.type) {
-                                        case ElementTypes::ELEM_ISO8:
+					switch (oElemType.type) {
+					case ElementTypes::ELEM_ISO8:
 					case ElementTypes::ELEM_ISO20:
-                                        case ElementTypes::ELEM_TET10: {
-                                                const auto iter_elem = elements.seek(oElemType.name);
+					case ElementTypes::ELEM_TET10: {
+						const auto iter_elem = elements.seek(oElemType.name);
 
-                                                if (iter_elem == elements.end()) {
-                                                        continue;
-                                                }
+						if (iter_elem == elements.end()) {
+							continue;
+						}
 
-                                                const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
+						const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
 
-                                                NDArray tau(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.);
+						NDArray tau(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.);
 
-                                                for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
-                                                        if ((*k)->GetElementType() == oElemType.type) {
-                                                                (*k)->PostProcElem(tau, Element::VEC_STRESS_CAUCH, sol_U);
-                                                        }
-                                                }
+						for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
+							if ((*k)->GetElementType() == oElemType.type) {
+								(*k)->PostProcElem(tau, Element::VEC_STRESS_CAUCH, sol_U);
+							}
+						}
 
-                                                int32NDArray itaun(dim_vector(nodes.rows(), 1), 0);
+						int32NDArray itaun(dim_vector(nodes.rows(), 1), 0);
 
-                                                for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                                        for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
-                                                                const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
-                                                                itaun.xelem(inode) += 1;
-                                                        }
-                                                }
+						for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
+							for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+								const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
+								itaun.xelem(inode) += 1;
+							}
+						}
 
-                                                NDArray taun(dim_vector(nodes.rows(), iNumStress, iNumLoads), 0.);
+						NDArray taun(dim_vector(nodes.rows(), iNumStress, iNumLoads), 0.);
 
-                                                for (octave_idx_type n = 0; n < iNumLoads; ++n) {
-                                                        for (octave_idx_type m = 0; m < iNumStress; ++m) {
-                                                                for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                                                        for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
-                                                                                const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
-                                                                                taun.xelem(inode, m, n) += tau.xelem(k, l, m + n * iNumStress) / itaun.xelem(inode).value();
-                                                                        }
-                                                                }
-                                                        }
-                                                }
+						for (octave_idx_type n = 0; n < iNumLoads; ++n) {
+							for (octave_idx_type m = 0; m < iNumStress; ++m) {
+								for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
+									for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+										const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
+										taun.xelem(inode, m, n) += tau.xelem(k, l, m + n * iNumStress) / itaun.xelem(inode).value();
+									}
+								}
+							}
+						}
 
-                                                NDArray taum(tau.dims());
+						NDArray taum(tau.dims());
 
-                                                for (octave_idx_type n = 0; n < iNumLoads; ++n) {
-                                                        for (octave_idx_type m = 0; m < iNumStress; ++m) {
-                                                                for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                                                        for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
-                                                                                const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
-                                                                                taum.xelem(k, l, m + n * iNumStress) = taun.xelem(inode, m, n);
-                                                                        }
-                                                                }
-                                                        }
-                                                }
+						for (octave_idx_type n = 0; n < iNumLoads; ++n) {
+							for (octave_idx_type m = 0; m < iNumStress; ++m) {
+								for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
+									for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+										const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
+										taum.xelem(k, l, m + n * iNumStress) = taun.xelem(inode, m, n);
+									}
+								}
+							}
+						}
 
-                                                if (eMatType == Element::SCA_STRESS_VMIS) {
-                                                        NDArray vmis(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumLoads));
+						if (eMatType == Element::SCA_STRESS_VMIS) {
+							NDArray vmis(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumLoads));
 
-                                                        for (octave_idx_type n = 0; n < iNumLoads; ++n) {
-                                                                for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
-                                                                        for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                                                                const octave_idx_type ioffset = n * iNumStress;
+							for (octave_idx_type n = 0; n < iNumLoads; ++n) {
+								for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+									for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
+										const octave_idx_type ioffset = n * iNumStress;
 
-                                                                                const double tauxx = taum.xelem(k, l, ioffset);
-                                                                                const double tauyy = taum.xelem(k, l, ioffset + 1);
-                                                                                const double tauzz = taum.xelem(k, l, ioffset + 2);
-                                                                                const double tauxy = taum.xelem(k, l, ioffset + 3);
-                                                                                const double tauyz = taum.xelem(k, l, ioffset + 4);
-                                                                                const double tauzx = taum.xelem(k, l, ioffset + 5);
+										const double tauxx = taum.xelem(k, l, ioffset);
+										const double tauyy = taum.xelem(k, l, ioffset + 1);
+										const double tauzz = taum.xelem(k, l, ioffset + 2);
+										const double tauxy = taum.xelem(k, l, ioffset + 3);
+										const double tauyz = taum.xelem(k, l, ioffset + 4);
+										const double tauzx = taum.xelem(k, l, ioffset + 5);
 
-                                                                                vmis.xelem(k, l, n) = sqrt(tauxx * tauxx + tauyy * tauyy + tauzz * tauzz
-                                                                                                     - (tauxx * tauyy + tauyy * tauzz + tauxx * tauzz)
-                                                                                                     + 3. * (tauxy * tauxy + tauyz * tauyz + tauzx * tauzx));
+										vmis.xelem(k, l, n) = sqrt(tauxx * tauxx + tauyy * tauyy + tauzz * tauzz
+												     - (tauxx * tauyy + tauyy * tauzz + tauxx * tauzz)
+												     + 3. * (tauxy * tauxy + tauyz * tauyz + tauzx * tauzx));
 
-                                                                        }
-                                                                }
-                                                        }
+									}
+								}
+							}
 
-                                                        s_vmis.assign(oElemType.name, vmis);
-                                                } else {
-                                                        s_tau.assign(oElemType.name, tau);
-                                                        s_taum.assign(oElemType.name, taum);
-                                                }
-                                        } break;
+							s_vmis.assign(oElemType.name, vmis);
+						} else {
+							s_tau.assign(oElemType.name, tau);
+							s_taum.assign(oElemType.name, taum);
+						}
+					} break;
 
-                                        default:
-                                                break;
-                                        }
-                                }
+					default:
+						break;
+					}
+				}
 
-                                octave_scalar_map stress;
+				octave_scalar_map stress;
 
-                                if (eMatType == Element::SCA_STRESS_VMIS) {
-                                        stress.assign("vmis", s_vmis);
-                                } else {
-                                        stress.assign("tau", s_tau);
-                                        stress.assign("taum", s_taum);
-                                }
+				if (eMatType == Element::SCA_STRESS_VMIS) {
+					stress.assign("vmis", s_vmis);
+				} else {
+					stress.assign("tau", s_tau);
+					stress.assign("taum", s_taum);
+				}
 
-                                retval.append(stress);
-                        } break;
-                        default:
-                                throw std::runtime_error("invalid value for argument matrix_type");
-                        }
-                }
+				retval.append(stress);
+			} break;
+			default:
+				throw std::runtime_error("invalid value for argument matrix_type");
+			}
+		}
 
-                octave_scalar_map mat_info;
+		octave_scalar_map mat_info;
 
-                mat_info.assign("alpha", oMatInfo.alpha);
-                mat_info.assign("beta", oMatInfo.beta);
+		mat_info.assign("alpha", oMatInfo.alpha);
+		mat_info.assign("beta", oMatInfo.beta);
 
-                retval.append(mat_info);
-                retval.append(oMeshInfo.Get());
+		retval.append(mat_info);
+		retval.append(oMeshInfo.Get());
 
-                double detJmin = oMeshInfo.dGet(MeshInfo::JACOBIAN_DET, MeshInfo::STAT_MIN);
+		double detJmin = oMeshInfo.dGet(MeshInfo::JACOBIAN_DET, MeshInfo::STAT_MIN);
 
-                if (detJmin <= 0.) {
-                        warning_with_id("mboct-fem-pkg:invalid-mesh", "Jacobian is singular or negative det(J)=%g", detJmin);
-                }
-        } catch (const std::exception& err) {
-                error("%s", err.what());
-                return retval;
-        }
+		if (detJmin <= 0.) {
+			warning_with_id("mboct-fem-pkg:invalid-mesh", "Jacobian is singular or negative det(J)=%g", detJmin);
+		}
+	} catch (const std::exception& err) {
+		error("%s", err.what());
+		return retval;
+	}
 
-        return retval;
+	return retval;
 }
 
 #define DEFINE_GLOBAL_CONSTANT(NAMESPACE, CONST, DESCRIPTION)           \
-        DEFUN_DLD(FEM_##CONST, args, nargout,                           \
-                  "-*- texinfo -*-\n"                                   \
-                  "@deftypefn {} @var{id} = FEM_" #CONST  "()\n"        \
-                  DESCRIPTION "\n"                                      \
-                  "@end deftypefn\n")                                   \
-                                                                        \
-        {                                                               \
-                return octave_value(NAMESPACE::CONST);                  \
-        }
+	DEFUN_DLD(FEM_##CONST, args, nargout,                           \
+		  "-*- texinfo -*-\n"                                   \
+		  "@deftypefn {} @var{id} = FEM_" #CONST  "()\n"        \
+		  DESCRIPTION "\n"                                      \
+		  "@end deftypefn\n")                                   \
+									\
+	{                                                               \
+		return octave_value(NAMESPACE::CONST);                  \
+	}
 
 DEFINE_GLOBAL_CONSTANT(Element, MAT_ACCEL_LOAD, "acceleration load matrix (e.g. for gravity loads)")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING, "complete damping matrix")
