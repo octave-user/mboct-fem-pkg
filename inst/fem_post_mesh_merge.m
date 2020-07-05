@@ -60,6 +60,8 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   elem_types(5).have_mat = false;
   elem_types(6).name = "iso20";
   elem_types(6).have_mat = true;
+  elem_types(7).name = "quad8";
+  elem_types(7).have_mat = false;
   
   for i=1:numel(mesh_data)
     if (nargout >= 2)

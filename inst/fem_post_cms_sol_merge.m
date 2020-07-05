@@ -59,7 +59,7 @@ function [sol] = fem_post_cms_sol_merge(mesh, dof_map, sol_tot)
   endfor
 
   if (isfield(sol_tot.bodies(i), "stress"))
-    elem_type = {"iso4", "iso8", "iso20", "tet10"};
+    elem_type = {"iso4", "quad8", "iso8", "iso20", "tet10"};
     stress_type = {"tau", "taum", "vmis"};
 
     sol.stress = struct();

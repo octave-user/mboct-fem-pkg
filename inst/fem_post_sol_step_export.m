@@ -65,7 +65,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
       
       for l=1:numel(stress_field)
         if (isfield(sol.stress, stress_field{l}))
-          elem_stress = {"iso4", "iso8", "iso20", "tet10"};
+          elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10"};
 
           inumelem = int32(0);
           
@@ -87,6 +87,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                   idxnode = int32([1:3]);
                 case "iso4"
                   idxnode = int32([1:4]);
+		case "quad8"
+		  idxnode = int32([1:8]);
                 case "iso8"
                   idxnode = int32([5:8, 1:4]);
 		case "iso20"

@@ -76,7 +76,7 @@ function groups = fem_pre_mesh_groups_create(mesh, group_defs, tolrel, tolabs, e
 
   tol = norm(dX) * tolrel + tolabs;
 
-  elem_types = {"iso4", "tria6", "quad8"};
+  elem_types = {"iso4", "quad8", "tria6", "quad8"};
 
   empty_cell = cell(1, 0);
 
