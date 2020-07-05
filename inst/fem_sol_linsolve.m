@@ -93,7 +93,7 @@ endfunction
 %!   rand("state", state);
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! N = 100;
 %! K = gallery("Poisson", N);
 %! R = linspace(0, 1, columns(K)).';

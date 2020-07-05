@@ -132,7 +132,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
   end_unwind_protect
 endfunction
 
-%!test ##demo
+%!demo
 %! close all;
 %! E1 = 70000e6;
 %! nu1 = 0.3;

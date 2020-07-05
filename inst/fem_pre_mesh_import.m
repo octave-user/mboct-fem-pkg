@@ -3573,7 +3573,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! ## DEMO 1
 %! ## K.J.Bathe 2002, page 328 4.20a
 %! close all;
@@ -3732,7 +3732,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! ## DEMO2
 %! close all;
 %! a = 5e-3;
@@ -5905,7 +5905,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! ## DEMO 3
 %! ## K.J.Bathe 2002, page 328 4.20a
 %! close all;
@@ -6066,7 +6066,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! ## DEMO 4
 %! ## K.J.Bathe 2002, page 328 4.20a
 %! close all;

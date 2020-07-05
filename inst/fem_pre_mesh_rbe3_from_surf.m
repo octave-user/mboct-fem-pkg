@@ -90,7 +90,7 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
   endfor
 endfunction
 
-%!test ##demo
+%!demo
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -195,7 +195,7 @@ endfunction
 %! endif
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -297,7 +297,7 @@ endfunction
 %! endif
 %! end_unwind_protect
 
-%!test ##demo
+%!demo
 %! close all;
 %! filename = "";
 %! unwind_protect

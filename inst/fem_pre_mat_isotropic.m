@@ -40,7 +40,7 @@ function C = fem_pre_mat_isotropic(E, nu)
            0, 0, 0, 0, 0, b];
 endfunction     
 
-%!test ##demo
+%!demo
 %! E = 210000;
 %! nu = 0.3;
 %! format("bank", "local");

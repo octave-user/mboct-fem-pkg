@@ -99,7 +99,7 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
   fem_post_sol_script(post_pro_geo, options);
 endfunction
 
-%!test ##demo
+%!demo
 %! close all;
 %! E1 = 70000e6;
 %! nu1 = 0.3;

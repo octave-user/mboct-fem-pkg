@@ -70,7 +70,7 @@ function Ared = fem_transf_mat(A, idx1, idx2, T1)
           Ared12.', A22];
 endfunction
 
-%!test ##demo
+%!demo
 %! ## Build a simple mesh made of a single hexahedron
 %! X = [ 1,  1,  1;
 %!      -1,  1,  1;
