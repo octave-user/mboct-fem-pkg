@@ -5673,7 +5673,7 @@ endfunction
 %!   a = 30e-3;
 %!   b = 20e-3;
 %!   c = 10e-3;
-%!   h = 3.5e-3;
+%!   h = 3e-3;
 %!   p = 25e6;
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "a=%g;\n", a);
@@ -5830,9 +5830,9 @@ endfunction
 %!   F_an = [Fx_an; 0; 0];
 %!   M_an = [0; My_an; Mz_an];
 %!   assert(Ftot_con, F_an, eps^0.9 * norm(F_an));
-%!   #assert(Ftot_lumped, F_an, eps^0.9 * norm(F_an));
+%!   assert(Ftot_lumped, F_an, eps^0.9 * norm(F_an));
 %!   assert(Mtot_con, M_an, eps^0.9 * norm(M_an));
-%!   #assert(Mtot_lumped, M_an, 5e-3 * norm(M_an));
+%!   assert(Mtot_lumped, M_an, 5e-3 * norm(M_an));
 %!   f = sol_eig.f(:);
 %!   f_lumped = sol_eig_lumped.f(:);
 %!   f_ref = [8768.74;

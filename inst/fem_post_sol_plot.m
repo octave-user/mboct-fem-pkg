@@ -85,8 +85,12 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
     switch (options.elem_types{etype_idx})
       case "iso8"
         inumfaces += 12 * rows(elements);
+      case "iso20"
+        inumfaces += 36 * rows(elements);	
       case "iso4"
         inumfaces += 2 * rows(elements);
+      case "quad8"
+	inumfaces += 6 * rows(elements);
       case "tet10"
         inumfaces += 16 * rows(elements);
       case "tria6"
@@ -128,9 +132,53 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
                  3,7,6,
                  6,7,8,
                  6,5,8];
+      case "iso20"
+	faces = [1, 9, 12;
+		 2, 10, 9;
+		 3, 11, 10;
+		 4, 12, 11;
+		 10, 11, 12;
+		 9, 10, 12;
+		 5, 13, 16;
+		 6, 14, 13;
+		 7, 15, 14;
+		 8, 16, 15;
+		 13, 14, 16;
+		 14, 15, 16;
+		 5, 13, 17;
+		 6, 18, 13;
+		 2, 9, 18;
+		 1, 17, 9;
+		 13, 18, 17;
+		 9, 17, 18;
+		 3, 11, 19;
+		 4, 20, 11;
+		 8, 15, 20;
+		 7, 19, 15;
+		 11, 20, 15;
+		 11, 15, 19;
+		 1, 12, 17;
+		 4, 20, 12;
+		 8, 16, 20;
+		 5, 17, 16;
+		 12, 16, 17;
+		 12, 20, 16;
+		 2, 10, 18;
+		 3, 19, 10;
+		 7, 14, 19;
+		 6, 18, 14;
+		 10, 19, 14;
+		 10, 14, 18];
       case "iso4"
         faces = [1, 2, 3;
                  3, 4, 1];
+      case "quad8"
+	faces = [1, 5, 8;
+		 2, 6, 5;
+		 3, 7, 6;
+		 4, 8, 7;
+		 5, 6, 7;
+		 5, 7, 8];
       case "tet10"
         faces = [1, 5, 8; ## 1
                  5, 2, 8;
