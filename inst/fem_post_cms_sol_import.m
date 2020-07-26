@@ -273,10 +273,8 @@ endfunction
 
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(find([mesh.groups.tet10.id == 1])).elements) = 1;
-%!   mesh.material_data.E = param.E;
-%!   mesh.material_data.nu = param.nu;
 %!   mesh.material_data.rho = param.rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(param.E, param.nu);
 
 %!   fprintf(stderr, "building cms element ...\n");
 %!   [cms_data.mesh, cms_data.mat_ass, cms_data.dof_map, cms_data.sol_eig, cms_data.cms_opt] = fem_cms_create(mesh, load_case, cms_opt);

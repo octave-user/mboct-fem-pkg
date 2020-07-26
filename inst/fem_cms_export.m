@@ -201,10 +201,10 @@ endfunction
 %! mesh.elements.rbe3(1).weight = ones(1, 4);
 %! mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
 %! mesh.elements.rbe3(2).weight = ones(1, 4);
-%! mesh.material_data.E = 210000e6 / (SI_unit_N / SI_unit_m^2);
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6 / (SI_unit_N / SI_unit_m^2);
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! cms_opt.element.name = "elem_id_cube";
 %! cms_opt.verbose = false;
@@ -897,10 +897,8 @@ endfunction
 
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(find([mesh.groups.tet10.id == 1])).elements) = 1;
-%!   mesh.material_data.E = param.E;
-%!   mesh.material_data.nu = param.nu;
 %!   mesh.material_data.rho = param.rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(param.E, param.nu);
 
 %!   fprintf(stderr, "building cms element ...\n");
 %!   [mesh, mat_ass, dof_map, sol_eig] = fem_cms_create(mesh, load_case, cms_opt);  

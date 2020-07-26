@@ -540,10 +540,10 @@ endfunction
 %! load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
 %! load_case = fem_pre_load_case_merge(load_case, load_case_press);
 %! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! cms_opt.nodes.modal.number = node_idx_modal;
 %! cms_opt.nodes.modal.name = "node_id_modal";
 %! cms_opt.nodes.interfaces(1).number = node_idx_itf1;

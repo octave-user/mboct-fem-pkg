@@ -24,6 +24,8 @@
 #include <string>
 #include <vector>
 
+using namespace std::string_literals;
+
 #if HAVE_NLOPT == 1
 #include <nlopt.h>
 #endif
@@ -242,10 +244,35 @@ class Material
 {
 public:
 	Material(const Matrix& C, double rho, double alpha, double beta)
-		:rho(rho), alpha(alpha), beta(beta), C(C) {
+	     :rho(rho),
+	      alpha(alpha),
+	      beta(beta),
+	      C(C) {
 		FEM_ASSERT(C.rows() == 6);
 		FEM_ASSERT(C.columns() == 6);
+
+		const double c = C.xelem(0, 0);
+		const double b = C.xelem(5, 5) / c;
+		
+		E = ((4 * b * b - 3 * b) * c) / (b - 1);
+		nu = (2 * b - 1) / (2 * b - 2);
 	}
+
+     Material(double E, double nu, double rho, double alpha, double beta)
+	  :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), C(6, 6, 0.) {
+	  
+	    const double a = nu / (1 - nu);
+	    const double b = (1 - 2 * nu) / (2 * (1 - nu));
+	    const double c = E * (1 - nu) / ((1 + nu) * (1 - 2 * nu));
+
+	    for (octave_idx_type j = 0; j < 3; ++j) {
+		 for (octave_idx_type i = 0; i < 3; ++i) {
+		      C.xelem(i, j) = (i == j) ? c : a * c;
+		 }
+		 
+		 C.xelem(j + 3, j + 3) = b * c;
+	    }
+     }
 
 	Material(const Material& oMat)
 		:rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), C(oMat.C) {
@@ -255,12 +282,24 @@ public:
 		return C;
 	}
 
+     double YoungsModulus() const {
+	  return E;
+     }
+
+     double PoissonsRatio() const {
+	  return nu;
+     }
+
+     double ShearModulus() const {
+	  return E / (2 * (1 + nu));
+     }
+
 	double Density() const { return rho; }
 	double AlphaDamping() const { return alpha; }
 	double BetaDamping() const { return beta; }
 private:
-	const double rho, alpha, beta;
-	const Matrix C;
+        double E, nu, rho, alpha, beta;
+	Matrix C;
 };
 
 class IntegrationRule
@@ -856,6 +895,240 @@ public:
 
 private:
 	const RowVector omega;
+};
+
+struct BeamCrossSection {
+     double A, Ay, Az, It, Iy, Iz;
+};
+
+class ElemBeam2: public Element
+{
+public:
+     ElemBeam2(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const BeamCrossSection& oSect, const ColumnVector& e2)
+	  :Element(id, X, material, nodes), R(3, 3) {
+
+	  FEM_ASSERT(X.rows() == 6);
+	  FEM_ASSERT(X.columns() == 2);
+	  FEM_ASSERT(nodes.numel() == 2);
+	  FEM_ASSERT(e2.numel() == 3);
+
+	  l = 0;
+	  
+	  for (octave_idx_type i = 0; i < 3; ++i) {
+	       double dX = X.xelem(i, 1) - X.xelem(i, 0);
+	       l += dX * dX;
+	       R.xelem(i, 0) = dX;
+	  }
+
+	  l = sqrt(l);
+
+	  if (l == 0) {
+	       throw std::runtime_error("zero beam length detected");
+	  }
+       
+	  R.xelem(0, 2) = R.xelem(1, 0) * e2.xelem(2) - R.xelem(2, 0) * e2.xelem(1);
+	  R.xelem(1, 2) = R.xelem(2, 0) * e2.xelem(0) - R.xelem(0, 0) * e2.xelem(2);
+	  R.xelem(2, 2) = R.xelem(0, 0) * e2.xelem(1) - R.xelem(1, 0) * e2.xelem(0);
+
+	  R.xelem(0, 1) = R.xelem(1, 2) * R.xelem(2, 0) - R.xelem(2, 2) * R.xelem(1, 0);
+	  R.xelem(1, 1) = R.xelem(2, 2) * R.xelem(0, 0) - R.xelem(0, 2) * R.xelem(2, 0);
+	  R.xelem(2, 1) = R.xelem(0, 2) * R.xelem(1, 0) - R.xelem(1, 2) * R.xelem(0, 0);
+
+	  for (octave_idx_type j = 0; j < 3; ++j) {
+	       double n = 0;
+
+	       for (octave_idx_type i = 0; i < 3; ++i) {
+		    double Rij = R.xelem(i, j);
+		    n += Rij * Rij;
+	       }
+
+	       n = sqrt(n);
+
+	       if (n == 0.) {
+		    throw std::runtime_error("orientation of beam cross section is not valid");
+	       }
+
+	       for (octave_idx_type i = 0; i < 3; ++i) {
+		    R.xelem(i, j) /= n;
+	       }
+	  }
+	  
+	  const double E = material->YoungsModulus();
+	  const double G = material->ShearModulus();
+	  const double rho = material->Density();
+	  
+	  EA = E * oSect.A;
+	  GAy = G * oSect.Ay;
+	  GAz = G * oSect.Az;
+	  GIt = G * oSect.It;
+	  EIy = E * oSect.Iy;
+	  EIz = E * oSect.Iz;
+	  rhoA = rho * oSect.A;
+	  rhoIy = rho * oSect.Iy;
+	  rhoIz = rho * oSect.Iz;
+	  rhoIp = rhoIy + rhoIz;
+	  ky = EIz / (l*l * GAy);
+          kz = EIy / (l*l * GAz);
+     }
+
+     ElemBeam2(const ElemBeam2& oElem)=default;
+     
+     virtual ~ElemBeam2()=default;
+     
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+	  void (ElemBeam2::*pfn)(Matrix&) const;
+	  
+	  switch (eMatType) {
+	  case MAT_STIFFNESS:
+	  case MAT_STIFFNESS_SYM:
+	  case MAT_STIFFNESS_SYM_L:
+	       pfn = &ElemBeam2::StiffnessMatrix;
+	       break;
+	       
+	  case MAT_MASS:
+	  case MAT_MASS_SYM:
+	  case MAT_MASS_SYM_L:
+	       pfn = &ElemBeam2::MassMatrix;
+	       break;
+	       
+	  default:
+	       return;
+	  }
+
+	  Matrix A(12, 12, 0.), RA(12, 12);
+	  
+	  (this->*pfn)(A);
+
+	  for (octave_idx_type i0 = 0; i0 < 4; ++i0) {
+	       for (octave_idx_type j0 = 0; j0 < 4; ++j0) {
+	  	    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
+	  		 for (octave_idx_type j1 = 0; j1 < 3; ++j1) {
+	  		      double RAij = 0;
+			      
+	  		      for (octave_idx_type k = 0; k < 3; ++k) {
+	  			   RAij += R.xelem(i1, k) * A.xelem(3 * i0 + k, 3 * j0 + j1);
+	  		      }
+
+	  		      RA.xelem(3 * i0 + i1, 3 * j0 + j1) = RAij;
+	  		 }
+	  	    }
+	       }
+	  }
+
+	  for (octave_idx_type i0 = 0; i0 < 4; ++i0) {
+	       for (octave_idx_type j0 = 0; j0 < 4; ++j0) {
+	  	    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
+	  		 for (octave_idx_type j1 = 0; j1 < 3; ++j1) {
+	  		      double Aij = 0;
+			      
+	  		      for (octave_idx_type k = 0; k < 3; ++k) {
+	  			   Aij += R.xelem(j1, k) * RA.xelem(3 * i0 + i1, 3 * j0 + k);
+	  		      }
+
+	  		      A.xelem(3 * i0 + i1, 3 * j0 + j1) = Aij;
+	  		 }
+	  	    }
+	       }
+	  }
+
+	  for (octave_idx_type j = 0; j < 12; ++j) {
+	       for (octave_idx_type i = 0; i < j; ++i) {
+		    A.xelem(j, i) = A.xelem(i, j);
+	       }
+	  }
+
+	  int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+
+	  for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+	       for (octave_idx_type idof = 0; idof < 6; ++idof) {
+		    ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
+	       }
+	  }
+
+	  mat.Insert(A, ndofidx, ndofidx);
+     }
+     
+     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+	  return 12 * 12;
+     }
+     
+     virtual double dGetMass() const {
+	  return rhoA * l;
+     }
+
+     void StiffnessMatrix(Matrix& Ke) const {
+	  const double l2 = l * l;
+	  const double l3 = l2 * l;
+	  
+	  Ke.xelem(0,0) = (EA)/l;
+	  Ke.xelem(1,1) = (12*EIz)/((12*ky+1)*l3);
+	  Ke.xelem(2,2) = (12*EIy)/((12*kz+1)*l3);
+	  Ke.xelem(3,3) = (GIt)/l;
+	  Ke.xelem(2,4) = -(6*EIy)/((12*kz+1)*l2);
+	  Ke.xelem(4,4) = (4*EIy*(3*kz+1))/((12*kz+1)*l);
+	  Ke.xelem(1,5) = (6*EIz)/((12*ky+1)*l2);
+	  Ke.xelem(5,5) = (4*EIz*(3*ky+1))/((12*ky+1)*l);
+	  Ke.xelem(0,6) = -(EA)/l;
+	  Ke.xelem(6,6) = (EA)/l;
+	  Ke.xelem(1,7) = -(12*EIz)/((12*ky+1)*l3);
+	  Ke.xelem(5,7) = -(6*EIz)/((12*ky+1)*l2);
+	  Ke.xelem(7,7) = (12*EIz)/((12*ky+1)*l3);
+	  Ke.xelem(2,8) = -(12*EIy)/((12*kz+1)*l3);
+	  Ke.xelem(4,8) = (6*EIy)/((12*kz+1)*l2);
+	  Ke.xelem(8,8) = (12*EIy)/((12*kz+1)*l3);
+	  Ke.xelem(3,9) = -(GIt)/l;
+	  Ke.xelem(9,9) = (GIt)/l;
+	  Ke.xelem(2,10) = -(6*EIy)/((12*kz+1)*l2);
+	  Ke.xelem(4,10) = -(2*EIy*(6*kz-1))/((12*kz+1)*l);
+	  Ke.xelem(8,10) = (6*EIy)/((12*kz+1)*l2);
+	  Ke.xelem(10,10) = (4*EIy*(3*kz+1))/((12*kz+1)*l);
+	  Ke.xelem(1,11) = (6*EIz)/((12*ky+1)*l2);
+	  Ke.xelem(5,11) = -(2*EIz*(6*ky-1))/((12*ky+1)*l);
+	  Ke.xelem(7,11) = -(6*EIz)/((12*ky+1)*l2);
+	  Ke.xelem(11,11) = (4*EIz*(3*ky+1))/((12*ky+1)*l);
+     }
+     
+     void MassMatrix(Matrix& Me) const {
+	  const double l2 = l * l;
+	  const double l3 = l2 * l;
+	  const double ky2 = ky * ky;
+	  const double kz2 = kz * kz;
+	  const double b1 = (12*ky+1);
+	  const double b2 = (12*kz+1);
+	  const double a1 = b1 * b1;
+	  const double a2 = b2 * b2;
+	  
+	  Me.xelem(0,0) = (l*rhoA)/3.0E+0;
+	  Me.xelem(1,1) = ((42*rhoIz+1680*ky2*l2*rhoA+294*ky*l2*rhoA+13*l2*rhoA)/(a1*l))/3.5E+1;
+	  Me.xelem(2,2) = ((42*rhoIy+1680*kz2*l2*rhoA+294*kz*l2*rhoA+13*l2*rhoA)/(a2*l))/3.5E+1;
+	  Me.xelem(3,3) = (l*rhoIp)/3.0E+0;
+	  Me.xelem(2,4) = ((1260*kz*rhoIy-21*rhoIy-1260*kz2*l2*rhoA-231*kz*l2*rhoA-11*l2*rhoA)/a2)/2.1E+2;
+	  Me.xelem(4,4) = ((l*(5040*kz2*rhoIy+210*kz*rhoIy+14*rhoIy+126*kz2*l2*rhoA+21*kz*l2*rhoA+l2*rhoA))/a2)/1.05E+2;
+	  Me.xelem(1,5) = -((1260*ky*rhoIz-21*rhoIz-1260*ky2*l2*rhoA-231*ky*l2*rhoA-11*l2*rhoA)/a1)/2.1E+2;
+	  Me.xelem(5,5) = ((l*(5040*ky2*rhoIz+210*ky*rhoIz+14*rhoIz+126*ky2*l2*rhoA+21*ky*l2*rhoA+l2*rhoA))/a1)/1.05E+2;
+	  Me.xelem(0,6) = (l*rhoA)/6.0E+0;
+	  Me.xelem(6,6) = (l*rhoA)/3.0E+0;
+	  Me.xelem(1,7) = ((-3.0E+0)*(28*rhoIz-560*ky2*l2*rhoA-84*ky*l2*rhoA-3*l2*rhoA))/(7.0E+1*a1*l);
+	  Me.xelem(5,7) = ((2520*ky*rhoIz-42*rhoIz+2520*ky2*l2*rhoA+378*ky*l2*rhoA+13*l2*rhoA)/a1)/4.2E+2;
+	  Me.xelem(7,7) = ((42*rhoIz+1680*ky2*l2*rhoA+294*ky*l2*rhoA+13*l2*rhoA)/(a1*l))/3.5E+1;
+	  Me.xelem(2,8) = ((-3.0E+0)*(28*rhoIy-560*kz2*l2*rhoA-84*kz*l2*rhoA-3*l2*rhoA))/(7.0E+1*a2*l);
+	  Me.xelem(4,8) = -((2520*kz*rhoIy-42*rhoIy+2520*kz2*l2*rhoA+378*kz*l2*rhoA+13*l2*rhoA)/a2)/4.2E+2;
+	  Me.xelem(8,8) = ((42*rhoIy+1680*kz2*l2*rhoA+294*kz*l2*rhoA+13*l2*rhoA)/(a2*l))/3.5E+1;
+	  Me.xelem(3,9) = (l*rhoIp)/6.0E+0;
+	  Me.xelem(9,9) = (l*rhoIp)/3.0E+0;
+	  Me.xelem(2,10) = ((2520*kz*rhoIy-42*rhoIy+2520*kz2*l2*rhoA+378*kz*l2*rhoA+13*l2*rhoA)/a2)/4.2E+2;
+	  Me.xelem(4,10) = ((l*(10080*kz2*rhoIy-840*kz*rhoIy-14*rhoIy-504*kz2*l2*rhoA-84*kz*l2*rhoA-3*l2*rhoA))/a2)/4.2E+2;
+	  Me.xelem(8,10) = -((1260*kz*rhoIy-21*rhoIy-1260*kz2*l2*rhoA-231*kz*l2*rhoA-11*l2*rhoA)/a2)/2.1E+2;
+	  Me.xelem(10,10) = ((l*(5040*kz2*rhoIy+210*kz*rhoIy+14*rhoIy+126*kz2*l2*rhoA+21*kz*l2*rhoA+l2*rhoA))/a2)/1.05E+2;
+	  Me.xelem(1,11) = -((2520*ky*rhoIz-42*rhoIz+2520*ky2*l2*rhoA+378*ky*l2*rhoA+13*l2*rhoA)/a1)/4.2E+2;
+	  Me.xelem(5,11) = ((l*(10080*ky2*rhoIz-840*ky*rhoIz-14*rhoIz-504*ky2*l2*rhoA-84*ky*l2*rhoA-3*l2*rhoA))/a1)/4.2E+2;
+	  Me.xelem(7,11) = ((1260*ky*rhoIz-21*rhoIz-1260*ky2*l2*rhoA-231*ky*l2*rhoA-11*l2*rhoA)/a1)/2.1E+2;
+	  Me.xelem(11,11) = ((l*(5040*ky2*rhoIz+210*ky*rhoIz+14*rhoIz+126*ky2*l2*rhoA+21*ky*l2*rhoA+l2*rhoA))/a1)/1.05E+2;
+     }
+
+private:
+     Matrix R;
+     double l, ky, kz, EA, GAy, GAz, GIt, EIy, EIz, rhoA, rhoIp, rhoIy, rhoIz;
 };
 
 class Element3D: public Element
@@ -4379,6 +4652,7 @@ public:
 		ELEM_ISO8 = 0,
 		ELEM_ISO20,
 		ELEM_TET10,
+		ELEM_BEAM2,
 		ELEM_RBE3,
 		ELEM_JOINT,
 		ELEM_SFNCON4,
@@ -4417,6 +4691,7 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
 	{ElementTypes::ELEM_ISO8,           "iso8",     8,  8, DofMap::ELEM_NODOF},
 	{ElementTypes::ELEM_ISO20,          "iso20",   20, 20, DofMap::ELEM_NODOF},
 	{ElementTypes::ELEM_TET10,          "tet10",   10, 10, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_BEAM2,          "beam2",    2,  2, DofMap::ELEM_NODOF},
 	{ElementTypes::ELEM_RBE3,           "rbe3",     2, -1, DofMap::ELEM_RBE3},
 	{ElementTypes::ELEM_JOINT,          "joints",   1, -1, DofMap::ELEM_JOINT},
 	{ElementTypes::ELEM_SFNCON4,        "sfncon4",  1, -1, DofMap::ELEM_JOINT},
@@ -5613,6 +5888,51 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 				}
 			}
 		} break;
+		case ElementTypes::ELEM_BEAM2: {
+			const octave_map m_beam2 = m_elements.contents(iter_elem_type).map_value();
+
+			if (error_state) {
+				return retval;
+			}
+
+			const auto iter_nodes = m_beam2.seek("nodes");
+
+			if (iter_nodes == m_beam2.end()) {
+				error("missing field mesh.elements.beam2.nodes");
+				return retval;
+			}
+
+			const Cell& ov_nodes = m_beam2.contents(iter_nodes);			
+
+			if (error_state) {
+				return retval;
+			}
+
+			for (octave_idx_type j = 0; j < ov_nodes.numel(); ++j) {
+			        const int32NDArray elnodes = ov_nodes(j).int32_array_value();
+
+				if (error_state) {
+					return retval;
+				}
+
+				for (octave_idx_type l = 0; l < elnodes.numel(); ++l) {
+				     const octave_idx_type idxnode = elnodes(l).value();
+
+				     if (idxnode < 1 || idxnode > nodes.rows()) {
+					  error("invalid node index for mesh.elements.%s(%Ld).nodes(%Ld)=%Ld",
+						oElemType.name,
+						static_cast<long long>(j),
+						static_cast<long long>(l),
+						static_cast<long long>(idxnode));
+					  return retval;
+				     }
+				     
+				     for (octave_idx_type k = 0; k < 6; ++k) {
+					  dof_in_use(idxnode - 1, k) = true;
+				     }
+				}
+			}			
+		} break;
 		case ElementTypes::ELEM_RBE3: {
 			const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
 
@@ -6214,12 +6534,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 			}
 		}
 
+		const auto iterE = material_data.seek("E");
+		const auto iternu = material_data.seek("nu");
 		const auto iterC = material_data.seek("C");
 		const auto iterRho = material_data.seek("rho");
 		const auto iterAlpha = material_data.seek("alpha");
 		const auto iterBeta = material_data.seek("beta");
 
-		if (iterC == material_data.end()) {
+		if (iterC == material_data.end() && (iterE == material_data.end() || iternu == material_data.end())) {
 			throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
 		}
 
@@ -6227,7 +6549,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 			throw std::runtime_error("field \"rho\" not found in mesh.material_data in argument mesh");
 		}
 
-		const Cell cellC = material_data.contents(iterC);
+		const Cell cellC = iterC != material_data.end() ? material_data.contents(iterC) : Cell();
+		const Cell cellE = iterE != material_data.end() ? material_data.contents(iterE) : Cell();
+		const Cell cellnu = iternu != material_data.end() ? material_data.contents(iternu) : Cell();
 		const Cell cellRho = material_data.contents(iterRho);
 		const Cell cellAlpha = iterAlpha != material_data.end() ? material_data.contents(iterAlpha) : Cell();
 		const Cell cellBeta = iterBeta != material_data.end() ? material_data.contents(iterBeta) : Cell();
@@ -6236,19 +6560,48 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 		rgMaterials.reserve(material_data.numel());
 
-		Matrix C(6, 6);
+		Matrix C;
 
 		for (octave_idx_type i = 0; i < material_data.numel(); ++i) {
-			C = cellC(i).matrix_value();
+			const bool buseC = iterC != material_data.end() && !cellC(i).isempty();
+			double E, nu;
+			
+			if (buseC) {
+				C = cellC(i).matrix_value();
+
+				if (error_state || C.rows() != 6 || C.columns() != 6) {
+					throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
+				}				
+
+				if ((iterE != material_data.end() && !cellE(i).isempty()) || (iternu != material_data.end() && !cellnu(i).isempty())) {
+					throw std::runtime_error("redundant material properties in field material_data in argument mesh");
+				}
+			} else {
+				if (iterE == material_data.end() || cellE(i).isempty() || iternu == material_data.end() || cellnu(i).isempty()) {
+					throw std::runtime_error("fields \"E\" and \"nu\" not found in mesh.material_data in argument mesh");					
+				}
+				
+				E = cellE(i).scalar_value();
+
+				if (error_state) {
+					throw std::runtime_error("field \"E\" in mesh.material_data must be a real scalar");
+				}
+				
+				nu = cellnu(i).scalar_value();
+
+				if (error_state) {
+					throw std::runtime_error("field \"nu\" in mesh.material_data must be a real scalar");
+				}
+
+				if (iterC != material_data.end() && !cellC(i).isempty()) {
+					throw std::runtime_error("redundant material properties in field material_data in argument mesh");					
+				}
+			}
 
 			const double rho = cellRho(i).scalar_value();
 
 			if (error_state) {
 				throw std::runtime_error("mesh.material_data.rho is not a valid scalar in argument mesh");
-			}
-
-			if (C.rows() != 6 || C.columns() != 6) {
-				throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
 			}
 
 			const double alpha = iterAlpha != material_data.end() ? cellAlpha(i).scalar_value() : 0.;
@@ -6263,7 +6616,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 				throw std::runtime_error("mesh.material_data.beta is not a valid scalar in argument mesh");
 			}
 
-			rgMaterials.emplace_back(C, rho, alpha, beta);
+			if (buseC) {
+				rgMaterials.emplace_back(C, rho, alpha, beta);
+			} else {
+				rgMaterials.emplace_back(E, nu, rho, alpha, beta);
+			}
 		}
 
 		DofMap oDof(ndof, edof, inumdof);
@@ -6299,6 +6656,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 			case Element::MAT_INERTIA_INV8:
 			case Element::MAT_INERTIA_INV9:
 			case Element::MAT_ACCEL_LOAD:
+			        rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+				// fall through
 			case Element::VEC_STRESS_CAUCH:
 			case Element::SCA_STRESS_VMIS:
 				rgElemUse[ElementTypes::ELEM_ISO8] = true;
@@ -6408,6 +6767,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					throw std::runtime_error("invalid element type");
 				}
 			} break;
+			case ElementTypes::ELEM_BEAM2:
 			case ElementTypes::ELEM_RBE3:
 			case ElementTypes::ELEM_JOINT: {
 				const auto iter_elem = elements.seek(oElemType.name);
@@ -6419,19 +6779,53 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 				const octave_map s_elem(elements.contents(iter_elem).map_value());
 
 				if (error_state) {
-					throw std::runtime_error("mesh.elements.rbe3 must be an struct array in argument mesh");
+				     throw std::runtime_error("mesh.elements."s + oElemType.name + " must be an struct array in argument mesh");
 				}
 
 				const auto iter_nodes = s_elem.seek("nodes");
 
 				if (iter_nodes == s_elem.end()) {
-					throw std::runtime_error("missing field mesh.elements.rbe3.nodes in argument mesh");
+				     throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".nodes in argument mesh");
 				}
 
 				const Cell ov_nodes(s_elem.contents(iter_nodes));
 
 				FEM_ASSERT(ov_nodes.numel() == s_elem.numel());
 
+				Cell ov_material, ov_section, ov_e2;
+
+				if (oElemType.type == ElementTypes::ELEM_BEAM2) {
+				     const auto iter_mat = s_elem.seek("material");
+
+				     if (iter_mat == s_elem.end()) {
+					  throw std::runtime_error("missing field mesh.elements.beam2.material in argument mesh");
+				     }
+
+				     ov_material = s_elem.contents(iter_mat);
+
+				     FEM_ASSERT(ov_material.numel() == s_elem.numel());
+
+				     const auto iter_sect = s_elem.seek("section");
+
+				     if (iter_sect == s_elem.end()) {
+					  throw std::runtime_error("missing field mesh.elements.beam2.section in argument mesh");
+				     }
+
+				     ov_section = s_elem.contents(iter_sect);
+
+				     FEM_ASSERT(ov_section.numel() == s_elem.numel());
+
+				     const auto iter_e2 = s_elem.seek("e2");
+
+				     if (iter_e2 == s_elem.end()) {
+					  throw std::runtime_error("missing field mesh.elements.beam2.e2 in argument mesh");
+				     }
+
+				     ov_e2 = s_elem.contents(iter_e2);
+
+				     FEM_ASSERT(ov_e2.numel() == s_elem.numel());
+				}
+				
 				Cell ov_C;
 
 				if (oElemType.type == ElementTypes::ELEM_JOINT) {
@@ -6461,6 +6855,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 				std::unique_ptr<ElementBlockBase> pElem;
 
 				switch (oElemType.type) {
+				case ElementTypes::ELEM_BEAM2:
+				     pElem.reset(new ElementBlock<ElemBeam2>(oElemType.type, s_elem.numel()));
+				     break;
 				case ElementTypes::ELEM_RBE3:
 					pElem.reset(new ElementBlock<ElemRBE3>(oElemType.type, s_elem.numel()));
 					break;
@@ -6475,22 +6872,26 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					const int32NDArray elem_nodes(ov_nodes(i).int32_array_value());
 
 					if (error_state) {
-						throw std::runtime_error("mesh.elements.rbe3.nodes must be an array of integers in argument mesh");
+					     throw std::runtime_error("mesh.elements"s + oElemType.name + ".nodes must be an array of integers in argument mesh");
 					}
 
 					if (elem_nodes.columns() < oElemType.min_nodes) {
-						throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name + " in argument mesh");
+						throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
 					}
 
+					if (oElemType.max_nodes > 0 && elem_nodes.columns() > oElemType.max_nodes) {
+						throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
+					}					
+
 					if (elem_nodes.rows() != 1) {
-						throw std::runtime_error(std::string("invalid number of rows in node matrix for element type ") + oElemType.name + " in argument mesh");
+						throw std::runtime_error("invalid number of rows in node matrix for element type "s + oElemType.name + " in argument mesh");
 					}
 
 					for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
 						octave_idx_type inode = elem_nodes(j);
 
 						if (inode < 1 || inode > nodes.rows()) {
-							throw std::runtime_error(std::string("invalid node index for element type ") + oElemType.name + " in argument mesh");
+							throw std::runtime_error("invalid node index for element type "s + oElemType.name + " in argument mesh");
 						}
 					}
 
@@ -6503,6 +6904,110 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					}
 
 					switch (oElemType.type) {
+					case ElementTypes::ELEM_BEAM2: {
+					     const octave_idx_type imaterial(ov_material(i).int_value() - 1);
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.material must be a scalar integer");
+					     }
+
+					     if (imaterial < 0 || imaterial >= rgMaterials.size()) {
+						  throw std::runtime_error("mesh.elements.beam2.material out of range");
+					     }
+					     
+					     const Material* const material = &rgMaterials[imaterial];
+					     
+					     const octave_scalar_map m_section(ov_section(i).scalar_map_value());
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section must be a scalar struct");
+					     }
+
+					     auto iterA = m_section.seek("A");
+
+					     if (iterA == m_section.end()) {
+						  throw std::runtime_error("missing field mesh.elements.beam2.section.A");
+					     }
+					     
+					     auto iterAy = m_section.seek("Ay");
+
+					     if (iterAy == m_section.end()) {
+						  throw std::runtime_error("missing field mesh.elements.beam2.section.Ay");
+					     }
+					     
+					     auto iterAz = m_section.seek("Az");
+
+					     if (iterAz == m_section.end()) {
+						  throw std::runtime_error("missing field mesh.elements.beam2.section.Az");
+					     }
+					     
+					     auto iterIt = m_section.seek("It");
+
+					     if (iterIt == m_section.end()) {
+						  throw std::runtime_error("missing field mesh.elements.beam2.section.It");
+					     }
+					     
+					     auto iterIy = m_section.seek("Iy");
+
+					     if (iterIy == m_section.end()) {
+						  throw std::runtime_error("missing field mesh.elements.beam2.section.Iy");
+					     }
+					     
+					     auto iterIz = m_section.seek("Iz");
+
+					     if (iterIz == m_section.end()) {
+						  throw std::runtime_error("missing field mesh.elements.beam2.section.Iz");
+					     }					     
+
+					     BeamCrossSection section;
+
+					     section.A = m_section.contents(iterA).scalar_value();
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section.A must be a real scalar");
+					     }
+					     
+					     section.Ay = m_section.contents(iterAy).scalar_value();
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section.Ay must be a real scalar");
+					     }					     
+					     section.Az = m_section.contents(iterAz).scalar_value();
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section.Az must be a real scalar");
+					     }
+					     
+					     section.It = m_section.contents(iterIt).scalar_value();
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section.It must be a real scalar");
+					     }
+					     
+					     section.Iy = m_section.contents(iterIy).scalar_value();
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section.Iy must be a real scalar");
+					     }
+					     
+					     section.Iz = m_section.contents(iterIz).scalar_value();
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.section.Iz must be a real scalar");
+					     }					     
+					     
+					     const ColumnVector e2(ov_e2(i).column_vector_value());
+
+					     if (error_state) {
+						  throw std::runtime_error("mesh.elements.beam2.e2 must be a column vector");
+					     }
+
+					     if (e2.rows() != 3) {
+						  throw std::runtime_error("mesh.elements.beam2.e2 must be 3x1 matrix");
+					     }
+					     
+					     pElem->Insert<ElemBeam2>(i + 1, X, material, elem_nodes, section, e2);
+					} break;
 					case ElementTypes::ELEM_RBE3: {
 						RowVector weight;
 
@@ -6582,7 +7087,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					}
 				}
 
-				if (dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
+				if (oElemType.dof_type != DofMap::ELEM_NODOF && dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
 					throw std::runtime_error("dof_map.edof is not consistent with elements in argument dof_map");
 				}
 

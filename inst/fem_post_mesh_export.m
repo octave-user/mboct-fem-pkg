@@ -98,9 +98,17 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
   fprintf(fd, "\n!! MATERIAL DATA\n\n");
   
   for i=1:numel(mesh.material_data)
-    fprintf(fd, "MP,EX,%d,%.16e\n", i, mesh.material_data(i).E);
-    fprintf(fd, "MP,NUXY,%d,%.16e\n", i, mesh.material_data(i).nu);
-    fprintf(fd, "MP,DENS,%d,%.16e\n", i, mesh.material_data(i).rho);
+    if (isfield(mesh.material_data(i), "E") && ~isempty(mesh.material_data(i).E))
+      fprintf(fd, "MP,EX,%d,%.16e\n", i, mesh.material_data(i).E);
+    endif
+
+    if (isfield(mesh.material_data(i), "nu") && ~isempty(mesh.material_data(i).nu))
+      fprintf(fd, "MP,NUXY,%d,%.16e\n", i, mesh.material_data(i).nu);
+    endif
+
+    if (isfield(mesh.material_data(i), "rho") && ~isempty(mesh.material_data(i).rho))
+      fprintf(fd, "MP,DENS,%d,%.16e\n", i, mesh.material_data(i).rho);
+    endif
   endfor
 
   fprintf(fd, "\n!! NODES\n\n");  
@@ -277,7 +285,7 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
 endfunction
 
 function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
-  persistent gmsh_elem_types = {"iso8", "iso20", "iso4", "quad8", "tet4", "tet10", "tria6", "tria3"};
+  persistent gmsh_elem_types = {"iso8", "iso20", "iso4", "quad8", "tet4", "tet10", "tria6", "tria3", "beam2"};
   
   if (~isfield(options, "elem_types"))
     options.elem_types = gmsh_elem_types;
@@ -300,19 +308,24 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   elem_types = fieldnames(mesh.elements);
 
   for i=1:numel(elem_types)
-    switch elem_types{i}
+    switch (elem_types{i})
       case options.elem_types
-        inumelem += rows(getfield(mesh.elements, elem_types{i}));
+	elem_i = getfield(mesh.elements, elem_types{i});
+	if (isstruct(elem_i))
+          inumelem += numel(elem_i);
+	elseif (ismatrix(elem_i))
+	  inumelem += rows(elem_i);
+	endif
     endswitch
   endfor
 
   inumgroups = int32(0);
 
-  if isfield(mesh, "groups")
+  if (isfield(mesh, "groups"))
     group_types = fieldnames(mesh.groups);
 
     for i=1:numel(group_types)
-      switch group_types{i}
+      switch (group_types{i})
         case options.elem_types
           inumgroups += numel(getfield(mesh.groups, group_types{i}));
       endswitch
@@ -327,11 +340,13 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   for i=1:numel(group_types)
     groups = getfield(mesh.groups, group_types{i});
 
-    switch group_types{i}
+    switch (group_types{i})
       case {"iso8", "iso20", "tet10"}
         group_dim = 3;
       case {"iso4", "quad8", "tria6", "tria3"}
         group_dim = 2;
+      case "beam2"
+	group_dim = 1;
       otherwise
         continue;
     endswitch
@@ -380,15 +395,24 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
       case "tet4"
 	elem_type_id = 4;
 	elem_node_order = 1:4;
+      case "beam2"
+	elem_type_id = 1;
+	elem_node_order = 1:2;
       otherwise
         continue
     endswitch
+
+    switch (elem_types{i})
+      case "beam2"
+	elem_nodes = reshape([mesh.elements.beam2.nodes], 2, numel(mesh.elements.beam2)).';
+      otherwise
+	elem_nodes = getfield(mesh.elements, elem_types{i});
+    endswitch
     
-    elem_nodes = getfield(mesh.elements, elem_types{i});
     elem_groups = zeros(rows(elem_nodes), 1, "int32");
     elem_tags = [repmat([elem_type_id; 2], 1, rows(elem_nodes)); zeros(2, rows(elem_nodes))];
     
-    if isfield(mesh, "groups") && isfield(mesh.groups, elem_types{i})
+    if (isfield(mesh, "groups") && isfield(mesh.groups, elem_types{i}))
       groups = getfield(mesh.groups, elem_types{i});
       for j=1:numel(groups)
         elem_tags(3:4, groups(j).elements) = groups(j).id;
@@ -492,10 +516,9 @@ endfunction
 %! load_case.pressure.tria6.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
 
 %! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%! mesh.material_data.rho = rho;
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
-%! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! opts.format = "apdl";
 %! fem_post_mesh_export([filename, ".dat"], mesh, opts, load_case, dof_map);

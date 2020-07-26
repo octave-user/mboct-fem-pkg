@@ -203,10 +203,10 @@ endfunction
 %!   mesh_data(i).load_case.pressure.tria6.elements = mesh_data(i).mesh.elements.tria6(mesh_data(i).mesh.groups.tria6(find([mesh_data(i).mesh.groups.tria6.id] == 2)).elements, :);
 %!   mesh_data(i).load_case.pressure.tria6.p = repmat(p(i),size(mesh_data(i).load_case.pressure.tria6.elements)); 
 %!   mesh_data(i).mesh.materials.tet10 = ones(rows(mesh_data(i).mesh.elements.tet10), 1, "int32");
-%!   mesh_data(i).mesh.material_data.E = 210000e6;
-%!   mesh_data(i).mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   mesh_data(i).mesh.material_data.rho = 7850;
-%!   mesh_data(i).mesh.material_data.C = fem_pre_mat_isotropic(mesh_data(i).mesh.material_data.E, mesh_data(i).mesh.material_data.nu);
+%!   mesh_data(i).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   mesh_data(i).dof_map = fem_ass_dof_map(mesh_data(i).mesh, mesh_data(i).load_case);
 %!   [mesh_data(i).mat_ass.K, ...
 %!    mesh_data(i).mat_ass.R] = fem_ass_matrix(mesh_data(i).mesh, ...

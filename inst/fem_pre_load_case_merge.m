@@ -79,10 +79,10 @@ endfunction
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32(1:8);
 %! mesh.materials.iso8 = int32(1);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case1.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case1.locked_dof([2; 3; 6; 7], 1:3) = true;
 %! load_case1.loaded_nodes = int32([1; 4; 5; 8]);

@@ -137,6 +137,120 @@
 %!   figure_list();
 %! endif
 
+
+%!test
+%! ## TEST 1a
+%! close all;
+%! scale_stat = 1;
+%! scale_eig = 250e-3;
+
+%! E = 210000e6;
+%! nu = 0.3;
+%! material.C = fem_pre_mat_isotropic(E, nu);
+%! material.rho = 7850;
+%! Fy = 15000;
+%! h = 10e-3 / 2;
+%! geometry.l = 1000e-3;
+%! geometry.w = 10e-3;
+%! geometry.h = 50e-3;
+%! A = geometry.w * geometry.h;
+%! Wz = geometry.h * geometry.w^2 / 6;
+%! Iz = geometry.h * geometry.w^3 / 12;
+%! tauxx_max = -Fy * geometry.l / Wz;
+%! tauxy_mean = Fy / A;
+%! Uy = Fy * geometry.l^3 / (3 * E * Iz);
+%! mesh_size.num_elem_l = ceil(geometry.l / h);
+%! mesh_size.num_elem_w = ceil(geometry.w / h);
+%! mesh_size.num_elem_h = ceil(geometry.h / h);
+%! number_of_modes = 10;
+%! number_of_modes_disp = 3;
+%! plot_def = fem_tests_enable_plotting();
+
+%! f = [ 0; Fy; 0 ];
+%! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.M, ...
+%!  mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_MASS, ...
+%!                               FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%! sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                  dof_map, ...
+%!                                  [FEM_VEC_STRESS_CAUCH], ...
+%!                                  load_case, ...
+%!                                  sol_stat);
+%! alg = {"shift-invert", "symmetric-inverse", "unsymmetric"};
+%! rho = 100;
+%! tol = 1e-6;
+%! err = zeros(number_of_modes, numel(alg));
+%! for a=1:numel(alg)
+%!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
+%! endfor
+
+%! z = linspace(0,geometry.l,100);
+
+%! I = [ geometry.w * geometry.h, geometry.h * geometry.w^3 / 12, geometry.w * geometry.h^3 / 12 ];
+
+%! y(1,:) = f(1) * geometry.l / ( E * I(1) ) * ( 1 - z / geometry.l );
+
+%! for i=2:3
+%!   y(i,:) = f(i) * geometry.l^3 / ( 6 * E * I(i) ) * ( 2 - 3 * z / geometry.l + ( z / geometry.l ).^3 );
+%! endfor
+
+%! B = E * I(2:3);
+%! my = material.rho * I(1);
+%! P0 = ( 0.3 * geometry.l ) / geometry.l^3 * 3 * B;
+%! omega1 = sqrt(B / (my * geometry.l^4));
+%! omega_ref = omega1.' * [3.516, 22.035, 61.697];
+%! omega_ref = sort(reshape(omega_ref, 1, numel(omega_ref)));
+%! f_ref = omega_ref / (2 * pi);
+
+%! for a=1:numel(sol_eig)
+%!   assert(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
+%! endfor
+
+%! if (plot_def)
+%!   figure("visible","off");
+%!   hold on;
+%!   fem_post_sol_plot(mesh);
+%!   view(30,30);
+%!   xlabel('x [m]');
+%!   ylabel('y [m]');
+%!   zlabel('z [m]');
+%!   grid on;
+%!   grid minor on;
+%!   title('undeformed mesh');
+
+%!   figure("visible","off");
+%!   hold on;
+%!   fem_post_sol_plot(mesh, sol_stat, scale_stat);
+%!   view(30,30);
+%!   xlabel('x [m]');
+%!   ylabel('y [m]');
+%!   zlabel('z [m]');
+%!   grid on;
+%!   grid minor on;
+%!   title('deformed mesh');
+
+%!   for i=1:min(number_of_modes_disp,length(sol_eig(1).f))
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_eig(1), scale_eig / max(norm(sol_eig(1).def(:, :, i), "rows")),i);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("%d. eigenmode: %gHz",i,sol_eig(1).f(i)));
+%!   endfor
+%!   figure_list();
+%! endif
+
 %!test
 %! ## TEST 2
 %! close all;
@@ -183,10 +297,10 @@
 %!   mesh.elements.rbe3(1).weight = ones(1, 4);
 %!   mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
 %!   mesh.elements.rbe3(2).weight = ones(1, 4);
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 
 %!   load_case.loaded_nodes = int32([13; 14]);
@@ -280,10 +394,10 @@
 %!   mesh.elements.joints(end).C = [eye(3), zeros(3, 3)];
 %!   load_case.joints(end + 1).U = [0; 0; 0];
 %! endfor
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case.loaded_nodes = int32([1; 4; 5; 8]);
 %! load_case.loads = repmat([0, 0, 10,  0,   0, 0], 4, 1);
@@ -380,10 +494,10 @@
 %!     data(j).mesh.elements.joints(end + 1).nodes = int32(i);
 %!     data(j).mesh.elements.joints(end).C = [R1.', zeros(3, 3)];
 %!   endfor
-%!   data(j).mesh.material_data.E = 210000e6;
-%!   data(j).mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   data(j).mesh.material_data.rho = 7850;
-%!   data(j).mesh.material_data.C = fem_pre_mat_isotropic(data(j).mesh.material_data.E, data(j).mesh.material_data.nu);
+%!   data(j).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   data(j).load_case.locked_dof = false(rows(data(j).mesh.nodes), 6);
 %!   data(j).load_case.loaded_nodes = int32([1; 4; 5; 8]);
 %!   data(j).load_case.loads = repmat([0, 0, 10,  0,   0, 0] * data(j).T1.', 4, 1);
@@ -516,10 +630,10 @@
 %!       data(i, j).mesh.elements.rbe3(2).nodes = int32([14, 13]);
 %!       data(i, j).mesh.elements.rbe3(2).weight = ones(1, 1);
 %!     endif
-%!     data(i, j).mesh.material_data.E = 210000e6;
-%!     data(i, j).mesh.material_data.nu = 0.3;
+%!     E = 210000e6;
+%!     nu = 0.3;
 %!     data(i, j).mesh.material_data.rho = 7850;
-%!     data(i, j).mesh.material_data.C = fem_pre_mat_isotropic(data(i, j).mesh.material_data.E, data(i, j).mesh.material_data.nu);
+%!     data(i, j).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!     data(i, j).load_case.locked_dof = false(rows(data(i, j).mesh.nodes), 6);
 %!     data(i, j).load_case.locked_dof([2, 3, 6, 7], 1:6) = true;
 %!     if i==2
@@ -633,10 +747,10 @@
 %!       data(i, j).mesh.elements.rbe3.nodes = int32([13, 9, 10, 11, 12]);
 %!       data(i, j).mesh.elements.rbe3.weight = ones(1, 4);
 %!     endif
-%!     data(i, j).mesh.material_data.E = 210000e6;
-%!     data(i, j).mesh.material_data.nu = 0.3;
+%!     E = 210000e6;
+%!     nu = 0.3;
 %!     data(i, j).mesh.material_data.rho = 7850;
-%!     data(i, j).mesh.material_data.C = fem_pre_mat_isotropic(data(i, j).mesh.material_data.E, data(i, j).mesh.material_data.nu);
+%!     data(i, j).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!     data(i, j).load_case.locked_dof = false(rows(data(i, j).mesh.nodes), 6);
 %!     data(i, j).load_case.locked_dof([2, 3, 6, 7], 1:6) = true;
 %!     if i==2
@@ -740,10 +854,10 @@
 %!     mesh(i).elements.rbe3.nodes = int32([9, 1, 4, 5, 8]);
 %!     mesh(i).elements.rbe3.weight = ones(1, 4);
 %!   endif
-%!   mesh(i).material_data.E = 210000e6;
-%!   mesh(i).material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   mesh(i).material_data.rho = 1;
-%!   mesh(i).material_data.C = fem_pre_mat_isotropic(mesh(i).material_data.E, mesh(i).material_data.nu);
+%!   mesh(i).material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   load_case(i).locked_dof = false(rows(mesh(i).nodes), 6);
 %!   load_case(i).locked_dof([2; 3; 6; 7], 1:3) = true;
 %!   load_case(i).loaded_nodes = int32([1; 4; 5; 8]);
@@ -780,10 +894,10 @@
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32(1:8);
 %! mesh.materials.iso8 = int32(1);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 1;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case.locked_dof([2; 3; 6; 7], :) = true;
 %! load_case.loaded_nodes = int32([1; 4; 5; 8]);
@@ -810,10 +924,10 @@
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32(1:8);
 %! mesh.materials.iso8 = int32(1);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 1;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [K, M, dm] = fem_ass_matrix(mesh, dof_map, [FEM_MAT_STIFFNESS, FEM_MAT_MASS, FEM_SCA_TOT_MASS]);
@@ -849,10 +963,10 @@
 %!   V = 8 * a * b * c;
 %!   mesh.elements.iso8 = int32(1:8);
 %!   mesh.materials.iso8 = int32(1);
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   mesh.material_data.rho = 1;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.loaded_nodes = int32([3; 3]);
 %!   load_case.loads = [0, 0, -0.5;
@@ -925,10 +1039,10 @@
 %!   V = a * b * c / 6;
 %!   mesh.elements.tet10 = int32(1:10);
 %!   mesh.materials.tet10 = int32(1);
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   mesh.material_data.rho = 1;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.loaded_nodes = int32([3; 3]);
 %!   load_case.loads = [0, 0, -0.5;
@@ -999,10 +1113,10 @@
 %! mesh.nodes = [mesh.nodes, zeros(rows(mesh.nodes), 3)];
 %! mesh.elements.tet10 = int32(1:10);
 %! mesh.materials.tet10 = int32(1);
-%! mesh.material_data.E = 480;
-%! mesh.material_data.nu = 1/3;
+%! E = 480;
+%! nu = 1/3;
 %! mesh.material_data.rho = 1;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case.loaded_nodes = zeros(1, 0, "int32");
 %! load_case.loads = zeros(0, 3);
@@ -1089,10 +1203,10 @@
 %!   V = a * b * c / 6;
 %!   mesh.elements.tet10 = int32(1:10);
 %!   mesh.materials.tet10 = int32(1);
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   mesh.material_data.rho = 1;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.loaded_nodes = int32([3; 3]);
 %!   load_case.loads = [0, 0, -0.5;
@@ -1197,10 +1311,10 @@
 %!                           12  15   4  18  25  33  13  34  36  35
 %!                           2  17   3  16  37  38  10  39  41  40];
 
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 1;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
@@ -1260,10 +1374,10 @@
 %!   data(ialg).mesh.elements.rbe3(1).weight = ones(1, 4);
 %!   data(ialg).mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
 %!   data(ialg).mesh.elements.rbe3(2).weight = ones(1, 4);
-%!   data(ialg).mesh.material_data.E = 210000e6 / (SI_unit_N / SI_unit_m^2);
-%!   data(ialg).mesh.material_data.nu = 0.3;
+%!   E = 210000e6 / (SI_unit_N / SI_unit_m^2);
+%!   nu = 0.3;
 %!   data(ialg).mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
-%!   data(ialg).mesh.material_data.C = fem_pre_mat_isotropic(data(ialg).mesh.material_data.E, data(ialg).mesh.material_data.nu);
+%!   data(ialg).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   data(ialg).load_case.locked_dof = false(rows(data(ialg).mesh.nodes), 6);
 %!   data(ialg).cms_opt.verbose = false;
 %!   data(ialg).cms_opt.modes.number = int32(6);
@@ -1472,10 +1586,10 @@
 %!     data(j).mesh.elements.joints(end + 1).nodes = int32(i);
 %!     data(j).mesh.elements.joints(end).C = [R1.', zeros(3, 3)];
 %!   endfor
-%!   data(j).mesh.material_data.E = 210000e6;
-%!   data(j).mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   data(j).mesh.material_data.rho = 7850;
-%!   data(j).mesh.material_data.C = fem_pre_mat_isotropic(data(j).mesh.material_data.E, data(j).mesh.material_data.nu);
+%!   data(j).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   data(j).load_case.locked_dof = false(rows(data(j).mesh.nodes), 6);
 %!   data(j).load_case.loaded_nodes = int32([1; 4; 5; 8]);
 %!   data(j).load_case.loads = repmat([0, 0, 10,  0,   0, 0] * data(j).T1.', 4, 1);
@@ -1553,10 +1667,10 @@
 %!     data(i).mesh.elements.joints(end).C = [eye(3), zeros(3, 3)];
 %!   endfor
 %!   data(i).mesh.materials.tet10 = int32(1);
-%!   data(i).mesh.material_data.E = 210000e6;
-%!   data(i).mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   data(i).mesh.material_data.rho = 7850;
-%!   data(i).mesh.material_data.C = fem_pre_mat_isotropic(data(i).mesh.material_data.E, data(i).mesh.material_data.nu);
+%!   data(i).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   data(i).load_case.pressure.tria6.elements = int32([1,2,3,5,6,7]);
 %!   data(i).load_case.pressure.tria6.p = [p, p, 0, p, 0.5 * p, 0.5 * p];
 %!   data(i).load_case.locked_dof = false(rows(data(i).mesh.nodes), 6);
@@ -1636,16 +1750,16 @@
 %! mesh.elements.sfncon4.master = int32(9:12);
 %! mesh.elements.sfncon4.slave = int32(5:8).';
 %! mesh.elements.sfncon4.maxdist = sqrt(eps) * max(norm(X, "rows"));
-%! mesh.material_data(1).E = 210000e6;
-%! mesh.material_data(1).nu = 0.3;
+%! E(1) = 210000e6;
+%! nu(1) = 0.3;
 %! mesh.material_data(1).rho = 7850;
 
-%! mesh.material_data(2).E = 70000e6;
-%! mesh.material_data(2).nu = 0.3;
+%! E(2) = 70000e6;
+%! nu(2) = 0.3;
 %! mesh.material_data(2).rho = 2700;
 
 %! for i=1:numel(mesh.material_data)
-%!   mesh.material_data(i).C = fem_pre_mat_isotropic(mesh.material_data(i).E, mesh.material_data(i).nu);
+%!   mesh.material_data(i).C = fem_pre_mat_isotropic(E(i), nu(i));
 %! endfor
 
 %! mesh.materials.iso8 = int32([1; 2]);
@@ -1739,16 +1853,16 @@
 %!   mesh.elements.joints(i).C = [eye(3), zeros(3, 3)];
 %!   mesh.elements.joints(i).nodes = int32(12 + i);
 %! endfor
-%! mesh.material_data(1).E = 210000e6;
-%! mesh.material_data(1).nu = 0.3;
+%! E(1) = 210000e6;
+%! nu(1) = 0.3;
 %! mesh.material_data(1).rho = 7850;
 
-%! mesh.material_data(2).E = 70000e6;
-%! mesh.material_data(2).nu = 0.3;
+%! E(2) = 70000e6;
+%! nu(2) = 0.3;
 %! mesh.material_data(2).rho = 2700;
 
 %! for i=1:numel(mesh.material_data)
-%!   mesh.material_data(i).C = fem_pre_mat_isotropic(mesh.material_data(i).E, mesh.material_data(i).nu);
+%!   mesh.material_data(i).C = fem_pre_mat_isotropic(E(i), nu(i));
 %! endfor
 
 %! mesh.materials.iso8 = int32([1; 2]);
@@ -1847,16 +1961,16 @@
 %! endfor
 %! mesh.elements.joints(end + 1).C = eye(6)([1,2,6],:);
 %! mesh.elements.joints(end).nodes = int32(17);
-%! mesh.material_data(1).E = 210000e6;
-%! mesh.material_data(1).nu = 0.3;
+%! E(1) = 210000e6;
+%! nu(1) = 0.3;
 %! mesh.material_data(1).rho = 7850;
 
-%! mesh.material_data(2).E = 70000e6;
-%! mesh.material_data(2).nu = 0.3;
+%! E(2) = 70000e6;
+%! nu(2) = 0.3;
 %! mesh.material_data(2).rho = 2700;
 
 %! for i=1:numel(mesh.material_data)
-%!   mesh.material_data(i).C = fem_pre_mat_isotropic(mesh.material_data(i).E, mesh.material_data(i).nu);
+%!   mesh.material_data(i).C = fem_pre_mat_isotropic(E(i), nu(i));
 %! endfor
 
 %! mesh.materials.iso8 = int32([1; 2]);
@@ -2125,10 +2239,10 @@
 %! mesh.elements.iso8 = int32([1:8;
 %!                             9, 1, 4, 10, 11, 5, 8, 12]);
 %! mesh.materials.iso8 = int32([1; 1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case.locked_dof(find(X(:, 1) == 0), 1) = true;
 %! load_case.locked_dof(find(X(:, 2) == -0.5 * b), 2) = true;
@@ -2178,10 +2292,10 @@
 %! mesh.elements.iso8 = int32([1:8;
 %!                             9, 1, 4, 10, 11, 5, 8, 12]);
 %! mesh.materials.iso8 = int32([1; 1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case.locked_dof(find(X(:, 1) == 0), 1) = true;
 %! load_case.locked_dof(find(X(:, 2) == -0.5 * b), 2) = true;
@@ -2232,10 +2346,10 @@
 %! mesh.elements.iso8 = int32([1:8;
 %!                             9, 1, 4, 10, 11, 5, 8, 12]);
 %! mesh.materials.iso8 = int32([1; 1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! load_case.locked_dof(find(X(:, 1) == 0), 1) = true;
 %! load_case.locked_dof(find(X(:, 2) == -0.5 * b), 2) = true;
@@ -2282,10 +2396,10 @@
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8]);
 %! mesh.materials.iso8 = int32([1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
@@ -2301,7 +2415,7 @@
 %!                                  [FEM_VEC_STRESS_CAUCH], ...
 %!                                  load_case, ...
 %!                                  sol_stat);
-%! G = mesh.material_data.E / (2 * (1 + mesh.material_data.nu));
+%! G = E / (2 * (1 + nu));
 %! gamma = ux / c;
 %! tauzx_a = G * gamma;
 %! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauzx_a - 1) < sqrt(eps) * abs(tauzx_a)));
@@ -2326,10 +2440,10 @@
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8]);
 %! mesh.materials.iso8 = int32([1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
@@ -2345,7 +2459,7 @@
 %!                                  [FEM_VEC_STRESS_CAUCH], ...
 %!                                  load_case, ...
 %!                                  sol_stat);
-%! G = mesh.material_data.E / (2 * (1 + mesh.material_data.nu));
+%! G = E / (2 * (1 + nu));
 %! gamma = uy / c;
 %! tauyz_a = G * gamma;
 %! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauyz_a - 1) < sqrt(eps) * abs(tauyz_a)));
@@ -2369,10 +2483,10 @@
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8]);
 %! mesh.materials.iso8 = int32([1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
@@ -2388,7 +2502,7 @@
 %!                                  [FEM_VEC_STRESS_CAUCH], ...
 %!                                  load_case, ...
 %!                                  sol_stat);
-%! G = mesh.material_data.E / (2 * (1 + mesh.material_data.nu));
+%! G = E / (2 * (1 + nu));
 %! gamma = uy / a;
 %! tauxy_a = G * gamma;
 %! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauxy_a - 1) < sqrt(eps) * abs(tauxy_a)));
@@ -2428,10 +2542,10 @@
 %! mesh.nodes = [X * R.', zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8]);
 %! mesh.materials.iso8 = int32([1]);
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = rho;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
@@ -2501,10 +2615,10 @@
 %!   data(r).mesh.nodes = [xi * R.' + x0, zeros(rows(xi), 3)];
 %!   data(r).mesh.elements.tet10 = int32(1:10);
 %!   data(r).mesh.materials.tet10 = int32(1);
-%!   data(r).mesh.material_data.E = 210000e6;
-%!   data(r).mesh.material_data.nu = 0.3;
+%!   E = 210000e6;
+%!   nu = 0.3;
 %!   data(r).mesh.material_data.rho = 1;
-%!   data(r).mesh.material_data.C = fem_pre_mat_isotropic(data(r).mesh.material_data.E, data(r).mesh.material_data.nu);
+%!   data(r).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   data(r).load_case.locked_dof = false(rows(data(r).mesh.nodes), 6);
 %!   [data(r).dof_map] = fem_ass_dof_map(data(r).mesh, data(r).load_case);
 %!   data(r).sol_stat.def = zeros(rows(xi), 6, numel(l) * numel(u));
@@ -2608,10 +2722,10 @@
 %! mesh.nodes = [X * R.', zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8]);
 %! mesh.materials.iso8 = int32([1]);
-%! mesh.material_data.E = 210000e6 / (SI_unit_N / SI_unit_m^2);
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6 / (SI_unit_N / SI_unit_m^2);
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 
@@ -2719,12 +2833,11 @@
 %! h = geometry.h;
 %! l = geometry.l;
 %! rho = material.rho;
-%! E = material.E;
 %! A = w * h;
 %! Iy = w * h^3 / 12;
 %! qz = rho * A * g(3);
 %! z = l - mesh.nodes(:, 1);
-%! wz = qz * l^4 / (24 * E * Iy) * (3 - 4 * z / l + (z / l).^4);
+%! wz = qz * l^4 / (24 * material.E * Iy) * (3 - 4 * z / l + (z / l).^4);
 %! tol = 1e-2;
 %! if (do_plot)
 %!   figure("visible","off");
@@ -2984,6 +3097,479 @@
 %! idx_x = find((xx(:) > 0.1 * geometry.l) & (xx(:) < 0.9 * geometry.l));
 %! assert(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
 %! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
+
+%!test
+%! ## TEST 36
+%! state = rand("state");
+%! unwind_protect
+%! rand("seed", 0);
+%! for i=1:30
+%! for L = 0.1:100:1000
+%! w = 10;
+%! h = 50;
+%! c2 = 0.291;
+%! f2 = -1.25;
+%! E = 210000;
+%! nu = 0.3;
+%! G = E / (2 * (1 + nu));
+%! rho = 7850e-12;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! U1 = zeros(3, 1);
+%! Phi1 = zeros(3, 1);
+%! U2 = [0; 0; f2 * L^3 / (3 * E * Iy) + f2 * L / (G * Ay)];
+%! Phi2 = [0; -f2 * L^2 / (2 * E * Iy); 0];
+%! R = euler123_to_rotation_matrix(2 * pi * rand(3, 1));
+%! Uref = [(R * U1).', (R * Phi1).';
+%!         (R * U2).', (R * Phi2).'];
+%! X1 = zeros(3, 1);
+%! X2 = [L; 0; 0];
+%! F2 = [0; 0; f2];
+%! mesh.nodes = [(R * X1).', zeros(1,3);
+%!               (R * X2).',  zeros(1, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1);
+%! if (mod(i, 2))
+%!   mesh.elements.beam2.nodes = int32([1, 2]);
+%! else
+%!   mesh.elements.beam2.nodes = int32([2, 1]);
+%! endif
+%! mesh.elements.beam2.material = int32(1);
+%! mesh.elements.beam2.section.A = A;
+%! mesh.elements.beam2.section.Ay = Ay;
+%! mesh.elements.beam2.section.Az = Az;
+%! mesh.elements.beam2.section.It = It;
+%! mesh.elements.beam2.section.Iy = Iy;
+%! mesh.elements.beam2.section.Iz = Iz;
+%! mesh.elements.beam2.e2 = R * [0; -1; 0];
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof(1, :) = true;
+%! load_case.loads = [(R * F2).', zeros(1, 3)];
+%! load_case.loaded_nodes = int32(2);
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%! assert(sol_stat.def, Uref, 1e-3 * norm(Uref));
+%! endfor
+%! endfor
+%! unwind_protect_cleanup
+%! rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST 37
+%! for L=2000e-3:1000e-3:50000e-3;
+%! w = 10e-3;
+%! h = 50e-3;
+%! c2 = 0.291;
+%! E = 210000e6;
+%! nu = 0.3;
+%! rho = 7850;
+%! N = 20;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! B = E * [Iz];
+%! mu = rho * A;
+%! omega1 = sqrt(B / (mu * L^4)); ## valid only for lean beams
+%! omega_ref = omega1.' * [3.516, 22.035, 61.697];
+%! omega_ref = sort(omega_ref(:));
+%! f_ref = omega_ref / (2 * pi);
+%! R = eye(3);
+%! X = [linspace(0, L, N);
+%!      zeros(2, N)];
+%! mesh.nodes = [(R * X).', zeros(N, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1:N - 1);
+%! beam1.nodes = int32([]);
+%! beam1.material = int32(1);
+%! beam1.section.A = A;
+%! beam1.section.Ay = Ay;
+%! beam1.section.Az = Az;
+%! beam1.section.It = It;
+%! beam1.section.Iy = Iy;
+%! beam1.section.Iz = Iz;
+%! beam1.e2 = R * [0; 1; 0];
+%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! for i=1:N - 1
+%!   mesh.elements.beam2(i).nodes = int32(i:i+1);
+%! endfor
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof(1, :) = true;
+%! load_case.locked_dof(:, [1,3,4,5]) = true;
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS], ...
+%!                              load_case);
+%! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, 3);
+%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 0.1e-2);
+%! endfor
+
+%!test
+%! ## TEST 38
+%! for L = 8000e-3:1000e-3:50000e-3;
+%! w = 10e-3;
+%! h = 50e-3;
+%! c2 = 0.291;
+%! E = 210000e6;
+%! nu = 0.3;
+%! rho = 7850;
+%! N = 50;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! B = E * [Iy];
+%! mu = rho * A;
+%! omega1 = sqrt(B / (mu * L^4));
+%! omega_ref = omega1.' * [3.516, 22.035, 61.697]; ## valid only for lean beams
+%! omega_ref = sort(omega_ref(:));
+%! f_ref = omega_ref / (2 * pi);
+%! R = eye(3);
+%! X = [linspace(0, L, N);
+%!      zeros(2, N)];
+%! mesh.nodes = [(R * X).', zeros(N, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1:N - 1);
+%! beam1.nodes = int32([]);
+%! beam1.material = int32(1);
+%! beam1.section.A = A;
+%! beam1.section.Ay = Ay;
+%! beam1.section.Az = Az;
+%! beam1.section.It = It;
+%! beam1.section.Iy = Iy;
+%! beam1.section.Iz = Iz;
+%! beam1.e2 = R * [0; 1; 0];
+%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! for i=1:N - 1
+%!   mesh.elements.beam2(i).nodes = int32(i:i+1);
+%! endfor
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof(1, :) = true;
+%! load_case.locked_dof(:, [1,2,4,6]) = true;
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS], ...
+%!                              load_case);
+%! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, 3);
+%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 0.1e-2);
+%! endfor
+
+%!test
+%! ## TEST 39
+%! for L = 200e-3:1000e-3:5000e-3;
+%! w = 10e-3;
+%! h = 50e-3;
+%! c2 = 0.291;
+%! E = 210000e6;
+%! nu = 0.3;
+%! G = E / (2 * (1 + nu));
+%! rho = 7850;
+%! N = 50;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! B = E * Iy;
+%! S = G * Az;
+%! mu = rho * A;
+%! n = 1:5;
+%! omegaB = sqrt(B * pi^4 / (mu * L^4));
+%! omegaS = sqrt(S * pi^2 / (mu * L^2));
+%! omega_ref = sqrt(1 ./ (1 ./ (n.^4 * omegaB^2) + 1 ./ (n.^2 * omegaS^2)));
+%! f_ref = omega_ref / (2 * pi);
+%! R = eye(3);
+%! X = [linspace(0, L, N);
+%!      zeros(2, N)];
+%! mesh.nodes = [(R * X).', zeros(N, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1:N - 1);
+%! beam1.nodes = int32([]);
+%! beam1.material = int32(1);
+%! beam1.section.A = A;
+%! beam1.section.Ay = Ay;
+%! beam1.section.Az = Az;
+%! beam1.section.It = It;
+%! beam1.section.Iy = Iy;
+%! beam1.section.Iz = Iz;
+%! beam1.e2 = R * [0; 1; 0];
+%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! for i=1:N - 1
+%!   mesh.elements.beam2(i).nodes = int32(i:i+1);
+%! endfor
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof([1, end], [1,2,3,4,6]) = true;
+%! load_case.locked_dof(:, [1,2,4,6]) = true;
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS], ...
+%!                              load_case);
+%! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, numel(n));
+%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
+%! endfor
+
+%!test
+%! ## TEST 40
+%! for L = 40e-3:1000e-3:5000e-3;
+%! w = 10e-3;
+%! h = 50e-3;
+%! c2 = 0.291;
+%! E = 210000e6;
+%! nu = 0.3;
+%! G = E / (2 * (1 + nu));
+%! rho = 7850;
+%! N = 50;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! B = E * Iz;
+%! S = G * Ay;
+%! mu = rho * A;
+%! n = 1:5;
+%! omegaB = sqrt(B * pi^4 / (mu * L^4));
+%! omegaS = sqrt(S * pi^2 / (mu * L^2));
+%! omega_ref = sqrt(1 ./ (1 ./ (n.^4 * omegaB^2) + 1 ./ (n.^2 * omegaS^2)));
+%! f_ref = omega_ref / (2 * pi);
+%! R = eye(3);
+%! X = [linspace(0, L, N);
+%!      zeros(2, N)];
+%! mesh.nodes = [(R * X).', zeros(N, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1:N - 1);
+%! beam1.nodes = int32([]);
+%! beam1.material = int32(1);
+%! beam1.section.A = A;
+%! beam1.section.Ay = Ay;
+%! beam1.section.Az = Az;
+%! beam1.section.It = It;
+%! beam1.section.Iy = Iy;
+%! beam1.section.Iz = Iz;
+%! beam1.e2 = R * [0; 1; 0];
+%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! for i=1:N - 1
+%!   mesh.elements.beam2(i).nodes = int32(i:i+1);
+%! endfor
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof([1, end], [1,2,3,4,5]) = true;
+%! load_case.locked_dof(:, [1,3,4,5]) = true;
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS], ...
+%!                              load_case);
+%! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, numel(n));
+%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
+%! endfor
+
+%!test
+%! ## TEST 41
+%! ## Robert Gasch, Klaus Knothe 1989
+%! ## Strukturdynamik Band 2
+%! ## Kontinua und ihre Diskretisierung
+%! ## Equation 2.38b, figure 2.11, page 26, chapter 2
+%! do_plot = fem_tests_enable_plotting();
+%! L = 2000e-3;
+%! w = 10e-3;
+%! h = 20e-3;
+%! c2 = 0.291;
+%! E = 70000e6;
+%! nu = 0.3;
+%! rho = 2700;
+%! N = 100;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! B = E * Iy;
+%! mu = rho * A;
+%! Delta = linspace(1e-6, 10, 1000) / L;
+%! omega = sqrt(Delta.^4 * B / mu);
+%! P0 = 1;
+%! wstat_a = P0 * L^3 / (3 * B);
+%! V_a = 3 ./ (Delta * L).^3 .* (sin(Delta * L) .* cosh(Delta * L) - cos(Delta * L) .* sinh(Delta * L)) ./ (1 + cos(Delta * L) .* cosh(Delta * L));
+%! R = eye(3);
+%! X = [linspace(0, L, N);
+%!      zeros(2, N)];
+%! mesh.nodes = [(R * X).', zeros(N, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1:N - 1);
+%! beam1.nodes = int32([]);
+%! beam1.material = int32(1);
+%! beam1.section.A = A;
+%! beam1.section.Ay = Ay;
+%! beam1.section.Az = Az;
+%! beam1.section.It = It;
+%! beam1.section.Iy = Iy;
+%! beam1.section.Iz = Iz;
+%! beam1.e2 = R * [0; 1; 0];
+%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! for i=1:N - 1
+%!   mesh.elements.beam2(i).nodes = int32(i:i+1);
+%! endfor
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof(1, :) = true;
+%! load_case.loaded_nodes = int32(N);
+%! load_case.loads = [0, 0, P0, 0, 0, 0];
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! wdyn = zeros(1, numel(omega));
+%! Ustat = mat_ass.K \ mat_ass.R;
+%! wstat = Ustat(dof_map.ndof(N, 3));
+%! for i=1:numel(omega)
+%!   U = (-omega(i)^2 * mat_ass.M + mat_ass.K) \ mat_ass.R;
+%!   wdyn(i) = U(dof_map.ndof(N, 3));
+%! endfor
+%! if (do_plot)
+%!   figure("visible", "off");
+%!   hold on;
+%!   plot(Delta * L, wdyn / wstat_a, "-;V(omega);1");
+%!   plot(Delta * L, V_a, "-;V_r_e_f(omega);0");
+%!   xlabel("Delta * L [1]");
+%!   ylabel("wdyn/wstat [1]");
+%!   ylim([-1, 2]);
+%!   grid on;
+%!   grid minor on;
+%!   title("frequency response cantilever beam z-direction");
+%! endif
+%! assert(wstat, wstat_a, 1e-3 * wstat_a);
+%! idx = find(abs(V_a) < 2);
+%! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
+
+%!test
+%! ## TEST 42
+%! ## Robert Gasch, Klaus Knothe 1989
+%! ## Strukturdynamik Band 2
+%! ## Kontinua und ihre Diskretisierung
+%! ## Equation 2.38b, figure 2.11, page 26, chapter 2
+%! do_plot = fem_tests_enable_plotting();
+%! L = 2000e-3;
+%! w = 10e-3;
+%! h = 20e-3;
+%! c2 = 0.291;
+%! E = 70000e6;
+%! nu = 0.3;
+%! rho = 2700;
+%! N = 100;
+%! A = w * h;
+%! Ay = 5 / 6 * w * h;
+%! Az = 5 / 6 * w * h;
+%! It = c2 * h * w^3;;
+%! Iy = w * h^3 / 12;
+%! Iz = w^3 * h / 12;
+%! B = E * Iz;
+%! mu = rho * A;
+%! Delta = linspace(1e-6, 10, 1000) / L;
+%! omega = sqrt(Delta.^4 * B / mu);
+%! P0 = 1;
+%! wstat_a = P0 * L^3 / (3 * B);
+%! V_a = 3 ./ (Delta * L).^3 .* (sin(Delta * L) .* cosh(Delta * L) - cos(Delta * L) .* sinh(Delta * L)) ./ (1 + cos(Delta * L) .* cosh(Delta * L));
+%! R = eye(3);
+%! X = [linspace(0, L, N);
+%!      zeros(2, N)];
+%! mesh.nodes = [(R * X).', zeros(N, 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = int32(1:N - 1);
+%! beam1.nodes = int32([]);
+%! beam1.material = int32(1);
+%! beam1.section.A = A;
+%! beam1.section.Ay = Ay;
+%! beam1.section.Az = Az;
+%! beam1.section.It = It;
+%! beam1.section.Iy = Iy;
+%! beam1.section.Iz = Iz;
+%! beam1.e2 = R * [0; 1; 0];
+%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! for i=1:N - 1
+%!   mesh.elements.beam2(i).nodes = int32(i:i+1);
+%! endfor
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof(1, :) = true;
+%! load_case.loaded_nodes = int32(N);
+%! load_case.loads = [0, P0, 0, 0, 0, 0];
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! wdyn = zeros(1, numel(omega));
+%! Ustat = mat_ass.K \ mat_ass.R;
+%! wstat = Ustat(dof_map.ndof(N, 2));
+%! for i=1:numel(omega)
+%!   U = (-omega(i)^2 * mat_ass.M + mat_ass.K) \ mat_ass.R;
+%!   wdyn(i) = U(dof_map.ndof(N, 2));
+%! endfor
+%! if (do_plot)
+%!   figure("visible", "off");
+%!   hold on;
+%!   plot(Delta * L, wdyn / wstat_a, "-;V(omega);1");
+%!   plot(Delta * L, V_a, "-;V_r_e_f(omega);0");
+%!   xlabel("Delta * L [1]");
+%!   ylabel("wdyn/wstat [1]");
+%!   ylim([-1, 2]);
+%!   grid on;
+%!   grid minor on;
+%!   title("frequency response cantilever beam y-direction");
+%! endif
+%! assert(wstat, wstat_a, 1e-3 * wstat_a);
+%! idx = find(abs(V_a) < 2);
+%! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!demo
 %! ## DEMO 1

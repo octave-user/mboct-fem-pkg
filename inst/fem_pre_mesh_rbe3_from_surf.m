@@ -73,7 +73,7 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     mesh_i.nodes = mesh.nodes(inode, :);
     mesh_i.elements = struct();
     mesh_i.materials = struct();
-    mesh_i.material_data = struct("C", [], "rho", [])([]);
+    mesh_i.material_data = struct("E", [], "nu", [], "C", [], "rho", [])([]);
     mat_ass_i.R = fem_ass_matrix(mesh_i, ...
                                  dof_map_i, ...
                                  [FEM_VEC_LOAD_CONSISTENT], ...
@@ -154,7 +154,6 @@ endfunction
 %! mesh.material_data.E = 210000e6;
 %! mesh.material_data.nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
 
 %! mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, ...
 %!                                                [1, 2], ...
@@ -258,7 +257,6 @@ endfunction
 %! mesh.material_data.E = 210000e6;
 %! mesh.material_data.nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
 
 %! mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, ...
 %!                                                [1, 2], ...
@@ -360,7 +358,6 @@ endfunction
 %! mesh.material_data.E = 210000e6;
 %! mesh.material_data.nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
 
 %! mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, ...
 %!                                                [1, 2], ...

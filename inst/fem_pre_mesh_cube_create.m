@@ -95,7 +95,6 @@ function [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, mater
   endfor
 
   mesh.material_data = material;
-  mesh.material_data.C = fem_pre_mat_isotropic(material.E, material.nu);
   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 endfunction
 

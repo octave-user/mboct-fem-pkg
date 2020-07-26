@@ -84,10 +84,10 @@ endfunction
 %!   mesh.elements.joints(end).C = [eye(3), zeros(3, 3)];
 %!   load_case.joints(end + 1).U = [0; 0; 0];
 %! endfor
-%! mesh.material_data.E = 210000e6;
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6;
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 
 %! # load_case.locked_dof([2, 3, 6, 7], 1:6) = true;

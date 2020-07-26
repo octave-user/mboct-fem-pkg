@@ -536,10 +536,8 @@ endfunction
 %!   mesh.groups.tria6 = fem_pre_mesh_groups_create(mesh, group_defs, options.geo_tol).tria6;
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(find([mesh.groups.tet10.id == 1])).elements) = 1;
-%!   mesh.material_data.E = param.E;
-%!   mesh.material_data.nu = param.nu;
 %!   mesh.material_data.rho = param.rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!   mesh.material_data.C = fem_pre_mat_isotropic(param.E, param.nu);
 
 %!   cms_opt.invariants = true;
 %!   cms_opt.refine_max_iter = int32(0);

@@ -65,10 +65,6 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
     Ksh = K - rho * M;
   endif
 
-  if (nargin >= 7)
-    opts_lin.solver = "solver";
-  endif
-
   opt_lin.solver = solver;
   opt_lin.number_of_threads = num_threads;
 

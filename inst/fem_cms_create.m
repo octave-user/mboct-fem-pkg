@@ -548,10 +548,10 @@ endfunction
 %! mesh.elements.rbe3(1).weight = ones(1, 4);
 %! mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
 %! mesh.elements.rbe3(2).weight = ones(1, 4);
-%! mesh.material_data.E = 210000e6 / (SI_unit_N / SI_unit_m^2);
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6 / (SI_unit_N / SI_unit_m^2);
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
@@ -639,10 +639,10 @@ endfunction
 %! mesh.elements.rbe3(1).weight = ones(1, 4);
 %! mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
 %! mesh.elements.rbe3(2).weight = ones(1, 4);
-%! mesh.material_data.E = 210000e6 / (SI_unit_N / SI_unit_m^2);
-%! mesh.material_data.nu = 0.3;
+%! E = 210000e6 / (SI_unit_N / SI_unit_m^2);
+%! nu = 0.3;
 %! mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
-%! mesh.material_data.C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);

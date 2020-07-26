@@ -74,7 +74,8 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   mesh.nodes = zeros(num_nodes, 6);
   mesh.elements = struct();
   mesh.materials = struct();
-  mesh.material_data = repmat(struct("C", nan(6, 6), "rho", -1), 1, num_mat);
+  empty_cell = cell(1, num_mat);
+  mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "C", empty_cell, "rho", empty_cell);
 
   if (nargout >= 2)
     dof_map.ndof = zeros(num_nodes, 6, "int32");
@@ -102,10 +103,17 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
     endif
   endfor
 
+  mat_prop = fieldnames(mesh.material_data);
+  
   for i=1:numel(mesh_data)
     for j=1:numel(mesh_data(i).mesh.material_data)
-      mesh.material_data(dof_map.submesh.offset.materials(i) + j).C = mesh_data(i).mesh.material_data(j).C;
-      mesh.material_data(dof_map.submesh.offset.materials(i) + j).rho = mesh_data(i).mesh.material_data(j).rho;
+      for k=1:numel(mat_prop)
+	if (isfield(mesh_data(i).mesh.material_data(j), mat_prop{k}))
+	  mesh.material_data(dof_map.submesh.offset.materials(i) + j) = setfield(mesh.material_data(dof_map.submesh.offset.materials(i) + j), ...
+										 mat_prop{k}, ...
+										 getfield(mesh_data(i).mesh.material_data(j), mat_prop{k}));
+	endif
+      endfor
     endfor
   endfor
 
