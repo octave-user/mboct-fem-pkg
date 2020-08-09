@@ -343,7 +343,7 @@ endfunction
 %!   rand("seed", 0);
 %!   for N=[2, 10, 50, 100]
 %!     num_modes = ceil(0.1 * N);
-%!     for i=1:100
+%!     for i=1:20
 %!       K = rand(N, N);
 %!       K *= K.';
 %!       M = rand(N, N);

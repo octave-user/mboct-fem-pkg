@@ -31,6 +31,9 @@ function Asym = fem_mat_sym(A)
 endfunction
 
 %!test
+%! state = rand("state");
+%! unwind_protect
+%! rand("seed", 0);
 %! A = rand(10, 10);
 %! A += A.';
 %! [r, c, d] = find(A);
@@ -42,4 +45,7 @@ endfunction
 %! assert(x1, x2, eps^0.8 * norm(b));
 %! x1 = Asym(2:4, 2:4) * b(2:4, :);
 %! x2 = A(2:4, 2:4) * b(2:4, :);
-%! assert(x1, x2, eps * norm(b(2:4, :)));
+%! assert(x1, x2, eps^0.9 * norm(b(2:4, :)));
+%! unwind_protect_cleanup
+%!  rand("state", state);
+%! end_unwind_protect

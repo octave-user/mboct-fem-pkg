@@ -373,10 +373,10 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     switch (elem_types{i})
       case "iso8"
         elem_type_id = 5;
-        elem_node_order = [5:8,1:4];
+        elem_node_order([5:8, 1:4]) = 1:8;
       case "iso20"
 	elem_type_id = 17;
-	elem_node_order = [5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16];	
+	elem_node_order([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]) = 1:20;	
       case "iso4"
         elem_type_id = 3;
         elem_node_order = 1:4;
@@ -391,7 +391,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
         elem_node_order = 1:3;
       case "tet10"
         elem_type_id = 11;
-        elem_node_order = [1:8,10,9];
+        elem_node_order([1:8, 10, 9]) = 1:10;
       case "tet4"
 	elem_type_id = 4;
 	elem_node_order = 1:4;
