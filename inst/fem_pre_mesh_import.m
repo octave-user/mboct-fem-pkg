@@ -15,7 +15,7 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {Function File} [@var{mesh}, @var{load_case}] = fem_pre_mesh_import(@var{filename})
-## @deftypefnx {} [@dots{}] = fem_pre_mesh_import(@dots{}, @var{format})
+## @deftypefnx {} [@dots{}] = fem_pre_mesh_import(@dots{}, @var{format}, @var{options})
 ## Load a mesh and a load case from a file. Supported values for @var{format} are:
 ##
 ## "gmsh" from C. Geuzaine and J.-F. Remacle (*.msh)
@@ -53,7 +53,11 @@ function [mesh, load_case] = fem_pre_mesh_import(filename, format, options)
   endif
 
   if (~isfield(options, "promote_elem"))
-    options.promote_elem = {"tet4", "tria3", "prism6"};
+    options.promote_elem = {"tet4", "tria3", "penta6"};
+  endif
+
+  if (~isfield(options, "elem_type"))
+    options.elem_type = {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15"};
   endif
 
   switch (format)
@@ -148,10 +152,10 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
 
           groups = unique(elem_tags(:, 1));
 
-          eltype = struct("name", {"tet10", "tria6", "tet4", "prism6", "tria3", "iso8", "iso4", "iso20", "quad8", "prism15"}, ...
-                          "promote", {-1, -1, 6, 6, 7, -1, -1, -1, -1, 8}, ...
-                          "id", {11, 9, 4, 6, 2, 5, 3, 17, 16, 18}, ...
-                          "dim", {3, 2, 3, 3, 2, 3, 2, 3, 2, 3}, ...
+          eltype = struct("name", {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "tet10h"}, ...
+                          "promote", {-1, -1, 6, 6, 7, -1, -1, -1, -1, -1, -1}, ...
+                          "id", {11, 9, 4, 6, 2, 5, 3, 17, 16, 18, 11}, ...
+                          "dim", {3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 3}, ...
                           "norder", {[1:8, 10, 9], ...
                                      1:6, ...
                                      [4, 4, 4, 4, 1:3, 3], ...
@@ -161,8 +165,20 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
 				     1:4, ...
 				     [5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16], ...
 				     1:8, ...
-				     [4,5,6,6,1,2,3,3,13,15,6,14,7,10,3,8,9,11,12,12]}, ...
-                         "nordernonp", {[],[],[],[],[1:3],[],[],[],[],[]});
+				     [1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12], ...
+				     [1:8, 10, 9]}, ...
+                          "nordernonp", {[],[],[],[],[1:3],[],[],[],[],[],[]});
+
+	  use_elem_type = false(1, numel(eltype));
+
+	  for i=1:numel(eltype)
+	    switch (eltype(i).name)
+	      case options.elem_type
+		use_elem_type(i) = true;
+	    endswitch
+	  endfor
+
+	  eltype = eltype(use_elem_type);
 
           for i=1:numel(eltype)
             if (eltype(i).promote > 0)
@@ -3571,417 +3587,6 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO 1
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "wt");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 1;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
-%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
-%!   elem_id_p1 = mesh.groups.tria6(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.tria6(elem_id_p1, :);
-
-%!   load_case.pressure.tria6.elements = elno_p1;
-%!   load_case.pressure.tria6.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.tria6].id] == 4);
-%!   elem_id_displacement = mesh.groups.tria6(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.tria6(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.tria6].id] == 5);
-%!   elem_id_stress = mesh.groups.tria6(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.tria6(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.tet10 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.tet10(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = true;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!demo
-%! ## DEMO2
-%! close all;
-%! a = 5e-3;
-%! b = 5e-3;
-%! c = 10e-3;
-%! h = 0.5e-3;
-%! E = 210000e6;
-%! nu = 0.3;
-%! rho = 7850;
-%! gamma = 10 * pi / 180;
-%! tolstat = 4e-2;
-%! scale = 5e-3;
-%! maxdist = 1e-2 * max([a,b,c]);
-%! eliminate = false;
-%! animate = true;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   for i=1:4
-%!     fd = -1;
-%!     unwind_protect
-%!       [fd, msg] = fopen([filename, ".geo"], "wt");
-%!       if (fd == -1)
-%!         error("failed to open file \"%s.geo\"", filename);
-%!       endif
-%!       switch (i)
-%!         case {1,2}
-%!           order = 1;
-%!         otherwise
-%!           order = 2;
-%!       endswitch
-%!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!       fprintf(fd, "a=%g;\n", a);
-%!       fprintf(fd, "b=%g;\n", b);
-%!       fprintf(fd, "c=%g;\n", c);
-%!       fprintf(fd, "h=%g;\n", h * order);
-%!       fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!       fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!       fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!       fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!       fputs(fd, "Line(1) = {1,2};\n");
-%!       fputs(fd, "Line(2) = {2,3};\n");
-%!       fputs(fd, "Line(3) = {3,4};\n");
-%!       fputs(fd, "Line(4) = {4,1};\n");
-%!       fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!       fputs(fd, "Plane Surface(6) = {5};\n");
-%!       fputs(fd, "tmp[] = Extrude {0.0,0.0,c} {\n");
-%!       switch (i)
-%!         case 1
-%!           fprintf(fd, "  Surface{6}; Layers{%d}; Recombine;\n", ceil(c/h));
-%!         otherwise
-%!           fputs(fd, "  Surface{6};\n");
-%!       endswitch
-%!       fputs(fd, "};\n");
-%!       switch (i)
-%!         case 1
-%!           fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
-%!       endswitch
-%!       fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!       fprintf(fd, "Physical Surface(\"right\",%d) = {tmp[2]};\n", 100 * i + 1);
-%!       fprintf(fd, "Physical Surface(\"rear\",%d) = {tmp[3]};\n", 100 * i + 2);
-%!       fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[4]};\n", 100 * i + 3);
-%!       fprintf(fd, "Physical Surface(\"front\",%d) = {tmp[5]};\n", 100 * i + 4);
-%!       fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[0]};\n", 100 * i + 5);
-%!       fprintf(fd, "Physical Surface(\"bottom\",%d) = {6};\n", 100 * i + 6);
-%!     unwind_protect_cleanup
-%!       if (fd ~= -1)
-%!         fclose(fd);
-%!       endif
-%!     end_unwind_protect
-%!     pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", sprintf("%d", order), [filename, ".geo"]});
-%!     status = spawn_wait(pid);
-%!     if (status ~= 0)
-%!       warning("gmsh failed with status %d", status);
-%!     endif
-%!     unlink([filename, ".geo"]);
-%!     data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!     unlink([filename, ".msh"]);
-%!   endfor
-%!   data(2).mesh.nodes(:, 1) += a;
-%!   data(3).mesh.nodes(:, 1) += a;
-%!   data(3).mesh.nodes(:, 2) += b;
-%!   data(4).mesh.nodes(:, 2) += b;
-%!   for i=1:numel(data)
-%!     if (isfield(data(i).mesh.elements, "iso8"))
-%!       data(i).mesh.materials.iso8 = ones(rows(data(i).mesh.elements.iso8), 1, "int32");
-%!     else
-%!       data(i).mesh.materials.tet10 = ones(rows(data(i).mesh.elements.tet10), 1, "int32");
-%!     endif
-%!     data(i).mesh.material_data.rho = rho;
-%!     data(i).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   endfor
-%!   mesh = fem_post_mesh_merge(data);
-%!   mesh.nodes(:, 3) -= 0.5 * c;
-%!   constr = FEM_CT_FIXED;
-%!   mesh.elements.sfncon4(1).master = mesh.elements.iso4(mesh.groups.iso4(find([[mesh.groups.iso4].id] == 103)).elements, :);
-%!   mesh.elements.sfncon4(1).slave = mesh.groups.tria6(find([[mesh.groups.tria6].id] == 401)).nodes(:);
-%!   mesh.elements.sfncon4(1).maxdist = maxdist;
-%!   mesh.elements.sfncon4(1).constraint = constr;
-%!   mesh.elements.sfncon4(2).master = mesh.elements.iso4(mesh.groups.iso4(find([[mesh.groups.iso4].id] == 102)).elements, :);
-%!   mesh.elements.sfncon4(2).slave = mesh.groups.iso4(find([[mesh.groups.iso4].id] == 204)).nodes(:);
-%!   mesh.elements.sfncon4(2).maxdist = maxdist;
-%!   mesh.elements.sfncon4(2).constraint = constr;
-%!   mesh.elements.sfncon6(1).master = mesh.elements.tria6(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 402)).elements, :);
-%!   mesh.elements.sfncon6(1).slave = mesh.groups.tria6(find([[mesh.groups.tria6].id] == 304)).nodes(:);
-%!   mesh.elements.sfncon6(1).maxdist = maxdist;
-%!   mesh.elements.sfncon6(1).constraint = constr;
-%!   mesh.elements.sfncon6(2).master = mesh.elements.tria6(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 301)).elements, :);
-%!   mesh.elements.sfncon6(2).slave = mesh.groups.iso4(find([[mesh.groups.iso4].id] == 203)).nodes(:);
-%!   mesh.elements.sfncon6(2).maxdist = maxdist;
-%!   mesh.elements.sfncon6(2).constraint = constr;
-%!   slave_nodes = [];
-%!   for i=1:numel(mesh.elements.sfncon4)
-%!     idx_slave = [];
-%!     for j=1:numel(slave_nodes)
-%!       idx_slave = [idx_slave; find(mesh.elements.sfncon4(i).slave == slave_nodes(j))];
-%!     endfor
-%!     if (numel(idx_slave))
-%!       mesh.elements.sfncon4(i).slave(idx_slave) = 0;
-%!       mesh.elements.sfncon4(i).slave = mesh.elements.sfncon4(i).slave(find(mesh.elements.sfncon4(i).slave));
-%!     endif
-%!     slave_nodes = [slave_nodes; mesh.elements.sfncon4(i).slave];
-%!   endfor
-
-%!   for i=1:numel(mesh.elements.sfncon6)
-%!     idx_slave = [];
-%!     for j=1:numel(slave_nodes)
-%!       idx_slave = [idx_slave; find(mesh.elements.sfncon6(i).slave == slave_nodes(j))];
-%!     endfor
-%!     if (numel(idx_slave))
-%!       mesh.elements.sfncon6(i).slave(idx_slave) = 0;
-%!       mesh.elements.sfncon6(i).slave = mesh.elements.sfncon6(i).slave(find(mesh.elements.sfncon6(i).slave));
-%!     endif
-%!     slave_nodes = [slave_nodes; mesh.elements.sfncon6(i).slave];
-%!   endfor
-%!   group_id4 = [[mesh.groups.iso4].id];
-%!   group_id6 = [[mesh.groups.tria6].id];
-
-%!   node_front = [[mesh.groups.iso4(find(group_id4 == 104))].nodes, [mesh.groups.tria6(find(group_id6 == 404))].nodes];
-%!   node_rear = [[mesh.groups.iso4(find(group_id4 == 202))].nodes, [mesh.groups.tria6(find(group_id6 == 302))].nodes];
-%!   node_right = [mesh.groups.iso4(find((group_id4 == 101) | (group_id4 == 201))).nodes, ...
-%!                 mesh.groups.tria6(find((group_id6==303)|(group_id6==403))).nodes];
-%!   node_bottom = [[mesh.groups.iso4(find(mod(group_id4, 100) == 6))].nodes, ...
-%!                  [mesh.groups.tria6(find(mod(group_id6,100) == 6))].nodes];
-%!   node_top = [[mesh.groups.iso4(find(mod(group_id4, 100) == 5))].nodes, ...
-%!               [mesh.groups.tria6(find(mod(group_id6,100) == 5))].nodes];
-%!   node_constr = [node_front, node_rear, node_right, node_bottom, node_top];
-%!   mesh.elements.joints = repmat(struct("nodes",[],"C",[]), 1, numel(node_constr));
-%!   load_case.joints = repmat(struct("U",[]), 1, numel(node_constr));
-%!   idx_joint = int32(0);
-%!   for i=1:numel(node_front)
-%!     if (~numel(find(slave_nodes == node_front(i))))
-%!       mesh.elements.joints(++idx_joint).C = [[1, 0, 0; 0, 0, 1],  zeros(2, 3)];
-%!       mesh.elements.joints(idx_joint).nodes = node_front(i);
-%!       load_case.joints(idx_joint).U = [gamma * mesh.nodes(node_front(i), 3); 0];
-%!     endif
-%!   endfor
-%!   for i=1:numel(node_rear)
-%!     if (~numel(find(slave_nodes == node_rear(i))))
-%!       mesh.elements.joints(++idx_joint).C = [[1, 0, 0; 0, 0, 1], zeros(2, 3)];
-%!       mesh.elements.joints(idx_joint).nodes = node_rear(i);
-%!       load_case.joints(idx_joint).U = [gamma * mesh.nodes(node_rear(i), 3); 0];
-%!     endif
-%!   endfor
-
-%!   for i=1:numel(node_right)
-%!     if (~numel(find(slave_nodes == node_right(i))))
-%!       mesh.elements.joints(++idx_joint).C = [0,1,0, zeros(1, 3)];
-%!       mesh.elements.joints(idx_joint).nodes = node_right(i);
-%!       load_case.joints(idx_joint).U = 0;
-%!     endif
-%!   endfor
-
-%!   for i=1:numel(node_bottom)
-%!     xi = mesh.nodes(node_bottom(i), 1);
-%!     if (~(numel(find(slave_nodes == node_bottom(i))) || xi == 0 || xi == 2 * a))
-%!       mesh.elements.joints(++idx_joint).C = [0,0,1, zeros(1, 3)];
-%!       mesh.elements.joints(idx_joint).nodes = node_bottom(i);
-%!       load_case.joints(idx_joint).U = 0;
-%!     endif
-%!   endfor
-
-%!   for i=1:numel(node_top)
-%!     xi = mesh.nodes(node_top(i), 1);
-%!     if (~(numel(find(slave_nodes == node_top(i))) || xi == 0 || xi == 2 * a))
-%!       mesh.elements.joints(++idx_joint).C = [0,0,1, zeros(1, 3)];
-%!       mesh.elements.joints(idx_joint).nodes = node_top(i);
-%!       load_case.joints(idx_joint).U = 0;
-%!     endif
-%!   endfor
-
-%!   mesh.elements.joints = mesh.elements.joints(1:idx_joint);
-%!   load_case.joints = load_case.joints(1:idx_joint);
-%!   load_case.locked_dof = false(size(mesh.nodes));
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   if (eliminate)
-%!     K_mat_type = FEM_MAT_STIFFNESS;
-%!   else
-%!     K_mat_type = FEM_MAT_STIFFNESS;
-%!   endif
-%!   [mat_ass.K, ...
-%!    mat_ass.R, ...
-%!    mat_ass.mat_info] = fem_ass_matrix(mesh, ...
-%!                                       dof_map, ...
-%!                                       [K_mat_type, ...
-%!                                        FEM_VEC_LOAD_CONSISTENT], ...
-%!                                       load_case);
-%!   if (eliminate)
-%!     [Tred, Kred, Mred, Rred] = fem_cms_constr_elim(mesh, dof_map, mat_ass);
-%!     opt_ls.refine_max_iter = int32(100);
-%!     Kfact = fem_sol_factor(Kred, opt_ls);
-%!     Ured = Kfact \ Rred;
-%!     sol_stat.def = fem_post_def_nodal(mesh, dof_map, Tred * Ured);
-%!   else
-%!     sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   endif
-
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   if (animate)
-%!     opt_anim.scale_def = 1;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [286, 2, 205] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = true;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
 %!test
 %! ## TEST17
 %! fd = -1;
@@ -5901,323 +5506,6 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO 3
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "wt");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 0.3;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!   fputs(fd, "Recombine Surface{14, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.quad8].id] == 3);
-%!   elem_id_p1 = mesh.groups.quad8(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.quad8(elem_id_p1, :);
-
-%!   load_case.pressure.quad8.elements = elno_p1;
-%!   load_case.pressure.quad8.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.quad8].id] == 4);
-%!   elem_id_displacement = mesh.groups.quad8(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.quad8(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.quad8].id] == 5);
-%!   elem_id_stress = mesh.groups.quad8(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.quad8(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.iso20 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.iso20(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = false;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!demo
-%! ## DEMO 4
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "wt");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 0.15;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!   fputs(fd, "Recombine Surface{14, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.iso4].id] == 2);
-%!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
-%!   elem_id_p1 = mesh.groups.iso4(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.iso4(elem_id_p1, :);
-
-%!   load_case.pressure.iso4.elements = elno_p1;
-%!   load_case.pressure.iso4.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.iso4].id] == 4);
-%!   elem_id_displacement = mesh.groups.iso4(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.iso4(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.iso4].id] == 5);
-%!   elem_id_stress = mesh.groups.iso4(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.iso4(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.iso8 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.iso8(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = false;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
 %!test
 %! ## TEST 20
 %! close all;
@@ -6664,6 +5952,12 @@ endfunction
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   F = zeros(rows(mesh.nodes), 3);
+%!   for i=1:3
+%!     idof = dof_map.ndof(:, i);
+%!     idx = idof > 0;
+%!     F(idx, i) = mat_ass.R(idof(idx));
+%!   endfor      
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -6679,6 +5973,12 @@ endfunction
 %!   title("static deflection - consistent pressure load");
 %!   figure_list();
 %!   tol = eps^0.7;
+%!   Fx = -px * b * c;
+%!   Fy = -py * a * c;
+%!   Fz = -pz * a * b;
+%!   assert(sum(F(:, 1)), Fx, tol * abs(Fx));
+%!   assert(sum(F(:, 2)), Fy, tol * abs(Fy));
+%!   assert(sum(F(:, 3)), Fz, tol * abs(Fz));
 %!   assert(max(max(max(abs(sol_stat.stress.tau.iso20(:, :, 1) / -px - 1)))) < tol);
 %!   assert(max(max(max(abs(sol_stat.stress.tau.iso20(:, :, 2) / -py - 1)))) < tol);
 %!   assert(max(max(max(abs(sol_stat.stress.tau.iso20(:, :, 3) / -pz - 1)))) < tol);
@@ -7211,6 +6511,1237 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
+%!test
+%! ## TEST 28: patch test of penta15
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   a = 8e-3;
+%!   b = 15e-3;
+%!   c = 12e-3;
+%!   shift = 1e-4;
+%!   mesh_size = 7e-3;
+%!   scale_def = 1e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "a = %g;\n", a);
+%!   fprintf(fd, "b = %g;\n", b);
+%!   fprintf(fd, "c = %g;\n", c);
+%!   fprintf(fd, "h = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_MAT_MASS], ...
+%!                                load_case);
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, shift);
+%!   sol_eig.def *= scale_def / max(max(max(abs(sol_eig.def))));
+%!   [sol_eig.stress] = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     [FEM_VEC_STRESS_CAUCH], ...
+%!                                     load_case, ...
+%!                                     sol_eig);
+%!   tolt = eps^0.5;
+%!   assert(max(max(max(max(abs(sol_eig.stress.tau.penta15(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.penta15(:, :, :, 7:end)))))));
+%!   tolf = eps^0.4;
+%!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 29: patch test of prism15
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   a = 8e-3;
+%!   b = 15e-3;
+%!   c = 12e-3;
+%!   px = 25.79e6;
+%!   py = 7.83e6;
+%!   pz = 1.3758e6;
+%!   mesh_size = 7e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "a = %g;\n", a);
+%!   fprintf(fd, "b = %g;\n", b);
+%!   fprintf(fd, "c = %g;\n", c);
+%!   fprintf(fd, "h = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   elem_types = {"tria6", "quad8"};
+%!   load_case.pressure = struct();
+%!   for i=1:numel(elem_types)
+%!     elemgrp = getfield(mesh.groups, elem_types{i});
+%!     elemno = getfield(mesh.elements, elem_types{i});
+%!     elempr.elements = zeros(0, (i - 1) * 2 + 6);
+%!     elempr.p = zeros(0, (i - 1) * 2 + 6);
+%!     grp_id_clamp_x = find([[elemgrp].id] == 4);
+%!     grp_id_clamp_y = find([[elemgrp].id] == 1);
+%!     grp_id_clamp_z = find([[elemgrp].id] == 5);
+%!     if (numel(grp_id_clamp_x))
+%!       load_case.locked_dof(elemgrp(grp_id_clamp_x).nodes, 1) = true;
+%!     endif
+%!     if (numel(grp_id_clamp_y))
+%!       load_case.locked_dof(elemgrp(grp_id_clamp_y).nodes, 2) = true;
+%!     endif
+%!     if (numel(grp_id_clamp_z))
+%!       load_case.locked_dof(elemgrp(grp_id_clamp_z).nodes, 3) = true;
+%!     endif
+%!     grp_id_px = find([[elemgrp].id] == 2);
+%!     if (numel(grp_id_px))
+%!       elem_id_px = elemgrp(grp_id_px).elements;
+%!       elno_px = elemno(elem_id_px, :);
+%!       elempr.elements = [elempr.elements;
+%!                          elno_px];
+%!       elempr.p = [elempr.p;
+%!                   repmat(px, rows(elno_px), columns(elno_px))];
+%!     endif
+%!     grp_id_py = find([[elemgrp].id] == 3);
+%!     if (numel(grp_id_py))
+%!       elem_id_py = elemgrp(grp_id_py).elements;
+%!       elno_py = elemno(elem_id_py, :);
+%!       elempr.elements = [elempr.elements;
+%!                          elno_py];
+%!       elempr.p = [elempr.p;
+%!                   repmat(py, rows(elno_py), columns(elno_py))];
+%!     endif
+%!     grp_id_pz = find([[elemgrp].id] == 6);
+%!     if (numel(grp_id_pz))
+%!       elem_id_pz = elemgrp(grp_id_pz).elements;
+%!       elno_pz = elemno(elem_id_pz, :);
+%!       elempr.elements = [elempr.elements;
+%!                          elno_pz];
+%!       elempr.p = [elempr.p;
+%!                   repmat(pz, rows(elno_pz), columns(elno_pz))];
+%!     endif
+%!     load_case.pressure = setfield(load_case.pressure, elem_types{i}, elempr);
+%!   endfor
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   figure("visible", "off");
+%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!   xlabel("x [m]");
+%!   ylabel("y [m]");
+%!   zlabel("z [m]");
+%!   grid on;
+%!   grid minor on;
+%!   title("static deflection - consistent pressure load");
+%!   figure_list();
+%!   tol = eps^0.7;
+%!   assert(max(max(max(abs(sol_stat.stress.tau.penta15(:, :, 1) / -px - 1)))) < tol);
+%!   assert(max(max(max(abs(sol_stat.stress.tau.penta15(:, :, 2) / -py - 1)))) < tol);
+%!   assert(max(max(max(abs(sol_stat.stress.tau.penta15(:, :, 3) / -pz - 1)))) < tol);
+%!   assert(max(max(max(abs(sol_stat.stress.tau.penta15(:, :, 4:6) / max([px,py,pz]))))) < tol);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 30: patch test of tet10h
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   a = 8e-3;
+%!   b = 15e-3;
+%!   c = 12e-3;
+%!   px = 25.79e6;
+%!   py = 7.83e6;
+%!   pz = 1.3758e6;
+%!   mesh_size = 7e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "a = %g;\n", a);
+%!   fprintf(fd, "b = %g;\n", b);
+%!   fprintf(fd, "c = %g;\n", c);
+%!   fprintf(fd, "h = %g;\n", mesh_size);
+%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opts.elem_type = {"tet10h", "tria6"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
+%!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
+%!   grp_id_clamp_z = find([[mesh.groups.tria6].id] == 5);
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_z).nodes, 3) = true;
+%!   grp_id_px = find([[mesh.groups.tria6].id] == 2);
+%!   grp_id_py = find([[mesh.groups.tria6].id] == 3);
+%!   grp_id_pz = find([[mesh.groups.tria6].id] == 6);
+%!   elem_id_px = mesh.groups.tria6(grp_id_px).elements;
+%!   elem_id_py = mesh.groups.tria6(grp_id_py).elements;
+%!   elem_id_pz = mesh.groups.tria6(grp_id_pz).elements;
+%!   elno_px = mesh.elements.tria6(elem_id_px, :);
+%!   elno_py = mesh.elements.tria6(elem_id_py, :);
+%!   elno_pz = mesh.elements.tria6(elem_id_pz, :);
+%!   load_case.pressure.tria6.elements = [elno_px; elno_py; elno_pz];
+%!   load_case.pressure.tria6.p = [repmat(px, rows(elno_px), columns(elno_px));
+%!                                 repmat(py, rows(elno_py), columns(elno_py));
+%!                                 repmat(pz, rows(elno_pz), columns(elno_pz))];
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   figure("visible", "off");
+%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!   xlabel("x [m]");
+%!   ylabel("y [m]");
+%!   zlabel("z [m]");
+%!   grid on;
+%!   grid minor on;
+%!   title("static deflection - consistent pressure load");
+%!   figure_list();
+%!   tol = eps^0.7;
+%!   assert(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 1) / -px - 1)))) < tol);
+%!   assert(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 2) / -py - 1)))) < tol);
+%!   assert(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 3) / -pz - 1)))) < tol);
+%!   assert(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 4:6) / max([px,py,pz]))))) < tol);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 31
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   ## K.J.Bathe page 328 4.20a
+%!   mesh_size = 1.5;
+%!   p1 = 0.006;
+%!   E = 55;
+%!   nu = 0.3;
+%!   rho = 1000e-12;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Circle(3) = {3,11,4};\n");
+%!   fputs(fd, "Line(4) = {4,5};\n");
+%!   fputs(fd, "Line(5) = {5,6};\n");
+%!   fputs(fd, "Line(6) = {6,7};\n");
+%!   fputs(fd, "Circle(7) = {7,12,8};\n");
+%!   fputs(fd, "Line(8) = {8,9};\n");
+%!   fputs(fd, "Line(9) = {9,10};\n");
+%!   fputs(fd, "Line(10) = {10,1};\n");
+%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!   fputs(fd, "Plane Surface(14) = {11};\n");
+%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opts.elem_type = {"tria6", "tet10h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
+%!   grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
+%!   elem_id_p1 = mesh.groups.tria6(grp_id_p1).elements;
+%!   elno_p1 = mesh.elements.tria6(elem_id_p1, :);
+
+%!   load_case.pressure.tria6.elements = elno_p1;
+%!   load_case.pressure.tria6.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
+
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT, ...
+%!                                 FEM_VEC_LOAD_LUMPED], ...
+%!                                load_case);
+
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   grp_id_displacement = find([[mesh.groups.tria6].id] == 4);
+%!   elem_id_displacement = mesh.groups.tria6(grp_id_displacement).elements;
+%!   elno_id_displacement = mesh.elements.tria6(elem_id_displacement, :);
+%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
+%!   grp_id_stress = find([[mesh.groups.tria6].id] == 5);
+%!   elem_id_stress = mesh.groups.tria6(grp_id_stress).elements;
+%!   elno_id_stress = mesh.elements.tria6(elem_id_stress, :);
+%!   taum = zeros(6, numel(elno_id_stress));
+%!   taum_n = zeros(1, numel(elno_id_stress));
+%!   for i=1:numel(elno_id_stress)
+%!     [ridx, cidx] = find(mesh.elements.tet10h == elno_id_stress(i));
+%!     for j=1:numel(ridx)
+%!       taum(:, i) += reshape(sol_stat.stress.taum.tet10h(ridx(j), cidx(j), :), 6, 1);
+%!       ++taum_n(i);
+%!     endfor
+%!   endfor
+%!   taum *= diag(1 ./ taum_n);
+%!   sigma1_max = 0;
+%!   for i=1:columns(taum)
+%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
+%!            taum(4, i), taum(2, i), taum(5, i);
+%!            taum(6, i), taum(5, i), taum(3, i)];
+%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
+%!   endfor
+%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
+%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
+%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
+%!   ## K.J.Bathe page 329 4.20b
+%!   sigma1_max_ref = 0.6056;
+%!   delta_ref = -1.669;
+%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
+%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
+%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
+%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO 1
+%! ## K.J.Bathe 2002, page 328 4.20a
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   animate = true;
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   mesh_size = 1;
+%!   p1 = 0.006;
+%!   E = 55;
+%!   nu = 0.3;
+%!   rho = 1000e-12;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Circle(3) = {3,11,4};\n");
+%!   fputs(fd, "Line(4) = {4,5};\n");
+%!   fputs(fd, "Line(5) = {5,6};\n");
+%!   fputs(fd, "Line(6) = {6,7};\n");
+%!   fputs(fd, "Circle(7) = {7,12,8};\n");
+%!   fputs(fd, "Line(8) = {8,9};\n");
+%!   fputs(fd, "Line(9) = {9,10};\n");
+%!   fputs(fd, "Line(10) = {10,1};\n");
+%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!   fputs(fd, "Plane Surface(14) = {11};\n");
+%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
+%!   grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
+%!   elem_id_p1 = mesh.groups.tria6(grp_id_p1).elements;
+%!   elno_p1 = mesh.elements.tria6(elem_id_p1, :);
+
+%!   load_case.pressure.tria6.elements = elno_p1;
+%!   load_case.pressure.tria6.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
+
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT, ...
+%!                                 FEM_VEC_LOAD_LUMPED], ...
+%!                                load_case);
+
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   grp_id_displacement = find([[mesh.groups.tria6].id] == 4);
+%!   elem_id_displacement = mesh.groups.tria6(grp_id_displacement).elements;
+%!   elno_id_displacement = mesh.elements.tria6(elem_id_displacement, :);
+%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
+%!   grp_id_stress = find([[mesh.groups.tria6].id] == 5);
+%!   elem_id_stress = mesh.groups.tria6(grp_id_stress).elements;
+%!   elno_id_stress = mesh.elements.tria6(elem_id_stress, :);
+%!   taum = zeros(6, numel(elno_id_stress));
+%!   taum_n = zeros(1, numel(elno_id_stress));
+%!   for i=1:numel(elno_id_stress)
+%!     [ridx, cidx] = find(mesh.elements.tet10 == elno_id_stress(i));
+%!     for j=1:numel(ridx)
+%!       taum(:, i) += reshape(sol_stat.stress.taum.tet10(ridx(j), cidx(j), :), 6, 1);
+%!       ++taum_n(i);
+%!     endfor
+%!   endfor
+%!   taum *= diag(1 ./ taum_n);
+%!   sigma1_max = 0;
+%!   for i=1:columns(taum)
+%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
+%!            taum(4, i), taum(2, i), taum(5, i);
+%!            taum(6, i), taum(5, i), taum(3, i)];
+%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
+%!   endfor
+%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
+%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
+%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
+%!   ## K.J.Bathe page 329 4.20b
+%!   sigma1_max_ref = 0.6056;
+%!   delta_ref = -1.669;
+%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
+%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
+%!   if (animate)
+%!     opt_anim.scale_def = 10;
+%!     opt_anim.animation_delay = 1;
+%!     opt_anim.print_and_exit = true;
+%!     opt_anim.print_to_file = filename;
+%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
+%!     opt_anim.skin_only = true;
+%!     opt_anim.show_element = true;
+%!     unwind_protect
+%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
+%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
+%!       figure("visible", "off");
+%!       imshow(img, map);
+%!       title("Gmsh - deformed mesh / continuous stress tensor");
+%!     unwind_protect_cleanup
+%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
+%!     end_unwind_protect
+%!   endif
+%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
+%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
+%!   figure_list();
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO2
+%! close all;
+%! a = 5e-3;
+%! b = 5e-3;
+%! c = 10e-3;
+%! h = 0.5e-3;
+%! E = 210000e6;
+%! nu = 0.3;
+%! rho = 7850;
+%! gamma = 10 * pi / 180;
+%! tolstat = 4e-2;
+%! scale = 5e-3;
+%! maxdist = 1e-2 * max([a,b,c]);
+%! eliminate = false;
+%! animate = true;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   for i=1:4
+%!     fd = -1;
+%!     unwind_protect
+%!       [fd, msg] = fopen([filename, ".geo"], "wt");
+%!       if (fd == -1)
+%!         error("failed to open file \"%s.geo\"", filename);
+%!       endif
+%!       switch (i)
+%!         case {1,2}
+%!           order = 1;
+%!         otherwise
+%!           order = 2;
+%!       endswitch
+%!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!       fprintf(fd, "a=%g;\n", a);
+%!       fprintf(fd, "b=%g;\n", b);
+%!       fprintf(fd, "c=%g;\n", c);
+%!       fprintf(fd, "h=%g;\n", h * order);
+%!       fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!       fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!       fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!       fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!       fputs(fd, "Line(1) = {1,2};\n");
+%!       fputs(fd, "Line(2) = {2,3};\n");
+%!       fputs(fd, "Line(3) = {3,4};\n");
+%!       fputs(fd, "Line(4) = {4,1};\n");
+%!       fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!       fputs(fd, "Plane Surface(6) = {5};\n");
+%!       fputs(fd, "tmp[] = Extrude {0.0,0.0,c} {\n");
+%!       switch (i)
+%!         case 1
+%!           fprintf(fd, "  Surface{6}; Layers{%d}; Recombine;\n", ceil(c/h));
+%!         otherwise
+%!           fputs(fd, "  Surface{6};\n");
+%!       endswitch
+%!       fputs(fd, "};\n");
+%!       switch (i)
+%!         case 1
+%!           fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
+%!       endswitch
+%!       fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!       fprintf(fd, "Physical Surface(\"right\",%d) = {tmp[2]};\n", 100 * i + 1);
+%!       fprintf(fd, "Physical Surface(\"rear\",%d) = {tmp[3]};\n", 100 * i + 2);
+%!       fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[4]};\n", 100 * i + 3);
+%!       fprintf(fd, "Physical Surface(\"front\",%d) = {tmp[5]};\n", 100 * i + 4);
+%!       fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[0]};\n", 100 * i + 5);
+%!       fprintf(fd, "Physical Surface(\"bottom\",%d) = {6};\n", 100 * i + 6);
+%!     unwind_protect_cleanup
+%!       if (fd ~= -1)
+%!         fclose(fd);
+%!       endif
+%!     end_unwind_protect
+%!     pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", sprintf("%d", order), [filename, ".geo"]});
+%!     status = spawn_wait(pid);
+%!     if (status ~= 0)
+%!       warning("gmsh failed with status %d", status);
+%!     endif
+%!     unlink([filename, ".geo"]);
+%!     data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!     unlink([filename, ".msh"]);
+%!   endfor
+%!   data(2).mesh.nodes(:, 1) += a;
+%!   data(3).mesh.nodes(:, 1) += a;
+%!   data(3).mesh.nodes(:, 2) += b;
+%!   data(4).mesh.nodes(:, 2) += b;
+%!   for i=1:numel(data)
+%!     if (isfield(data(i).mesh.elements, "iso8"))
+%!       data(i).mesh.materials.iso8 = ones(rows(data(i).mesh.elements.iso8), 1, "int32");
+%!     else
+%!       data(i).mesh.materials.tet10 = ones(rows(data(i).mesh.elements.tet10), 1, "int32");
+%!     endif
+%!     data(i).mesh.material_data.rho = rho;
+%!     data(i).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   endfor
+%!   mesh = fem_post_mesh_merge(data);
+%!   mesh.nodes(:, 3) -= 0.5 * c;
+%!   constr = FEM_CT_FIXED;
+%!   mesh.elements.sfncon4(1).master = mesh.elements.iso4(mesh.groups.iso4(find([[mesh.groups.iso4].id] == 103)).elements, :);
+%!   mesh.elements.sfncon4(1).slave = mesh.groups.tria6(find([[mesh.groups.tria6].id] == 401)).nodes(:);
+%!   mesh.elements.sfncon4(1).maxdist = maxdist;
+%!   mesh.elements.sfncon4(1).constraint = constr;
+%!   mesh.elements.sfncon4(2).master = mesh.elements.iso4(mesh.groups.iso4(find([[mesh.groups.iso4].id] == 102)).elements, :);
+%!   mesh.elements.sfncon4(2).slave = mesh.groups.iso4(find([[mesh.groups.iso4].id] == 204)).nodes(:);
+%!   mesh.elements.sfncon4(2).maxdist = maxdist;
+%!   mesh.elements.sfncon4(2).constraint = constr;
+%!   mesh.elements.sfncon6(1).master = mesh.elements.tria6(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 402)).elements, :);
+%!   mesh.elements.sfncon6(1).slave = mesh.groups.tria6(find([[mesh.groups.tria6].id] == 304)).nodes(:);
+%!   mesh.elements.sfncon6(1).maxdist = maxdist;
+%!   mesh.elements.sfncon6(1).constraint = constr;
+%!   mesh.elements.sfncon6(2).master = mesh.elements.tria6(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 301)).elements, :);
+%!   mesh.elements.sfncon6(2).slave = mesh.groups.iso4(find([[mesh.groups.iso4].id] == 203)).nodes(:);
+%!   mesh.elements.sfncon6(2).maxdist = maxdist;
+%!   mesh.elements.sfncon6(2).constraint = constr;
+%!   slave_nodes = [];
+%!   for i=1:numel(mesh.elements.sfncon4)
+%!     idx_slave = [];
+%!     for j=1:numel(slave_nodes)
+%!       idx_slave = [idx_slave; find(mesh.elements.sfncon4(i).slave == slave_nodes(j))];
+%!     endfor
+%!     if (numel(idx_slave))
+%!       mesh.elements.sfncon4(i).slave(idx_slave) = 0;
+%!       mesh.elements.sfncon4(i).slave = mesh.elements.sfncon4(i).slave(find(mesh.elements.sfncon4(i).slave));
+%!     endif
+%!     slave_nodes = [slave_nodes; mesh.elements.sfncon4(i).slave];
+%!   endfor
+
+%!   for i=1:numel(mesh.elements.sfncon6)
+%!     idx_slave = [];
+%!     for j=1:numel(slave_nodes)
+%!       idx_slave = [idx_slave; find(mesh.elements.sfncon6(i).slave == slave_nodes(j))];
+%!     endfor
+%!     if (numel(idx_slave))
+%!       mesh.elements.sfncon6(i).slave(idx_slave) = 0;
+%!       mesh.elements.sfncon6(i).slave = mesh.elements.sfncon6(i).slave(find(mesh.elements.sfncon6(i).slave));
+%!     endif
+%!     slave_nodes = [slave_nodes; mesh.elements.sfncon6(i).slave];
+%!   endfor
+%!   group_id4 = [[mesh.groups.iso4].id];
+%!   group_id6 = [[mesh.groups.tria6].id];
+
+%!   node_front = [[mesh.groups.iso4(find(group_id4 == 104))].nodes, [mesh.groups.tria6(find(group_id6 == 404))].nodes];
+%!   node_rear = [[mesh.groups.iso4(find(group_id4 == 202))].nodes, [mesh.groups.tria6(find(group_id6 == 302))].nodes];
+%!   node_right = [mesh.groups.iso4(find((group_id4 == 101) | (group_id4 == 201))).nodes, ...
+%!                 mesh.groups.tria6(find((group_id6==303)|(group_id6==403))).nodes];
+%!   node_bottom = [[mesh.groups.iso4(find(mod(group_id4, 100) == 6))].nodes, ...
+%!                  [mesh.groups.tria6(find(mod(group_id6,100) == 6))].nodes];
+%!   node_top = [[mesh.groups.iso4(find(mod(group_id4, 100) == 5))].nodes, ...
+%!               [mesh.groups.tria6(find(mod(group_id6,100) == 5))].nodes];
+%!   node_constr = [node_front, node_rear, node_right, node_bottom, node_top];
+%!   mesh.elements.joints = repmat(struct("nodes",[],"C",[]), 1, numel(node_constr));
+%!   load_case.joints = repmat(struct("U",[]), 1, numel(node_constr));
+%!   idx_joint = int32(0);
+%!   for i=1:numel(node_front)
+%!     if (~numel(find(slave_nodes == node_front(i))))
+%!       mesh.elements.joints(++idx_joint).C = [[1, 0, 0; 0, 0, 1],  zeros(2, 3)];
+%!       mesh.elements.joints(idx_joint).nodes = node_front(i);
+%!       load_case.joints(idx_joint).U = [gamma * mesh.nodes(node_front(i), 3); 0];
+%!     endif
+%!   endfor
+%!   for i=1:numel(node_rear)
+%!     if (~numel(find(slave_nodes == node_rear(i))))
+%!       mesh.elements.joints(++idx_joint).C = [[1, 0, 0; 0, 0, 1], zeros(2, 3)];
+%!       mesh.elements.joints(idx_joint).nodes = node_rear(i);
+%!       load_case.joints(idx_joint).U = [gamma * mesh.nodes(node_rear(i), 3); 0];
+%!     endif
+%!   endfor
+
+%!   for i=1:numel(node_right)
+%!     if (~numel(find(slave_nodes == node_right(i))))
+%!       mesh.elements.joints(++idx_joint).C = [0,1,0, zeros(1, 3)];
+%!       mesh.elements.joints(idx_joint).nodes = node_right(i);
+%!       load_case.joints(idx_joint).U = 0;
+%!     endif
+%!   endfor
+
+%!   for i=1:numel(node_bottom)
+%!     xi = mesh.nodes(node_bottom(i), 1);
+%!     if (~(numel(find(slave_nodes == node_bottom(i))) || xi == 0 || xi == 2 * a))
+%!       mesh.elements.joints(++idx_joint).C = [0,0,1, zeros(1, 3)];
+%!       mesh.elements.joints(idx_joint).nodes = node_bottom(i);
+%!       load_case.joints(idx_joint).U = 0;
+%!     endif
+%!   endfor
+
+%!   for i=1:numel(node_top)
+%!     xi = mesh.nodes(node_top(i), 1);
+%!     if (~(numel(find(slave_nodes == node_top(i))) || xi == 0 || xi == 2 * a))
+%!       mesh.elements.joints(++idx_joint).C = [0,0,1, zeros(1, 3)];
+%!       mesh.elements.joints(idx_joint).nodes = node_top(i);
+%!       load_case.joints(idx_joint).U = 0;
+%!     endif
+%!   endfor
+
+%!   mesh.elements.joints = mesh.elements.joints(1:idx_joint);
+%!   load_case.joints = load_case.joints(1:idx_joint);
+%!   load_case.locked_dof = false(size(mesh.nodes));
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   if (eliminate)
+%!     K_mat_type = FEM_MAT_STIFFNESS;
+%!   else
+%!     K_mat_type = FEM_MAT_STIFFNESS;
+%!   endif
+%!   [mat_ass.K, ...
+%!    mat_ass.R, ...
+%!    mat_ass.mat_info] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [K_mat_type, ...
+%!                                        FEM_VEC_LOAD_CONSISTENT], ...
+%!                                       load_case);
+%!   if (eliminate)
+%!     [Tred, Kred, Mred, Rred] = fem_cms_constr_elim(mesh, dof_map, mat_ass);
+%!     opt_ls.refine_max_iter = int32(100);
+%!     Kfact = fem_sol_factor(Kred, opt_ls);
+%!     Ured = Kfact \ Rred;
+%!     sol_stat.def = fem_post_def_nodal(mesh, dof_map, Tred * Ured);
+%!   else
+%!     sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   endif
+
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   if (animate)
+%!     opt_anim.scale_def = 1;
+%!     opt_anim.animation_delay = 1;
+%!     opt_anim.print_and_exit = true;
+%!     opt_anim.print_to_file = filename;
+%!     opt_anim.rotation_angle = [286, 2, 205] * pi / 180;
+%!     opt_anim.skin_only = true;
+%!     opt_anim.show_element = true;
+%!     unwind_protect
+%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
+%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
+%!       figure("visible", "off");
+%!       imshow(img, map);
+%!       title("Gmsh - deformed mesh / continuous stress tensor");
+%!     unwind_protect_cleanup
+%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
+%!     end_unwind_protect
+%!   endif
+%!   figure_list();
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO 3
+%! ## K.J.Bathe 2002, page 328 4.20a
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   animate = true;
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   mesh_size = 0.3;
+%!   p1 = 0.006;
+%!   E = 55;
+%!   nu = 0.3;
+%!   rho = 1000e-12;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Circle(3) = {3,11,4};\n");
+%!   fputs(fd, "Line(4) = {4,5};\n");
+%!   fputs(fd, "Line(5) = {5,6};\n");
+%!   fputs(fd, "Line(6) = {6,7};\n");
+%!   fputs(fd, "Circle(7) = {7,12,8};\n");
+%!   fputs(fd, "Line(8) = {8,9};\n");
+%!   fputs(fd, "Line(9) = {9,10};\n");
+%!   fputs(fd, "Line(10) = {10,1};\n");
+%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!   fputs(fd, "Plane Surface(14) = {11};\n");
+%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
+%!   fputs(fd, "Recombine Surface{14, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
+%!   grp_id_p1 = find([[mesh.groups.quad8].id] == 3);
+%!   elem_id_p1 = mesh.groups.quad8(grp_id_p1).elements;
+%!   elno_p1 = mesh.elements.quad8(elem_id_p1, :);
+
+%!   load_case.pressure.quad8.elements = elno_p1;
+%!   load_case.pressure.quad8.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
+
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT, ...
+%!                                 FEM_VEC_LOAD_LUMPED], ...
+%!                                load_case);
+
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   grp_id_displacement = find([[mesh.groups.quad8].id] == 4);
+%!   elem_id_displacement = mesh.groups.quad8(grp_id_displacement).elements;
+%!   elno_id_displacement = mesh.elements.quad8(elem_id_displacement, :);
+%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
+%!   grp_id_stress = find([[mesh.groups.quad8].id] == 5);
+%!   elem_id_stress = mesh.groups.quad8(grp_id_stress).elements;
+%!   elno_id_stress = mesh.elements.quad8(elem_id_stress, :);
+%!   taum = zeros(6, numel(elno_id_stress));
+%!   taum_n = zeros(1, numel(elno_id_stress));
+%!   for i=1:numel(elno_id_stress)
+%!     [ridx, cidx] = find(mesh.elements.iso20 == elno_id_stress(i));
+%!     for j=1:numel(ridx)
+%!       taum(:, i) += reshape(sol_stat.stress.taum.iso20(ridx(j), cidx(j), :), 6, 1);
+%!       ++taum_n(i);
+%!     endfor
+%!   endfor
+%!   taum *= diag(1 ./ taum_n);
+%!   sigma1_max = 0;
+%!   for i=1:columns(taum)
+%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
+%!            taum(4, i), taum(2, i), taum(5, i);
+%!            taum(6, i), taum(5, i), taum(3, i)];
+%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
+%!   endfor
+%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
+%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
+%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
+%!   ## K.J.Bathe page 329 4.20b
+%!   sigma1_max_ref = 0.6056;
+%!   delta_ref = -1.669;
+%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
+%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
+%!   if (animate)
+%!     opt_anim.scale_def = 10;
+%!     opt_anim.animation_delay = 1;
+%!     opt_anim.print_and_exit = true;
+%!     opt_anim.print_to_file = filename;
+%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
+%!     opt_anim.skin_only = true;
+%!     opt_anim.show_element = false;
+%!     unwind_protect
+%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
+%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
+%!       figure("visible", "off");
+%!       imshow(img, map);
+%!       title("Gmsh - deformed mesh / continuous stress tensor");
+%!     unwind_protect_cleanup
+%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
+%!     end_unwind_protect
+%!   endif
+%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
+%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
+%!   figure_list();
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO 4
+%! ## K.J.Bathe 2002, page 328 4.20a
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   animate = true;
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   mesh_size = 0.15;
+%!   p1 = 0.006;
+%!   E = 55;
+%!   nu = 0.3;
+%!   rho = 1000e-12;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Circle(3) = {3,11,4};\n");
+%!   fputs(fd, "Line(4) = {4,5};\n");
+%!   fputs(fd, "Line(5) = {5,6};\n");
+%!   fputs(fd, "Line(6) = {6,7};\n");
+%!   fputs(fd, "Circle(7) = {7,12,8};\n");
+%!   fputs(fd, "Line(8) = {8,9};\n");
+%!   fputs(fd, "Line(9) = {9,10};\n");
+%!   fputs(fd, "Line(10) = {10,1};\n");
+%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!   fputs(fd, "Plane Surface(14) = {11};\n");
+%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
+%!   fputs(fd, "Recombine Surface{14, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp = find([[mesh.groups.iso4].id] == 2);
+%!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp).nodes, 1:3) = true;
+%!   grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
+%!   elem_id_p1 = mesh.groups.iso4(grp_id_p1).elements;
+%!   elno_p1 = mesh.elements.iso4(elem_id_p1, :);
+
+%!   load_case.pressure.iso4.elements = elno_p1;
+%!   load_case.pressure.iso4.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
+
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT, ...
+%!                                 FEM_VEC_LOAD_LUMPED], ...
+%!                                load_case);
+
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   grp_id_displacement = find([[mesh.groups.iso4].id] == 4);
+%!   elem_id_displacement = mesh.groups.iso4(grp_id_displacement).elements;
+%!   elno_id_displacement = mesh.elements.iso4(elem_id_displacement, :);
+%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
+%!   grp_id_stress = find([[mesh.groups.iso4].id] == 5);
+%!   elem_id_stress = mesh.groups.iso4(grp_id_stress).elements;
+%!   elno_id_stress = mesh.elements.iso4(elem_id_stress, :);
+%!   taum = zeros(6, numel(elno_id_stress));
+%!   taum_n = zeros(1, numel(elno_id_stress));
+%!   for i=1:numel(elno_id_stress)
+%!     [ridx, cidx] = find(mesh.elements.iso8 == elno_id_stress(i));
+%!     for j=1:numel(ridx)
+%!       taum(:, i) += reshape(sol_stat.stress.taum.iso8(ridx(j), cidx(j), :), 6, 1);
+%!       ++taum_n(i);
+%!     endfor
+%!   endfor
+%!   taum *= diag(1 ./ taum_n);
+%!   sigma1_max = 0;
+%!   for i=1:columns(taum)
+%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
+%!            taum(4, i), taum(2, i), taum(5, i);
+%!            taum(6, i), taum(5, i), taum(3, i)];
+%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
+%!   endfor
+%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
+%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
+%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
+%!   ## K.J.Bathe page 329 4.20b
+%!   sigma1_max_ref = 0.6056;
+%!   delta_ref = -1.669;
+%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
+%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
+%!   if (animate)
+%!     opt_anim.scale_def = 10;
+%!     opt_anim.animation_delay = 1;
+%!     opt_anim.print_and_exit = true;
+%!     opt_anim.print_to_file = filename;
+%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
+%!     opt_anim.skin_only = true;
+%!     opt_anim.show_element = false;
+%!     unwind_protect
+%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
+%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
+%!       figure("visible", "off");
+%!       imshow(img, map);
+%!       title("Gmsh - deformed mesh / continuous stress tensor");
+%!     unwind_protect_cleanup
+%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
+%!     end_unwind_protect
+%!   endif
+%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
+%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
+%!   figure_list();
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
 %!demo
 %! ## DEMO 5
 %! close all;
@@ -7281,8 +7812,8 @@ endfunction
 %!     load_case.locked_dof(mesh.groups.tria6.nodes, 1:3) = true;
 %!   endif
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
-%!   if (isfield(mesh.elements, "tet10"))
-%!     mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   if (isfield(mesh.elements, "penta15"))
+%!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   endif
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.E = E;
@@ -7423,6 +7954,164 @@ endfunction
 %!       unlink([opt_anim.print_to_file, "_001.jpg"]);
 %!     end_unwind_protect
 %!   endif
+%!   figure_list();
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO 7
+%! ## K.J.Bathe 2002, page 328 4.20a
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   animate = true;
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   mesh_size = 0.3;
+%!   p1 = 0.006;
+%!   E = 55;
+%!   nu = 0.3;
+%!   rho = 1000e-12;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Circle(3) = {3,11,4};\n");
+%!   fputs(fd, "Line(4) = {4,5};\n");
+%!   fputs(fd, "Line(5) = {5,6};\n");
+%!   fputs(fd, "Line(6) = {6,7};\n");
+%!   fputs(fd, "Circle(7) = {7,12,8};\n");
+%!   fputs(fd, "Line(8) = {8,9};\n");
+%!   fputs(fd, "Line(9) = {9,10};\n");
+%!   fputs(fd, "Line(10) = {10,1};\n");
+%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!   fputs(fd, "Plane Surface(14) = {11};\n");
+%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
+%!   grp_id_p1 = find([[mesh.groups.quad8].id] == 3);
+%!   elem_id_p1 = mesh.groups.quad8(grp_id_p1).elements;
+%!   elno_p1 = mesh.elements.quad8(elem_id_p1, :);
+
+%!   load_case.pressure.quad8.elements = elno_p1;
+%!   load_case.pressure.quad8.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
+
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT, ...
+%!                                 FEM_VEC_LOAD_LUMPED], ...
+%!                                load_case);
+
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   grp_id_displacement = find([[mesh.groups.quad8].id] == 4);
+%!   elem_id_displacement = mesh.groups.quad8(grp_id_displacement).elements;
+%!   elno_id_displacement = mesh.elements.quad8(elem_id_displacement, :);
+%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
+%!   grp_id_stress = find([[mesh.groups.quad8].id] == 5);
+%!   elem_id_stress = mesh.groups.quad8(grp_id_stress).elements;
+%!   elno_id_stress = mesh.elements.quad8(elem_id_stress, :);
+%!   taum = zeros(6, numel(elno_id_stress));
+%!   taum_n = zeros(1, numel(elno_id_stress));
+%!   for i=1:numel(elno_id_stress)
+%!     [ridx, cidx] = find(mesh.elements.penta15 == elno_id_stress(i));
+%!     for j=1:numel(ridx)
+%!       taum(:, i) += reshape(sol_stat.stress.taum.penta15(ridx(j), cidx(j), :), 6, 1);
+%!       ++taum_n(i);
+%!     endfor
+%!   endfor
+%!   taum *= diag(1 ./ taum_n);
+%!   sigma1_max = 0;
+%!   for i=1:columns(taum)
+%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
+%!            taum(4, i), taum(2, i), taum(5, i);
+%!            taum(6, i), taum(5, i), taum(3, i)];
+%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
+%!   endfor
+%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
+%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
+%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
+%!   ## K.J.Bathe page 329 4.20b
+%!   sigma1_max_ref = 0.6056;
+%!   delta_ref = -1.669;
+%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
+%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
+%!   if (animate)
+%!     opt_anim.scale_def = 10;
+%!     opt_anim.animation_delay = 1;
+%!     opt_anim.print_and_exit = true;
+%!     opt_anim.print_to_file = filename;
+%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
+%!     opt_anim.skin_only = true;
+%!     opt_anim.show_element = false;
+%!     unwind_protect
+%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
+%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
+%!       figure("visible", "off");
+%!       imshow(img, map);
+%!       title("Gmsh - deformed mesh / continuous stress tensor");
+%!     unwind_protect_cleanup
+%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
+%!     end_unwind_protect
+%!   endif
+%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
+%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
 %!   figure_list();
 %! unwind_protect_cleanup
 %!   if (numel(filename))

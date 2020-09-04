@@ -91,7 +91,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
         inumfaces += 2 * rows(elements);
       case "quad8"
 	inumfaces += 6 * rows(elements);
-      case "tet10"
+      case {"tet10", "tet10h"}
         inumfaces += 16 * rows(elements);
       case "tria6"
         inumfaces += 4 * rows(elements);
@@ -179,7 +179,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
 		 4, 8, 7;
 		 5, 6, 7;
 		 5, 7, 8];
-      case "tet10"
+      case {"tet10", "tet10h"}
         faces = [1, 5, 8; ## 1
                  5, 2, 8;
                  2, 9, 8;

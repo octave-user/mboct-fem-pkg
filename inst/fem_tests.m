@@ -137,120 +137,6 @@
 %!   figure_list();
 %! endif
 
-
-%!test
-%! ## TEST 1a
-%! close all;
-%! scale_stat = 1;
-%! scale_eig = 250e-3;
-
-%! E = 210000e6;
-%! nu = 0.3;
-%! material.C = fem_pre_mat_isotropic(E, nu);
-%! material.rho = 7850;
-%! Fy = 15000;
-%! h = 10e-3 / 2;
-%! geometry.l = 1000e-3;
-%! geometry.w = 10e-3;
-%! geometry.h = 50e-3;
-%! A = geometry.w * geometry.h;
-%! Wz = geometry.h * geometry.w^2 / 6;
-%! Iz = geometry.h * geometry.w^3 / 12;
-%! tauxx_max = -Fy * geometry.l / Wz;
-%! tauxy_mean = Fy / A;
-%! Uy = Fy * geometry.l^3 / (3 * E * Iz);
-%! mesh_size.num_elem_l = ceil(geometry.l / h);
-%! mesh_size.num_elem_w = ceil(geometry.w / h);
-%! mesh_size.num_elem_h = ceil(geometry.h / h);
-%! number_of_modes = 10;
-%! number_of_modes_disp = 3;
-%! plot_def = fem_tests_enable_plotting();
-
-%! f = [ 0; Fy; 0 ];
-%! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
-%! [dof_map] = fem_ass_dof_map(mesh, load_case);
-%! [mat_ass.M, ...
-%!  mat_ass.K, ...
-%!  mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                              dof_map, ...
-%!                              [FEM_MAT_MASS, ...
-%!                               FEM_MAT_STIFFNESS, ...
-%!                               FEM_VEC_LOAD_CONSISTENT], ...
-%!                              load_case);
-%! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%! sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                  dof_map, ...
-%!                                  [FEM_VEC_STRESS_CAUCH], ...
-%!                                  load_case, ...
-%!                                  sol_stat);
-%! alg = {"shift-invert", "symmetric-inverse", "unsymmetric"};
-%! rho = 100;
-%! tol = 1e-6;
-%! err = zeros(number_of_modes, numel(alg));
-%! for a=1:numel(alg)
-%!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
-%! endfor
-
-%! z = linspace(0,geometry.l,100);
-
-%! I = [ geometry.w * geometry.h, geometry.h * geometry.w^3 / 12, geometry.w * geometry.h^3 / 12 ];
-
-%! y(1,:) = f(1) * geometry.l / ( E * I(1) ) * ( 1 - z / geometry.l );
-
-%! for i=2:3
-%!   y(i,:) = f(i) * geometry.l^3 / ( 6 * E * I(i) ) * ( 2 - 3 * z / geometry.l + ( z / geometry.l ).^3 );
-%! endfor
-
-%! B = E * I(2:3);
-%! my = material.rho * I(1);
-%! P0 = ( 0.3 * geometry.l ) / geometry.l^3 * 3 * B;
-%! omega1 = sqrt(B / (my * geometry.l^4));
-%! omega_ref = omega1.' * [3.516, 22.035, 61.697];
-%! omega_ref = sort(reshape(omega_ref, 1, numel(omega_ref)));
-%! f_ref = omega_ref / (2 * pi);
-
-%! for a=1:numel(sol_eig)
-%!   assert(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
-%! endfor
-
-%! if (plot_def)
-%!   figure("visible","off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title('undeformed mesh');
-
-%!   figure("visible","off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat, scale_stat);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title('deformed mesh');
-
-%!   for i=1:min(number_of_modes_disp,length(sol_eig(1).f))
-%!     figure("visible", "off");
-%!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig(1), scale_eig / max(norm(sol_eig(1).def(:, :, i), "rows")),i);
-%!     view(30,30);
-%!     xlabel('x [m]');
-%!     ylabel('y [m]');
-%!     zlabel('z [m]');
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("%d. eigenmode: %gHz",i,sol_eig(1).f(i)));
-%!   endfor
-%!   figure_list();
-%! endif
-
 %!test
 %! ## TEST 2
 %! close all;
@@ -3570,6 +3456,680 @@
 %! assert(wstat, wstat_a, 1e-3 * wstat_a);
 %! idx = find(abs(V_a) < 2);
 %! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
+
+%!test
+%! ## TEST 43
+%! close all;
+%! scale_stat = 1;
+%! scale_eig = 250e-3;
+
+%! E = 210000e6;
+%! nu = 0.3;
+%! material.C = fem_pre_mat_isotropic(E, nu);
+%! material.rho = 7850;
+%! Fy = 15000;
+%! h = 10e-3 / 2;
+%! geometry.l = 1000e-3;
+%! geometry.w = 10e-3;
+%! geometry.h = 50e-3;
+%! A = geometry.w * geometry.h;
+%! Wz = geometry.h * geometry.w^2 / 6;
+%! Iz = geometry.h * geometry.w^3 / 12;
+%! tauxx_max = -Fy * geometry.l / Wz;
+%! tauxy_mean = Fy / A;
+%! Uy = Fy * geometry.l^3 / (3 * E * Iz);
+%! mesh_size.num_elem_l = ceil(geometry.l / h);
+%! mesh_size.num_elem_w = ceil(geometry.w / h);
+%! mesh_size.num_elem_h = ceil(geometry.h / h);
+%! number_of_modes = 10;
+%! number_of_modes_disp = 3;
+%! plot_def = fem_tests_enable_plotting();
+
+%! f = [ 0; Fy; 0 ];
+%! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.M, ...
+%!  mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_MASS, ...
+%!                               FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%! sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                  dof_map, ...
+%!                                  [FEM_VEC_STRESS_CAUCH], ...
+%!                                  load_case, ...
+%!                                  sol_stat);
+%! alg = {"shift-invert", "symmetric-inverse", "unsymmetric"};
+%! rho = 100;
+%! tol = 1e-6;
+%! err = zeros(number_of_modes, numel(alg));
+%! for a=1:numel(alg)
+%!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
+%! endfor
+
+%! z = linspace(0,geometry.l,100);
+
+%! I = [ geometry.w * geometry.h, geometry.h * geometry.w^3 / 12, geometry.w * geometry.h^3 / 12 ];
+
+%! y(1,:) = f(1) * geometry.l / ( E * I(1) ) * ( 1 - z / geometry.l );
+
+%! for i=2:3
+%!   y(i,:) = f(i) * geometry.l^3 / ( 6 * E * I(i) ) * ( 2 - 3 * z / geometry.l + ( z / geometry.l ).^3 );
+%! endfor
+
+%! B = E * I(2:3);
+%! my = material.rho * I(1);
+%! P0 = ( 0.3 * geometry.l ) / geometry.l^3 * 3 * B;
+%! omega1 = sqrt(B / (my * geometry.l^4));
+%! omega_ref = omega1.' * [3.516, 22.035, 61.697];
+%! omega_ref = sort(reshape(omega_ref, 1, numel(omega_ref)));
+%! f_ref = omega_ref / (2 * pi);
+
+%! for a=1:numel(sol_eig)
+%!   assert(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
+%! endfor
+
+%! if (plot_def)
+%!   figure("visible","off");
+%!   hold on;
+%!   fem_post_sol_plot(mesh);
+%!   view(30,30);
+%!   xlabel('x [m]');
+%!   ylabel('y [m]');
+%!   zlabel('z [m]');
+%!   grid on;
+%!   grid minor on;
+%!   title('undeformed mesh');
+
+%!   figure("visible","off");
+%!   hold on;
+%!   fem_post_sol_plot(mesh, sol_stat, scale_stat);
+%!   view(30,30);
+%!   xlabel('x [m]');
+%!   ylabel('y [m]');
+%!   zlabel('z [m]');
+%!   grid on;
+%!   grid minor on;
+%!   title('deformed mesh');
+
+%!   for i=1:min(number_of_modes_disp,length(sol_eig(1).f))
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_eig(1), scale_eig / max(norm(sol_eig(1).def(:, :, i), "rows")),i);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("%d. eigenmode: %gHz",i,sol_eig(1).f(i)));
+%!   endfor
+%!   figure_list();
+%! endif
+
+%!test
+%! ## TEST44
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 50e-3;
+%!   b = 20e-3;
+%!   c = 15e-3;
+%!   x = a * [ 0,  1,  0, 0, 1, 0, 1/2, 1/2,   0, 1/2, 1/2,   0, 0, 1, 0 ];
+%!   y = b * [ 0,  0,  1, 0, 0, 1,   0, 1/2, 1/2,   0, 1/2, 1/2, 0, 0, 1 ];
+%!   z = 0.5 * c * [-1, -1, -1, 1, 1, 1,  -1,  -1,  -1,   1,   1,   1, 0, 0, 0 ];
+%!   for j=1:100
+%!     e1 = rand(3, 1);
+%!     e2 = rand(3, 1);
+%!     e3 = cross(e1, e2);
+%!     e2 = cross(e3, e1);
+%!     e1 /= norm(e1);
+%!     e2 /= norm(e2);
+%!     e3 /= norm(e3);
+%!     R = [e1, e2, e3];
+%!     mesh.nodes = [(R * [x; y; z]).', zeros(numel(x), 3)];
+%!     mesh.elements.penta15 = int32(1:rows(mesh.nodes));
+%!     mesh.material_data.E = 210000e6;
+%!     mesh.material_data.nu = 0.3;
+%!     mesh.material_data.rho = 7850;
+%!     mesh.materials.penta15 = int32(1);
+%!     load_case.locked_dof = false(size(mesh.nodes));
+%!     load_case.locked_dof([1, 3, 4, 6, 9, 12, 13, 15], 1:3) = true;
+%!     load_case.loads = [[-1 * e3.'; -2 * e3.'; -1 * e3.'], zeros(3, 3)];
+%!     load_case.loaded_nodes = int32([2; 14; 5]);
+%!     dof_map = fem_ass_dof_map(mesh, load_case);
+%!     [mat_ass.K, ...
+%!      mat_ass.M, ...
+%!      mat_ass.Mdiag, ...
+%!      mat_ass.R, ...
+%!      mat_ass.mtot] = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     [FEM_MAT_STIFFNESS, ...
+%!                                      FEM_MAT_MASS, ...
+%!                                      FEM_MAT_MASS_LUMPED, ...
+%!                                      FEM_VEC_LOAD_CONSISTENT, ...
+%!                                      FEM_SCA_TOT_MASS], ...
+%!                                     load_case);
+%!     assert(isdefinite(mat_ass.K));
+%!     assert(isdefinite(mat_ass.M));
+%!     assert(isdefinite(mat_ass.Mdiag));
+%!     m_a = 0.5 * a * b * c * mesh.material_data.rho;
+%!     tol_m = eps^0.8;
+%!     tol_stat = sqrt(eps);
+%!     tol_eig = sqrt(eps);
+%!     assert(mat_ass.mtot, m_a, tol_m * m_a);
+%!
+%!     sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!     sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      FEM_SCA_STRESS_VMIS, ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!     sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 3);
+%!     sol_eig.stress = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     FEM_SCA_STRESS_VMIS, ...
+%!                                     load_case, ...
+%!                                     sol_eig);
+%!     for i=1:size(sol_eig.def, 3)
+%!       sol_eig.def(:, 1:3, i) = (R.' * sol_eig.def(:, 1:3, i).').';
+%!       sol_eig.def(:, :, i) /= max(max(abs(sol_eig.def(:, :, i))));
+%!     endfor
+%!     if (j == 1)
+%!       U_ref_stat = R.' * sol_stat.def(:, 1:3).';
+%!       U_ref_eig = sol_eig.def;
+%!       f_ref = sol_eig.f;
+%!       vmis_stat = sol_stat.stress.vmis.penta15;
+%!       vmis_eig = sol_eig.stress.vmis.penta15;
+%!     else
+%!       assert(R.' * sol_stat.def(:, 1:3).', U_ref_stat, tol_stat * norm(U_ref_stat));
+%!       assert(sol_eig.f, f_ref, sqrt(eps) * max(f_ref));
+%!       assert(sol_stat.stress.vmis.penta15, vmis_stat, tol_stat * max(max(max(abs(vmis_stat)))));
+%!       assert(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
+%!       for i=1:size(sol_eig.def, 3)
+%!         try
+%!           assert(sol_eig.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
+%!         catch
+%!           assert(sol_eig.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
+%!         end_try_catch
+%!       endfor
+%!     endif
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST45
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 50e-3;
+%!   b = 20e-3;
+%!   c = 15e-3;
+%!   x = a * [ 0,  1,  0, 0, 1, 0, 1/2, 1/2,   0, 1/2, 1/2,   0, 0, 1, 0 ];
+%!   y = b * [ 0,  0,  1, 0, 0, 1,   0, 1/2, 1/2,   0, 1/2, 1/2, 0, 0, 1 ];
+%!   z = 0.5 * c * [-1, -1, -1, 1, 1, 1,  -1,  -1,  -1,   1,   1,   1, 0, 0, 0 ];
+%!   for j=1:100
+%!     e1 = rand(3, 1);
+%!     e2 = rand(3, 1);
+%!     e3 = cross(e1, e2);
+%!     e2 = cross(e3, e1);
+%!     e1 /= norm(e1);
+%!     e2 /= norm(e2);
+%!     e3 /= norm(e3);
+%!     R = [e1, e2, e3];
+%!     mesh.nodes = [(R * [x; y; z]).', zeros(numel(x), 3)];
+%!     mesh.elements.penta15 = int32(1:rows(mesh.nodes));
+%!     mesh.material_data.E = 210000e6;
+%!     mesh.material_data.nu = 0.3;
+%!     mesh.material_data.rho = 7850;
+%!     mesh.materials.penta15 = int32(1);
+%!     load_case.locked_dof = false(size(mesh.nodes));
+%!     dof_map = fem_ass_dof_map(mesh, load_case);
+%!     [mat_ass.K, ...
+%!      mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                                  dof_map, ...
+%!                                  [FEM_MAT_STIFFNESS, ...
+%!                                   FEM_MAT_MASS, ...
+%!                                   FEM_MAT_MASS_LUMPED, ...
+%!                                   FEM_VEC_LOAD_CONSISTENT, ...
+%!                                   FEM_SCA_TOT_MASS], ...
+%!                                   load_case);
+%!     assert(isdefinite(mat_ass.K) == 0);
+%!     assert(isdefinite(mat_ass.M) == 1);
+%!     assert(rank(mat_ass.K), columns(mat_ass.K) - 6);
+%!     tol_eig = sqrt(eps);
+%!     N = 20;
+%!     shift = 1e-2 * max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M)));
+%!     sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift);
+%!     sol_eig.stress = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     FEM_SCA_STRESS_VMIS, ...
+%!                                     load_case, ...
+%!                                     sol_eig);
+%!     assert(max(sol_eig.f(1:6)) < eps^0.3 * min(sol_eig.f(7:end)));
+%!     assert(max(max(abs(sol_eig.stress.vmis.penta15(:,:,1:6)))) < eps^0.5 * min(min(abs(sol_eig.stress.vmis.penta15(:, :, 7:end)))));
+%!     sol_eig_t = sol_eig;
+%!     for i=1:size(sol_eig.def, 3)
+%!       sol_eig_t.def(:, 1:3, i) = (R.' * sol_eig_t.def(:, 1:3, i).').';
+%!       sol_eig_t.def(:, :, i) /= max(max(abs(sol_eig_t.def(:, :, i))));
+%!     endfor
+%!     if (j == 1)
+%!       U_ref_eig = sol_eig_t.def;
+%!       f_ref = sol_eig.f;
+%!       vmis_eig = sol_eig.stress.vmis.penta15;
+%!     else
+%!       assert(sol_eig.f(7:end), f_ref(7:end), sqrt(eps) * max(f_ref));
+%!       assert(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
+%!       for i=7:size(sol_eig.def, 3)
+%!         try
+%!           assert(sol_eig_t.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
+%!         catch
+%!           assert(sol_eig_t.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
+%!         end_try_catch
+%!       endfor
+%!     endif
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST49
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 50e-3;
+%!   b = 20e-3;
+%!   c = 15e-3;
+%!   x = a * [ 0,  1,  0, 0, 1, 0, 1/2, 1/2,   0, 1/2, 1/2,   0, 0, 1, 0 ] + a;
+%!   y = b * [ 0,  0,  1, 0, 0, 1,   0, 1/2, 1/2,   0, 1/2, 1/2, 0, 0, 1 ] + b;
+%!   z = 0.5 * c * [-1, -1, -1, 1, 1, 1,  -1,  -1,  -1,   1,   1,   1, 0, 0, 0 ] + c;
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   for j=1:100
+%!     for k=1:6
+%!       switch (k)
+%!       case {1, 2, 3}
+%!         epsilon = [2 * rand(3, 1) - 1; zeros(3, 1)];
+%!       otherwise
+%!         epsilon = zeros(6, 1);
+%!         epsilon(k) = 2 * rand() - 1;
+%!       endswitch
+%!       e1 = rand(3, 1);
+%!       e2 = rand(3, 1);
+%!       e3 = cross(e1, e2);
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       mesh.nodes = [(R * [x; y; z]).', zeros(numel(x), 3)];
+%!       mesh.elements.penta15 = int32(1:rows(mesh.nodes));
+%!       mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!       mesh.material_data.rho = 7850;
+%!       mesh.materials.penta15 = int32(1);
+%!       load_case.locked_dof = false(size(mesh.nodes));
+%!       dof_map = fem_ass_dof_map(mesh, load_case);
+%!       sol_stat.def = zeros(size(mesh.nodes));
+%!       gammaxx = epsilon(1);
+%!       gammayy = epsilon(2);
+%!       gammazz = epsilon(3);
+%!       gammaxy = epsilon(4);
+%!       gammayz = epsilon(5);
+%!       gammazx = epsilon(6);
+%!       X = mesh.nodes(:, 1);
+%!       Y = mesh.nodes(:, 2);
+%!       Z = mesh.nodes(:, 3);
+%!       u = (X.*Z.*gammazx-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*X) + gammaxx * X;
+%!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
+%!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
+%!       sol_stat.def(:, 1) = u;
+%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 3) = w;
+%!       tau = mesh.material_data.C * epsilon;
+%!       sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        FEM_VEC_STRESS_CAUCH, ...
+%!                                        load_case, ...
+%!                                        sol_stat);
+%!      switch (k)
+%!      case {1,2,3}
+%!        for i=1:3
+%!          assert(max(abs(sol_stat.stress.tau.penta15(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert(max(abs(sol_stat.stress.tau.penta15(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!        endfor
+%!      otherwise
+%!        assert(max(abs(sol_stat.stress.tau.penta15(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!      endswitch
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST50
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 50e-3;
+%!   b = 20e-3;
+%!   c = 15e-3;
+%!   x = a * [  1, -1, -1,  1,  1, -1, -1,  1, 0, -1,  0, 1,  0, -1,  0,  1, 1, -1, -1,  1] + 2 * a;
+%!   y = b * [  1,  1, -1, -1,  1,  1, -1, -1, 1,  0, -1, 0,  1,  0, -1,  0, 1,  1, -1, -1] + 2 * b;
+%!   z = c * [  1,  1,  1,  1, -1, -1, -1, -1, 1,  1,  1, 1, -1, -1, -1, -1, 0,  0,  0,  0] + 2 * c;
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   for j=1:100
+%!     for k=1:6
+%!       switch (k)
+%!       case {1, 2, 3}
+%!         epsilon = [2 * rand(3, 1) - 1; zeros(3, 1)];
+%!       otherwise
+%!         epsilon = zeros(6, 1);
+%!         epsilon(k) = 2 * rand() - 1;
+%!       endswitch
+%!       e1 = rand(3, 1);
+%!       e2 = rand(3, 1);
+%!       e3 = cross(e1, e2);
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       mesh.nodes = [(R * [x; y; z]).', zeros(numel(x), 3)];
+%!       mesh.elements.iso20 = int32(1:rows(mesh.nodes));
+%!       mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!       mesh.material_data.rho = 7850;
+%!       mesh.materials.iso20 = int32(1);
+%!       load_case.locked_dof = false(size(mesh.nodes));
+%!       dof_map = fem_ass_dof_map(mesh, load_case);
+%!       sol_stat.def = zeros(size(mesh.nodes));
+%!       gammaxx = epsilon(1);
+%!       gammayy = epsilon(2);
+%!       gammazz = epsilon(3);
+%!       gammaxy = epsilon(4);
+%!       gammayz = epsilon(5);
+%!       gammazx = epsilon(6);
+%!       X = mesh.nodes(:, 1);
+%!       Y = mesh.nodes(:, 2);
+%!       Z = mesh.nodes(:, 3);
+%!       u = (X.*Z.*gammazx-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*X) + gammaxx * X;
+%!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
+%!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
+%!       sol_stat.def(:, 1) = u;
+%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 3) = w;
+%!       tau = mesh.material_data.C * epsilon;
+%!       sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        FEM_VEC_STRESS_CAUCH, ...
+%!                                        load_case, ...
+%!                                        sol_stat);
+%!      switch (k)
+%!      case {1,2,3}
+%!        for i=1:3
+%!          assert(max(abs(sol_stat.stress.tau.iso20(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert(max(abs(sol_stat.stress.tau.iso20(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!        endfor
+%!      otherwise
+%!        assert(max(abs(sol_stat.stress.tau.iso20(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!      endswitch
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST51
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 50e-3;
+%!   b = 20e-3;
+%!   c = 15e-3;
+%!   x = a * [  1, -1, -1,  1,  1, -1, -1,  1] + 2 * a;
+%!   y = b * [  1,  1, -1, -1,  1,  1, -1, -1] + 2 * b;
+%!   z = c * [  1,  1,  1,  1, -1, -1, -1, -1] + 2 * c;
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   for j=1:100
+%!     for k=1:6
+%!       switch (k)
+%!       case {1, 2, 3}
+%!         epsilon = [2 * rand(3, 1) - 1; zeros(3, 1)];
+%!       otherwise
+%!         epsilon = zeros(6, 1);
+%!         epsilon(k) = 2 * rand() - 1;
+%!       endswitch
+%!       e1 = rand(3, 1);
+%!       e2 = rand(3, 1);
+%!       e3 = cross(e1, e2);
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       mesh.nodes = [(R * [x; y; z]).', zeros(numel(x), 3)];
+%!       mesh.elements.iso8 = int32(1:rows(mesh.nodes));
+%!       mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!       mesh.material_data.rho = 7850;
+%!       mesh.materials.iso8 = int32(1);
+%!       load_case.locked_dof = false(size(mesh.nodes));
+%!       dof_map = fem_ass_dof_map(mesh, load_case);
+%!       sol_stat.def = zeros(size(mesh.nodes));
+%!       gammaxx = epsilon(1);
+%!       gammayy = epsilon(2);
+%!       gammazz = epsilon(3);
+%!       gammaxy = epsilon(4);
+%!       gammayz = epsilon(5);
+%!       gammazx = epsilon(6);
+%!       X = mesh.nodes(:, 1);
+%!       Y = mesh.nodes(:, 2);
+%!       Z = mesh.nodes(:, 3);
+%!       u = (X.*Z.*gammazx-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*X) + gammaxx * X;
+%!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
+%!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
+%!       sol_stat.def(:, 1) = u;
+%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 3) = w;
+%!       tau = mesh.material_data.C * epsilon;
+%!       sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        FEM_VEC_STRESS_CAUCH, ...
+%!                                        load_case, ...
+%!                                        sol_stat);
+%!      switch (k)
+%!      case {1,2,3}
+%!        for i=1:3
+%!          assert(max(abs(sol_stat.stress.tau.iso8(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert(max(abs(sol_stat.stress.tau.iso8(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!        endfor
+%!      otherwise
+%!        assert(max(abs(sol_stat.stress.tau.iso8(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!      endswitch
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST52
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 10e-3;
+%!   b = 20e-3;
+%!   c = 40e-3;
+%!   xi = [      0,       0,       0;
+%!               a,       0,       0;
+%!               0,       b,       0;
+%!               0,       0,       c;
+%!         0.5 * a,       0,       0;
+%!         0.5 * a, 0.5 * b,       0;
+%!               0, 0.5 * b,       0;
+%!               0,       0, 0.5 * c;
+%!         0.5 * a,       0, 0.5 * c;
+%!               0, 0.5 * b, 0.5 * c];
+%!   xi(:, 1) += a;
+%!   xi(:, 2) += b;
+%!   xi(:, 3) += c;
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   for j=1:100
+%!     for k=1:6
+%!       switch (k)
+%!       case {1, 2, 3}
+%!         epsilon = [2 * rand(3, 1) - 1; zeros(3, 1)];
+%!       otherwise
+%!         epsilon = zeros(6, 1);
+%!         epsilon(k) = 2 * rand() - 1;
+%!       endswitch
+%!       e1 = rand(3, 1);
+%!       e2 = rand(3, 1);
+%!       e3 = cross(e1, e2);
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       mesh.nodes = [(R * xi.').', zeros(rows(xi), 3)];
+%!       mesh.elements.tet10 = int32(1:rows(mesh.nodes));
+%!       mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!       mesh.material_data.rho = 7850;
+%!       mesh.materials.tet10 = int32(1);
+%!       load_case.locked_dof = false(size(mesh.nodes));
+%!       dof_map = fem_ass_dof_map(mesh, load_case);
+%!       sol_stat.def = zeros(size(mesh.nodes));
+%!       gammaxx = epsilon(1);
+%!       gammayy = epsilon(2);
+%!       gammazz = epsilon(3);
+%!       gammaxy = epsilon(4);
+%!       gammayz = epsilon(5);
+%!       gammazx = epsilon(6);
+%!       X = mesh.nodes(:, 1);
+%!       Y = mesh.nodes(:, 2);
+%!       Z = mesh.nodes(:, 3);
+%!       u = (X.*Z.*gammazx-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*X) + gammaxx * X;
+%!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
+%!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
+%!       sol_stat.def(:, 1) = u;
+%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 3) = w;
+%!       tau = mesh.material_data.C * epsilon;
+%!       sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        FEM_VEC_STRESS_CAUCH, ...
+%!                                        load_case, ...
+%!                                        sol_stat);
+%!      switch (k)
+%!      case {1,2,3}
+%!        for i=1:3
+%!          assert(max(abs(sol_stat.stress.tau.tet10(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert(max(abs(sol_stat.stress.tau.tet10(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!        endfor
+%!      otherwise
+%!        assert(max(abs(sol_stat.stress.tau.tet10(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!      endswitch
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST53
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 10e-3;
+%!   b = 20e-3;
+%!   c = 40e-3;
+%!   xi = [      0,       0,       0;
+%!               a,       0,       0;
+%!               0,       b,       0;
+%!               0,       0,       c;
+%!         0.5 * a,       0,       0;
+%!         0.5 * a, 0.5 * b,       0;
+%!               0, 0.5 * b,       0;
+%!               0,       0, 0.5 * c;
+%!         0.5 * a,       0, 0.5 * c;
+%!               0, 0.5 * b, 0.5 * c];
+%!   xi(:, 1) += a;
+%!   xi(:, 2) += b;
+%!   xi(:, 3) += c;
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   for j=1:100
+%!     for k=1:6
+%!       switch (k)
+%!       case {1, 2, 3}
+%!         epsilon = [2 * rand(3, 1) - 1; zeros(3, 1)];
+%!       otherwise
+%!         epsilon = zeros(6, 1);
+%!         epsilon(k) = 2 * rand() - 1;
+%!       endswitch
+%!       e1 = rand(3, 1);
+%!       e2 = rand(3, 1);
+%!       e3 = cross(e1, e2);
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       mesh.nodes = [(R * xi.').', zeros(rows(xi), 3)];
+%!       mesh.elements.tet10h = int32(1:rows(mesh.nodes));
+%!       mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!       mesh.material_data.rho = 7850;
+%!       mesh.materials.tet10h = int32(1);
+%!       load_case.locked_dof = false(size(mesh.nodes));
+%!       dof_map = fem_ass_dof_map(mesh, load_case);
+%!       sol_stat.def = zeros(size(mesh.nodes));
+%!       gammaxx = epsilon(1);
+%!       gammayy = epsilon(2);
+%!       gammazz = epsilon(3);
+%!       gammaxy = epsilon(4);
+%!       gammayz = epsilon(5);
+%!       gammazx = epsilon(6);
+%!       X = mesh.nodes(:, 1);
+%!       Y = mesh.nodes(:, 2);
+%!       Z = mesh.nodes(:, 3);
+%!       u = (X.*Z.*gammazx-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*X) + gammaxx * X;
+%!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
+%!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
+%!       sol_stat.def(:, 1) = u;
+%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 3) = w;
+%!       tau = mesh.material_data.C * epsilon;
+%!       m_a = a * b * c * mesh.material_data.rho / 6;
+%!       [sol_stat.stress, ...
+%!        mat_ass.mtot] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, FEM_SCA_TOT_MASS], ...
+%!                                       load_case, ...
+%!                                       sol_stat);
+%!      assert(mat_ass.mtot, m_a, eps^0.9 * m_a);
+%!      switch (k)
+%!      case {1,2,3}
+%!        for i=1:3
+%!          assert(max(abs(sol_stat.stress.tau.tet10h(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert(max(abs(sol_stat.stress.tau.tet10h(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!        endfor
+%!      otherwise
+%!        assert(max(abs(sol_stat.stress.tau.tet10h(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!      endswitch
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
 
 %!demo
 %! ## DEMO 1

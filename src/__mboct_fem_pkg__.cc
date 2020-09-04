@@ -53,6 +53,10 @@ using namespace std::string_literals;
 #include <octave/oct.h>
 #include <octave/oct-map.h>
 
+#ifdef DEBUG
+#define xelem checkelem
+#endif
+
 template <typename T, typename A = std::allocator<T> >
 class vector: public std::vector<T, A> {
 	typedef std::vector<T, A> base_vector;
@@ -253,14 +257,14 @@ public:
 
 		const double c = C.xelem(0, 0);
 		const double b = C.xelem(5, 5) / c;
-		
+
 		E = ((4 * b * b - 3 * b) * c) / (b - 1);
 		nu = (2 * b - 1) / (2 * b - 2);
 	}
 
      Material(double E, double nu, double rho, double alpha, double beta)
 	  :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), C(6, 6, 0.) {
-	  
+
 	    const double a = nu / (1 - nu);
 	    const double b = (1 - 2 * nu) / (2 * (1 - nu));
 	    const double c = E * (1 - nu) / ((1 + nu) * (1 - 2 * nu));
@@ -269,7 +273,7 @@ public:
 		 for (octave_idx_type i = 0; i < 3; ++i) {
 		      C.xelem(i, j) = (i == j) ? c : a * c;
 		 }
-		 
+
 		 C.xelem(j + 3, j + 3) = b * c;
 	    }
      }
@@ -298,7 +302,7 @@ public:
 	double AlphaDamping() const { return alpha; }
 	double BetaDamping() const { return beta; }
 private:
-        double E, nu, rho, alpha, beta;
+	double E, nu, rho, alpha, beta;
 	Matrix C;
 };
 
@@ -913,7 +917,7 @@ public:
 	  FEM_ASSERT(e2.numel() == 3);
 
 	  l = 0;
-	  
+
 	  for (octave_idx_type i = 0; i < 3; ++i) {
 	       double dX = X.xelem(i, 1) - X.xelem(i, 0);
 	       l += dX * dX;
@@ -925,7 +929,7 @@ public:
 	  if (l == 0) {
 	       throw std::runtime_error("zero beam length detected");
 	  }
-       
+
 	  R.xelem(0, 2) = R.xelem(1, 0) * e2.xelem(2) - R.xelem(2, 0) * e2.xelem(1);
 	  R.xelem(1, 2) = R.xelem(2, 0) * e2.xelem(0) - R.xelem(0, 0) * e2.xelem(2);
 	  R.xelem(2, 2) = R.xelem(0, 0) * e2.xelem(1) - R.xelem(1, 0) * e2.xelem(0);
@@ -952,11 +956,11 @@ public:
 		    R.xelem(i, j) /= n;
 	       }
 	  }
-	  
+
 	  const double E = material->YoungsModulus();
 	  const double G = material->ShearModulus();
 	  const double rho = material->Density();
-	  
+
 	  EA = E * oSect.A;
 	  GAy = G * oSect.Ay;
 	  GAz = G * oSect.Az;
@@ -968,66 +972,66 @@ public:
 	  rhoIz = rho * oSect.Iz;
 	  rhoIp = rhoIy + rhoIz;
 	  ky = EIz / (l*l * GAy);
-          kz = EIy / (l*l * GAz);
+	  kz = EIy / (l*l * GAz);
      }
 
      ElemBeam2(const ElemBeam2& oElem)=default;
-     
+
      virtual ~ElemBeam2()=default;
-     
+
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
 	  void (ElemBeam2::*pfn)(Matrix&) const;
-	  
+
 	  switch (eMatType) {
 	  case MAT_STIFFNESS:
 	  case MAT_STIFFNESS_SYM:
 	  case MAT_STIFFNESS_SYM_L:
 	       pfn = &ElemBeam2::StiffnessMatrix;
 	       break;
-	       
+
 	  case MAT_MASS:
 	  case MAT_MASS_SYM:
 	  case MAT_MASS_SYM_L:
 	       pfn = &ElemBeam2::MassMatrix;
 	       break;
-	       
+
 	  default:
 	       return;
 	  }
 
 	  Matrix A(12, 12, 0.), RA(12, 12);
-	  
+
 	  (this->*pfn)(A);
 
 	  for (octave_idx_type i0 = 0; i0 < 4; ++i0) {
 	       for (octave_idx_type j0 = 0; j0 < 4; ++j0) {
-	  	    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
-	  		 for (octave_idx_type j1 = 0; j1 < 3; ++j1) {
-	  		      double RAij = 0;
-			      
-	  		      for (octave_idx_type k = 0; k < 3; ++k) {
-	  			   RAij += R.xelem(i1, k) * A.xelem(3 * i0 + k, 3 * j0 + j1);
-	  		      }
+		    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
+			 for (octave_idx_type j1 = 0; j1 < 3; ++j1) {
+			      double RAij = 0;
 
-	  		      RA.xelem(3 * i0 + i1, 3 * j0 + j1) = RAij;
-	  		 }
-	  	    }
+			      for (octave_idx_type k = 0; k < 3; ++k) {
+				   RAij += R.xelem(i1, k) * A.xelem(3 * i0 + k, 3 * j0 + j1);
+			      }
+
+			      RA.xelem(3 * i0 + i1, 3 * j0 + j1) = RAij;
+			 }
+		    }
 	       }
 	  }
 
 	  for (octave_idx_type i0 = 0; i0 < 4; ++i0) {
 	       for (octave_idx_type j0 = 0; j0 < 4; ++j0) {
-	  	    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
-	  		 for (octave_idx_type j1 = 0; j1 < 3; ++j1) {
-	  		      double Aij = 0;
-			      
-	  		      for (octave_idx_type k = 0; k < 3; ++k) {
-	  			   Aij += R.xelem(j1, k) * RA.xelem(3 * i0 + i1, 3 * j0 + k);
-	  		      }
+		    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
+			 for (octave_idx_type j1 = 0; j1 < 3; ++j1) {
+			      double Aij = 0;
 
-	  		      A.xelem(3 * i0 + i1, 3 * j0 + j1) = Aij;
-	  		 }
-	  	    }
+			      for (octave_idx_type k = 0; k < 3; ++k) {
+				   Aij += R.xelem(j1, k) * RA.xelem(3 * i0 + i1, 3 * j0 + k);
+			      }
+
+			      A.xelem(3 * i0 + i1, 3 * j0 + j1) = Aij;
+			 }
+		    }
 	       }
 	  }
 
@@ -1047,11 +1051,11 @@ public:
 
 	  mat.Insert(A, ndofidx, ndofidx);
      }
-     
+
      virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
 	  return 12 * 12;
      }
-     
+
      virtual double dGetMass() const {
 	  return rhoA * l;
      }
@@ -1059,7 +1063,7 @@ public:
      void StiffnessMatrix(Matrix& Ke) const {
 	  const double l2 = l * l;
 	  const double l3 = l2 * l;
-	  
+
 	  Ke.xelem(0,0) = (EA)/l;
 	  Ke.xelem(1,1) = (12*EIz)/((12*ky+1)*l3);
 	  Ke.xelem(2,2) = (12*EIy)/((12*kz+1)*l3);
@@ -1087,17 +1091,16 @@ public:
 	  Ke.xelem(7,11) = -(6*EIz)/((12*ky+1)*l2);
 	  Ke.xelem(11,11) = (4*EIz*(3*ky+1))/((12*ky+1)*l);
      }
-     
+
      void MassMatrix(Matrix& Me) const {
 	  const double l2 = l * l;
-	  const double l3 = l2 * l;
 	  const double ky2 = ky * ky;
 	  const double kz2 = kz * kz;
 	  const double b1 = (12*ky+1);
 	  const double b2 = (12*kz+1);
 	  const double a1 = b1 * b1;
 	  const double a2 = b2 * b2;
-	  
+
 	  Me.xelem(0,0) = (l*rhoA)/3.0E+0;
 	  Me.xelem(1,1) = ((42*rhoIz+1680*ky2*l2*rhoA+294*ky*l2*rhoA+13*l2*rhoA)/(a1*l))/3.5E+1;
 	  Me.xelem(2,2) = ((42*rhoIy+1680*kz2*l2*rhoA+294*kz*l2*rhoA+13*l2*rhoA)/(a2*l))/3.5E+1;
@@ -2409,7 +2412,7 @@ protected:
 	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
 		FEM_ASSERT(rv.numel() == 3);
 		FEM_ASSERT(H.rows() == 3);
-		FEM_ASSERT(H.columns() == 24);
+		FEM_ASSERT(H.columns() == 60);
 
 		const double r = rv.xelem(0);
 		const double s = rv.xelem(1);
@@ -2605,7 +2608,7 @@ protected:
 		FEM_ASSERT(invJ.rows() == 3);
 		FEM_ASSERT(invJ.columns() == 3);
 		FEM_ASSERT(B.rows() == 6);
-		FEM_ASSERT(B.columns() == 24);
+		FEM_ASSERT(B.columns() == 60);
 
 		const double r = rv.xelem(0);
 		const double s = rv.xelem(1);
@@ -2999,7 +3002,7 @@ protected:
 private:
 	void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
 		FEM_ASSERT(rv.numel() == 3);
-		FEM_ASSERT(Hs.columns() == 8);
+		FEM_ASSERT(Hs.columns() == 20);
 		FEM_ASSERT(irow >= 0);
 		FEM_ASSERT(irow < Hs.rows());
 
@@ -3030,6 +3033,1079 @@ private:
 		Hs.xelem(irow, 17) = ((1-r)*(s+1)*(1-t2))/4.0E+0;
 		Hs.xelem(irow, 18) = ((1-r)*(1-s)*(1-t2))/4.0E+0;
 		Hs.xelem(irow, 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
+	}
+};
+
+class Penta15: public Element3D
+{
+public:
+	Penta15(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:Element3D(id, X, material, nodes) {
+		FEM_ASSERT(nodes.numel() == 15);
+	}
+
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+		// r = 0 ... 1
+		// s = 0 ... (1 - r)
+		// t = -1 ... 1
+
+		constexpr octave_idx_type N = 3;
+		constexpr octave_idx_type M = 7;
+		constexpr double r1 = 0.1012865073235;
+		constexpr double r2 = 0.7974269853531;
+		constexpr double r3 = r1;
+		constexpr double r4 = 0.4701420641051;
+		constexpr double r5 = r4;
+		constexpr double r6 = 0.0597158717898;
+		constexpr double r7 = 0.3333333333333;
+		constexpr double s1 = r1;
+		constexpr double s2 = r1;
+		constexpr double s3 = r2;
+		constexpr double s4 = r6;
+		constexpr double s5 = r4;
+		constexpr double s6 = r4;
+		constexpr double s7 = r7;
+		constexpr double w1 = 0.1259391805448;
+		constexpr double w2 = w1;
+		constexpr double w3 = w1;
+		constexpr double w4 = 0.1323941527885;
+		constexpr double w5 = w4;
+		constexpr double w6 = w4;
+		constexpr double w7 = 0.2250000000001;
+		
+		static constexpr double r[2][M] = {{r1, r2, r3, r4, r5, r6, r7}, {0, 1, 0, 0.5,  0.5,    0}};
+		static constexpr double s[2][M] = {{s1, s2, s3, s4, s5, s6, s7}, {0, 0, 1,   0,  0.5,  0.5}};
+		static constexpr double w[2][M] = {{w1, w2, w3, w4, w5, w6, w7}, {1./3., 1./3., 1./3., 1./3., 1./3., 1./3.}};
+		static const double t[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
+		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
+
+		static array<IntegrationRule, 2> rgIntegRule;
+
+		octave_idx_type iIntegRule, iNumPoints;
+		
+		switch (eMatType) {
+		case MAT_MASS_LUMPED:
+			iIntegRule = 1;
+			iNumPoints = 6;
+			break;
+		default:
+			iIntegRule = 0;
+			iNumPoints = M;
+		}
+		
+		if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+			rgIntegRule[iIntegRule].SetNumEvalPoints(M * N, 3);
+
+			for (octave_idx_type i = 0; i < iNumPoints; ++i) {
+				for (octave_idx_type j = 0; j < N; ++j) {
+					rgIntegRule[iIntegRule].SetWeight(i * N + j, 0.5 * w[iIntegRule][i] * alpha[iIntegRule][j]);
+					rgIntegRule[iIntegRule].SetPosition(i * N + j, 0, r[iIntegRule][i]);
+					rgIntegRule[iIntegRule].SetPosition(i * N + j, 1, s[iIntegRule][i]);
+					rgIntegRule[iIntegRule].SetPosition(i * N + j, 2, t[iIntegRule][j]);
+				}
+			}
+		}
+
+		return rgIntegRule[iIntegRule];
+	}
+
+protected:
+	virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+		FEM_ASSERT(J.rows() == 3);
+		FEM_ASSERT(J.columns() == 3);
+		FEM_ASSERT(rv.numel() == 3);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+		const double t2 = t * t;
+
+		J.xelem(0,0) = X.xelem(0,13)*(1-t2)-X.xelem(0,12)*(1-t2)-(X.xelem(0,3)*(t+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(0,4)*(t+1)*(t+2*r-2))/2.0E+0-2*X.xelem(0,11)*s*(t+1)+2*X.xelem(0,10)*s*(t+1)+2*X.xelem(0,9)*((-s)-r+1)*(t+1)-X.xelem(0,3)*((-s)-r+1)*(t+1)-2*X.xelem(0,9)*r*(t+1)+X.xelem(0,4)*r*(t+1)-(X.xelem(0,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0+(X.xelem(0,1)*(1-t)*((-t)+2*r-2))/2.0E+0-2*X.xelem(0,8)*s*(1-t)+2*X.xelem(0,7)*s*(1-t)+2*X.xelem(0,6)*((-s)-r+1)*(1-t)-X.xelem(0,0)*((-s)-r+1)*(1-t)-2*X.xelem(0,6)*r*(1-t)+X.xelem(0,1)*r*(1-t);
+		J.xelem(1,0) = X.xelem(0,14)*(1-t2)-X.xelem(0,12)*(1-t2)+(X.xelem(0,5)*(t+1)*(t+2*s-2))/2.0E+0-(X.xelem(0,3)*(t+1)*(t-2*s-2*r))/2.0E+0-2*X.xelem(0,11)*s*(t+1)+X.xelem(0,5)*s*(t+1)+2*X.xelem(0,11)*((-s)-r+1)*(t+1)-X.xelem(0,3)*((-s)-r+1)*(t+1)+2*X.xelem(0,10)*r*(t+1)-2*X.xelem(0,9)*r*(t+1)+(X.xelem(0,2)*(1-t)*((-t)+2*s-2))/2.0E+0-(X.xelem(0,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0-2*X.xelem(0,8)*s*(1-t)+X.xelem(0,2)*s*(1-t)+2*X.xelem(0,8)*((-s)-r+1)*(1-t)-X.xelem(0,0)*((-s)-r+1)*(1-t)+2*X.xelem(0,7)*r*(1-t)-2*X.xelem(0,6)*r*(1-t);
+		J.xelem(2,0) = (X.xelem(0,5)*s*(t+2*s-2))/2.0E+0+(X.xelem(0,3)*((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(0,4)*r*(t+2*r-2))/2.0E+0+(X.xelem(0,5)*s*(t+1))/2.0E+0+(X.xelem(0,3)*((-s)-r+1)*(t+1))/2.0E+0+(X.xelem(0,4)*r*(t+1))/2.0E+0-2*X.xelem(0,14)*s*t-2*X.xelem(0,12)*((-s)-r+1)*t-2*X.xelem(0,13)*r*t-(X.xelem(0,2)*s*((-t)+2*s-2))/2.0E+0-(X.xelem(0,0)*((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0-(X.xelem(0,1)*r*((-t)+2*r-2))/2.0E+0-(X.xelem(0,2)*s*(1-t))/2.0E+0-(X.xelem(0,0)*((-s)-r+1)*(1-t))/2.0E+0-(X.xelem(0,1)*r*(1-t))/2.0E+0+2*X.xelem(0,11)*((-s)-r+1)*s-2*X.xelem(0,8)*((-s)-r+1)*s+2*X.xelem(0,10)*r*s-2*X.xelem(0,7)*r*s+2*X.xelem(0,9)*r*((-s)-r+1)-2*X.xelem(0,6)*r*((-s)-r+1);
+		J.xelem(0,1) = X.xelem(1,13)*(1-t2)-X.xelem(1,12)*(1-t2)-(X.xelem(1,3)*(t+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(1,4)*(t+1)*(t+2*r-2))/2.0E+0-2*X.xelem(1,11)*s*(t+1)+2*X.xelem(1,10)*s*(t+1)+2*X.xelem(1,9)*((-s)-r+1)*(t+1)-X.xelem(1,3)*((-s)-r+1)*(t+1)-2*X.xelem(1,9)*r*(t+1)+X.xelem(1,4)*r*(t+1)-(X.xelem(1,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0+(X.xelem(1,1)*(1-t)*((-t)+2*r-2))/2.0E+0-2*X.xelem(1,8)*s*(1-t)+2*X.xelem(1,7)*s*(1-t)+2*X.xelem(1,6)*((-s)-r+1)*(1-t)-X.xelem(1,0)*((-s)-r+1)*(1-t)-2*X.xelem(1,6)*r*(1-t)+X.xelem(1,1)*r*(1-t);
+		J.xelem(1,1) = X.xelem(1,14)*(1-t2)-X.xelem(1,12)*(1-t2)+(X.xelem(1,5)*(t+1)*(t+2*s-2))/2.0E+0-(X.xelem(1,3)*(t+1)*(t-2*s-2*r))/2.0E+0-2*X.xelem(1,11)*s*(t+1)+X.xelem(1,5)*s*(t+1)+2*X.xelem(1,11)*((-s)-r+1)*(t+1)-X.xelem(1,3)*((-s)-r+1)*(t+1)+2*X.xelem(1,10)*r*(t+1)-2*X.xelem(1,9)*r*(t+1)+(X.xelem(1,2)*(1-t)*((-t)+2*s-2))/2.0E+0-(X.xelem(1,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0-2*X.xelem(1,8)*s*(1-t)+X.xelem(1,2)*s*(1-t)+2*X.xelem(1,8)*((-s)-r+1)*(1-t)-X.xelem(1,0)*((-s)-r+1)*(1-t)+2*X.xelem(1,7)*r*(1-t)-2*X.xelem(1,6)*r*(1-t);
+		J.xelem(2,1) = (X.xelem(1,5)*s*(t+2*s-2))/2.0E+0+(X.xelem(1,3)*((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(1,4)*r*(t+2*r-2))/2.0E+0+(X.xelem(1,5)*s*(t+1))/2.0E+0+(X.xelem(1,3)*((-s)-r+1)*(t+1))/2.0E+0+(X.xelem(1,4)*r*(t+1))/2.0E+0-2*X.xelem(1,14)*s*t-2*X.xelem(1,12)*((-s)-r+1)*t-2*X.xelem(1,13)*r*t-(X.xelem(1,2)*s*((-t)+2*s-2))/2.0E+0-(X.xelem(1,0)*((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0-(X.xelem(1,1)*r*((-t)+2*r-2))/2.0E+0-(X.xelem(1,2)*s*(1-t))/2.0E+0-(X.xelem(1,0)*((-s)-r+1)*(1-t))/2.0E+0-(X.xelem(1,1)*r*(1-t))/2.0E+0+2*X.xelem(1,11)*((-s)-r+1)*s-2*X.xelem(1,8)*((-s)-r+1)*s+2*X.xelem(1,10)*r*s-2*X.xelem(1,7)*r*s+2*X.xelem(1,9)*r*((-s)-r+1)-2*X.xelem(1,6)*r*((-s)-r+1);
+		J.xelem(0,2) = X.xelem(2,13)*(1-t2)-X.xelem(2,12)*(1-t2)-(X.xelem(2,3)*(t+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(2,4)*(t+1)*(t+2*r-2))/2.0E+0-2*X.xelem(2,11)*s*(t+1)+2*X.xelem(2,10)*s*(t+1)+2*X.xelem(2,9)*((-s)-r+1)*(t+1)-X.xelem(2,3)*((-s)-r+1)*(t+1)-2*X.xelem(2,9)*r*(t+1)+X.xelem(2,4)*r*(t+1)-(X.xelem(2,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0+(X.xelem(2,1)*(1-t)*((-t)+2*r-2))/2.0E+0-2*X.xelem(2,8)*s*(1-t)+2*X.xelem(2,7)*s*(1-t)+2*X.xelem(2,6)*((-s)-r+1)*(1-t)-X.xelem(2,0)*((-s)-r+1)*(1-t)-2*X.xelem(2,6)*r*(1-t)+X.xelem(2,1)*r*(1-t);
+		J.xelem(1,2) = X.xelem(2,14)*(1-t2)-X.xelem(2,12)*(1-t2)+(X.xelem(2,5)*(t+1)*(t+2*s-2))/2.0E+0-(X.xelem(2,3)*(t+1)*(t-2*s-2*r))/2.0E+0-2*X.xelem(2,11)*s*(t+1)+X.xelem(2,5)*s*(t+1)+2*X.xelem(2,11)*((-s)-r+1)*(t+1)-X.xelem(2,3)*((-s)-r+1)*(t+1)+2*X.xelem(2,10)*r*(t+1)-2*X.xelem(2,9)*r*(t+1)+(X.xelem(2,2)*(1-t)*((-t)+2*s-2))/2.0E+0-(X.xelem(2,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0-2*X.xelem(2,8)*s*(1-t)+X.xelem(2,2)*s*(1-t)+2*X.xelem(2,8)*((-s)-r+1)*(1-t)-X.xelem(2,0)*((-s)-r+1)*(1-t)+2*X.xelem(2,7)*r*(1-t)-2*X.xelem(2,6)*r*(1-t);
+		J.xelem(2,2) = (X.xelem(2,5)*s*(t+2*s-2))/2.0E+0+(X.xelem(2,3)*((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(2,4)*r*(t+2*r-2))/2.0E+0+(X.xelem(2,5)*s*(t+1))/2.0E+0+(X.xelem(2,3)*((-s)-r+1)*(t+1))/2.0E+0+(X.xelem(2,4)*r*(t+1))/2.0E+0-2*X.xelem(2,14)*s*t-2*X.xelem(2,12)*((-s)-r+1)*t-2*X.xelem(2,13)*r*t-(X.xelem(2,2)*s*((-t)+2*s-2))/2.0E+0-(X.xelem(2,0)*((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0-(X.xelem(2,1)*r*((-t)+2*r-2))/2.0E+0-(X.xelem(2,2)*s*(1-t))/2.0E+0-(X.xelem(2,0)*((-s)-r+1)*(1-t))/2.0E+0-(X.xelem(2,1)*r*(1-t))/2.0E+0+2*X.xelem(2,11)*((-s)-r+1)*s-2*X.xelem(2,8)*((-s)-r+1)*s+2*X.xelem(2,10)*r*s-2*X.xelem(2,7)*r*s+2*X.xelem(2,9)*r*((-s)-r+1)-2*X.xelem(2,6)*r*((-s)-r+1);
+
+		return J.determinant();
+	}
+
+	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(H.rows() == 3);
+		FEM_ASSERT(H.columns() == 45);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+		const double t2 = t * t;
+
+		H.xelem(0,0) = (((-s)-r+1)*(1-t)*((-t)-2*s-2*r))/2.0E+0;
+		H.xelem(1,0) = 0;
+		H.xelem(2,0) = 0;
+		H.xelem(0,1) = 0;
+		H.xelem(1,1) = (((-s)-r+1)*(1-t)*((-t)-2*s-2*r))/2.0E+0;
+		H.xelem(2,1) = 0;
+		H.xelem(0,2) = 0;
+		H.xelem(1,2) = 0;
+		H.xelem(2,2) = (((-s)-r+1)*(1-t)*((-t)-2*s-2*r))/2.0E+0;
+		H.xelem(0,3) = (r*(1-t)*((-t)+2*r-2))/2.0E+0;
+		H.xelem(1,3) = 0;
+		H.xelem(2,3) = 0;
+		H.xelem(0,4) = 0;
+		H.xelem(1,4) = (r*(1-t)*((-t)+2*r-2))/2.0E+0;
+		H.xelem(2,4) = 0;
+		H.xelem(0,5) = 0;
+		H.xelem(1,5) = 0;
+		H.xelem(2,5) = (r*(1-t)*((-t)+2*r-2))/2.0E+0;
+		H.xelem(0,6) = (s*(1-t)*((-t)+2*s-2))/2.0E+0;
+		H.xelem(1,6) = 0;
+		H.xelem(2,6) = 0;
+		H.xelem(0,7) = 0;
+		H.xelem(1,7) = (s*(1-t)*((-t)+2*s-2))/2.0E+0;
+		H.xelem(2,7) = 0;
+		H.xelem(0,8) = 0;
+		H.xelem(1,8) = 0;
+		H.xelem(2,8) = (s*(1-t)*((-t)+2*s-2))/2.0E+0;
+		H.xelem(0,9) = (((-s)-r+1)*(t+1)*(t-2*s-2*r))/2.0E+0;
+		H.xelem(1,9) = 0;
+		H.xelem(2,9) = 0;
+		H.xelem(0,10) = 0;
+		H.xelem(1,10) = (((-s)-r+1)*(t+1)*(t-2*s-2*r))/2.0E+0;
+		H.xelem(2,10) = 0;
+		H.xelem(0,11) = 0;
+		H.xelem(1,11) = 0;
+		H.xelem(2,11) = (((-s)-r+1)*(t+1)*(t-2*s-2*r))/2.0E+0;
+		H.xelem(0,12) = (r*(t+1)*(t+2*r-2))/2.0E+0;
+		H.xelem(1,12) = 0;
+		H.xelem(2,12) = 0;
+		H.xelem(0,13) = 0;
+		H.xelem(1,13) = (r*(t+1)*(t+2*r-2))/2.0E+0;
+		H.xelem(2,13) = 0;
+		H.xelem(0,14) = 0;
+		H.xelem(1,14) = 0;
+		H.xelem(2,14) = (r*(t+1)*(t+2*r-2))/2.0E+0;
+		H.xelem(0,15) = (s*(t+1)*(t+2*s-2))/2.0E+0;
+		H.xelem(1,15) = 0;
+		H.xelem(2,15) = 0;
+		H.xelem(0,16) = 0;
+		H.xelem(1,16) = (s*(t+1)*(t+2*s-2))/2.0E+0;
+		H.xelem(2,16) = 0;
+		H.xelem(0,17) = 0;
+		H.xelem(1,17) = 0;
+		H.xelem(2,17) = (s*(t+1)*(t+2*s-2))/2.0E+0;
+		H.xelem(0,18) = 2*r*((-s)-r+1)*(1-t);
+		H.xelem(1,18) = 0;
+		H.xelem(2,18) = 0;
+		H.xelem(0,19) = 0;
+		H.xelem(1,19) = 2*r*((-s)-r+1)*(1-t);
+		H.xelem(2,19) = 0;
+		H.xelem(0,20) = 0;
+		H.xelem(1,20) = 0;
+		H.xelem(2,20) = 2*r*((-s)-r+1)*(1-t);
+		H.xelem(0,21) = 2*r*s*(1-t);
+		H.xelem(1,21) = 0;
+		H.xelem(2,21) = 0;
+		H.xelem(0,22) = 0;
+		H.xelem(1,22) = 2*r*s*(1-t);
+		H.xelem(2,22) = 0;
+		H.xelem(0,23) = 0;
+		H.xelem(1,23) = 0;
+		H.xelem(2,23) = 2*r*s*(1-t);
+		H.xelem(0,24) = 2*((-s)-r+1)*s*(1-t);
+		H.xelem(1,24) = 0;
+		H.xelem(2,24) = 0;
+		H.xelem(0,25) = 0;
+		H.xelem(1,25) = 2*((-s)-r+1)*s*(1-t);
+		H.xelem(2,25) = 0;
+		H.xelem(0,26) = 0;
+		H.xelem(1,26) = 0;
+		H.xelem(2,26) = 2*((-s)-r+1)*s*(1-t);
+		H.xelem(0,27) = 2*r*((-s)-r+1)*(t+1);
+		H.xelem(1,27) = 0;
+		H.xelem(2,27) = 0;
+		H.xelem(0,28) = 0;
+		H.xelem(1,28) = 2*r*((-s)-r+1)*(t+1);
+		H.xelem(2,28) = 0;
+		H.xelem(0,29) = 0;
+		H.xelem(1,29) = 0;
+		H.xelem(2,29) = 2*r*((-s)-r+1)*(t+1);
+		H.xelem(0,30) = 2*r*s*(t+1);
+		H.xelem(1,30) = 0;
+		H.xelem(2,30) = 0;
+		H.xelem(0,31) = 0;
+		H.xelem(1,31) = 2*r*s*(t+1);
+		H.xelem(2,31) = 0;
+		H.xelem(0,32) = 0;
+		H.xelem(1,32) = 0;
+		H.xelem(2,32) = 2*r*s*(t+1);
+		H.xelem(0,33) = 2*((-s)-r+1)*s*(t+1);
+		H.xelem(1,33) = 0;
+		H.xelem(2,33) = 0;
+		H.xelem(0,34) = 0;
+		H.xelem(1,34) = 2*((-s)-r+1)*s*(t+1);
+		H.xelem(2,34) = 0;
+		H.xelem(0,35) = 0;
+		H.xelem(1,35) = 0;
+		H.xelem(2,35) = 2*((-s)-r+1)*s*(t+1);
+		H.xelem(0,36) = ((-s)-r+1)*(1-t2);
+		H.xelem(1,36) = 0;
+		H.xelem(2,36) = 0;
+		H.xelem(0,37) = 0;
+		H.xelem(1,37) = ((-s)-r+1)*(1-t2);
+		H.xelem(2,37) = 0;
+		H.xelem(0,38) = 0;
+		H.xelem(1,38) = 0;
+		H.xelem(2,38) = ((-s)-r+1)*(1-t2);
+		H.xelem(0,39) = r*(1-t2);
+		H.xelem(1,39) = 0;
+		H.xelem(2,39) = 0;
+		H.xelem(0,40) = 0;
+		H.xelem(1,40) = r*(1-t2);
+		H.xelem(2,40) = 0;
+		H.xelem(0,41) = 0;
+		H.xelem(1,41) = 0;
+		H.xelem(2,41) = r*(1-t2);
+		H.xelem(0,42) = s*(1-t2);
+		H.xelem(1,42) = 0;
+		H.xelem(2,42) = 0;
+		H.xelem(0,43) = 0;
+		H.xelem(1,43) = s*(1-t2);
+		H.xelem(2,43) = 0;
+		H.xelem(0,44) = 0;
+		H.xelem(1,44) = 0;
+		H.xelem(2,44) = s*(1-t2);
+	}
+
+	virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(invJ.rows() == 3);
+		FEM_ASSERT(invJ.columns() == 3);
+		FEM_ASSERT(B.rows() == 6);
+		FEM_ASSERT(B.columns() == 45);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+		const double t2 = t * t;
+
+		B.xelem(0,0) = invJ(0,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(1,0) = 0;
+		B.xelem(2,0) = 0;
+		B.xelem(3,0) = invJ(1,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(1,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(1,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(4,0) = 0;
+		B.xelem(5,0) = invJ(2,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(2,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(2,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(0,1) = 0;
+		B.xelem(1,1) = invJ(1,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(1,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(1,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(2,1) = 0;
+		B.xelem(3,1) = invJ(0,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(4,1) = invJ(2,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(2,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(2,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(5,1) = 0;
+		B.xelem(0,2) = 0;
+		B.xelem(1,2) = 0;
+		B.xelem(2,2) = invJ(2,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(2,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(2,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(3,2) = 0;
+		B.xelem(4,2) = invJ(1,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(1,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(1,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(5,2) = invJ(0,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
+		B.xelem(0,3) = invJ(0,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(0,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(1,3) = 0;
+		B.xelem(2,3) = 0;
+		B.xelem(3,3) = invJ(1,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(1,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(4,3) = 0;
+		B.xelem(5,3) = invJ(2,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(2,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(0,4) = 0;
+		B.xelem(1,4) = invJ(1,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(1,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(2,4) = 0;
+		B.xelem(3,4) = invJ(0,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(0,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(4,4) = invJ(2,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(2,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(5,4) = 0;
+		B.xelem(0,5) = 0;
+		B.xelem(1,5) = 0;
+		B.xelem(2,5) = invJ(2,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(2,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(3,5) = 0;
+		B.xelem(4,5) = invJ(1,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(1,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(5,5) = invJ(0,0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ(0,2)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
+		B.xelem(0,6) = invJ(0,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(0,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(1,6) = 0;
+		B.xelem(2,6) = 0;
+		B.xelem(3,6) = invJ(1,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(1,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(4,6) = 0;
+		B.xelem(5,6) = invJ(2,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(2,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(0,7) = 0;
+		B.xelem(1,7) = invJ(1,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(1,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(2,7) = 0;
+		B.xelem(3,7) = invJ(0,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(0,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(4,7) = invJ(2,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(2,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(5,7) = 0;
+		B.xelem(0,8) = 0;
+		B.xelem(1,8) = 0;
+		B.xelem(2,8) = invJ(2,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(2,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(3,8) = 0;
+		B.xelem(4,8) = invJ(1,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(1,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(5,8) = invJ(0,1)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ(0,2)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
+		B.xelem(0,9) = invJ(0,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(0,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(0,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(1,9) = 0;
+		B.xelem(2,9) = 0;
+		B.xelem(3,9) = invJ(1,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(1,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(1,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(4,9) = 0;
+		B.xelem(5,9) = invJ(2,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(2,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(2,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(0,10) = 0;
+		B.xelem(1,10) = invJ(1,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(1,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(1,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(2,10) = 0;
+		B.xelem(3,10) = invJ(0,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(0,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(0,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(4,10) = invJ(2,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(2,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(2,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(5,10) = 0;
+		B.xelem(0,11) = 0;
+		B.xelem(1,11) = 0;
+		B.xelem(2,11) = invJ(2,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(2,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(2,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(3,11) = 0;
+		B.xelem(4,11) = invJ(1,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(1,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(1,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(5,11) = invJ(0,1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(0,0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ(0,2)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
+		B.xelem(0,12) = invJ(0,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(0,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(1,12) = 0;
+		B.xelem(2,12) = 0;
+		B.xelem(3,12) = invJ(1,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(1,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(4,12) = 0;
+		B.xelem(5,12) = invJ(2,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(2,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(0,13) = 0;
+		B.xelem(1,13) = invJ(1,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(1,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(2,13) = 0;
+		B.xelem(3,13) = invJ(0,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(0,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(4,13) = invJ(2,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(2,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(5,13) = 0;
+		B.xelem(0,14) = 0;
+		B.xelem(1,14) = 0;
+		B.xelem(2,14) = invJ(2,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(2,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(3,14) = 0;
+		B.xelem(4,14) = invJ(1,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(1,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(5,14) = invJ(0,0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ(0,2)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
+		B.xelem(0,15) = invJ(0,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(0,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(1,15) = 0;
+		B.xelem(2,15) = 0;
+		B.xelem(3,15) = invJ(1,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(1,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(4,15) = 0;
+		B.xelem(5,15) = invJ(2,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(2,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(0,16) = 0;
+		B.xelem(1,16) = invJ(1,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(1,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(2,16) = 0;
+		B.xelem(3,16) = invJ(0,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(0,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(4,16) = invJ(2,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(2,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(5,16) = 0;
+		B.xelem(0,17) = 0;
+		B.xelem(1,17) = 0;
+		B.xelem(2,17) = invJ(2,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(2,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(3,17) = 0;
+		B.xelem(4,17) = invJ(1,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(1,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(5,17) = invJ(0,1)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ(0,2)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
+		B.xelem(0,18) = (-2*invJ(0,1)*r*(1-t))+invJ(0,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(0,2)*r*((-s)-r+1);
+		B.xelem(1,18) = 0;
+		B.xelem(2,18) = 0;
+		B.xelem(3,18) = (-2*invJ(1,1)*r*(1-t))+invJ(1,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(1,2)*r*((-s)-r+1);
+		B.xelem(4,18) = 0;
+		B.xelem(5,18) = (-2*invJ(2,1)*r*(1-t))+invJ(2,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(2,2)*r*((-s)-r+1);
+		B.xelem(0,19) = 0;
+		B.xelem(1,19) = (-2*invJ(1,1)*r*(1-t))+invJ(1,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(1,2)*r*((-s)-r+1);
+		B.xelem(2,19) = 0;
+		B.xelem(3,19) = (-2*invJ(0,1)*r*(1-t))+invJ(0,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(0,2)*r*((-s)-r+1);
+		B.xelem(4,19) = (-2*invJ(2,1)*r*(1-t))+invJ(2,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(2,2)*r*((-s)-r+1);
+		B.xelem(5,19) = 0;
+		B.xelem(0,20) = 0;
+		B.xelem(1,20) = 0;
+		B.xelem(2,20) = (-2*invJ(2,1)*r*(1-t))+invJ(2,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(2,2)*r*((-s)-r+1);
+		B.xelem(3,20) = 0;
+		B.xelem(4,20) = (-2*invJ(1,1)*r*(1-t))+invJ(1,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(1,2)*r*((-s)-r+1);
+		B.xelem(5,20) = (-2*invJ(0,1)*r*(1-t))+invJ(0,0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ(0,2)*r*((-s)-r+1);
+		B.xelem(0,21) = 2*invJ(0,0)*s*(1-t)+2*invJ(0,1)*r*(1-t)-2*invJ(0,2)*r*s;
+		B.xelem(1,21) = 0;
+		B.xelem(2,21) = 0;
+		B.xelem(3,21) = 2*invJ(1,0)*s*(1-t)+2*invJ(1,1)*r*(1-t)-2*invJ(1,2)*r*s;
+		B.xelem(4,21) = 0;
+		B.xelem(5,21) = 2*invJ(2,0)*s*(1-t)+2*invJ(2,1)*r*(1-t)-2*invJ(2,2)*r*s;
+		B.xelem(0,22) = 0;
+		B.xelem(1,22) = 2*invJ(1,0)*s*(1-t)+2*invJ(1,1)*r*(1-t)-2*invJ(1,2)*r*s;
+		B.xelem(2,22) = 0;
+		B.xelem(3,22) = 2*invJ(0,0)*s*(1-t)+2*invJ(0,1)*r*(1-t)-2*invJ(0,2)*r*s;
+		B.xelem(4,22) = 2*invJ(2,0)*s*(1-t)+2*invJ(2,1)*r*(1-t)-2*invJ(2,2)*r*s;
+		B.xelem(5,22) = 0;
+		B.xelem(0,23) = 0;
+		B.xelem(1,23) = 0;
+		B.xelem(2,23) = 2*invJ(2,0)*s*(1-t)+2*invJ(2,1)*r*(1-t)-2*invJ(2,2)*r*s;
+		B.xelem(3,23) = 0;
+		B.xelem(4,23) = 2*invJ(1,0)*s*(1-t)+2*invJ(1,1)*r*(1-t)-2*invJ(1,2)*r*s;
+		B.xelem(5,23) = 2*invJ(0,0)*s*(1-t)+2*invJ(0,1)*r*(1-t)-2*invJ(0,2)*r*s;
+		B.xelem(0,24) = (-2*invJ(0,0)*s*(1-t))+invJ(0,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(0,2)*((-s)-r+1)*s;
+		B.xelem(1,24) = 0;
+		B.xelem(2,24) = 0;
+		B.xelem(3,24) = (-2*invJ(1,0)*s*(1-t))+invJ(1,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(1,2)*((-s)-r+1)*s;
+		B.xelem(4,24) = 0;
+		B.xelem(5,24) = (-2*invJ(2,0)*s*(1-t))+invJ(2,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(2,2)*((-s)-r+1)*s;
+		B.xelem(0,25) = 0;
+		B.xelem(1,25) = (-2*invJ(1,0)*s*(1-t))+invJ(1,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(1,2)*((-s)-r+1)*s;
+		B.xelem(2,25) = 0;
+		B.xelem(3,25) = (-2*invJ(0,0)*s*(1-t))+invJ(0,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(0,2)*((-s)-r+1)*s;
+		B.xelem(4,25) = (-2*invJ(2,0)*s*(1-t))+invJ(2,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(2,2)*((-s)-r+1)*s;
+		B.xelem(5,25) = 0;
+		B.xelem(0,26) = 0;
+		B.xelem(1,26) = 0;
+		B.xelem(2,26) = (-2*invJ(2,0)*s*(1-t))+invJ(2,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(2,2)*((-s)-r+1)*s;
+		B.xelem(3,26) = 0;
+		B.xelem(4,26) = (-2*invJ(1,0)*s*(1-t))+invJ(1,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(1,2)*((-s)-r+1)*s;
+		B.xelem(5,26) = (-2*invJ(0,0)*s*(1-t))+invJ(0,1)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ(0,2)*((-s)-r+1)*s;
+		B.xelem(0,27) = invJ(0,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(0,1)*r*(t+1)+2*invJ(0,2)*r*((-s)-r+1);
+		B.xelem(1,27) = 0;
+		B.xelem(2,27) = 0;
+		B.xelem(3,27) = invJ(1,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(1,1)*r*(t+1)+2*invJ(1,2)*r*((-s)-r+1);
+		B.xelem(4,27) = 0;
+		B.xelem(5,27) = invJ(2,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(2,1)*r*(t+1)+2*invJ(2,2)*r*((-s)-r+1);
+		B.xelem(0,28) = 0;
+		B.xelem(1,28) = invJ(1,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(1,1)*r*(t+1)+2*invJ(1,2)*r*((-s)-r+1);
+		B.xelem(2,28) = 0;
+		B.xelem(3,28) = invJ(0,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(0,1)*r*(t+1)+2*invJ(0,2)*r*((-s)-r+1);
+		B.xelem(4,28) = invJ(2,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(2,1)*r*(t+1)+2*invJ(2,2)*r*((-s)-r+1);
+		B.xelem(5,28) = 0;
+		B.xelem(0,29) = 0;
+		B.xelem(1,29) = 0;
+		B.xelem(2,29) = invJ(2,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(2,1)*r*(t+1)+2*invJ(2,2)*r*((-s)-r+1);
+		B.xelem(3,29) = 0;
+		B.xelem(4,29) = invJ(1,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(1,1)*r*(t+1)+2*invJ(1,2)*r*((-s)-r+1);
+		B.xelem(5,29) = invJ(0,0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ(0,1)*r*(t+1)+2*invJ(0,2)*r*((-s)-r+1);
+		B.xelem(0,30) = 2*invJ(0,0)*s*(t+1)+2*invJ(0,1)*r*(t+1)+2*invJ(0,2)*r*s;
+		B.xelem(1,30) = 0;
+		B.xelem(2,30) = 0;
+		B.xelem(3,30) = 2*invJ(1,0)*s*(t+1)+2*invJ(1,1)*r*(t+1)+2*invJ(1,2)*r*s;
+		B.xelem(4,30) = 0;
+		B.xelem(5,30) = 2*invJ(2,0)*s*(t+1)+2*invJ(2,1)*r*(t+1)+2*invJ(2,2)*r*s;
+		B.xelem(0,31) = 0;
+		B.xelem(1,31) = 2*invJ(1,0)*s*(t+1)+2*invJ(1,1)*r*(t+1)+2*invJ(1,2)*r*s;
+		B.xelem(2,31) = 0;
+		B.xelem(3,31) = 2*invJ(0,0)*s*(t+1)+2*invJ(0,1)*r*(t+1)+2*invJ(0,2)*r*s;
+		B.xelem(4,31) = 2*invJ(2,0)*s*(t+1)+2*invJ(2,1)*r*(t+1)+2*invJ(2,2)*r*s;
+		B.xelem(5,31) = 0;
+		B.xelem(0,32) = 0;
+		B.xelem(1,32) = 0;
+		B.xelem(2,32) = 2*invJ(2,0)*s*(t+1)+2*invJ(2,1)*r*(t+1)+2*invJ(2,2)*r*s;
+		B.xelem(3,32) = 0;
+		B.xelem(4,32) = 2*invJ(1,0)*s*(t+1)+2*invJ(1,1)*r*(t+1)+2*invJ(1,2)*r*s;
+		B.xelem(5,32) = 2*invJ(0,0)*s*(t+1)+2*invJ(0,1)*r*(t+1)+2*invJ(0,2)*r*s;
+		B.xelem(0,33) = invJ(0,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(0,0)*s*(t+1)+2*invJ(0,2)*((-s)-r+1)*s;
+		B.xelem(1,33) = 0;
+		B.xelem(2,33) = 0;
+		B.xelem(3,33) = invJ(1,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(1,0)*s*(t+1)+2*invJ(1,2)*((-s)-r+1)*s;
+		B.xelem(4,33) = 0;
+		B.xelem(5,33) = invJ(2,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(2,0)*s*(t+1)+2*invJ(2,2)*((-s)-r+1)*s;
+		B.xelem(0,34) = 0;
+		B.xelem(1,34) = invJ(1,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(1,0)*s*(t+1)+2*invJ(1,2)*((-s)-r+1)*s;
+		B.xelem(2,34) = 0;
+		B.xelem(3,34) = invJ(0,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(0,0)*s*(t+1)+2*invJ(0,2)*((-s)-r+1)*s;
+		B.xelem(4,34) = invJ(2,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(2,0)*s*(t+1)+2*invJ(2,2)*((-s)-r+1)*s;
+		B.xelem(5,34) = 0;
+		B.xelem(0,35) = 0;
+		B.xelem(1,35) = 0;
+		B.xelem(2,35) = invJ(2,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(2,0)*s*(t+1)+2*invJ(2,2)*((-s)-r+1)*s;
+		B.xelem(3,35) = 0;
+		B.xelem(4,35) = invJ(1,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(1,0)*s*(t+1)+2*invJ(1,2)*((-s)-r+1)*s;
+		B.xelem(5,35) = invJ(0,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ(0,0)*s*(t+1)+2*invJ(0,2)*((-s)-r+1)*s;
+		B.xelem(0,36) = invJ(0,1)*(t2-1)+invJ(0,0)*(t2-1)-2*invJ(0,2)*((-s)-r+1)*t;
+		B.xelem(1,36) = 0;
+		B.xelem(2,36) = 0;
+		B.xelem(3,36) = invJ(1,1)*(t2-1)+invJ(1,0)*(t2-1)-2*invJ(1,2)*((-s)-r+1)*t;
+		B.xelem(4,36) = 0;
+		B.xelem(5,36) = invJ(2,1)*(t2-1)+invJ(2,0)*(t2-1)-2*invJ(2,2)*((-s)-r+1)*t;
+		B.xelem(0,37) = 0;
+		B.xelem(1,37) = invJ(1,1)*(t2-1)+invJ(1,0)*(t2-1)-2*invJ(1,2)*((-s)-r+1)*t;
+		B.xelem(2,37) = 0;
+		B.xelem(3,37) = invJ(0,1)*(t2-1)+invJ(0,0)*(t2-1)-2*invJ(0,2)*((-s)-r+1)*t;
+		B.xelem(4,37) = invJ(2,1)*(t2-1)+invJ(2,0)*(t2-1)-2*invJ(2,2)*((-s)-r+1)*t;
+		B.xelem(5,37) = 0;
+		B.xelem(0,38) = 0;
+		B.xelem(1,38) = 0;
+		B.xelem(2,38) = invJ(2,1)*(t2-1)+invJ(2,0)*(t2-1)-2*invJ(2,2)*((-s)-r+1)*t;
+		B.xelem(3,38) = 0;
+		B.xelem(4,38) = invJ(1,1)*(t2-1)+invJ(1,0)*(t2-1)-2*invJ(1,2)*((-s)-r+1)*t;
+		B.xelem(5,38) = invJ(0,1)*(t2-1)+invJ(0,0)*(t2-1)-2*invJ(0,2)*((-s)-r+1)*t;
+		B.xelem(0,39) = invJ(0,0)*(1-t2)-2*invJ(0,2)*r*t;
+		B.xelem(1,39) = 0;
+		B.xelem(2,39) = 0;
+		B.xelem(3,39) = invJ(1,0)*(1-t2)-2*invJ(1,2)*r*t;
+		B.xelem(4,39) = 0;
+		B.xelem(5,39) = invJ(2,0)*(1-t2)-2*invJ(2,2)*r*t;
+		B.xelem(0,40) = 0;
+		B.xelem(1,40) = invJ(1,0)*(1-t2)-2*invJ(1,2)*r*t;
+		B.xelem(2,40) = 0;
+		B.xelem(3,40) = invJ(0,0)*(1-t2)-2*invJ(0,2)*r*t;
+		B.xelem(4,40) = invJ(2,0)*(1-t2)-2*invJ(2,2)*r*t;
+		B.xelem(5,40) = 0;
+		B.xelem(0,41) = 0;
+		B.xelem(1,41) = 0;
+		B.xelem(2,41) = invJ(2,0)*(1-t2)-2*invJ(2,2)*r*t;
+		B.xelem(3,41) = 0;
+		B.xelem(4,41) = invJ(1,0)*(1-t2)-2*invJ(1,2)*r*t;
+		B.xelem(5,41) = invJ(0,0)*(1-t2)-2*invJ(0,2)*r*t;
+		B.xelem(0,42) = invJ(0,1)*(1-t2)-2*invJ(0,2)*s*t;
+		B.xelem(1,42) = 0;
+		B.xelem(2,42) = 0;
+		B.xelem(3,42) = invJ(1,1)*(1-t2)-2*invJ(1,2)*s*t;
+		B.xelem(4,42) = 0;
+		B.xelem(5,42) = invJ(2,1)*(1-t2)-2*invJ(2,2)*s*t;
+		B.xelem(0,43) = 0;
+		B.xelem(1,43) = invJ(1,1)*(1-t2)-2*invJ(1,2)*s*t;
+		B.xelem(2,43) = 0;
+		B.xelem(3,43) = invJ(0,1)*(1-t2)-2*invJ(0,2)*s*t;
+		B.xelem(4,43) = invJ(2,1)*(1-t2)-2*invJ(2,2)*s*t;
+		B.xelem(5,43) = 0;
+		B.xelem(0,44) = 0;
+		B.xelem(1,44) = 0;
+		B.xelem(2,44) = invJ(2,1)*(1-t2)-2*invJ(2,2)*s*t;
+		B.xelem(3,44) = 0;
+		B.xelem(4,44) = invJ(1,1)*(1-t2)-2*invJ(1,2)*s*t;
+		B.xelem(5,44) = invJ(0,1)*(1-t2)-2*invJ(0,2)*s*t;
+	}
+
+	virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumNodes = nodes.numel();
+		ColumnVector rv(iNumDir);
+
+		Matrix H(iNumGauss, iNumNodes);
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			StressInterpMatrix(rv, H, i);
+		}
+
+		return H.solve(taug);
+	}
+
+private:
+	void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(Hs.columns() == 15);
+		FEM_ASSERT(irow >= 0);
+		FEM_ASSERT(irow < Hs.rows());
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+		const double t2 = t * t;
+
+		Hs.xelem(irow,0) = (((-s)-r+1)*(1-t)*((-t)-2*s-2*r))/2.0E+0;
+		Hs.xelem(irow,1) = (r*(1-t)*((-t)+2*r-2))/2.0E+0;
+		Hs.xelem(irow,2) = (s*(1-t)*((-t)+2*s-2))/2.0E+0;
+		Hs.xelem(irow,3) = (((-s)-r+1)*(t+1)*(t-2*s-2*r))/2.0E+0;
+		Hs.xelem(irow,4) = (r*(t+1)*(t+2*r-2))/2.0E+0;
+		Hs.xelem(irow,5) = (s*(t+1)*(t+2*s-2))/2.0E+0;
+		Hs.xelem(irow,6) = 2*r*((-s)-r+1)*(1-t);
+		Hs.xelem(irow,7) = 2*r*s*(1-t);
+		Hs.xelem(irow,8) = 2*((-s)-r+1)*s*(1-t);
+		Hs.xelem(irow,9) = 2*r*((-s)-r+1)*(t+1);
+		Hs.xelem(irow,10) = 2*r*s*(t+1);
+		Hs.xelem(irow,11) = 2*((-s)-r+1)*s*(t+1);
+		Hs.xelem(irow,12) = ((-s)-r+1)*(1-t2);
+		Hs.xelem(irow,13) = r*(1-t2);
+		Hs.xelem(irow,14) = s*(1-t2);
+	}
+};
+
+class Tet10h: public Element3D
+{
+public:
+	Tet10h(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+		:Element3D(id, X, material, nodes) {
+		FEM_ASSERT(nodes.numel() == 10);
+	}
+
+	virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+
+	     constexpr double a1 = 0.25;
+	     constexpr double b1 = 1. / 6.;
+	     constexpr double c1 = 0.5;
+	     constexpr double d1 = -2. / 15.;
+	     constexpr double e1 = 3. / 40.;
+	     constexpr octave_idx_type N1 = 5;
+	     static constexpr double r1[N1] = {a1, b1, b1, b1, c1};
+	     static constexpr double s1[N1] = {a1, b1, b1, c1, b1};
+	     static constexpr double t1[N1] = {a1, b1, c1, b1, b1};
+	     static constexpr double w1[N1] = {d1, e1, e1, e1, e1};
+
+	     constexpr double a2 = 0.25;
+	     constexpr double b2_1 = (7. + sqrt(15.)) / 34.;
+	     constexpr double b2_2 = (7. - sqrt(15.)) / 34.;
+	     constexpr double c2_1 = (13. - 3. * sqrt(15.)) / 34.;
+	     constexpr double c2_2 = (13. + 3. * sqrt(15.)) / 34.;
+	     constexpr double d2 = (5. - sqrt(15.)) / 20.;
+	     constexpr double e2 = (5. + sqrt(15.)) / 20.;
+	     constexpr double f2 = 8. / 405.;
+	     constexpr double g2 = (2665. - 14. * sqrt(15.)) / 226800.;
+	     constexpr double h2 = (2665. + 14. * sqrt(15.)) / 226800.;
+	     constexpr double i2 = 5. / 567.;
+	     constexpr octave_idx_type N2 = 15;
+
+	     static constexpr double t2[N2] = {a2, b2_1, b2_1, b2_1, c2_1, b2_2, b2_2, b2_2, c2_2, d2, d2, e2, d2, e2, e2};
+
+	     static constexpr double r2[N2] = {a2, b2_1, b2_1, c2_1, b2_1, b2_2, b2_2, c2_2, b2_2, d2, e2, d2, e2, d2, e2};
+
+	     static constexpr double s2[N2] = {a2, b2_1, c2_1, b2_1, b2_1, b2_2, c2_2, b2_2, b2_2, e2, d2, d2, e2, e2, d2};
+
+	     static constexpr double w2[N2] = {f2, g2, g2, g2, g2, h2, h2, h2, h2, i2, i2, i2, i2, i2, i2};
+
+	     constexpr double a3 = (5. - sqrt(5.)) / 20.;
+	     constexpr double b3 = (5. + 3. * sqrt(5)) / 20.;
+	     constexpr double c3 = 1. / 24.;
+	     constexpr octave_idx_type N3 = 4;
+
+	     static constexpr double r3[N3] = {a3, a3, a3, b3};
+	     static constexpr double s3[N3] = {a3, a3, b3, a3};
+	     static constexpr double t3[N3] = {a3, b3, a3, a3};
+	     static constexpr double w3[N3] = {c3, c3, c3, c3};
+	     
+	     enum IntegRuleType {
+		  R1 = 0,
+		  R2,
+		  R3,
+		  RNUM
+	     };
+
+	     static constexpr octave_idx_type Ni[RNUM] = {N1, N2, N3};
+	     static constexpr const double* ri[RNUM] = {r1, r2, r3};
+	     static constexpr const double* si[RNUM] = {s1, s2, s3};
+	     static constexpr const double* ti[RNUM] = {t1, t2, t3};
+	     static constexpr const double* wi[RNUM] = {w1, w2, w3}; 
+	     
+	     static array<IntegrationRule, RNUM> rgIntegRule;
+
+	     octave_idx_type iIntegRule;
+	     
+	     switch (eMatType) {		  
+	     case MAT_STIFFNESS:
+	     case MAT_STIFFNESS_SYM:
+	     case MAT_STIFFNESS_SYM_L:
+		  iIntegRule = R1;
+		  break;
+		  		  
+	     case MAT_MASS:
+	     case MAT_MASS_SYM:
+	     case MAT_MASS_SYM_L:
+	     case VEC_INERTIA_M1:
+	     case MAT_INERTIA_J:
+	     case MAT_INERTIA_INV3:
+	     case MAT_INERTIA_INV4:
+	     case MAT_INERTIA_INV5:
+	     case MAT_INERTIA_INV8:
+	     case MAT_INERTIA_INV9:
+	     case MAT_ACCEL_LOAD:
+	     case SCA_TOT_MASS:
+		  iIntegRule = R2;
+		  break;
+
+	     case VEC_STRESS_CAUCH:
+		  iIntegRule = R3;
+		  break;
+		  
+	     default:
+		  throw std::runtime_error("matrix type not supported");
+	     }
+
+	     if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+		  const octave_idx_type N = Ni[iIntegRule];
+		  const double* const r = ri[iIntegRule];
+		  const double* const s = si[iIntegRule];
+		  const double* const t = ti[iIntegRule];
+		  const double* const w = wi[iIntegRule];
+
+		  rgIntegRule[iIntegRule].SetNumEvalPoints(N, 3);
+
+		  for (octave_idx_type i = 0; i < N; ++i) {
+		       rgIntegRule[iIntegRule].SetWeight(i, w[i]);
+		       rgIntegRule[iIntegRule].SetPosition(i, 0, r[i]);
+		       rgIntegRule[iIntegRule].SetPosition(i, 1, s[i]);
+		       rgIntegRule[iIntegRule].SetPosition(i, 2, t[i]);
+		  }
+	     }
+
+	     return rgIntegRule[iIntegRule];
+	}
+
+protected:
+	virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+		FEM_ASSERT(J.rows() == 3);
+		FEM_ASSERT(J.columns() == 3);
+		FEM_ASSERT(rv.numel() == 3);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+		
+		J.xelem(0,0) = 4*X.xelem(0,8)*t-4*X.xelem(0,5)*t+4*X.xelem(0,9)*((-t)-s-r+1)-2*X.xelem(0,2)*((-t)-s-r+1)-X.xelem(0,2)*((-2*t)-2*s-2*r+1)+4*X.xelem(0,7)*s-4*X.xelem(0,6)*s+X.xelem(0,3)*(2*r-1)-4*X.xelem(0,9)*r+2*X.xelem(0,3)*r;
+		J.xelem(1,0) = (-4*X.xelem(0,5)*t)+4*X.xelem(0,4)*t+4*X.xelem(0,6)*((-t)-s-r+1)-2*X.xelem(0,2)*((-t)-s-r+1)-X.xelem(0,2)*((-2*t)-2*s-2*r+1)+X.xelem(0,0)*(2*s-1)-4*X.xelem(0,6)*s+2*X.xelem(0,0)*s-4*X.xelem(0,9)*r+4*X.xelem(0,7)*r;
+		J.xelem(2,0) = X.xelem(0,1)*(2*t-1)-4*X.xelem(0,5)*t+2*X.xelem(0,1)*t+4*X.xelem(0,5)*((-t)-s-r+1)-2*X.xelem(0,2)*((-t)-s-r+1)-X.xelem(0,2)*((-2*t)-2*s-2*r+1)-4*X.xelem(0,6)*s+4*X.xelem(0,4)*s-4*X.xelem(0,9)*r+4*X.xelem(0,8)*r;
+		J.xelem(0,1) = 4*X.xelem(1,8)*t-4*X.xelem(1,5)*t+4*X.xelem(1,9)*((-t)-s-r+1)-2*X.xelem(1,2)*((-t)-s-r+1)-X.xelem(1,2)*((-2*t)-2*s-2*r+1)+4*X.xelem(1,7)*s-4*X.xelem(1,6)*s+X.xelem(1,3)*(2*r-1)-4*X.xelem(1,9)*r+2*X.xelem(1,3)*r;
+		J.xelem(1,1) = (-4*X.xelem(1,5)*t)+4*X.xelem(1,4)*t+4*X.xelem(1,6)*((-t)-s-r+1)-2*X.xelem(1,2)*((-t)-s-r+1)-X.xelem(1,2)*((-2*t)-2*s-2*r+1)+X.xelem(1,0)*(2*s-1)-4*X.xelem(1,6)*s+2*X.xelem(1,0)*s-4*X.xelem(1,9)*r+4*X.xelem(1,7)*r;
+		J.xelem(2,1) = X.xelem(1,1)*(2*t-1)-4*X.xelem(1,5)*t+2*X.xelem(1,1)*t+4*X.xelem(1,5)*((-t)-s-r+1)-2*X.xelem(1,2)*((-t)-s-r+1)-X.xelem(1,2)*((-2*t)-2*s-2*r+1)-4*X.xelem(1,6)*s+4*X.xelem(1,4)*s-4*X.xelem(1,9)*r+4*X.xelem(1,8)*r;
+		J.xelem(0,2) = 4*X.xelem(2,8)*t-4*X.xelem(2,5)*t+4*X.xelem(2,9)*((-t)-s-r+1)-2*X.xelem(2,2)*((-t)-s-r+1)-X.xelem(2,2)*((-2*t)-2*s-2*r+1)+4*X.xelem(2,7)*s-4*X.xelem(2,6)*s+X.xelem(2,3)*(2*r-1)-4*X.xelem(2,9)*r+2*X.xelem(2,3)*r;
+		J.xelem(1,2) = (-4*X.xelem(2,5)*t)+4*X.xelem(2,4)*t+4*X.xelem(2,6)*((-t)-s-r+1)-2*X.xelem(2,2)*((-t)-s-r+1)-X.xelem(2,2)*((-2*t)-2*s-2*r+1)+X.xelem(2,0)*(2*s-1)-4*X.xelem(2,6)*s+2*X.xelem(2,0)*s-4*X.xelem(2,9)*r+4*X.xelem(2,7)*r;
+		J.xelem(2,2) = X.xelem(2,1)*(2*t-1)-4*X.xelem(2,5)*t+2*X.xelem(2,1)*t+4*X.xelem(2,5)*((-t)-s-r+1)-2*X.xelem(2,2)*((-t)-s-r+1)-X.xelem(2,2)*((-2*t)-2*s-2*r+1)-4*X.xelem(2,6)*s+4*X.xelem(2,4)*s-4*X.xelem(2,9)*r+4*X.xelem(2,8)*r;
+		
+		return J.determinant();
+	}
+
+	virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(H.rows() == 3);
+		FEM_ASSERT(H.columns() == 30);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+
+		H.xelem(0,0) = s*(2*s-1);
+		H.xelem(1,0) = 0;
+		H.xelem(2,0) = 0;
+		H.xelem(0,1) = 0;
+		H.xelem(1,1) = s*(2*s-1);
+		H.xelem(2,1) = 0;
+		H.xelem(0,2) = 0;
+		H.xelem(1,2) = 0;
+		H.xelem(2,2) = s*(2*s-1);
+		H.xelem(0,3) = t*(2*t-1);
+		H.xelem(1,3) = 0;
+		H.xelem(2,3) = 0;
+		H.xelem(0,4) = 0;
+		H.xelem(1,4) = t*(2*t-1);
+		H.xelem(2,4) = 0;
+		H.xelem(0,5) = 0;
+		H.xelem(1,5) = 0;
+		H.xelem(2,5) = t*(2*t-1);
+		H.xelem(0,6) = ((-2*t)-2*s-2*r+1)*((-t)-s-r+1);
+		H.xelem(1,6) = 0;
+		H.xelem(2,6) = 0;
+		H.xelem(0,7) = 0;
+		H.xelem(1,7) = ((-2*t)-2*s-2*r+1)*((-t)-s-r+1);
+		H.xelem(2,7) = 0;
+		H.xelem(0,8) = 0;
+		H.xelem(1,8) = 0;
+		H.xelem(2,8) = ((-2*t)-2*s-2*r+1)*((-t)-s-r+1);
+		H.xelem(0,9) = r*(2*r-1);
+		H.xelem(1,9) = 0;
+		H.xelem(2,9) = 0;
+		H.xelem(0,10) = 0;
+		H.xelem(1,10) = r*(2*r-1);
+		H.xelem(2,10) = 0;
+		H.xelem(0,11) = 0;
+		H.xelem(1,11) = 0;
+		H.xelem(2,11) = r*(2*r-1);
+		H.xelem(0,12) = 4*s*t;
+		H.xelem(1,12) = 0;
+		H.xelem(2,12) = 0;
+		H.xelem(0,13) = 0;
+		H.xelem(1,13) = 4*s*t;
+		H.xelem(2,13) = 0;
+		H.xelem(0,14) = 0;
+		H.xelem(1,14) = 0;
+		H.xelem(2,14) = 4*s*t;
+		H.xelem(0,15) = 4*((-t)-s-r+1)*t;
+		H.xelem(1,15) = 0;
+		H.xelem(2,15) = 0;
+		H.xelem(0,16) = 0;
+		H.xelem(1,16) = 4*((-t)-s-r+1)*t;
+		H.xelem(2,16) = 0;
+		H.xelem(0,17) = 0;
+		H.xelem(1,17) = 0;
+		H.xelem(2,17) = 4*((-t)-s-r+1)*t;
+		H.xelem(0,18) = 4*s*((-t)-s-r+1);
+		H.xelem(1,18) = 0;
+		H.xelem(2,18) = 0;
+		H.xelem(0,19) = 0;
+		H.xelem(1,19) = 4*s*((-t)-s-r+1);
+		H.xelem(2,19) = 0;
+		H.xelem(0,20) = 0;
+		H.xelem(1,20) = 0;
+		H.xelem(2,20) = 4*s*((-t)-s-r+1);
+		H.xelem(0,21) = 4*r*s;
+		H.xelem(1,21) = 0;
+		H.xelem(2,21) = 0;
+		H.xelem(0,22) = 0;
+		H.xelem(1,22) = 4*r*s;
+		H.xelem(2,22) = 0;
+		H.xelem(0,23) = 0;
+		H.xelem(1,23) = 0;
+		H.xelem(2,23) = 4*r*s;
+		H.xelem(0,24) = 4*r*t;
+		H.xelem(1,24) = 0;
+		H.xelem(2,24) = 0;
+		H.xelem(0,25) = 0;
+		H.xelem(1,25) = 4*r*t;
+		H.xelem(2,25) = 0;
+		H.xelem(0,26) = 0;
+		H.xelem(1,26) = 0;
+		H.xelem(2,26) = 4*r*t;
+		H.xelem(0,27) = 4*r*((-t)-s-r+1);
+		H.xelem(1,27) = 0;
+		H.xelem(2,27) = 0;
+		H.xelem(0,28) = 0;
+		H.xelem(1,28) = 4*r*((-t)-s-r+1);
+		H.xelem(2,28) = 0;
+		H.xelem(0,29) = 0;
+		H.xelem(1,29) = 0;
+		H.xelem(2,29) = 4*r*((-t)-s-r+1);
+	}
+
+	virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(invJ.rows() == 3);
+		FEM_ASSERT(invJ.columns() == 3);
+		FEM_ASSERT(B.rows() == 6);
+		FEM_ASSERT(B.columns() == 30);
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+
+		B.xelem(0,0) = invJ.xelem(0,1)*(4*s-1);
+		B.xelem(1,0) = 0;
+		B.xelem(2,0) = 0;
+		B.xelem(3,0) = invJ.xelem(1,1)*(4*s-1);
+		B.xelem(4,0) = 0;
+		B.xelem(5,0) = invJ.xelem(2,1)*(4*s-1);
+		B.xelem(0,1) = 0;
+		B.xelem(1,1) = invJ.xelem(1,1)*(4*s-1);
+		B.xelem(2,1) = 0;
+		B.xelem(3,1) = invJ.xelem(0,1)*(4*s-1);
+		B.xelem(4,1) = invJ.xelem(2,1)*(4*s-1);
+		B.xelem(5,1) = 0;
+		B.xelem(0,2) = 0;
+		B.xelem(1,2) = 0;
+		B.xelem(2,2) = invJ.xelem(2,1)*(4*s-1);
+		B.xelem(3,2) = 0;
+		B.xelem(4,2) = invJ.xelem(1,1)*(4*s-1);
+		B.xelem(5,2) = invJ.xelem(0,1)*(4*s-1);
+		B.xelem(0,3) = invJ.xelem(0,2)*(4*t-1);
+		B.xelem(1,3) = 0;
+		B.xelem(2,3) = 0;
+		B.xelem(3,3) = invJ.xelem(1,2)*(4*t-1);
+		B.xelem(4,3) = 0;
+		B.xelem(5,3) = invJ.xelem(2,2)*(4*t-1);
+		B.xelem(0,4) = 0;
+		B.xelem(1,4) = invJ.xelem(1,2)*(4*t-1);
+		B.xelem(2,4) = 0;
+		B.xelem(3,4) = invJ.xelem(0,2)*(4*t-1);
+		B.xelem(4,4) = invJ.xelem(2,2)*(4*t-1);
+		B.xelem(5,4) = 0;
+		B.xelem(0,5) = 0;
+		B.xelem(1,5) = 0;
+		B.xelem(2,5) = invJ.xelem(2,2)*(4*t-1);
+		B.xelem(3,5) = 0;
+		B.xelem(4,5) = invJ.xelem(1,2)*(4*t-1);
+		B.xelem(5,5) = invJ.xelem(0,2)*(4*t-1);
+		B.xelem(0,6) = invJ.xelem(0,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(1,6) = 0;
+		B.xelem(2,6) = 0;
+		B.xelem(3,6) = invJ.xelem(1,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(4,6) = 0;
+		B.xelem(5,6) = invJ.xelem(2,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(0,7) = 0;
+		B.xelem(1,7) = invJ.xelem(1,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(2,7) = 0;
+		B.xelem(3,7) = invJ.xelem(0,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(4,7) = invJ.xelem(2,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(5,7) = 0;
+		B.xelem(0,8) = 0;
+		B.xelem(1,8) = 0;
+		B.xelem(2,8) = invJ.xelem(2,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(3,8) = 0;
+		B.xelem(4,8) = invJ.xelem(1,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(5,8) = invJ.xelem(0,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+		B.xelem(0,9) = invJ.xelem(0,0)*(4*r-1);
+		B.xelem(1,9) = 0;
+		B.xelem(2,9) = 0;
+		B.xelem(3,9) = invJ.xelem(1,0)*(4*r-1);
+		B.xelem(4,9) = 0;
+		B.xelem(5,9) = invJ.xelem(2,0)*(4*r-1);
+		B.xelem(0,10) = 0;
+		B.xelem(1,10) = invJ.xelem(1,0)*(4*r-1);
+		B.xelem(2,10) = 0;
+		B.xelem(3,10) = invJ.xelem(0,0)*(4*r-1);
+		B.xelem(4,10) = invJ.xelem(2,0)*(4*r-1);
+		B.xelem(5,10) = 0;
+		B.xelem(0,11) = 0;
+		B.xelem(1,11) = 0;
+		B.xelem(2,11) = invJ.xelem(2,0)*(4*r-1);
+		B.xelem(3,11) = 0;
+		B.xelem(4,11) = invJ.xelem(1,0)*(4*r-1);
+		B.xelem(5,11) = invJ.xelem(0,0)*(4*r-1);
+		B.xelem(0,12) = 4*invJ.xelem(0,1)*t+4*invJ.xelem(0,2)*s;
+		B.xelem(1,12) = 0;
+		B.xelem(2,12) = 0;
+		B.xelem(3,12) = 4*invJ.xelem(1,1)*t+4*invJ.xelem(1,2)*s;
+		B.xelem(4,12) = 0;
+		B.xelem(5,12) = 4*invJ.xelem(2,1)*t+4*invJ.xelem(2,2)*s;
+		B.xelem(0,13) = 0;
+		B.xelem(1,13) = 4*invJ.xelem(1,1)*t+4*invJ.xelem(1,2)*s;
+		B.xelem(2,13) = 0;
+		B.xelem(3,13) = 4*invJ.xelem(0,1)*t+4*invJ.xelem(0,2)*s;
+		B.xelem(4,13) = 4*invJ.xelem(2,1)*t+4*invJ.xelem(2,2)*s;
+		B.xelem(5,13) = 0;
+		B.xelem(0,14) = 0;
+		B.xelem(1,14) = 0;
+		B.xelem(2,14) = 4*invJ.xelem(2,1)*t+4*invJ.xelem(2,2)*s;
+		B.xelem(3,14) = 0;
+		B.xelem(4,14) = 4*invJ.xelem(1,1)*t+4*invJ.xelem(1,2)*s;
+		B.xelem(5,14) = 4*invJ.xelem(0,1)*t+4*invJ.xelem(0,2)*s;
+		B.xelem(0,15) = (-4*invJ.xelem(0,1)*t)-4*invJ.xelem(0,0)*t+invJ.xelem(0,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(1,15) = 0;
+		B.xelem(2,15) = 0;
+		B.xelem(3,15) = (-4*invJ.xelem(1,1)*t)-4*invJ.xelem(1,0)*t+invJ.xelem(1,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(4,15) = 0;
+		B.xelem(5,15) = (-4*invJ.xelem(2,1)*t)-4*invJ.xelem(2,0)*t+invJ.xelem(2,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(0,16) = 0;
+		B.xelem(1,16) = (-4*invJ.xelem(1,1)*t)-4*invJ.xelem(1,0)*t+invJ.xelem(1,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(2,16) = 0;
+		B.xelem(3,16) = (-4*invJ.xelem(0,1)*t)-4*invJ.xelem(0,0)*t+invJ.xelem(0,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(4,16) = (-4*invJ.xelem(2,1)*t)-4*invJ.xelem(2,0)*t+invJ.xelem(2,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(5,16) = 0;
+		B.xelem(0,17) = 0;
+		B.xelem(1,17) = 0;
+		B.xelem(2,17) = (-4*invJ.xelem(2,1)*t)-4*invJ.xelem(2,0)*t+invJ.xelem(2,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(3,17) = 0;
+		B.xelem(4,17) = (-4*invJ.xelem(1,1)*t)-4*invJ.xelem(1,0)*t+invJ.xelem(1,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(5,17) = (-4*invJ.xelem(0,1)*t)-4*invJ.xelem(0,0)*t+invJ.xelem(0,2)*(4*((-t)-s-r+1)-4*t);
+		B.xelem(0,18) = invJ.xelem(0,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(0,2)*s-4*invJ.xelem(0,0)*s;
+		B.xelem(1,18) = 0;
+		B.xelem(2,18) = 0;
+		B.xelem(3,18) = invJ.xelem(1,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(1,2)*s-4*invJ.xelem(1,0)*s;
+		B.xelem(4,18) = 0;
+		B.xelem(5,18) = invJ.xelem(2,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(2,2)*s-4*invJ.xelem(2,0)*s;
+		B.xelem(0,19) = 0;
+		B.xelem(1,19) = invJ.xelem(1,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(1,2)*s-4*invJ.xelem(1,0)*s;
+		B.xelem(2,19) = 0;
+		B.xelem(3,19) = invJ.xelem(0,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(0,2)*s-4*invJ.xelem(0,0)*s;
+		B.xelem(4,19) = invJ.xelem(2,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(2,2)*s-4*invJ.xelem(2,0)*s;
+		B.xelem(5,19) = 0;
+		B.xelem(0,20) = 0;
+		B.xelem(1,20) = 0;
+		B.xelem(2,20) = invJ.xelem(2,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(2,2)*s-4*invJ.xelem(2,0)*s;
+		B.xelem(3,20) = 0;
+		B.xelem(4,20) = invJ.xelem(1,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(1,2)*s-4*invJ.xelem(1,0)*s;
+		B.xelem(5,20) = invJ.xelem(0,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(0,2)*s-4*invJ.xelem(0,0)*s;
+		B.xelem(0,21) = 4*invJ.xelem(0,0)*s+4*invJ.xelem(0,1)*r;
+		B.xelem(1,21) = 0;
+		B.xelem(2,21) = 0;
+		B.xelem(3,21) = 4*invJ.xelem(1,0)*s+4*invJ.xelem(1,1)*r;
+		B.xelem(4,21) = 0;
+		B.xelem(5,21) = 4*invJ.xelem(2,0)*s+4*invJ.xelem(2,1)*r;
+		B.xelem(0,22) = 0;
+		B.xelem(1,22) = 4*invJ.xelem(1,0)*s+4*invJ.xelem(1,1)*r;
+		B.xelem(2,22) = 0;
+		B.xelem(3,22) = 4*invJ.xelem(0,0)*s+4*invJ.xelem(0,1)*r;
+		B.xelem(4,22) = 4*invJ.xelem(2,0)*s+4*invJ.xelem(2,1)*r;
+		B.xelem(5,22) = 0;
+		B.xelem(0,23) = 0;
+		B.xelem(1,23) = 0;
+		B.xelem(2,23) = 4*invJ.xelem(2,0)*s+4*invJ.xelem(2,1)*r;
+		B.xelem(3,23) = 0;
+		B.xelem(4,23) = 4*invJ.xelem(1,0)*s+4*invJ.xelem(1,1)*r;
+		B.xelem(5,23) = 4*invJ.xelem(0,0)*s+4*invJ.xelem(0,1)*r;
+		B.xelem(0,24) = 4*invJ.xelem(0,0)*t+4*invJ.xelem(0,2)*r;
+		B.xelem(1,24) = 0;
+		B.xelem(2,24) = 0;
+		B.xelem(3,24) = 4*invJ.xelem(1,0)*t+4*invJ.xelem(1,2)*r;
+		B.xelem(4,24) = 0;
+		B.xelem(5,24) = 4*invJ.xelem(2,0)*t+4*invJ.xelem(2,2)*r;
+		B.xelem(0,25) = 0;
+		B.xelem(1,25) = 4*invJ.xelem(1,0)*t+4*invJ.xelem(1,2)*r;
+		B.xelem(2,25) = 0;
+		B.xelem(3,25) = 4*invJ.xelem(0,0)*t+4*invJ.xelem(0,2)*r;
+		B.xelem(4,25) = 4*invJ.xelem(2,0)*t+4*invJ.xelem(2,2)*r;
+		B.xelem(5,25) = 0;
+		B.xelem(0,26) = 0;
+		B.xelem(1,26) = 0;
+		B.xelem(2,26) = 4*invJ.xelem(2,0)*t+4*invJ.xelem(2,2)*r;
+		B.xelem(3,26) = 0;
+		B.xelem(4,26) = 4*invJ.xelem(1,0)*t+4*invJ.xelem(1,2)*r;
+		B.xelem(5,26) = 4*invJ.xelem(0,0)*t+4*invJ.xelem(0,2)*r;
+		B.xelem(0,27) = invJ.xelem(0,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(0,2)*r-4*invJ.xelem(0,1)*r;
+		B.xelem(1,27) = 0;
+		B.xelem(2,27) = 0;
+		B.xelem(3,27) = invJ.xelem(1,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(1,2)*r-4*invJ.xelem(1,1)*r;
+		B.xelem(4,27) = 0;
+		B.xelem(5,27) = invJ.xelem(2,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(2,2)*r-4*invJ.xelem(2,1)*r;
+		B.xelem(0,28) = 0;
+		B.xelem(1,28) = invJ.xelem(1,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(1,2)*r-4*invJ.xelem(1,1)*r;
+		B.xelem(2,28) = 0;
+		B.xelem(3,28) = invJ.xelem(0,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(0,2)*r-4*invJ.xelem(0,1)*r;
+		B.xelem(4,28) = invJ.xelem(2,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(2,2)*r-4*invJ.xelem(2,1)*r;
+		B.xelem(5,28) = 0;
+		B.xelem(0,29) = 0;
+		B.xelem(1,29) = 0;
+		B.xelem(2,29) = invJ.xelem(2,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(2,2)*r-4*invJ.xelem(2,1)*r;
+		B.xelem(3,29) = 0;
+		B.xelem(4,29) = invJ.xelem(1,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(1,2)*r-4*invJ.xelem(1,1)*r;
+		B.xelem(5,29) = invJ.xelem(0,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(0,2)*r-4*invJ.xelem(0,1)*r;
+	}
+
+	virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+		const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+		const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+		const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+		const octave_idx_type iNumNodesCorner = 4;
+		ColumnVector rv(iNumDir);
+
+		Matrix H(iNumGauss, iNumNodesCorner);
+
+		for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+			for (octave_idx_type j = 0; j < iNumDir; ++j) {
+				rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+			}
+
+			StressInterpMatrix(rv, H, i);
+		}
+
+		Matrix taun = H.solve(taug);
+
+		taun.resize(nodes.numel(), taun.columns());
+
+		static const struct {
+			octave_idx_type ico1, ico2, imid;
+		} idxint[] = {
+			{0, 1, 4},
+			{1, 2, 5},
+			{2, 0, 6},
+			{0, 3, 7},
+			{1, 3, 8},
+			{2, 3, 9}
+		};
+
+		for (octave_idx_type j = 0; j < taun.columns(); ++j) {
+			for (const auto& idx:idxint) {
+				taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
+			}
+		}
+
+		return taun;	     
+	}
+
+private:
+	void StressInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+		FEM_ASSERT(rv.numel() == 3);
+		FEM_ASSERT(Hs.columns() == 4);
+		FEM_ASSERT(irow >= 0);
+		FEM_ASSERT(irow < Hs.rows());
+
+		const double r = rv.xelem(0);
+		const double s = rv.xelem(1);
+		const double t = rv.xelem(2);
+
+		Hs.xelem(irow, 0) = s;
+		Hs.xelem(irow, 1) = t;
+		Hs.xelem(irow, 2) = 1. - r - s - t;
+		Hs.xelem(irow, 3) = r;	       
 	}
 };
 
@@ -4226,7 +5302,6 @@ public:
 
 		const double r = rv.xelem(0);
 		const double s = rv.xelem(1);
-		const double r2 = r * r;
 		const double s2 = s * s;
 
 		dHf_dr.xelem(0,0) = (s+1)/4.0E+0-((1-s2)/2.0E+0-r*(s+1))/2.0E+0;
@@ -4300,7 +5375,7 @@ public:
 		dHf_dr.xelem(2,22) = 0;
 		dHf_dr.xelem(0,23) = 0;
 		dHf_dr.xelem(1,23) = 0;
-		dHf_dr.xelem(2,23) = (1-s2)/2.0E+0;		
+		dHf_dr.xelem(2,23) = (1-s2)/2.0E+0;
 	}
 
 	static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
@@ -4309,8 +5384,7 @@ public:
 		const double r = rv.xelem(0);
 		const double s = rv.xelem(1);
 		const double r2 = r * r;
-		const double s2 = s * s;
-		
+
 		dHf_ds.xelem(0,0) = (r+1)/4.0E+0-((1-r2)/2.0E+0-(r+1)*s)/2.0E+0;
 		dHf_ds.xelem(1,0) = 0;
 		dHf_ds.xelem(2,0) = 0;
@@ -4382,13 +5456,13 @@ public:
 		dHf_ds.xelem(2,22) = 0;
 		dHf_ds.xelem(0,23) = 0;
 		dHf_ds.xelem(1,23) = 0;
-		dHf_ds.xelem(2,23) = -(r+1)*s;		
+		dHf_ds.xelem(2,23) = -(r+1)*s;
 	}
 
 	static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
-		static const octave_idx_type N =3;
-		static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
-		static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};		
+		static constexpr octave_idx_type N = 3;
+		static constexpr double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
+		static constexpr double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
 		static array<IntegrationRule, 2> rgIntegRule;
 
@@ -4651,6 +5725,8 @@ public:
 	enum TypeId {
 		ELEM_ISO8 = 0,
 		ELEM_ISO20,
+		ELEM_PENTA15,
+		ELEM_TET10H,
 		ELEM_TET10,
 		ELEM_BEAM2,
 		ELEM_RBE3,
@@ -4659,7 +5735,7 @@ public:
 		ELEM_SFNCON6,
 		ELEM_SFNCON8,
 		ELEM_PRESSURE_ISO4,
-		ELEM_PRESSURE_QUAD8,		
+		ELEM_PRESSURE_QUAD8,
 		ELEM_PRESSURE_TRIA6,
 		ELEM_STRUCT_FORCE,
 		ELEM_TYPE_COUNT
@@ -4688,19 +5764,21 @@ private:
 };
 
 const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
-	{ElementTypes::ELEM_ISO8,           "iso8",     8,  8, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_ISO20,          "iso20",   20, 20, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_TET10,          "tet10",   10, 10, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_BEAM2,          "beam2",    2,  2, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_RBE3,           "rbe3",     2, -1, DofMap::ELEM_RBE3},
-	{ElementTypes::ELEM_JOINT,          "joints",   1, -1, DofMap::ELEM_JOINT},
-	{ElementTypes::ELEM_SFNCON4,        "sfncon4",  1, -1, DofMap::ELEM_JOINT},
-	{ElementTypes::ELEM_SFNCON6,        "sfncon6",  1, -1, DofMap::ELEM_JOINT},
-	{ElementTypes::ELEM_SFNCON8,        "sfncon8",  1, -1, DofMap::ELEM_JOINT},	
-	{ElementTypes::ELEM_PRESSURE_ISO4,  "iso4",     4,  4, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_PRESSURE_QUAD8, "quad8",    8,  8, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_PRESSURE_TRIA6, "tria6",    6,  6, DofMap::ELEM_NODOF},
-	{ElementTypes::ELEM_STRUCT_FORCE,   "force",    1, -1, DofMap::ELEM_NODOF}
+	{ElementTypes::ELEM_ISO8,             "iso8",     8,  8, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_ISO20,            "iso20",   20, 20, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_PENTA15,          "penta15", 15, 15, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_TET10H,           "tet10h",  10, 10, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_TET10,            "tet10",   10, 10, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_BEAM2,            "beam2",    2,  2, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_RBE3,             "rbe3",     2, -1, DofMap::ELEM_RBE3},
+	{ElementTypes::ELEM_JOINT,            "joints",   1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_SFNCON4,          "sfncon4",  1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_SFNCON6,          "sfncon6",  1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_SFNCON8,          "sfncon8",  1, -1, DofMap::ELEM_JOINT},
+	{ElementTypes::ELEM_PRESSURE_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_PRESSURE_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
+	{ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF}
 };
 
 class ElementBlockBase {
@@ -4977,7 +6055,7 @@ namespace shape_func_util {
 		static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
 	};
 
-     	template <>
+	template <>
 	struct SelectElemPerSlaveNode<ShapeQuad8> {
 	     static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
 	};
@@ -5619,13 +6697,13 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 		switch (oElemType.type) {
 		case ElementTypes::ELEM_SFNCON4:
 			iNumNodesElem = ShapeIso4::iGetNumNodes();
-			break;	
+			break;
 		case ElementTypes::ELEM_SFNCON6:
 			iNumNodesElem = ShapeTria6::iGetNumNodes();
 			break;
 		case ElementTypes::ELEM_SFNCON8:
 			iNumNodesElem = ShapeQuad8::iGetNumNodes();
-			break;					
+			break;
 		default:
 			FEM_ASSERT(false);
 		}
@@ -5673,7 +6751,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 									 maxdist,
 									 eConstrType,
 									 uConstraintFlags);
-			break;	
+			break;
 		case ElementTypes::ELEM_SFNCON6:
 			pElem = SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
 									  nodes,
@@ -5691,7 +6769,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 								       maxdist,
 								       eConstrType,
 								       uConstraintFlags);
-			break;					
+			break;
 		default:
 			FEM_ASSERT(false);
 		}
@@ -5860,6 +6938,8 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 		switch (oElemType.type) {
 		case ElementTypes::ELEM_ISO8:
 		case ElementTypes::ELEM_ISO20:
+		case ElementTypes::ELEM_PENTA15:
+		case ElementTypes::ELEM_TET10H:		     
 		case ElementTypes::ELEM_TET10: {
 			const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
 
@@ -5902,14 +6982,14 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 				return retval;
 			}
 
-			const Cell& ov_nodes = m_beam2.contents(iter_nodes);			
+			const Cell& ov_nodes = m_beam2.contents(iter_nodes);
 
 			if (error_state) {
 				return retval;
 			}
 
 			for (octave_idx_type j = 0; j < ov_nodes.numel(); ++j) {
-			        const int32NDArray elnodes = ov_nodes(j).int32_array_value();
+				const int32NDArray elnodes = ov_nodes(j).int32_array_value();
 
 				if (error_state) {
 					return retval;
@@ -5926,12 +7006,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 						static_cast<long long>(idxnode));
 					  return retval;
 				     }
-				     
+
 				     for (octave_idx_type k = 0; k < 6; ++k) {
 					  dof_in_use(idxnode - 1, k) = true;
 				     }
 				}
-			}			
+			}
 		} break;
 		case ElementTypes::ELEM_RBE3: {
 			const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
@@ -6565,28 +7645,28 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 		for (octave_idx_type i = 0; i < material_data.numel(); ++i) {
 			const bool buseC = iterC != material_data.end() && !cellC(i).isempty();
 			double E, nu;
-			
+
 			if (buseC) {
 				C = cellC(i).matrix_value();
 
 				if (error_state || C.rows() != 6 || C.columns() != 6) {
 					throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
-				}				
+				}
 
 				if ((iterE != material_data.end() && !cellE(i).isempty()) || (iternu != material_data.end() && !cellnu(i).isempty())) {
 					throw std::runtime_error("redundant material properties in field material_data in argument mesh");
 				}
 			} else {
 				if (iterE == material_data.end() || cellE(i).isempty() || iternu == material_data.end() || cellnu(i).isempty()) {
-					throw std::runtime_error("fields \"E\" and \"nu\" not found in mesh.material_data in argument mesh");					
+					throw std::runtime_error("fields \"E\" and \"nu\" not found in mesh.material_data in argument mesh");
 				}
-				
+
 				E = cellE(i).scalar_value();
 
 				if (error_state) {
 					throw std::runtime_error("field \"E\" in mesh.material_data must be a real scalar");
 				}
-				
+
 				nu = cellnu(i).scalar_value();
 
 				if (error_state) {
@@ -6594,7 +7674,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 				}
 
 				if (iterC != material_data.end() && !cellC(i).isempty()) {
-					throw std::runtime_error("redundant material properties in field material_data in argument mesh");					
+					throw std::runtime_error("redundant material properties in field material_data in argument mesh");
 				}
 			}
 
@@ -6656,12 +7736,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 			case Element::MAT_INERTIA_INV8:
 			case Element::MAT_INERTIA_INV9:
 			case Element::MAT_ACCEL_LOAD:
-			        rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+				rgElemUse[ElementTypes::ELEM_BEAM2] = true;
 				// fall through
 			case Element::VEC_STRESS_CAUCH:
 			case Element::SCA_STRESS_VMIS:
 				rgElemUse[ElementTypes::ELEM_ISO8] = true;
 				rgElemUse[ElementTypes::ELEM_ISO20] = true;
+				rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+				rgElemUse[ElementTypes::ELEM_TET10H] = true;
 				rgElemUse[ElementTypes::ELEM_TET10] = true;
 				break;
 
@@ -6697,6 +7779,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 			switch (oElemType.type) {
 			case ElementTypes::ELEM_ISO8:
 			case ElementTypes::ELEM_ISO20:
+			case ElementTypes::ELEM_PENTA15:
+			case ElementTypes::ELEM_TET10H:
 			case ElementTypes::ELEM_TET10: {
 				const auto iter_elem = elements.seek(oElemType.name);
 
@@ -6759,6 +7843,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
 					break;
 
+				case ElementTypes::ELEM_PENTA15:
+					rgElemBlocks.emplace_back(new ElementBlock<Penta15>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
+					break;
+					
+				case ElementTypes::ELEM_TET10H:
+					rgElemBlocks.emplace_back(new ElementBlock<Tet10h>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
+					break;
+					
 				case ElementTypes::ELEM_TET10:
 					rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials));
 					break;
@@ -6825,7 +7917,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 				     FEM_ASSERT(ov_e2.numel() == s_elem.numel());
 				}
-				
+
 				Cell ov_C;
 
 				if (oElemType.type == ElementTypes::ELEM_JOINT) {
@@ -6881,7 +7973,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 					if (oElemType.max_nodes > 0 && elem_nodes.columns() > oElemType.max_nodes) {
 						throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
-					}					
+					}
 
 					if (elem_nodes.rows() != 1) {
 						throw std::runtime_error("invalid number of rows in node matrix for element type "s + oElemType.name + " in argument mesh");
@@ -6911,12 +8003,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 						  throw std::runtime_error("mesh.elements.beam2.material must be a scalar integer");
 					     }
 
-					     if (imaterial < 0 || imaterial >= rgMaterials.size()) {
+					     if (imaterial < 0 || static_cast<size_t>(imaterial) >= rgMaterials.size()) {
 						  throw std::runtime_error("mesh.elements.beam2.material out of range");
 					     }
-					     
+
 					     const Material* const material = &rgMaterials[imaterial];
-					     
+
 					     const octave_scalar_map m_section(ov_section(i).scalar_map_value());
 
 					     if (error_state) {
@@ -6928,36 +8020,36 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					     if (iterA == m_section.end()) {
 						  throw std::runtime_error("missing field mesh.elements.beam2.section.A");
 					     }
-					     
+
 					     auto iterAy = m_section.seek("Ay");
 
 					     if (iterAy == m_section.end()) {
 						  throw std::runtime_error("missing field mesh.elements.beam2.section.Ay");
 					     }
-					     
+
 					     auto iterAz = m_section.seek("Az");
 
 					     if (iterAz == m_section.end()) {
 						  throw std::runtime_error("missing field mesh.elements.beam2.section.Az");
 					     }
-					     
+
 					     auto iterIt = m_section.seek("It");
 
 					     if (iterIt == m_section.end()) {
 						  throw std::runtime_error("missing field mesh.elements.beam2.section.It");
 					     }
-					     
+
 					     auto iterIy = m_section.seek("Iy");
 
 					     if (iterIy == m_section.end()) {
 						  throw std::runtime_error("missing field mesh.elements.beam2.section.Iy");
 					     }
-					     
+
 					     auto iterIz = m_section.seek("Iz");
 
 					     if (iterIz == m_section.end()) {
 						  throw std::runtime_error("missing field mesh.elements.beam2.section.Iz");
-					     }					     
+					     }
 
 					     BeamCrossSection section;
 
@@ -6966,36 +8058,36 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					     if (error_state) {
 						  throw std::runtime_error("mesh.elements.beam2.section.A must be a real scalar");
 					     }
-					     
+
 					     section.Ay = m_section.contents(iterAy).scalar_value();
 
 					     if (error_state) {
 						  throw std::runtime_error("mesh.elements.beam2.section.Ay must be a real scalar");
-					     }					     
+					     }
 					     section.Az = m_section.contents(iterAz).scalar_value();
 
 					     if (error_state) {
 						  throw std::runtime_error("mesh.elements.beam2.section.Az must be a real scalar");
 					     }
-					     
+
 					     section.It = m_section.contents(iterIt).scalar_value();
 
 					     if (error_state) {
 						  throw std::runtime_error("mesh.elements.beam2.section.It must be a real scalar");
 					     }
-					     
+
 					     section.Iy = m_section.contents(iterIy).scalar_value();
 
 					     if (error_state) {
 						  throw std::runtime_error("mesh.elements.beam2.section.Iy must be a real scalar");
 					     }
-					     
+
 					     section.Iz = m_section.contents(iterIz).scalar_value();
 
 					     if (error_state) {
 						  throw std::runtime_error("mesh.elements.beam2.section.Iz must be a real scalar");
-					     }					     
-					     
+					     }
+
 					     const ColumnVector e2(ov_e2(i).column_vector_value());
 
 					     if (error_state) {
@@ -7005,7 +8097,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					     if (e2.rows() != 3) {
 						  throw std::runtime_error("mesh.elements.beam2.e2 must be 3x1 matrix");
 					     }
-					     
+
 					     pElem->Insert<ElemBeam2>(i + 1, X, material, elem_nodes, section, e2);
 					} break;
 					case ElementTypes::ELEM_RBE3: {
@@ -7367,6 +8459,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 					switch (oElemType.type) {
 					case ElementTypes::ELEM_ISO8:
 					case ElementTypes::ELEM_ISO20:
+					case ElementTypes::ELEM_PENTA15:
+					case ElementTypes::ELEM_TET10H:
 					case ElementTypes::ELEM_TET10: {
 						const auto iter_elem = elements.seek(oElemType.name);
 

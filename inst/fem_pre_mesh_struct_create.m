@@ -52,7 +52,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   if (~isfield(options, "identical_boundary_cond"))
     options.identical_boundary_cond = false;
   endif
-  
+
   if (~isfield(options, "elem_type"))
     options.elem_type = "iso8";
   endif
@@ -62,7 +62,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
     otherwise
       error("unknown option elem_type=\"%s\"", options.elem_type);
   endswitch
-  
+
   if (isfield(geometry.mesh_size, "r") && isfield(geometry.mesh_size, "s") && isfield(geometry.mesh_size, "t"))
     r = geometry.mesh_size.r;
     s = geometry.mesh_size.s;
@@ -234,7 +234,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
     case "iso20"
       mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
   endswitch
-  
+
   ielement = int32(0);
 
   for i=2:numel(r)
@@ -440,6 +440,11 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   mesh.structured.s = s;
   mesh.structured.t = t;
   mesh.structured.inode_idx = inode_idx;
+
+  switch (options.elem_type)
+    case "iso20"
+      mesh = replace_degenerated(mesh);
+  endswitch
 endfunction
 
 function inode = find_sewing_node(sewing_cond, inode_idx)
@@ -564,7 +569,63 @@ function load_case = create_load_case(mesh, geometry, inode_idx, r, s, t, load, 
   load_case.loaded_nodes = load_case.loaded_nodes(1:iload);
 endfunction
 
+function mesh_rep = replace_degenerated(mesh)
+  mesh_rep = mesh;
+  mesh_rep.elements.iso20 = zeros(size(mesh.elements.iso20), "int32");
+  mesh_rep.elements.penta15 = zeros(rows(mesh.elements.iso20), 15, "int32");
+  mesh_rep.materials.iso20 = zeros(size(mesh.materials.iso20), "int32");
+  mesh_rep.materials.penta15 = zeros(size(mesh.materials.iso20), "int32");
+
+  inum_iso20 = int32(0);
+  inum_penta15 = int32(0);
+  idxn = 1:columns(mesh.elements.iso20);
+
+  for i=1:rows(mesh.elements.iso20)
+    elnodes = unique(mesh.elements.iso20(i, :));
+    idxn = [];
+
+    if (numel(elnodes) < columns(mesh.elements.iso20))
+      idx = zeros(1, columns(mesh.elements.iso20));
+      for j=1:columns(mesh.elements.iso20)
+	neq = (mesh.elements.iso20(i, :) == mesh.elements.iso20(i, j));
+	neq(j) = false;
+	idxtmp = find(neq);
+	if (numel(idxtmp))
+	  idx(j) = idxtmp(1);
+	endif
+      endfor
+
+      idxs = sort(find(idx));
+      
+      switch (idxs)
+	case [3, 4, 7, 8, 11, 15, 19, 20]
+	  idxn = [2,3,6,1,4,5,10,14,18,12,16,17,9,11,13];
+	case [1, 2, 5, 6, 9, 13, 17, 18]
+	  idxn = [2,3,7,1,4,8,10,19,14,12,20,16,9,11,15];
+	case [5, 6, 7, 8, 13, 14, 15, 16]
+	  idxn = [2, 3, 6, 1, 4, 5, 10, 19, 18, 12, 20, 17, 9, 11, 13];
+	case [1, 2, 3, 4, 9, 10, 11, 12]
+	  idxn = [7, 6, 2, 8, 5, 1, 14, 18, 19, 16, 17, 20, 15, 13, 9];
+      endswitch
+    endif
+
+    if (numel(idxn))
+      mesh_rep.elements.penta15(++inum_penta15, :) = mesh.elements.iso20(i, idxn);
+      mesh_rep.materials.penta15(inum_penta15) = mesh.materials.iso20(i);
+    else
+      mesh_rep.elements.iso20(++inum_iso20, :) = mesh.elements.iso20(i, :);
+      mesh_rep.materials.iso20(inum_iso20) = mesh.materials.iso20(i);
+    endif
+  endfor
+
+  mesh_rep.elements.iso20 = mesh_rep.elements.iso20(1:inum_iso20, :);
+  mesh_rep.materials.iso20 = mesh_rep.materials.iso20(1:inum_iso20);
+  mesh_rep.elements.penta15 = mesh_rep.elements.penta15(1:inum_penta15, :);
+  mesh_rep.materials.penta15 = mesh_rep.materials.penta15(1:inum_penta15);
+endfunction
+
 %!demo
+%! ## DEMO 1
 %! close all;
 %! scale_stat = 2e-3;
 %! scale_eig = 2e-3;
@@ -669,6 +730,7 @@ endfunction
 %! figure_list();
 
 %!demo
+%! ## DEMO 2
 %! close all;
 %! scale_stat = 2e-3;
 %! scale_eig = 2e-3;
@@ -773,6 +835,7 @@ endfunction
 %! figure_list();
 
 %!demo
+%! ## DEMO 3
 %! close all;
 %! scale_eig = 0.15;
 %! number_of_modes = 14;
@@ -854,6 +917,7 @@ endfunction
 %! assert(sol_eig.f(1:numel(fref)), sort(fref), tol * max(fref));
 
 %!demo
+%! ## DEMO 4
 %! close all;
 %! scale_eig = 0.15;
 %! number_of_modes = 14;
@@ -935,6 +999,7 @@ endfunction
 %! assert(sol_eig.f(1:numel(fref)), sort(fref), tol * max(fref));
 
 %!demo
+%! ## DEMO 5
 %! ## Code_Aster SHLV100 V2.07.100
 %! close all;
 %! a = 0.1;
@@ -1086,6 +1151,7 @@ endfunction
 %! endfor
 
 %!demo
+%! ## DEMO 6
 %! ## Code_Aster SHLV100 V2.07.100
 %! close all;
 %! a = 0.1;
@@ -1239,6 +1305,7 @@ endfunction
 %! endfor
 
 %!demo
+%! ## DEMO 7
 %! ## shaft with notch/shaft with step
 %! close all;
 %! geo_types = {"notch", "step"};
@@ -1364,6 +1431,7 @@ endfunction
 %! figure_list();
 
 %!demo
+%! ## DEMO 8
 %! ## shaft with notch/shaft with step
 %! close all;
 %! geo_types = {"notch", "step"};
@@ -1489,6 +1557,7 @@ endfunction
 %! figure_list();
 
 %!demo
+%! ## DEMO 9
 %! ## VIBRATIONS OF COMPLETE SPHERICAL SHELLS WITH IMPERFECTIONS
 %! ## Thomas A. Duffey
 %! ## Jason E. Pepin
@@ -1545,7 +1614,7 @@ endfunction
 %!   [dof_map] = fem_ass_dof_map(mesh, load_case);
 %!
 %!   [mat_ass.M, ...
-%!    mat_ass.K, ...		 
+%!    mat_ass.K, ...
 %!    mat_ass.R, ...
 %!    mat_info, ...
 %!    mesh_info] = fem_ass_matrix(mesh, ...
@@ -1586,6 +1655,7 @@ endfunction
 %! figure_list();
 
 %!demo
+%! ## DEMO 10
 %! ## distorted sphere
 %! close all;
 %! material.E = 28e6 * 6895;
@@ -1596,31 +1666,64 @@ endfunction
 %! geo.c = 1.5 * 4.4688 * 25.4e-3;
 %! geo.t = 0.625 * 25.4e-3;
 %! geo.Psii = [-180, -135, -90, -45, 0,  45, 90, 135, 180] * pi / 180;
-%! geo.Psir = [   1,  1.1,   1, 1.1, 1, 1.1,  1, 1.1,   1];
-%! geo.Zetai = [-180, -135, -90, -45, 0,  45, 90, 135, 180] * pi / 180;
-%! geo.Zetar = [   1,  1.1,   1, 1.1, 1, 1.1,  1, 1.1,   1];
+%! geo.Zetai = [-90, -45, 0, 45, 90] * pi / 180;
+%! geo.Psir = [1, 1, 1, 1.05, 1, 1.05,  1, 1;
+%!             1, 1, 1, 1.10, 1, 1.10,  1, 1;
+%!             1, 1, 1, 1.05, 1.2, 1.05,  1, 1];
+%! geo.Psir = [geo.Psir, geo.Psir(:, 1)];
+%! geo.Psir = [ones(1, columns(geo.Psir));
+%!             geo.Psir;
+%!             ones(1, columns(geo.Psir))];
 %! geo.Psii = [geo.Psii(1:end - 1) - 2 * pi, geo.Psii, geo.Psii(2:end) + 2 * pi];
-%! geo.Psir = [geo.Psir(1:end - 1), geo.Psir, geo.Psir(2:end)];
-%! geo.Zetai = [geo.Zetai(1:end - 1) - 2 * pi, geo.Zetai, geo.Zetai(2:end) + 2 * pi];
-%! geo.Zetar = [geo.Zetar(1:end - 1), geo.Zetar, geo.Zetar(2:end)];
-%! N = 39;
+%! geo.Psir = [geo.Psir(:, 1:end - 1), geo.Psir, geo.Psir(:, 2:end)];
+%! N = 10;
 %!
-%! function [x, y, z] = sphere_geo(geo, r, s, t)
-%!   Zeta = s;
-%!   Psi = t;
-%!   Psir = interp1(geo.Psii, geo.Psir, Psi, "pchip");
-%!   Zetar = interp1(geo.Zetai, geo.Zetar, Zeta, "pchip");
-%!   xo = Psir * geo.a * cos(Zeta) * cos(Psi);
-%!   yo = Psir * geo.b * cos(Zeta) * sin(Psi);
-%!   zo = Zetar * geo.c * sin(Zeta);
-%!   xi = (Psir * geo.a - geo.t) * cos(Zeta) * cos(Psi);
-%!   yi = (Psir * geo.b - geo.t) * cos(Zeta) * sin(Psi);
-%!   zi = (Zetar * geo.c - geo.t) * sin(Zeta);
-%!   x = xo + (xi - xo) * r;
-%!   y = yo + (yi - yo) * r;
-%!   z = zo + (zi - zo) * r;
+%! function X = sphere_shape(geo, Psi, Zeta)
+%!   Psir = sqrt(1 - Zeta^2) * interp2(geo.Psii, geo.Zetai, geo.Psir, Psi, Zeta,  "pchip");
+%!   if (~(isreal(Psir) && isfinite(Psir)))
+%!    error("interpolation failed");
+%!   endif
+%!   X = zeros(3, 1);
+%!   X(1) = Psir * geo.a * cos(Psi);
+%!   X(2) = Psir * geo.b * sin(Psi);
+%!   X(3) = geo.c * Zeta;
 %! endfunction
 %!
+%! function [x, y, z] = sphere_geo(geo, r, s, t)
+%!   Zeta = sin(t);
+%!   Psi = s;
+%!   dZeta = dPsi = 2 * pi * sqrt(eps);
+%!   if (Zeta + dZeta > 1)
+%!     dZeta = -dZeta;
+%!   endif
+%!   if (Psi + dPsi > pi)
+%!     dPsi = -dPsi;
+%!   endif
+%!   P0 = sphere_shape(geo, Psi, Zeta);
+%!   P1 = sphere_shape(geo, Psi, Zeta + dZeta);
+%!   P2 = sphere_shape(geo, Psi + dPsi, Zeta);
+%!   n1 = (P1 - P0) * sign(dZeta);
+%!   n2 = (P2 - P0) * sign(dPsi);
+%!   n3 = cross(n1, n2);
+%!   if (norm(n3) == 0)
+%!     if (t == -pi/2)
+%!       n3 = [0; 0; 1];
+%!     elseif (t == pi/2)
+%!       n3 = [0; 0; -1];
+%!     else
+%!       error("surface normal vector is singular");
+%!     endif
+%!   endif
+%!   n3 /= norm(n3);
+%!   P = P0 - n3 * geo.t * r;
+%!   if (~isfinite(P))
+%!     error("P is not finite");
+%!   endif
+%!   x = P(1);
+%!   y = P(2);
+%!   z = P(3);
+%! endfunction
+%! 
 %! function [F, locked] = sphere_bound(r, s, t, geo, load_data)
 %!   F = [];
 %!   locked = false(1, 3);
@@ -1633,11 +1736,34 @@ endfunction
 %!   endif
 %! endfunction
 %!
-%!   fref = [5078, 6005, 6378, 6729];
-%!
-%!   geometry.mesh_size.r = linspace(-0.5, 0.5, 2);
-%!   geometry.mesh_size.s = linspace(-90 * pi / 180, 90 * pi / 180, 36);
-%!   geometry.mesh_size.t = linspace(-180 * pi / 180, 180 * pi / 180, 36);
+%! figure("visible", "off");
+%! hold on;
+%! Psi = linspace(-pi, pi, 180);
+%! Zeta = linspace(-1, 1, 9);
+%! for j=1:numel(Zeta)
+%!   X = zeros(3, numel(Psi));
+%!   for i=1:numel(Psi)
+%!     X(:, i) = sphere_shape(geo, Psi(i), Zeta(j));
+%!   endfor
+%!   set(plot3(X(1, :), X(2, :), X(3, :)), "color", [1, 0, 0]);
+%! endfor
+%! Zeta = linspace(-1, 1, 50);
+%! Psi = linspace(-pi, pi, 18);
+%! for j=1:numel(Psi)
+%!   X = zeros(3, numel(Zeta));
+%!   for i=1:numel(Zeta)
+%!     X(:, i) = sphere_shape(geo, Psi(j), Zeta(i));
+%!   endfor
+%!   set(plot3(X(1, :), X(2, :), X(3, :)), "color", [0, 0, 1]);
+%! endfor
+%! daspect(ones(1, 3));
+%! title("wireframe");
+%! xlabel("x");
+%! ylabel("y");
+%! zlabel("z");
+%!   geometry.mesh_size.r = linspace(0, 1, 2);
+%!   geometry.mesh_size.s = linspace(-pi, pi, 18);
+%!   geometry.mesh_size.t = linspace(-pi/2, pi/2, 18);
 %!   load_data.pressure = 1;
 %!   geometry.sewing.tolerance = sqrt(eps) * geo.a;
 %!   geometry.spatial_coordinates = @(r, s, t) feval("sphere_geo", geo, r, s, t);
@@ -1649,7 +1775,7 @@ endfunction
 %!   [dof_map] = fem_ass_dof_map(mesh, load_case);
 %!
 %!   [mat_ass.M, ...
-%!    mat_ass.K, ...		 
+%!    mat_ass.K, ...
 %!    mat_ass.R, ...
 %!    mat_info, ...
 %!    mesh_info] = fem_ass_matrix(mesh, ...
@@ -1658,7 +1784,6 @@ endfunction
 %!				  FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
 %!   shift = sqrt(eps) * max(abs(diag(mat_ass.K))) / max(abs(diag(mat_ass.M)));
 %!   tol = eps^0.4;
 %!   alg = "shift-invert";
@@ -1667,7 +1792,7 @@ endfunction
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.5 * geo.a / max(max(max(abs(sol_eig.def))));
-%!   opts.print_and_exit = true;
+%!   opts.print_and_exit = false;
 %!   opts.print_to_file = "";
 %!   opts.skin_only = true;
 %!   opts.show_element = true;
