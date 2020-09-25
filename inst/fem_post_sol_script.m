@@ -87,15 +87,15 @@ function fem_post_sol_script(post_pro_script_file, options)
     if (fd == -1)
       error("failed to open file \"%s\"", post_pro_script_file);
     endif
-
-    fprintf(fd, "Merge \"%s\";\n", options.mesh_filename);
+    
+    fprintf(fd, "Merge \"%s\";\n", gmsh_relative_path(options.mesh_filename));
     fprintf(fd, "Mesh.SurfaceEdges = 0;\n");
     fprintf(fd, "Mesh.VolumeFaces = 0;\n");
     fprintf(fd, "Mesh.SurfaceFaces = 0;\n");
     fprintf(fd, "Mesh.VolumeEdges = 0;\n");
     
     for j=1:numel(options.result_filenames)
-      fprintf(fd, "Merge \"%s\";\n", options.result_filenames{j});
+      fprintf(fd, "Merge \"%s\";\n", gmsh_relative_path(options.result_filenames{j}));
     endfor
 
     iview = int32(0);
@@ -214,4 +214,9 @@ function fem_post_sol_script(post_pro_script_file, options)
       fclose(fd);
     endif
   end_unwind_protect
+endfunction
+
+function fname = gmsh_relative_path(fname)
+  [fdir, fname, fext] = fileparts(fname);
+  fname = [fname, fext];
 endfunction

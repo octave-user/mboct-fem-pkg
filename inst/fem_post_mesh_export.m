@@ -285,7 +285,8 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
 endfunction
 
 function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
-  persistent gmsh_elem_types = {"iso8", "iso20", "iso4", "quad8", "tet4", "tet10", "tria6", "tria3", "beam2", "penta15", "tet10h"};
+  persistent gmsh_elem_types = {"iso8", "iso20", "iso4", "quad8", "tet4", "tet10", ...
+				"tria6", "tria3", "beam2", "beam3", "penta15", "tet10h"};
 
   if (~isfield(options, "elem_types"))
     options.elem_types = gmsh_elem_types;
@@ -345,7 +346,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
 	group_dim = 3;
       case {"iso4", "quad8", "tria6", "tria3"}
 	group_dim = 2;
-      case "beam2"
+      case {"beam2", "beam3"}
 	group_dim = 1;
       otherwise
 	continue;
@@ -401,13 +402,17 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
       case "beam2"
 	elem_type_id = 1;
 	elem_node_order = 1:2;
+      case "beam3"
+	elem_type_id = 8;
+	elem_node_order = 1:3;
       otherwise
 	continue
     endswitch
 
     switch (elem_types{i})
-      case "beam2"
-	elem_nodes = reshape([mesh.elements.beam2.nodes], 2, numel(mesh.elements.beam2)).';
+      case {"beam2", "beam3"}
+	beam_elem = getfield(mesh.elements, elem_types{i});
+	elem_nodes = reshape([beam_elem.nodes], numel(elem_node_order), numel(beam_elem)).';
       otherwise
 	elem_nodes = getfield(mesh.elements, elem_types{i});
     endswitch
