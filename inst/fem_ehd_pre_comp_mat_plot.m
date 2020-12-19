@@ -255,7 +255,7 @@ endfunction
 function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, options)
   hnd = -1;
   
-  if (options.plot_const_pressure && isfield(comp_mat, "C"))
+  if (options.plot_const_pressure && isfield(comp_mat, "C") && ~isempty(comp_mat.C))
     w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
 
     for l=1:rows(w)
@@ -280,7 +280,7 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
     endif
   endif
   
-  if (options.plot_matrix && isfield(comp_mat, "C"))
+  if (options.plot_matrix && isfield(comp_mat, "C") && ~isempty(comp_mat.C))
     for j=1:options.plot_step.x:numel(comp_mat.bearing_surf.grid_x)
       for k=1:options.plot_step.z:numel(comp_mat.bearing_surf.grid_z)
         w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));

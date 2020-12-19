@@ -180,7 +180,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         print_matrix(fd, D, "substruct contrib matrix");
         print_matrix(fd, E, "substruct residual matrix");
-      case "nodal substruct total"
+      case {"nodal substruct total", "modal substruct"}
         if (~isfield(comp_mat, "D"))
           error("missing field \"D\"");
         endif

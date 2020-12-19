@@ -115,7 +115,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     n ./= r;
 
     switch (bearing_surf(i).options.matrix_type)
-      case {"nodal substruct", "nodal substruct total"}
+      case {"nodal substruct", "nodal substruct total", "modal substruct"}
         use_modal_contrib = true;
       case "nodal"
         use_modal_contrib = false;
@@ -130,7 +130,14 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
         use_total_substruct = false;
     endswitch
 
-    if (~use_total_substruct)
+    switch (bearing_surf(i).options.matrix_type)
+      case {"nodal substruct", "nodal"}
+	use_compliance_matrix = true;
+      otherwise
+	use_compliance_matrix = false;
+    endswitch
+
+    if (use_compliance_matrix)
       C_U = zeros(numel(bearing_surf(i).nodes), chunk_size);
       C_S = zeros(prod(Nxz), numel(bearing_surf(i).idx_load_case));
     endif
@@ -179,7 +186,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     opt_sol.refine_max_iter = cms_opt.refine_max_iter;
     opt_sol.number_of_threads = cms_opt.number_of_threads;
     
-    if (~use_total_substruct)
+    if (use_compliance_matrix)
       K = mat_ass.K; ## Make a copy of the stiffness matrix only but don't copy mat_ass itself
       ## Save stiffness matrix
       CC_T = K(idx_dof_master_act, idx_lambda);
@@ -274,7 +281,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
 
       Rstat = mat_ass.R(:, cms_opt.num_modes_itf + bearing_surf(i).idx_load_case(idx_rhs));
 
-      if (~use_total_substruct)
+      if (use_compliance_matrix)
         Ustat = Kfact \ Rstat;
 
         ## Always consider Umaster, also for the total substruct model, because joints at the modal node could be inactive!
@@ -334,16 +341,19 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
           R_master(idx_master_dof(idx_act_master_dof), :) = [F_master;
                                                              M_master](idx_act_master_dof, :);
 
-          U_master = Kfact \ R_master; ## Interface modes of the current master node are not constraint in Kfact
-          a(:, idx_rhs) = PHI(dof_map.idx_node, :) \ U_master(dof_map.idx_node, :);
-          E_S(:, idx_rhs) = PHI.' * (Rstat - R_master);
-          fres = max(fres, max(norm(U_master(dof_map.idx_node, :) - PHI(dof_map.idx_node, :) * a(:, idx_rhs), "columns") ./ norm(U_master(dof_map.idx_node, :), "columns")));
+	  if (use_compliance_matrix)
+            U_master = Kfact \ R_master; ## Interface modes of the current master node are not constraint in Kfact
+            a(:, idx_rhs) = PHI(dof_map.idx_node, :) \ U_master(dof_map.idx_node, :);
+            fres = max(fres, max(norm(U_master(dof_map.idx_node, :) - PHI(dof_map.idx_node, :) * a(:, idx_rhs), "columns") ./ norm(U_master(dof_map.idx_node, :), "columns")));
+	  endif
+	  
+	  E_S(:, idx_rhs) = PHI.' * (Rstat - R_master);
         else
           E_S(:, idx_rhs) = PHI.' * Rstat;
         endif
       endif
 
-      if (~use_total_substruct)
+      if (use_compliance_matrix)
         for l=1:numel(idx_rhs)
           w_U = repmat(C_U(:, l), 3, 1);
 
@@ -376,7 +386,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       endif
     endfor
 
-    if (use_modal_contrib && ~use_total_substruct && cms_opt.verbose)
+    if (use_modal_contrib && use_compliance_matrix && cms_opt.verbose)
       fprintf(stderr, "%d: modal residual error: %e\n", i, fres);
     endif
 
@@ -416,7 +426,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       D_S = D_S(:, columns(phi_rb) + 1:end); ## Remove rigid body modes not present in our .fem file
       E_S = E_S(columns(phi_rb) + 1:end, :);
 
-      if (~use_total_substruct)
+      if (use_compliance_matrix)
         a = a(columns(phi_rb) + 1:end, :);
         C_S -= D_S * (a + mat_ass.Kred \ E_S);
         clear a;
@@ -428,7 +438,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       comp_mat(i).E = [E_S, E_S(:, 1:Nxz(2))];
     endif
     
-    if (~use_total_substruct)
+    if (use_compliance_matrix)
       comp_mat(i).C = [C_S, C_S(:, 1:Nxz(2))];
     endif
 
@@ -499,6 +509,7 @@ endfunction
 
 %! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
+
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %! grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
 %! grp_id_p2 = find([[mesh.groups.tria6].id] == 2);
@@ -509,55 +520,62 @@ endfunction
 %! mesh.nodes(node_idx_itf1, 1:3) = [0, 0, c + 0.5 * b];
 %! mesh.nodes(node_idx_modal, :) = 0;
 %! mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, [grp_id_p1, grp_id_p2], [node_idx_itf1, node_idx_itf2], "tria6");
-%! bearing_surf(1).group_idx = grp_id_p1;
-%! bearing_surf(1).options.reference_pressure = 1e9;
-%! bearing_surf(1).options.mesh_size = 1.5 * mesh_size;
-%! bearing_surf(1).options.bearing_type = "shell";
-%! bearing_surf(1).options.matrix_type = "nodal";
-%! bearing_surf(1).master_node_no = node_idx_itf1;
-%! bearing_surf(1).nodes = mesh.groups.tria6(grp_id_p1).nodes;
-%! bearing_surf(1).r = ri;
-%! bearing_surf(1).w = b;
-%! bearing_surf(1).X0 = [0; 0; b/2 + c];
-%! bearing_surf(1).R = eye(3);
-%! bearing_surf(1).relative_tolerance = 0;
-%! bearing_surf(1).absolute_tolerance = sqrt(eps) * ri;
-%! bearing_surf(2).group_idx = grp_id_p2;
-%! bearing_surf(2).options.reference_pressure = 1e9;
-%! bearing_surf(2).options.mesh_size = 1.5 * mesh_size;
-%! bearing_surf(2).options.bearing_type = "journal";
-%! bearing_surf(2).options.matrix_type = "nodal";
-%! bearing_surf(2).master_node_no = node_idx_itf2;
-%! bearing_surf(2).nodes = mesh.groups.tria6(grp_id_p2).nodes;
-%! bearing_surf(2).r = ro;
-%! bearing_surf(2).w = b;
-%! bearing_surf(2).X0 = [0; 0; b/2 + c];
-%! bearing_surf(2).R = eye(3);
-%! bearing_surf(2).relative_tolerance = 0;
-%! bearing_surf(2).absolute_tolerance = sqrt(eps) * ri;
-%! [load_case_press, bearing_surf] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf);
-%! load_case.locked_dof = false(rows(mesh.nodes), 6);
-%! load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
-%! load_case = fem_pre_load_case_merge(load_case, load_case_press);
-%! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%! mat_type = {"nodal", "nodal substruct", "nodal substruct total", "modal substruct"};
+%! for imat=1:numel(mat_type)
+%! data(imat).mesh = mesh;
+%! data(imat).bearing_surf(1).group_idx = grp_id_p1;
+%! data(imat).bearing_surf(1).options.reference_pressure = 1e9;
+%! data(imat).bearing_surf(1).options.mesh_size = 1.5 * mesh_size;
+%! data(imat).bearing_surf(1).options.bearing_type = "shell";
+%! data(imat).bearing_surf(1).options.matrix_type = mat_type{imat};
+%! data(imat).bearing_surf(1).master_node_no = node_idx_itf1;
+%! data(imat).bearing_surf(1).nodes = mesh.groups.tria6(grp_id_p1).nodes;
+%! data(imat).bearing_surf(1).r = ri;
+%! data(imat).bearing_surf(1).w = b;
+%! data(imat).bearing_surf(1).X0 = [0; 0; b/2 + c];
+%! data(imat).bearing_surf(1).R = eye(3);
+%! data(imat).bearing_surf(1).relative_tolerance = 0;
+%! data(imat).bearing_surf(1).absolute_tolerance = sqrt(eps) * ri;
+%! data(imat).bearing_surf(2).group_idx = grp_id_p2;
+%! data(imat).bearing_surf(2).options.reference_pressure = 1e9;
+%! data(imat).bearing_surf(2).options.mesh_size = 1.5 * mesh_size;
+%! data(imat).bearing_surf(2).options.bearing_type = "journal";
+%! data(imat).bearing_surf(2).options.matrix_type = mat_type{imat};
+%! data(imat).bearing_surf(2).master_node_no = node_idx_itf2;
+%! data(imat).bearing_surf(2).nodes = mesh.groups.tria6(grp_id_p2).nodes;
+%! data(imat).bearing_surf(2).r = ro;
+%! data(imat).bearing_surf(2).w = b;
+%! data(imat).bearing_surf(2).X0 = [0; 0; b/2 + c];
+%! data(imat).bearing_surf(2).R = eye(3);
+%! data(imat).bearing_surf(2).relative_tolerance = 0;
+%! data(imat).bearing_surf(2).absolute_tolerance = sqrt(eps) * ri;
+%! [data(imat).load_case_press, data(imat).bearing_surf] = fem_ehd_pre_comp_mat_load_case(data(imat).mesh, data(imat).bearing_surf);
+%! data(imat).load_case.locked_dof = false(rows(data(imat).mesh.nodes), 6);
+%! data(imat).load_case.locked_dof(data(imat).mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
+%! data(imat).load_case = fem_pre_load_case_merge(data(imat).load_case, data(imat).load_case_press);
+%! data(imat).mesh.materials.tet10 = ones(rows(data(imat).mesh.elements.tet10), 1, "int32");
 %! E = 210000e6;
 %! nu = 0.3;
-%! mesh.material_data.rho = 7850;
-%! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%! cms_opt.nodes.modal.number = node_idx_modal;
-%! cms_opt.nodes.modal.name = "node_id_modal";
-%! cms_opt.nodes.interfaces(1).number = node_idx_itf1;
-%! cms_opt.nodes.interfaces(1).name = "node_id_itf1";
-%! cms_opt.nodes.interfaces(2).number = node_idx_itf2;
-%! cms_opt.nodes.interfaces(2).name = "node_id_itf2";
-%! cms_opt.number_of_threads = int32(4);
-%! [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
-%! comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
-%! opt_plot.plot_nodal = true;
-%! opt_plot.contour_levels = int32(15);
-%! opt_plot.plot_step.x = int32(2);
-%! opt_plot.plot_step.z = int32(2);
-%! fem_ehd_pre_comp_mat_plot(comp_mat, opt_plot);
+%! data(imat).mesh.material_data.rho = 7850;
+%! data(imat).mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%! data(imat).cms_opt.nodes.modal.number = node_idx_modal;
+%! data(imat).cms_opt.nodes.modal.name = "node_id_modal";
+%! data(imat).cms_opt.nodes.interfaces(1).number = node_idx_itf1;
+%! data(imat).cms_opt.nodes.interfaces(1).name = "node_id_itf1";
+%! data(imat).cms_opt.nodes.interfaces(2).number = node_idx_itf2;
+%! data(imat).cms_opt.nodes.interfaces(2).name = "node_id_itf2";
+%! data(imat).cms_opt.number_of_threads = int32(4);
+%! [data(imat).mesh, data(imat).mat_ass, data(imat).dof_map, data(imat).sol_eig, data(imat).cms_opt] = fem_cms_create(data(imat).mesh, data(imat).load_case, data(imat).cms_opt);
+%! data(imat).comp_mat = fem_ehd_pre_comp_mat_unstruct(data(imat).mesh, data(imat).mat_ass, data(imat).dof_map, data(imat).cms_opt, data(imat).bearing_surf);
+%! data(imat).opt_plot.plot_nodal = true;
+%! data(imat).opt_plot.contour_levels = int32(15);
+%! data(imat).opt_plot.plot_step.x = int32(2);
+%! data(imat).opt_plot.plot_step.z = int32(2);
+%! fem_ehd_pre_comp_mat_plot(data(imat).comp_mat, data(imat).opt_plot);
+%! for i=1:numel(data(imat).comp_mat)
+%!   fem_ehd_pre_comp_mat_export(data(imat).comp_mat(i), data(imat).bearing_surf(i).options, sprintf("%s_%03d.dat", filename, i));
+%! endfor
+%! endfor
 %! figure_list();
 %! unwind_protect_cleanup
 %!   if (numel(filename))
