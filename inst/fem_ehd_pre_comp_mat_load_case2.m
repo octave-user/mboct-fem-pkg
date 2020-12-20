@@ -71,29 +71,27 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
     Kfact = fem_sol_factor(mat_ass_press.K, options.solver);
   endif
   
-  sigma = "LM";
+  sigma = 0;
 
   opt = struct();
   
   for i=1:numel(bearing_surf)
-    A = diag(sqrt(diagA(:, i)));
+    Ap = diag(sqrt(diagA(:, i)));
 
     if (options.shift_A == 0)
-      B = mat_ass_press.K;
-      Bfact = Kfact;
+      Kp = mat_ass_press.K;
       gamma = 0;
     else
-      gamma = options.shift_A * max(max(abs(mat_ass_press.K))) / max(abs(diag(A)));
-      B = mat_ass_press.K + gamma * A;
-      Bfact = fem_sol_factor(B, options.solver);
+      gamma = options.shift_A * max(max(abs(mat_ass_press.K))) / max(abs(diag(Ap)));
+      Kp = mat_ass_press.K + gamma * Ap;
+      Kfact = fem_sol_factor(Kp, options.solver);
     endif
       
-    oper = cell(1, 3);  
-    oper{1} = @(x) A * x;
-    oper{2} = @(x) Bfact \ x;
-    oper{3} = @(x) B * x;
+    oper = cell(1, 2);  
+    oper{1} = @(x) Ap * x;
+    oper{2} = @(x) Kfact \ x;
     
-    [Phi, kappa] = eig_sym(oper, columns(mat_ass_press.K), bearing_surf(i).number_of_modes, sigma, opt);
+    [Phi, kappa] = eig_sym(oper, columns(Kp), bearing_surf(i).number_of_modes, sigma, opt);
     
     idx_mode = inum_modes_tot + (1:bearing_surf(i).number_of_modes);
 
@@ -104,7 +102,7 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
       sol_eig.def(iactive_dof, j, idx_mode) = Phi(idof_idx, :);
     endfor
 
-    sol_eig.lambda(idx_mode) = 1 ./ diag(kappa) - gamma;
+    sol_eig.lambda(idx_mode) = diag(kappa) - gamma;
     
     inum_modes_tot += bearing_surf(i).number_of_modes;
   endfor
