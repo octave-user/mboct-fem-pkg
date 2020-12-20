@@ -48,12 +48,12 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
 				     load_case_press);
 
   
-  diagA = zeros(dof_map_press.totdof, numel(bearing_surf));
+  diagA = zeros(rows(mesh.nodes), numel(bearing_surf));
 
   for i=1:columns(dof_map_press.ndof)
     dof_idx = dof_map_press.ndof(:, i);
-    dof_idx = dof_idx(find(dof_idx > 0));
-    diagA(dof_idx, :) += mat_ass_press.R(dof_idx, :).^2;
+    idx_act_dof = find(dof_idx > 0);
+    diagA(idx_act_dof, :) += mat_ass_press.R(dof_idx(idx_act_dof), :).^2;
   endfor
   
   inum_modes_tot = int32(0);
@@ -61,12 +61,16 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
   for i=1:numel(bearing_surf)
     inum_modes_tot += bearing_surf(i).number_of_modes;
   endfor
+
+  if (nargout >= 4)
+    sol_eig.def = zeros(rows(mesh.nodes), columns(mesh.nodes), inum_modes_tot);
+    sol_eig.lambda = zeros(1, inum_modes_tot);
+  endif
+
+  if (~options.shift_A)
+    inum_modes_tot += 6 * numel(bearing_surf);
+  endif
   
-  sol_eig.def = zeros(rows(mesh.nodes), columns(mesh.nodes), inum_modes_tot);
-  sol_eig.lambda = zeros(1, inum_modes_tot);
-
-  inum_modes_tot = int32(0);
-
   if (options.shift_A == 0)
     Kfact = fem_sol_factor(mat_ass_press.K, options.solver);
   endif
@@ -74,9 +78,68 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
   sigma = 0;
 
   opt = struct();
+
+  persistent ir = int32([3, 2;
+			 1, 3;
+			 2, 1]);
+
+  persistent ic = int32([2, 3;
+			 3, 1;
+			 1, 2]);
+
+  persistent dc = [1, -1];
+
+
+  if (isfield(load_case, "joints"))
+    ijoint_offset = numel(load_case.joints);
+  else
+    ijoint_offset = 0;
+  endif
+  
+  inum_joints = ijoint_offset;
+  ijoint_idx = zeros(numel(bearing_surf), 2, "int32");
   
   for i=1:numel(bearing_surf)
-    Ap = diag(sqrt(diagA(:, i)));
+    idx_joint = 1:numel(mesh.groups.tria6(bearing_surf(i).group_idx).nodes);
+    ijoint_idx(i, :) = inum_joints + idx_joint([1, end]);
+    inum_joints += numel(idx_joint);
+  endfor
+
+  empty_cell = cell(1, inum_joints);
+
+  elem_joints = struct("nodes", empty_cell, "C", empty_cell);
+
+  for i=1:ijoint_offset
+    elem_joints(i) = mesh.joints(i);
+  endfor
+  
+  for i=1:numel(bearing_surf)
+    node_idx = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
+    for j=1:numel(node_idx)
+      elem_joints(ijoint_idx(i, 1) + j - 1).nodes = node_idx(j);
+      elem_joints(ijoint_idx(i, 1) + j - 1).C = [eye(3), zeros(3, 3)];
+    endfor
+  endfor
+
+  load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
+
+  for i=1:numel(load_case_displ)
+    load_case_displ(i).joints = struct("U", repmat({zeros(3, 1)}, 1, inum_joints));
+  endfor
+  
+  inum_modes_tot = int32(0);
+  inum_modes_press = int32(0);
+  
+  for i=1:numel(bearing_surf)
+    Ap = zeros(dof_map_press.totdof, 1);
+    
+    for j=1:columns(dof_map_press.ndof)
+      dof_idx = dof_map_press.ndof(:, j);
+      idx_act_dof = find(dof_idx > 0);      
+      Ap(dof_idx(idx_act_dof)) = sqrt(diagA(idx_act_dof, i));
+    endfor
+
+    Ap = diag(Ap);
 
     if (options.shift_A == 0)
       Kp = mat_ass_press.K;
@@ -92,23 +155,70 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
     oper{2} = @(x) Kfact \ x;
     
     [Phi, kappa] = eig_sym(oper, columns(Kp), bearing_surf(i).number_of_modes, sigma, opt);
-    
-    idx_mode = inum_modes_tot + (1:bearing_surf(i).number_of_modes);
 
-    for j=1:columns(dof_map_press.ndof)
-      idof_idx = dof_map_press.ndof(:, j);
-      iactive_dof = find(idof_idx > 0);
-      idof_idx = idof_idx(iactive_dof);
-      sol_eig.def(iactive_dof, j, idx_mode) = Phi(idof_idx, :);
+    inode_idx_bs = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
+
+    U = zeros(numel(inode_idx_bs) * 3, columns(Phi));
+
+    for j=1:3
+      dof_idx = dof_map_press.ndof(inode_idx_bs, j);
+      idx_act_dof = find(dof_idx > 0);
+      U((idx_act_dof - 1) * 3 + j, :) = Phi(dof_idx(idx_act_dof), :);
     endfor
 
-    sol_eig.lambda(idx_mode) = diag(kappa) - gamma;
+    Arb = [repmat(eye(3), numel(inode_idx_bs), 1), zeros(3 * numel(inode_idx_bs), 3)];
+
+    l = mesh.nodes(inode_idx_bs, 1:3) - bearing_surf(i).X0.';
+
+    for j=1:3
+      for k=1:2
+	Arb(ir(j, k):3:end, ic(j, k) + 3) = -dc(k) * l(:, j);
+      endfor
+    endfor
+
+    q = (Arb.' * Arb) \ (Arb.' * U);
+    U -= Arb * q;
     
-    inum_modes_tot += bearing_surf(i).number_of_modes;
+    if (options.shift_A)
+      U = [Arb, U(:, 7:end)];
+    else
+      U = [Arb, U];
+    endif
+
+    U *= diag(1 ./ max(abs(U), [], 1));
+    
+    for k=1:columns(U)
+      for j=1:numel(inode_idx_bs)
+	load_case_displ(inum_modes_tot + k).joints(ijoint_idx(i, 1) + j - 1).U = U((j - 1) * 3 + (1:3), k);
+      endfor
+    endfor
+    
+    if (nargout >= 4)
+      idx_mode_press = inum_modes_press + (1:columns(Phi));
+      
+      for j=1:columns(dof_map_press.ndof)
+	idof_idx = dof_map_press.ndof(:, j);
+	iactive_dof = find(idof_idx > 0);
+	idof_idx = idof_idx(iactive_dof);
+	
+	sol_eig.def(iactive_dof, j, idx_mode_press) = Phi(idof_idx, :);
+      endfor
+
+      sol_eig.lambda(idx_mode_press) = diag(kappa) - gamma;
+      inum_modes_press += columns(Phi);
+    endif
+    
+    inum_modes_tot += columns(U);
   endfor
 
-  [sol_eig.lambda, idx_lambda] = sort(sol_eig.lambda);
-  sol_eig.def = sol_eig.def(:, :, idx_lambda);
+  mesh.elements.joints = elem_joints;
+  load_case = load_case_displ;
+  
+  if (nargout >= 4)
+    for i=1:size(sol_eig.def, 3)
+      sol_eig.def(:, :, i) /= max(max(abs(sol_eig.def(:, :, i))));
+    endfor
+  endif
 endfunction
 
 %!demo
@@ -199,16 +309,34 @@ endfunction
 %! bearing_surf(2).relative_tolerance = 0;
 %! bearing_surf(2).absolute_tolerance = sqrt(eps) * ri;
 %! bearing_surf(2).number_of_modes = 10;
+%! f_enable_constraint = false;
 %! load_case(1).locked_dof = false(rows(mesh.nodes), 6);
-%! load_case(1).locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
+%! if (f_enable_constraint)
+%!   load_case(1).locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
+%! endif
 %! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %! mesh.material_data.E = 210000e6;
 %! mesh.material_data.nu = 0.3;
 %! mesh.material_data.rho = 7850;
-%! opt_modes.shift_A = 0;
-%! opt_modes.solver.refine_max_iter = int32(10);
+%! if (~f_enable_constraint)
+%!   opt_modes.shift_A = 1e-10;
+%! endif
+%! opt_modes.solver.refine_max_iter = int32(0);
 %! opt_modes.solver.verbose = PASTIX_API_VERBOSE_NOT;
-%! [mesh, load_case, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
+%! debug_on_error(true);
+%! [mesh, load_case_bearing, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.M, ...
+%!  mat_ass.R, ...
+%!  mat_info, ...
+%!  mesh_info] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_MAT_MASS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case_bearing);
+%! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
