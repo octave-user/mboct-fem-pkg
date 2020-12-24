@@ -93,12 +93,20 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   if (~isfield(cms_opt, "tol"))
     cms_opt.tol = 1e-4;
   endif
+
+  if (~isfield(cms_opt, "static_modes"))
+    cms_opt.static_modes = true;
+  endif
   
-  node_idx_itf = int32([cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number]);
+  node_idx_itf = int32([cms_opt.nodes.modal.number]);
+
+  if (cms_opt.static_modes)
+    node_idx_itf = [node_idx_itf, int32(cms_opt.nodes.interfaces.number)];
+  endif
 
   dof_in_use = fem_cms_dof_active(mesh);
 
-  if (isfield(load_case(1), "elements") && isfield(load_case(1).elements, "joints"))
+  if (isfield(load_case, "joints"))
     cms_opt.first_joint_idx_itf = numel(mesh.elements.joints);
   else
     cms_opt.first_joint_idx_itf = int32(0);
@@ -129,12 +137,16 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     endif
   endfor
 
-  ## Reduce memory consumption: do not duplicate load_case.locked_dof!
-  load_case_itf = repmat(setfield(load_case(1), "locked_dof", []), 1, cms_opt.num_modes_itf - 1);
+  if (cms_opt.num_modes_itf > 0)
+    ## Reduce memory consumption: do not duplicate load_case.locked_dof!
+    load_case_itf = repmat(setfield(load_case(1), "locked_dof", []), 1, cms_opt.num_modes_itf - 1);
 
-  load_case_cms = fem_pre_load_case_merge(load_case(1), load_case_itf, load_case(2:end));
+    load_case_cms = fem_pre_load_case_merge(load_case(1), load_case_itf, load_case(2:end));
 
-  clear load_case_itf;
+    clear load_case_itf;
+  else
+    load_case_cms = load_case;
+  endif
   
   idx_load_case = int32(0);
 
@@ -528,19 +540,19 @@ endfunction
 %! d = 10e-3 / SI_unit_m;
 %! e = 10e-3 / SI_unit_m;
 %! X = [ 0.5 * a,  0.5 * b,  0.5 * c;  ##  1
-%!             0,  0.5 * b,  0.5 * c;  ##  2
-%!             0, -0.5 * b,  0.5 * c;  ##  3
+%!       0,  0.5 * b,  0.5 * c;  ##  2
+%!       0, -0.5 * b,  0.5 * c;  ##  3
 %!       0.5 * a, -0.5 * b,  0.5 * c;  ##  4
 %!       0.5 * a,  0.5 * b, -0.5 * c;  ##  5
-%!             0,  0.5 * b, -0.5 * c;  ##  6
-%!             0, -0.5 * b, -0.5 * c;  ##  7
+%!       0,  0.5 * b, -0.5 * c;  ##  6
+%!       0, -0.5 * b, -0.5 * c;  ##  7
 %!       0.5 * a, -0.5 * b, -0.5 * c,  ##  8
-%!             a,  0.5 * b,  0.5 * c;  ##  9
-%!             a, -0.5 * b,  0.5 * c;  ## 10
-%!             a,  0.5 * b, -0.5 * c;  ## 11
-%!             a, -0.5 * b, -0.5 * c,  ## 12
-%!         a + d,        0,        0;  ## 13
-%!            -e,        0,        0]; ## 14
+%!       a,  0.5 * b,  0.5 * c;  ##  9
+%!       a, -0.5 * b,  0.5 * c;  ## 10
+%!       a,  0.5 * b, -0.5 * c;  ## 11
+%!       a, -0.5 * b, -0.5 * c,  ## 12
+%!       a + d,        0,        0;  ## 13
+%!       -e,        0,        0]; ## 14
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8; 9, 1, 4, 10, 11, 5, 8, 12]);
 %! mesh.materials.iso8 = int32([1; 1]);
@@ -553,57 +565,62 @@ endfunction
 %! mesh.material_data.rho = 7850 / (SI_unit_kg / SI_unit_m^3);
 %! mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
+
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
 %! sol = {"pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
+%! use_static_modes = [false, true];
 %! tol = 1e-7;
-%! for iter=[0,10];
-%! for modes=int32([0, 4, 8, 10])
-%! lambda_ref = [];
-%! Phi_ref = [];
-%! for iscal=1:numel(scaling)
-%! cms_opt.scaling=scaling{iscal};
-%! for isol=1:numel(sol)
-%! cms_opt.solver = sol{isol};
-%! for ialg=1:numel(alg)
-%! for invariants=[true, false]
-%! for verbose=[false]
-%! for threads=int32([1, 4])
-%! cms_opt.verbose = verbose;
-%! cms_opt.modes.number = modes;
-%! cms_opt.number_of_threads = threads;
-%! cms_opt.algorithm = alg{ialg};
-%! cms_opt.invariants = invariants;
-%! cms_opt.max_iter_refine = iter;
-%! [mesh_cms, ...
-%!  mat_ass_cms, ...
-%!  dof_map_cms, ...
-%!  sol_eig_cms, ...
-%!  cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
-%! [Phi, lambda] = eig(mat_ass_cms.Kred, mat_ass_cms.Mred);
-%! [lambda, idx] = sort(diag(lambda));
-%! Phi = mat_ass_cms.Tred * Phi(:, idx);
-%! Phi *= diag(1 ./ max(abs(Phi), [], 1));
-%! if (numel(lambda_ref))
-%!   assert(lambda, lambda_ref, tol * max(abs(lambda)));
-%!   for j=1:columns(Phi)
-%!     f = min(max(abs(Phi(:, j) + Phi_ref(:, j))), max(abs(Phi(:, j) - Phi_ref(:, j))));
-%!     assert(f < tol);
+%! for stat_modes=use_static_modes
+%!   cms_opt.static_modes = stat_modes;
+%!   for iter=[0,10];
+%!     for modes=int32([0, 4, 8, 10])
+%!       lambda_ref = [];
+%!       Phi_ref = [];
+%!       for iscal=1:numel(scaling)
+%! 	cms_opt.scaling=scaling{iscal};
+%! 	for isol=1:numel(sol)
+%! 	  cms_opt.solver = sol{isol};
+%! 	  for ialg=1:numel(alg)
+%! 	    for invariants=[true, false]
+%! 	      for verbose=[false]
+%! 		for threads=int32([1, 4])
+%! 		  cms_opt.verbose = verbose;
+%! 		  cms_opt.modes.number = modes;
+%! 		  cms_opt.number_of_threads = threads;
+%! 		  cms_opt.algorithm = alg{ialg};
+%! 		  cms_opt.invariants = invariants;
+%! 		  cms_opt.max_iter_refine = iter;
+%! 		  [mesh_cms, ...
+%! 		   mat_ass_cms, ...
+%! 		   dof_map_cms, ...
+%! 		   sol_eig_cms, ...
+%! 		   cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
+%! 		  [Phi, lambda] = eig(mat_ass_cms.Kred, mat_ass_cms.Mred);
+%! 		  [lambda, idx] = sort(diag(lambda));
+%! 		  Phi = mat_ass_cms.Tred * Phi(:, idx);
+%! 		  Phi *= diag(1 ./ max(abs(Phi), [], 1));
+%! 		  if (numel(lambda_ref))
+%! 		    assert(lambda, lambda_ref, tol * max(abs(lambda)));
+%! 		    for j=1:columns(Phi)
+%! 		      f = min(max(abs(Phi(:, j) + Phi_ref(:, j))), max(abs(Phi(:, j) - Phi_ref(:, j))));
+%! 		      assert(f < tol);
+%! 		    endfor
+%! 		  else
+%! 		    lambda_ref = lambda;
+%! 		    Phi_ref = Phi;
+%! 		  endif
+%! 		endfor
+%! 	      endfor
+%! 	    endfor
+%! 	  endfor
+%! 	endfor
+%!       endfor
+%!     endfor
 %!   endfor
-%! else
-%!   lambda_ref = lambda;
-%!   Phi_ref = Phi;
-%! endif
-%! endfor
-%! endfor
-%! endfor
-%! endfor
-%! endfor
-%! endfor
-%! endfor
 %! endfor
 
 %!demo
@@ -619,19 +636,19 @@ endfunction
 %! d = 10e-3 / SI_unit_m;
 %! e = 10e-3 / SI_unit_m;
 %! X = [ 0.5 * a,  0.5 * b,  0.5 * c;  ##  1
-%!             0,  0.5 * b,  0.5 * c;  ##  2
-%!             0, -0.5 * b,  0.5 * c;  ##  3
+%!       0,  0.5 * b,  0.5 * c;  ##  2
+%!       0, -0.5 * b,  0.5 * c;  ##  3
 %!       0.5 * a, -0.5 * b,  0.5 * c;  ##  4
 %!       0.5 * a,  0.5 * b, -0.5 * c;  ##  5
-%!             0,  0.5 * b, -0.5 * c;  ##  6
-%!             0, -0.5 * b, -0.5 * c;  ##  7
+%!       0,  0.5 * b, -0.5 * c;  ##  6
+%!       0, -0.5 * b, -0.5 * c;  ##  7
 %!       0.5 * a, -0.5 * b, -0.5 * c,  ##  8
-%!             a,  0.5 * b,  0.5 * c;  ##  9
-%!             a, -0.5 * b,  0.5 * c;  ## 10
-%!             a,  0.5 * b, -0.5 * c;  ## 11
-%!             a, -0.5 * b, -0.5 * c,  ## 12
-%!         a + d,        0,        0;  ## 13
-%!            -e,        0,        0]; ## 14
+%!       a,  0.5 * b,  0.5 * c;  ##  9
+%!       a, -0.5 * b,  0.5 * c;  ## 10
+%!       a,  0.5 * b, -0.5 * c;  ## 11
+%!       a, -0.5 * b, -0.5 * c,  ## 12
+%!       a + d,        0,        0;  ## 13
+%!       -e,        0,        0]; ## 14
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8; 9, 1, 4, 10, 11, 5, 8, 12]);
 %! mesh.materials.iso8 = int32([1; 1]);
