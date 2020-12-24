@@ -101,12 +101,12 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   node_idx_itf = int32([cms_opt.nodes.modal.number]);
 
   if (cms_opt.static_modes)
-    node_idx_itf = [node_idx_itf, int32(cms_opt.nodes.interfaces.number)];
+    node_idx_itf = int32([node_idx_itf, cms_opt.nodes.interfaces.number]);
   endif
 
   dof_in_use = fem_cms_dof_active(mesh);
 
-  if (isfield(load_case, "joints"))
+  if (isfield(mesh.elements, "joints"))
     cms_opt.first_joint_idx_itf = numel(mesh.elements.joints);
   else
     cms_opt.first_joint_idx_itf = int32(0);

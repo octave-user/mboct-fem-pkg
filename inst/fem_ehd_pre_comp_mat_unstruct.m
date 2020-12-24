@@ -39,7 +39,7 @@
 ##
 ## @var{bearing_surf}.nodes @dots{} Node numbers of all Finite Element nodes at the bearing surface.
 ##
-## @var{bearing_surf}.matrix_type @dots{} One of "nodal", "nodal substruct", "nodal substruct total".
+## @var{bearing_surf}.matrix_type @dots{} One of "nodal", "nodal substruct", "nodal substruct total", "modal substruct", "modal substruct total".
 ##
 ## @var{bearing_surf}.master_node_no @dots{} Node number of the master node connected to the RBE3 element of the bearing surface.
 ##
@@ -115,7 +115,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     n ./= r;
 
     switch (bearing_surf(i).options.matrix_type)
-      case {"nodal substruct", "nodal substruct total", "modal substruct"}
+      case {"nodal substruct", "nodal substruct total", "modal substruct", "modal substruct total"}
         use_modal_contrib = true;
       case "nodal"
         use_modal_contrib = false;
@@ -124,7 +124,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     endswitch
 
     switch (bearing_surf(i).options.matrix_type)
-      case "nodal substruct total"
+      case {"nodal substruct total", "modal substruct total"}
         use_total_substruct = true;
       otherwise
         use_total_substruct = false;
@@ -148,31 +148,37 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       error("nodes at bearing surface must not be constraint");
     endif
 
-    joint_idx = -1;
+    if (isfield(bearing_surf, "master_node_no"))
+      joint_idx = -1;
 
-    for j=1:numel(mesh.elements.joints)
-      if (numel(mesh.elements.joints(j).nodes) == 1 && ...
-          mesh.elements.joints(j).nodes == bearing_surf(i).master_node_no)
+      for j=1:numel(mesh.elements.joints)
+	if (numel(mesh.elements.joints(j).nodes) == 1 && ...
+            mesh.elements.joints(j).nodes == bearing_surf(i).master_node_no)
 
-        if (joint_idx ~= -1)
-          error("too many joints for bearing surface %d with master_node_no %d", i, bearing_surf(i).master_node_no);
-        endif
+          if (joint_idx ~= -1)
+            error("too many joints for bearing surface %d with master_node_no %d", i, bearing_surf(i).master_node_no);
+          endif
 
-        joint_idx = j;
+          joint_idx = j;
+	endif
+      endfor
+
+      if (joint_idx < 0)
+	error("cannot find joint for bearing surface %d with master_node_no %d", i, bearing_surf(i).master_node_no);
       endif
-    endfor
 
-    if (joint_idx < 0)
-      error("cannot find joint for bearing surface %d with master_node_no %d", i, bearing_surf(i).master_node_no);
+      idx_lambda = dof_map.edof.joints(joint_idx, :);
+
+      idx_lambda = idx_lambda(find(idx_lambda > 0));
+
+      idx_dof_master = dof_map.ndof(bearing_surf(i).master_node_no, :);
+      idx_ndof_master_act = find(idx_dof_master > 0);
+      idx_dof_master_act = idx_dof_master(idx_ndof_master_act);
+    else
+      idx_dof_master = [];
+      idx_dof_master_act = [];
+      idx_lambda = [];
     endif
-
-    idx_lambda = dof_map.edof.joints(joint_idx, :);
-
-    idx_lambda = idx_lambda(find(idx_lambda > 0));
-
-    idx_dof_master = dof_map.ndof(bearing_surf(i).master_node_no, :);
-    idx_ndof_master_act = find(idx_dof_master > 0);
-    idx_dof_master_act = idx_dof_master(idx_ndof_master_act);
 
     if (use_total_substruct)
       idx_dof_ref_node = dof_map.ndof(cms_opt.nodes.modal.number, :);
@@ -208,18 +214,30 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       clear CC CC_T LAMBDA;
     endif
     
-    A = zeros(rows(dof_idx) * 3, 6);
-
+    A = repmat([eye(3), zeros(3, 3)], rows(dof_idx), 1);
+    
     if (~use_total_substruct)
-      A_X0 = bearing_surf(i).X0;
+      A_X0 = bearing_surf(i).X0.';
     else
-      A_X0 = mesh.nodes(cms_opt.nodes.modal.number, 1:3).';
+      A_X0 = mesh.nodes(cms_opt.nodes.modal.number, 1:3);
     endif
 
-    A_dX = mesh.nodes(bearing_surf(i).nodes, 1:3).' - A_X0;
+    A_dX = mesh.nodes(bearing_surf(i).nodes, 1:3) - A_X0;
 
-    for j=1:rows(dof_idx)
-      A((j - 1) * 3 + (1:3), :) = [eye(3), -skew(A_dX(:, j))];
+    ir = int32([3, 2;
+		1, 3;
+		2, 1]);
+
+    ic = int32([2, 3;
+		3, 1;
+		1, 2]);
+
+    dc = [1, -1];
+
+    for j=1:3
+      for k=1:2
+	A(ir(j, k):3:end, ic(j, k) + 3) = -dc(k) * A_dX(:, j);
+      endfor
     endfor
 
     clear A_dX A_X0;
