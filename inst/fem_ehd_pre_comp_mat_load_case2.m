@@ -1,4 +1,4 @@
-function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, options)
+function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_map_press] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, options)
   if (nargin < 4)
     options = struct();
   endif
@@ -11,7 +11,9 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
     options.solver = struct();
   endif
 
-  bearing_surf = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf);
+  [load_case_press_dist, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf);
+
+  load_case_press_dist(1).locked_dof = load_case.locked_dof;
   
   inum_elem_press = int32(0);
   
@@ -33,12 +35,12 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
     inum_elem_press += numel(elem_idx);
   endfor
   
-  load_case_press = fem_pre_load_case_create_empty(numel(bearing_surf));
+  load_case_press_mod = fem_pre_load_case_create_empty(numel(bearing_surf));
   
   for i=1:numel(bearing_surf)
-    load_case_press(i).pressure.tria6.elements = elements;
-    load_case_press(i).pressure.tria6.p = zeros(size(elements));
-    load_case_press(i).pressure.tria6.p(ielem_idx(i, 1):ielem_idx(i, end), :) = 1;
+    load_case_press_mod(i).pressure.tria6.elements = elements;
+    load_case_press_mod(i).pressure.tria6.p = zeros(size(elements));
+    load_case_press_mod(i).pressure.tria6.p(ielem_idx(i, 1):ielem_idx(i, end), :) = 1;
   endfor
   
   dof_map_press = fem_ass_dof_map(mesh, load_case);
@@ -48,7 +50,7 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
 				     dof_map_press, ...
 				     [FEM_MAT_STIFFNESS, ...
 				      FEM_VEC_LOAD_CONSISTENT], ...
-				     load_case_press);
+				     load_case_press_mod);
 
   
   diagA = zeros(rows(mesh.nodes), numel(bearing_surf));
@@ -79,7 +81,7 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
     endif
   endfor
 
-  if (nargout >= 4)
+  if (nargout >= 5)
     sol_eig.def = zeros(rows(mesh.nodes), columns(mesh.nodes), inum_modes_press);
     sol_eig.lambda = zeros(1, inum_modes_tot);
   endif
@@ -92,16 +94,15 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
 
   opt = struct();
 
-  persistent ir = int32([3, 2;
-			 1, 3;
-			 2, 1]);
+  ir = int32([3, 2;
+	      1, 3;
+	      2, 1]);
 
-  persistent ic = int32([2, 3;
-			 3, 1;
-			 1, 2]);
+  ic = int32([2, 3;
+	      3, 1;
+	      1, 2]);
 
-  persistent dc = [1, -1];
-
+  dc = [1, -1];
 
   if (isfield(load_case, "joints"))
     ijoint_offset = numel(load_case.joints);
@@ -135,7 +136,6 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
   endfor
 
   load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
-  load_case_displ(1).locked_dof = load_case.locked_dof;
 
   for i=1:numel(load_case_displ)
     load_case_displ(i).joints = struct("U", repmat({zeros(3, 1)}, 1, inum_joints));
@@ -209,7 +209,7 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
       endfor
     endfor
     
-    if (nargout >= 4)
+    if (nargout >= 5)
       idx_mode_press = inum_modes_press + (1:columns(Phi));
       
       for j=1:columns(dof_map_press.ndof)
@@ -228,13 +228,12 @@ function [mesh, load_case, bearing_surf, sol_eig, mat_ass_press, dof_map_press] 
   endfor
 
   mesh.elements.joints = elem_joints;
-  load_case = load_case_displ;
-
-  for i=1:numel(bearing_surf)
-    bearing_surf(i).idx_load_case = 1:numel(load_case);
-  endfor
   
-  if (nargout >= 4)
+  load_case = fem_pre_load_case_merge(load_case_press_dist, load_case_displ);
+
+  idx_modes = numel(load_case_press_dist) + (1:numel(load_case_displ));
+
+  if (nargout >= 5)
     for i=1:size(sol_eig.def, 3)
       sol_eig.def(:, :, i) /= max(max(abs(sol_eig.def(:, :, i))));
     endfor
@@ -285,7 +284,7 @@ endfunction
 %! fputs(fd, "Line(8) = {8,1};\n");
 %! fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
 %! fputs(fd, "Plane Surface(6) = {5};\n");
-%! fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%! fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, 2*Pi} { Surface{6}; };\n");
 %! fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
 %! fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
 %! fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
@@ -310,7 +309,7 @@ endfunction
 %! grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
 %! grp_id_p2 = find([[mesh.groups.tria6].id] == 2);
 %! bearing_surf(1).group_idx = grp_id_p1;
-%! bearing_surf(1).options.reference_pressure = 1e6;
+%! bearing_surf(1).options.reference_pressure = 1e9;
 %! bearing_surf(1).options.mesh_size = 20e-3;
 %! bearing_surf(1).options.include_rigid_body_modes = false;
 %! bearing_surf(1).options.bearing_type = "shell";
@@ -323,7 +322,7 @@ endfunction
 %! bearing_surf(1).absolute_tolerance = sqrt(eps) * ri;
 %! bearing_surf(1).number_of_modes = 10;
 %! bearing_surf(2).group_idx = grp_id_p2;
-%! bearing_surf(2).options.reference_pressure = 1e6;
+%! bearing_surf(2).options.reference_pressure = 1e9;
 %! bearing_surf(2).options.mesh_size = 20e-3;
 %! bearing_surf(2).options.include_rigid_body_modes = true;
 %! bearing_surf(2).options.bearing_type = "journal";
@@ -337,10 +336,11 @@ endfunction
 %! bearing_surf(2).number_of_modes = 12;
 %! cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
 %! mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(1).X0.';
-%! cms_opt.load_cases = "all";
 %! cms_opt.inveriants = true;
-%! cms_opt.modes.number = 20;
+%! cms_opt.modes.number = 10;
 %! cms_opt.static_modes = false;
+%! cms_opt.load_cases = "index";
+%! cms_opt.refine_max_iter = int32(10);
 %! f_enable_constraint = false;
 %! load_case(1).locked_dof = false(rows(mesh.nodes), 6);
 %! load_case(1).locked_dof(cms_opt.nodes.modal.number, 1:6) = true;
@@ -354,11 +354,12 @@ endfunction
 %! if (~f_enable_constraint)
 %!   opt_modes.shift_A = 1e-10;
 %! endif
-%! opt_modes.solver.refine_max_iter = int32(0);
+%! opt_modes.solver.refine_max_iter = int32(10);
 %! opt_modes.solver.verbose = PASTIX_API_VERBOSE_NOT;
 %! #debug_on_error(true);
 %! #dbstop("fem_ehd_pre_comp_mat_unstruct", 52);
-%! [mesh, load_case_bearing, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
+%! #dbstop("fem_cms_create",45);
+%! [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
 %!  mat_ass.M, ...
