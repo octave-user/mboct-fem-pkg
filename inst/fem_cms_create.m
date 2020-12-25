@@ -221,6 +221,8 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       R_itf = mat_ass.R(:, 1:cms_opt.num_modes_itf);
     case "all"
       R_itf = mat_ass.R;
+    case "index"
+      R_itf = mat_ass.R(:, cms_opt.load_cases_index);
     otherwise
       error("invalid option cms_opt.load_cases=\"%s\"", cms_opt.load_cases);
   endswitch
