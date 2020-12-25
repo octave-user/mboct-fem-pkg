@@ -356,9 +356,6 @@ endfunction
 %! endif
 %! opt_modes.solver.refine_max_iter = int32(10);
 %! opt_modes.solver.verbose = PASTIX_API_VERBOSE_NOT;
-%! #debug_on_error(true);
-%! #dbstop("fem_ehd_pre_comp_mat_unstruct", 52);
-%! #dbstop("fem_cms_create",45);
 %! [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %! dof_map = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
@@ -378,6 +375,178 @@ endfunction
 %!  sol_eig_cms, ...
 %!  cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
 %! comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       status = unlink(fullfile(fn(i).folder, fn(i).name));
+%!       if (status ~= 0)
+%!         warning("failed to remove file \"%s\"", fn(i).name);
+%!       endif
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+
+%!demo
+%! close all;
+%! fd = -1;
+%! filename = "";
+%! unwind_protect
+%! filename = tempname();
+%! if (ispc())
+%!   filename(filename == "\\") = "/";
+%! endif
+%! unwind_protect
+%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! if (fd == -1)
+%!   error("failed to open file \"%s.geo\"", filename);
+%! endif
+%! d = 8e-3;
+%! D = 10e-3;
+%! w = 1e-3;
+%! l = 30e-3;
+%! h = 1e-3;
+%! grp_id_p1 = 2;
+%! grp_id_p2 = 3;
+%! p1 = 0;
+%! p2 = 1;
+%! scale_def = 5e-3;
+%! mesh_size = 0.25e-3;
+%! fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
+%! fprintf(fd, "d = %g;\n", d);
+%! fprintf(fd, "D = %g;\n", D);
+%! fprintf(fd, "w = %g;\n", w);
+%! fprintf(fd, "l = %g;\n", l);
+%! fprintf(fd, "h = %g;\n", h);
+%! fputs(fd, "Point(1)  = {          l,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(2)  = {          l,  0.5 * d, -0.5 * w};\n");
+%! fputs(fd, "Point(3)  = {l + 0.5 * d,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(4)  = {          l, -0.5 * d, -0.5 * w};\n");
+%! fputs(fd, "Point(5)  = {l - 0.5 * d,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(6)  = {        0.0,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(7)  = {        0.0,  0.5 * d, -0.5 * w};\n");
+%! fputs(fd, "Point(8)  = {    0.5 * d,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(9)  = {        0.0, -0.5 * d, -0.5 * w};\n");
+%! fputs(fd, "Point(10) = {   -0.5 * d,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(11) = {l - Sqrt((D/2)^2 - (h/2)^2),  -0.5 * h, -0.5 * w};\n");
+%! fputs(fd, "Point(12) = {l + 0.5 * D,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(13) = {l - Sqrt((D/2)^2 - (h/2)^2), 0.5 * h, -0.5 * w};\n");
+%! fputs(fd, "Point(14) = {Sqrt((D/2)^2 - (h/2)^2), 0.5 * h, -0.5 * w};\n");
+%! fputs(fd, "Point(15) = {   -0.5 * D,      0.0, -0.5 * w};\n");
+%! fputs(fd, "Point(16) = {Sqrt((D/2)^2 - (h/2)^2),  -0.5 * h, -0.5 * w};\n");
+%! fputs(fd, "Circle(1) = {2, 1, 3};\n");
+%! fputs(fd, "Circle(2) = {3, 1, 4};\n");
+%! fputs(fd, "Circle(3) = {4, 1, 5};\n");
+%! fputs(fd, "Circle(4) = {5, 1, 2};\n");
+%! fputs(fd, "Circle(5) = {7, 6, 8};\n");
+%! fputs(fd, "Circle(6) = {8, 6, 9};\n");
+%! fputs(fd, "Circle(7) = {9, 6, 10};\n");
+%! fputs(fd, "Circle(8) = {10, 6, 7};\n");
+%! fputs(fd, "Circle(9) = {11, 1, 12};\n");
+%! fputs(fd, "Circle(10) = {12, 1, 13};\n");
+%! fputs(fd, "Line(11) = {13, 14};\n");
+%! fputs(fd, "Circle(12) = {14, 6, 15};\n");
+%! fputs(fd, "Circle(13) = {15, 6, 16};\n");
+%! fputs(fd, "Line(14) = {16, 11};\n");
+%! fputs(fd, "Curve Loop(15) = {14,13,12,11,10,9};\n");
+%! fputs(fd, "Curve Loop(16) = {4, 3, 2, 1};\n");
+%! fputs(fd, "Curve Loop(17) = {8, 7, 6, 5};\n");
+%! fputs(fd, "Plane Surface(18) = {15, 16, 17};\n");
+%! fputs(fd, "tmp[] = Extrude {0, 0, w} { Surface{18}; };\n");
+%! fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%! fprintf(fd, "Physical Surface(\"small-end\", %d) = {tmp[8],tmp[9],tmp[10],tmp[11]};\n", grp_id_p1);
+%! fprintf(fd, "Physical Surface(\"big-end\", %d) = {tmp[12],tmp[13],tmp[14],tmp[15]};\n", grp_id_p2);
+%! unwind_protect_cleanup
+%!  if (fd ~= -1)
+%!    fclose(fd);
+%!  endif
+%! end_unwind_protect
+%! fprintf(stderr, "meshing ...\n");
+
+%! pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%! status = spawn_wait(pid);
+%! if (status ~= 0)
+%!  error("gmsh failed with status %d", status);
+%! endif
+%! fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
+%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh.elements.tria6 = mesh.elements.tria6(:, end:-1:1);
+%! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
+%! grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
+%! grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);
+%! bearing_surf(1).group_idx = grp_idx_p1;
+%! bearing_surf(1).options.reference_pressure = 1e9;
+%! bearing_surf(1).options.mesh_size = 1e-3;
+%! bearing_surf(1).options.include_rigid_body_modes = true;
+%! bearing_surf(1).options.bearing_type = "shell";
+%! bearing_surf(1).options.matrix_type = "modal substruct total";
+%! bearing_surf(1).r = 0.5 * d;
+%! bearing_surf(1).w = w;
+%! bearing_surf(1).X0 = [l; 0; 0];
+%! bearing_surf(1).R = eye(3);
+%! bearing_surf(1).relative_tolerance = 0;
+%! bearing_surf(1).absolute_tolerance = sqrt(eps) * 0.5 * d;
+%! bearing_surf(1).number_of_modes = 36;
+%! bearing_surf(2).group_idx = grp_idx_p2;
+%! bearing_surf(2).options.reference_pressure = 1e9;
+%! bearing_surf(2).options.mesh_size = 1e-3;
+%! bearing_surf(2).options.include_rigid_body_modes = false;
+%! bearing_surf(2).options.bearing_type = "shell";
+%! bearing_surf(2).options.matrix_type = "modal substruct total";
+%! bearing_surf(2).r = 0.5 * d;
+%! bearing_surf(2).w = w;
+%! bearing_surf(2).X0 = [0; 0; 0];
+%! bearing_surf(2).R = eye(3);
+%! bearing_surf(2).relative_tolerance = 0;
+%! bearing_surf(2).absolute_tolerance = sqrt(eps) * 0.5 * d;
+%! bearing_surf(2).number_of_modes = 36;
+%! cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
+%! mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(2).X0.';
+%! cms_opt.inveriants = true;
+%! cms_opt.modes.number = 10;
+%! cms_opt.static_modes = false;
+%! cms_opt.load_cases = "index";
+%! cms_opt.refine_max_iter = int32(0);
+%! load_case(1).locked_dof = false(rows(mesh.nodes), 6);
+%! load_case(1).locked_dof(cms_opt.nodes.modal.number, 1:6) = true;
+%! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%! mesh.material_data.E = 210000e6;
+%! mesh.material_data.nu = 0.3;
+%! mesh.material_data.rho = 7850;
+%! opt_modes.shift_A = 1e-6;
+%! opt_modes.solver.refine_max_iter = int32(0);
+%! opt_modes.solver.verbose = PASTIX_API_VERBOSE_NOT;
+%! [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
+%! [mesh, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
+%! comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
+%! nx1 = numel(comp_mat(1).bearing_surf.grid_x);
+%! nz1 = numel(comp_mat(1).bearing_surf.grid_z);
+%! nx2 = numel(comp_mat(2).bearing_surf.grid_x);
+%! nz2 = numel(comp_mat(2).bearing_surf.grid_z);
+%! p1red = repmat(p1 * bearing_surf(1).options.reference_pressure, (nx1 - 1) * nz1, 1);
+%! p2red = repmat(p2 * bearing_surf(2).options.reference_pressure, (nx2 - 1) * nz2, 1);
+%! Fred = comp_mat(1).E(:, 1:end -  nz1) * p1red / bearing_surf(1).options.reference_pressure + comp_mat(2).E(:, 1:end - nz2) * p2red / bearing_surf(2).options.reference_pressure;
+%! qred = mat_ass.Kred \ Fred;
+%! sol_red.def = fem_post_cms_expand_body(mesh, dof_map, mat_ass, qred);
+%! mesh_post = mesh;
+%! mesh_post.elements = rmfield(mesh_post.elements, "joints");
+%! load_case_post.locked_dof = false(size(mesh_post.nodes));
+%! load_case_post.pressure.tria6.elements = [mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
+%!                                           mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :)];
+%! load_case_post.pressure.tria6.p = [repmat(p1 * bearing_surf(1).options.reference_pressure, ...
+%!                                           numel(mesh_post.groups.tria6(grp_idx_p1).elements), ...
+%!                                           6);
+%!                                    repmat(p2 * bearing_surf(2).options.reference_pressure, ...
+%!                                           numel(mesh_post.groups.tria6(grp_idx_p2).elements), ...
+%!                                           6)];
+%! mesh_post.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh_post, grp_id_p2, cms_opt.nodes.modal.number);
+%! mesh_post.elements.joints.C = eye(6);
+%! mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
+
+%! dof_map_post = fem_ass_dof_map(mesh_post, load_case_post(1));
+%! [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
+%! sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
