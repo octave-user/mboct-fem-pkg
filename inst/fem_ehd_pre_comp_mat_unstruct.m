@@ -148,7 +148,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       error("nodes at bearing surface must not be constraint");
     endif
 
-    if (isfield(bearing_surf, "master_node_no"))
+    if (use_compliance_matrix && isfield(bearing_surf, "master_node_no"))
       joint_idx = -1;
 
       for j=1:numel(mesh.elements.joints)
