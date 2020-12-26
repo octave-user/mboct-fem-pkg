@@ -402,17 +402,18 @@ endfunction
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif
-%! d = 8e-3;
-%! D = 10e-3;
-%! w = 1e-3;
-%! l = 30e-3;
-%! h = 1e-3;
+%! d = 14e-3;
+%! D = 19.5e-3;
+%! w = 5e-3;
+%! l = 47e-3;
+%! h = 5e-3;
 %! grp_id_p1 = 2;
 %! grp_id_p2 = 3;
 %! p1 = 0;
 %! p2 = 1;
 %! scale_def = 5e-3;
-%! mesh_size = 0.25e-3;
+%! mesh_size = 1e-3;
+%! num_modes = 40;
 %! fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %! fprintf(fd, "d = %g;\n", d);
 %! fprintf(fd, "D = %g;\n", D);
@@ -463,7 +464,6 @@ endfunction
 %!  endif
 %! end_unwind_protect
 %! fprintf(stderr, "meshing ...\n");
-
 %! pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %! status = spawn_wait(pid);
 %! if (status ~= 0)
@@ -487,7 +487,7 @@ endfunction
 %! bearing_surf(1).R = eye(3);
 %! bearing_surf(1).relative_tolerance = 0;
 %! bearing_surf(1).absolute_tolerance = sqrt(eps) * 0.5 * d;
-%! bearing_surf(1).number_of_modes = 36;
+%! bearing_surf(1).number_of_modes = num_modes;
 %! bearing_surf(2).group_idx = grp_idx_p2;
 %! bearing_surf(2).options.reference_pressure = 1e9;
 %! bearing_surf(2).options.mesh_size = 1e-3;
@@ -500,16 +500,20 @@ endfunction
 %! bearing_surf(2).R = eye(3);
 %! bearing_surf(2).relative_tolerance = 0;
 %! bearing_surf(2).absolute_tolerance = sqrt(eps) * 0.5 * d;
-%! bearing_surf(2).number_of_modes = 36;
-%! cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
+%! bearing_surf(2).number_of_modes = num_modes;
+%! cms_opt.nodes.modal.number = rows(mesh.nodes) + 2;
+%! cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %! mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(2).X0.';
+%! mesh.nodes(cms_opt.nodes.interfaces.number, 1:3) = bearing_surf(1).X0.';
+%! mesh.elements.rbe3(1) = fem_pre_mesh_rbe3_from_surf(mesh, grp_id_p2, cms_opt.nodes.modal.number);
+%! mesh.elements.rbe3(2) = fem_pre_mesh_rbe3_from_surf(mesh, grp_id_p1, cms_opt.nodes.interfaces.number);
 %! cms_opt.inveriants = true;
 %! cms_opt.modes.number = 10;
 %! cms_opt.static_modes = false;
+%! cms_opt.modal_node_constraint = false;
 %! cms_opt.load_cases = "index";
 %! cms_opt.refine_max_iter = int32(0);
 %! load_case(1).locked_dof = false(rows(mesh.nodes), 6);
-%! load_case(1).locked_dof(cms_opt.nodes.modal.number, 1:6) = true;
 %! mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %! mesh.material_data.E = 210000e6;
 %! mesh.material_data.nu = 0.3;
@@ -520,6 +524,13 @@ endfunction
 %! [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %! [mesh, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
 %! comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
+%! load_case_itf = fem_pre_load_case_create_empty(6);
+%! for i=1:6
+%!   load_case_itf(i).loaded_nodes = cms_opt.nodes.interfaces.number;
+%!   load_case_itf(i).loads = zeros(1, 6);
+%!   load_case_itf(i).loads(i) = 1;
+%! endfor
+%! Ritf = fem_ass_matrix(mesh, dof_map, FEM_VEC_LOAD_CONSISTENT, load_case_itf);
 %! nx1 = numel(comp_mat(1).bearing_surf.grid_x);
 %! nz1 = numel(comp_mat(1).bearing_surf.grid_z);
 %! nx2 = numel(comp_mat(2).bearing_surf.grid_x);
@@ -527,26 +538,38 @@ endfunction
 %! p1red = repmat(p1 * bearing_surf(1).options.reference_pressure, (nx1 - 1) * nz1, 1);
 %! p2red = repmat(p2 * bearing_surf(2).options.reference_pressure, (nx2 - 1) * nz2, 1);
 %! Fred = comp_mat(1).E(:, 1:end -  nz1) * p1red / bearing_surf(1).options.reference_pressure + comp_mat(2).E(:, 1:end - nz2) * p2red / bearing_surf(2).options.reference_pressure;
+%! Fred = [full(mat_ass.Tred.' * Ritf(dof_map.idx_node, :)), Fred];
 %! qred = mat_ass.Kred \ Fred;
 %! sol_red.def = fem_post_cms_expand_body(mesh, dof_map, mat_ass, qred);
 %! mesh_post = mesh;
 %! mesh_post.elements = rmfield(mesh_post.elements, "joints");
-%! load_case_post.locked_dof = false(size(mesh_post.nodes));
-%! load_case_post.pressure.tria6.elements = [mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!                                           mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :)];
-%! load_case_post.pressure.tria6.p = [repmat(p1 * bearing_surf(1).options.reference_pressure, ...
-%!                                           numel(mesh_post.groups.tria6(grp_idx_p1).elements), ...
-%!                                           6);
-%!                                    repmat(p2 * bearing_surf(2).options.reference_pressure, ...
-%!                                           numel(mesh_post.groups.tria6(grp_idx_p2).elements), ...
-%!                                           6)];
-%! mesh_post.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh_post, grp_id_p2, cms_opt.nodes.modal.number);
+%! load_case_post = fem_pre_load_case_create_empty(7);
+%! load_case_post(1).locked_dof = false(size(mesh_post.nodes));
+%! for i=1:6
+%!   load_case_post(i).loaded_nodes = cms_opt.nodes.interfaces.number;
+%!   load_case_post(i).loads = zeros(1, 6);
+%!   load_case_post(i).loads(i) = 1;
+%! endfor
+%! load_case_post(7).pressure.tria6.elements = [mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
+%!                                              mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :)];
+%! load_case_post(7).pressure.tria6.p = [repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
+%!                                       repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6)];
 %! mesh_post.elements.joints.C = eye(6);
 %! mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
-
 %! dof_map_post = fem_ass_dof_map(mesh_post, load_case_post(1));
 %! [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
 %! sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%! for i=1:size(sol_post.def, 3)
+%!   fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * max(max(abs(sol_post.def(1:end - 2, :, i) - sol_red.def(1:end - 2, :, i)))) / max(max(abs(sol_post.def(1:end - 2, :, i)))));
+%! endfor
+%! mesh_data(1).mesh = mesh;
+%! mesh_data(1).dof_map = dof_map;
+%! mesh_data(2).mesh = mesh_post;
+%! mesh_data(2).dof_map = dof_map_post;
+%! [mesh_comb, dof_map_comb] = fem_post_mesh_merge(mesh_data, struct());
+%! sol_comb.def = zeros(rows(mesh_comb.nodes), columns(mesh_comb.nodes), size(sol_post.def, 3));
+%! sol_comb.def(dof_map_comb.submesh.offset.nodes(2) + (1:rows(sol_post.def)), :, :) = sol_post.def;
+%! sol_comb.def(dof_map_comb.submesh.offset.nodes(1) + (1:rows(sol_red.def)), :, :) = sol_red.def;
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

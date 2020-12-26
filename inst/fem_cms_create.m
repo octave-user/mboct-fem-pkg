@@ -97,8 +97,18 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   if (~isfield(cms_opt, "static_modes"))
     cms_opt.static_modes = true;
   endif
+
+  if (~isfield(cms_opt, "modal_node_constraint"))
+    cms_opt.modal_node_constraint = true;
+  endif
   
-  node_idx_itf = int32([cms_opt.nodes.modal.number]);
+  if (cms_opt.modal_node_constraint)
+    node_idx_itf = int32([cms_opt.nodes.modal.number]);
+    istart_idx_joint = int32(2);
+  else
+    node_idx_itf = [];
+    istart_idx_joint = int32(1);
+  endif
 
   if (cms_opt.static_modes)
     node_idx_itf = int32([node_idx_itf, cms_opt.nodes.interfaces.number]);
@@ -150,7 +160,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   
   idx_load_case = int32(0);
 
-  for i=2:numel(node_idx_itf)
+  for i=istart_idx_joint:numel(node_idx_itf)
     if (master_node_joint_idx(i))
       for j=1:rows(mesh.elements.joints(master_node_joint_idx(i)).C)
         load_case_cms(++idx_load_case).joints(master_node_joint_idx(i)).U(j) = 1;
@@ -574,7 +584,7 @@ endfunction
 %! sol = {"pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
-%! use_static_modes = [false, true];
+%! use_static_modes = [true, false];
 %! tol = 1e-7;
 %! for stat_modes=use_static_modes
 %!   cms_opt.static_modes = stat_modes;
