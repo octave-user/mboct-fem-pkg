@@ -6281,6 +6281,7 @@ endfunction
 %!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
 %!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
 %!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.9;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6317,7 +6318,7 @@ endfunction
 %!                                     sol_eig);
 %!   tolt = eps^0.5;
 %!   assert(max(max(max(max(abs(sol_eig.stress.tau.iso20(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.iso20(:, :, :, 7:end)))))));
-%!   tolf = eps^0.4;
+%!   tolf = eps^0.3;
 %!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
