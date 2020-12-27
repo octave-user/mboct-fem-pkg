@@ -99,8 +99,8 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
   inum_modes_press = int32(0);
 
   for i=1:numel(bearing_surf)
-    inum_modes_tot += bearing_surf(i).number_of_modes;
-    inum_modes_press += bearing_surf(i).number_of_modes;
+    inum_modes_tot += bearing_surf(i).options.number_of_modes;
+    inum_modes_press += bearing_surf(i).options.number_of_modes;
 
     if (~isfield(bearing_surf(i).options, "include_rigid_body_modes"))
       bearing_surf(i).options.include_rigid_body_modes = true;
@@ -167,8 +167,12 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
 
   load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
 
-  for i=1:numel(load_case_displ)
-    load_case_displ(i).joints = struct("U", repmat({zeros(3, 1)}, 1, inum_joints));
+  for j=1:numel(mesh.elements.joints)
+    U = zeros(rows(mesh.elements.joints(j).C), 1);
+    
+    for i=1:numel(load_case_displ)
+      load_case_displ(i).joints(j).U = U;
+    endfor
   endfor
 
   inum_modes_tot = int32(0);
@@ -196,7 +200,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
     oper{1} = @(x) Ap * x;
     oper{2} = @(x) Kfact \ x;
 
-    num_modes = bearing_surf(i).number_of_modes;
+    num_modes = bearing_surf(i).options.number_of_modes;
 
     if (options.shift_A ~= 0)
       num_modes += 6;
@@ -339,6 +343,14 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
 
   mesh.elements.joints = elem_joints;
 
+  for j=1:numel(mesh.elements.joints)
+    U = zeros(rows(mesh.elements.joints(j).C), 1);
+    
+    for i=1:numel(load_case_press_dist)
+      load_case_press_dist(i).joints(j).U = U;
+    endfor
+  endfor
+  
   load_case = fem_pre_load_case_merge(load_case_press_dist, load_case_displ);
 
   idx_modes = numel(load_case_press_dist) + (1:numel(load_case_displ));
@@ -430,7 +442,7 @@ endfunction
 %! bearing_surf(1).R = eye(3);
 %! bearing_surf(1).relative_tolerance = 0;
 %! bearing_surf(1).absolute_tolerance = sqrt(eps) * ri;
-%! bearing_surf(1).number_of_modes = 10;
+%! bearing_surf(1).options.number_of_modes = 10;
 %! bearing_surf(2).group_idx = grp_id_p2;
 %! bearing_surf(2).options.reference_pressure = 1e9;
 %! bearing_surf(2).options.mesh_size = 20e-3;
@@ -443,7 +455,7 @@ endfunction
 %! bearing_surf(2).R = eye(3);
 %! bearing_surf(2).relative_tolerance = 0;
 %! bearing_surf(2).absolute_tolerance = sqrt(eps) * ri;
-%! bearing_surf(2).number_of_modes = 12;
+%! bearing_surf(2).options.number_of_modes = 12;
 %! cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
 %! mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(1).X0.';
 %! cms_opt.inveriants = true;
@@ -600,7 +612,7 @@ endfunction
 %! bearing_surf(1).R = eye(3);
 %! bearing_surf(1).relative_tolerance = 0;
 %! bearing_surf(1).absolute_tolerance = sqrt(eps) * 0.5 * d;
-%! bearing_surf(1).number_of_modes = num_modes;
+%! bearing_surf(1).options.number_of_modes = num_modes;
 %! bearing_surf(1).master_node_no = cms_opt.nodes.interfaces.number;
 %! bearing_surf(2).group_idx = grp_idx_p2;
 %! bearing_surf(2).options.reference_pressure = 1e9;
@@ -614,7 +626,7 @@ endfunction
 %! bearing_surf(2).R = eye(3);
 %! bearing_surf(2).relative_tolerance = 0;
 %! bearing_surf(2).absolute_tolerance = sqrt(eps) * 0.5 * d;
-%! bearing_surf(2).number_of_modes = num_modes;
+%! bearing_surf(2).options.number_of_modes = num_modes;
 %! bearing_surf(2).master_node_no = cms_opt.nodes.modal.number;
 %! mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(2).X0.';
 %! mesh.nodes(cms_opt.nodes.interfaces.number, 1:3) = bearing_surf(1).X0.';

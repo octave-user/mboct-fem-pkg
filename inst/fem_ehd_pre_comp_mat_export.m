@@ -180,7 +180,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         print_matrix(fd, D, "substruct contrib matrix");
         print_matrix(fd, E, "substruct residual matrix");
-      case {"nodal substruct total", "modal substruct"}
+      case {"nodal substruct total", "modal substruct total"}
         if (~isfield(comp_mat, "D"))
           error("missing field \"D\"");
         endif
@@ -199,7 +199,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         D = comp_mat.D(1:end - numel(z), :);
         E = comp_mat.E(:, 1:end - numel(z));
-
+	
         print_matrix(fd, D, "substruct total contrib matrix");
         print_matrix(fd, E, "substruct total residual matrix");
       case "modal"
@@ -231,6 +231,8 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
         print_matrix(fd, KPhi \ RPhi, "modal load");
 
         fprintf(fd, "\n\n## cond(KPhi)=%e\n", cond(KPhi));
+      otherwise
+	error("unknown option matrix_type=\"%s\"", options.matrix_type);
     endswitch
 
   unwind_protect_cleanup
