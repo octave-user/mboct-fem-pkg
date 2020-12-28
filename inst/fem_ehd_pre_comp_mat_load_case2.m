@@ -167,13 +167,15 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
 
   load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
 
-  for j=1:numel(mesh.elements.joints)
-    U = zeros(rows(mesh.elements.joints(j).C), 1);
-    
-    for i=1:numel(load_case_displ)
-      load_case_displ(i).joints(j).U = U;
+  if (isfield(mesh.elements, "joints"))
+    for j=1:numel(mesh.elements.joints)
+      U = zeros(rows(mesh.elements.joints(j).C), 1);
+
+      for i=1:numel(load_case_displ)
+	load_case_displ(i).joints(j).U = U;
+      endfor
     endfor
-  endfor
+  endif
 
   inum_modes_tot = int32(0);
   inum_modes_press = int32(0);
@@ -322,7 +324,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
     U = Kfact \ mat_ass_itf_flex.R;
 
     clear Kfact mat_ass_itf_flex load_case_itf_flex;
-    
+
     for i=1:numel(bearing_surf)
       inode_idx_bs = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
       Ubs = zeros(3, numel(inode_idx_bs), columns(U));
@@ -345,12 +347,12 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig, mat_ass_press, dof_
 
   for j=1:numel(mesh.elements.joints)
     U = zeros(rows(mesh.elements.joints(j).C), 1);
-    
+
     for i=1:numel(load_case_press_dist)
       load_case_press_dist(i).joints(j).U = U;
     endfor
   endfor
-  
+
   load_case = fem_pre_load_case_merge(load_case_press_dist, load_case_displ);
 
   idx_modes = numel(load_case_press_dist) + (1:numel(load_case_displ));
