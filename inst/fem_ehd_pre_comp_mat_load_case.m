@@ -33,6 +33,12 @@
 ##
 ## @var{bearing_surf}.w @dots{} Optional axial width of the cylindrical bearing surface. See also @var{bearing_surf}.relative_tolerance.
 ##
+## @var{bearing_surf}.options.mesh_size @dots{} Mesh size used for the hydrodynamic bearing element.
+##
+## @var{bearing_surf}.options.reference_pressure @dots{} Define the unit pressure applied to bearing surfaces.
+##
+## @var{bearing_surf}.options.bearing_model @dots{} This value may be "EHD/FE" or "EHD/FD". In case of "EHD/FE" the number of output nodes will valid for a quadratic mesh.
+##
 ## @seealso{fem_ehd_pre_comp_mat_unstruct}
 ## @end deftypefn
 
@@ -44,14 +50,14 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
   [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf);
 
   load_case = fem_pre_load_case_create_empty(idx);
-  
+
   idx_group = zeros(numel(bearing_surf) + 1, 1, "int32");
   idx = int32(0);
-  
+
   for i=1:numel(bearing_surf)
     idx_group(i) = idx + 1;
     elements = mesh.elements.tria6(mesh.groups.tria6(bearing_surf(i).group_idx).elements, :);
-    
+
     N = [numel(bearing_surf(i).grid_x), numel(bearing_surf(i).grid_z)];
 
     idx_dst_per = [       0,  N(1), N(1) + 1] + 1;
@@ -62,25 +68,25 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
     xi = mod(atan2(Xn(2, :)(elements), Xn(1, :)(elements)), 2 * pi) * bearing_surf(i).r;
 
     xi_S = [bearing_surf(i).grid_x(end - 1) - 2 * pi * bearing_surf(i).r, ...
-            bearing_surf(i).grid_x, ...
-            bearing_surf(i).grid_x(2) + 2 * pi * bearing_surf(i).r];
+	    bearing_surf(i).grid_x, ...
+	    bearing_surf(i).grid_x(2) + 2 * pi * bearing_surf(i).r];
 
     zi_S = [2 * bearing_surf(i).grid_z(1) - bearing_surf(i).grid_z(2), ...
-            bearing_surf(i).grid_z, ...
-            2 * bearing_surf(i).grid_z(end) - bearing_surf(i).grid_z(end - 1)];
+	    bearing_surf(i).grid_z, ...
+	    2 * bearing_surf(i).grid_z(end) - bearing_surf(i).grid_z(end - 1)];
 
     p_S = zeros(numel(zi_S), numel(xi_S));
-    
+
     for k=1:N(1) - 1
       for j=1:N(2)
-        p_S(:, :) = 0;
-        p_S(j + 1, k + 1) = bearing_surf(i).options.reference_pressure;
-        p_S(j + 1, idx_dst_per) = p_S(j + 1, idx_src_per);
-        p_U = interp2(xi_S, zi_S, p_S, xi, zi, "linear");
-        
-        idx_press = any(p_U, 2);
-        load_case(++idx).pressure.tria6.elements = elements(idx_press, :);
-        load_case(idx).pressure.tria6.p = p_U(idx_press, :);
+	p_S(:, :) = 0;
+	p_S(j + 1, k + 1) = bearing_surf(i).options.reference_pressure;
+	p_S(j + 1, idx_dst_per) = p_S(j + 1, idx_src_per);
+	p_U = interp2(xi_S, zi_S, p_S, xi, zi, "linear");
+
+	idx_press = any(p_U, 2);
+	load_case(++idx).pressure.tria6.elements = elements(idx_press, :);
+	load_case(idx).pressure.tria6.p = p_U(idx_press, :);
       endfor
     endfor
   endfor
@@ -89,6 +95,51 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
 
   for i=1:numel(bearing_surf)
     bearing_surf(i).idx_load_case = idx_group(i):idx_group(i + 1) - 1;
+  endfor
+endfunction
+
+function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf)
+  for i=1:numel(bearing_surf)
+    nodes = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
+    elements = mesh.elements.tria6(mesh.groups.tria6(bearing_surf(i).group_idx).elements, :);
+
+    if (isfield(bearing_surf(i), "relative_tolerance") && isfield(bearing_surf(i), "absolute_tolerance"))
+      z = bearing_surf(i).R(:, 3).' * (mesh.nodes(nodes, 1:3).' - bearing_surf(i).X0);
+
+      dz = abs([0.5 * bearing_surf(i).w - max(z);
+		0.5 * bearing_surf(i).w + min(z)]);
+
+      tol = bearing_surf(i).relative_tolerance * bearing_surf(i).w + bearing_surf(i).absolute_tolerance;
+
+      if (any(dz > tol))
+	error("z-coordinate of nodes at bearing %d does not cover the complete bearing width", i);
+      endif
+    endif
+
+    clear z dz tol elements nodes;
+  endfor
+
+  idx = int32(0);
+
+  for i=1:numel(bearing_surf)
+    dx = bearing_surf(i).options.mesh_size;
+    N = [max(4, round(2 * pi * bearing_surf(i).r / dx)), max(3, round(bearing_surf(i).w / dx))];
+
+    if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
+      switch (bearing_surf(i).options.bearing_model)
+	case "EHD/FE"
+	  for j=1:numel(N)
+	    if (mod(N(j), 2) == 0)
+	      ++N(j);
+	    endif
+	  endfor
+      endswitch
+    endif
+
+    bearing_surf(i).grid_x = linspace(0, 2 * pi * bearing_surf(i).r, N(1));
+    bearing_surf(i).grid_z = linspace(-0.5 * bearing_surf(i).w, 0.5 * bearing_surf(i).w, N(2));
+    idx += (numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z);
+    clear dx N;
   endfor
 endfunction
 
@@ -222,7 +273,7 @@ endfunction
 %!     fputs(fd, "Mesh.SurfaceFaces = 0;\n");
 %!     fputs(fd, "Mesh.SurfaceNumbers = 0;\n");
 %!     fputs(fd, "Mesh.VolumeEdges = 0;\n");
-%!     fputs(fd, "Mesh.VolumeFaces = 0;\n");    
+%!     fputs(fd, "Mesh.VolumeFaces = 0;\n");
 %!     fprintf(fd, "Merge \"%s\";\n", deformation_file);
 %!     fputs(fd, "View[0].Type = 1;\n");
 %!     fputs(fd, "View[0].VectorType = 5;\n");
