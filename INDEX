@@ -123,6 +123,7 @@ Substructuring
 Elastohydrodynamic bearings
 	fem_ehd_pre_comp_mat_export
 	fem_ehd_pre_comp_mat_load_case
+	fem_ehd_pre_comp_mat_load_case2
 	fem_ehd_pre_comp_mat_plot
 	fem_ehd_pre_comp_mat_struct
 	fem_ehd_pre_comp_mat_unstruct
