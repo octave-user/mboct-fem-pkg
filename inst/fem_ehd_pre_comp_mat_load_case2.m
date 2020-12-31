@@ -49,6 +49,8 @@
 ##
 ## @var{options}.rigid_body_modes @dots{} This value may be "rigid" or "flexible". If rigid body modes are flexible, then RBE3 elements must be provided in the @var{mesh} and @var{bearing_surf}.master_node_no must be defined.
 ##
+## @var{options}.rigid_body_modes_load_index @dots{} Consider all loads in @var{load_case}(@var{options}.rigid_body_modes_load_index) for rigid body modes.
+##
 ## @var{options}.solver @dots{} Name of linear solver to use.
 ##
 ## @var{options}.refine_max_iter @dots{} Maximum number of iterative refinement steps for the linear solver.
@@ -83,10 +85,22 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     options.verbose = int32(0);
   endif
 
+  if (~isfield(options, "active_joint_idx_eig"))
+    if (isfield(mesh.elements, "joints"))
+      options.active_joint_idx_eig = 1:numel(mesh.elements.joints);
+    else
+      options.active_joint_idx_eig = [];
+    endif
+  endif
+  
   if (~isfield(options, "rigid_body_modes"))
     options.rigid_body_modes = "rigid";
   endif
 
+  if (~isfield(options, "rigid_body_modes_load_index"))
+    options.rigid_body_modes_load_index = [];
+  endif
+  
   switch (options.rigid_body_modes)
     case "flexible"
       if (~isfield(bearing_surf, "master_node_no"))
@@ -141,7 +155,15 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     load_case_press_mod(i).pressure.tria6.p(ielem_idx(i, 1):ielem_idx(i, end), :) = 1;
   endfor
 
-  dof_map_press = fem_ass_dof_map(mesh, load_case);
+  if (isfield(mesh.elements, "joints"))
+    elem_joints = mesh.elements.joints;
+  else
+    elem_joints = struct("nodes", cell(1, 0), "C", cell(1, 0));
+  endif
+
+  mesh.elements.joints = elem_joints(options.active_joint_idx_eig);
+  
+  dof_map_press = fem_ass_dof_map(mesh, load_case(1));
 
   [mat_ass_press.K, ...
    mat_ass_press.R] = fem_ass_matrix(mesh, ...
@@ -151,6 +173,8 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 				     load_case_press_mod);
 
 
+  mesh.elements.joints = elem_joints;
+  
   diagA = zeros(rows(mesh.nodes), numel(bearing_surf));
 
   for i=1:columns(dof_map_press.ndof)
@@ -198,11 +222,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
   dc = [1, -1];
 
-  if (isfield(mesh.elements, "joints"))
-    ijoint_offset = numel(mesh.elements.joints);
-  else
-    ijoint_offset = 0;
-  endif
+  ijoint_offset = numel(elem_joints);
 
   inum_joints = ijoint_offset;
   ijoint_idx = zeros(numel(bearing_surf), 2, "int32");
@@ -215,22 +235,22 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
   empty_cell = cell(size(inum_joints));
 
-  elem_joints = struct("nodes", empty_cell, "C", empty_cell);
+  elem_joints_itf = struct("nodes", empty_cell, "C", empty_cell);
 
-  if (isfield(mesh.elements, "joints"))
-    elem_joints(1:ijoint_offset) = mesh.elements.joints(1:ijoint_offset);
-  endif
+  elem_joints_itf(1:ijoint_offset) = elem_joints(1:ijoint_offset);
   
   for i=1:numel(bearing_surf)
     node_idx = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
-    elem_joints(ijoint_idx(i, 1) + (1:numel(node_idx)) - 1) = struct("nodes", mat2cell(node_idx, 1, ones(size(node_idx))), ...
-								     "C", repmat({[eye(3), zeros(3,3)]}, size(node_idx)));
+    elem_joints_itf(ijoint_idx(i, 1) + (1:numel(node_idx)) - 1) = struct("nodes", mat2cell(node_idx, 1, ones(size(node_idx))), ...
+									 "C", repmat({[eye(3), zeros(3,3)]}, size(node_idx)));
   endfor
 
   load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
 
+  zero_U = struct("U", cellfun(@(C) zeros(rows(C), 1), {elem_joints_itf.C}, "UniformOutput", false));
+  
   for i=1:numel(load_case_displ)
-    load_case_displ(i).joints = struct("U", cellfun(@(C) zeros(rows(C), 1), {elem_joints.C}, "UniformOutput", false));
+    load_case_displ(i).joints = zero_U;
   endfor
 
   inum_modes_tot = int32(0);
@@ -339,20 +359,22 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   if (rigid_body_modes_flexible)
     inum_modes_itf_flex = int32(0);
 
-    for i=1:numel(bearing_surf)
-      mesh.elements.joints(ijoint_offset + i).nodes = bearing_surf(i).master_node_no;
-      mesh.elements.joints(ijoint_offset + i).C = eye(6);
-
-      if (bearing_surf(i).options.include_rigid_body_modes)
-	inum_modes_itf_flex += 6;
-      endif
-    endfor
+    mesh.elements.joints(ijoint_offset + (1:numel(bearing_surf))) = struct("nodes", {bearing_surf.master_node_no}, ...
+									   "C", repmat({eye(6)}, size(bearing_surf)));
+    
+    inum_modes_itf_flex = 6 * sum([[bearing_surf.options].include_rigid_body_modes]);
 
     load_case_itf_flex = fem_pre_load_case_create_empty(inum_modes_itf_flex);
 
-    zero_U = struct("U", repmat({zeros(6, 1)}, size(mesh.elements.joints)));
+    idx_load_case_itf_flex = numel(options.rigid_body_modes_load_index);
 
-    idx_load_case_itf_flex = int32(0);
+    zero_U = struct("U", repmat({zeros(6, 1)}, 1, numel(bearing_surf)));
+    
+    for i=1:numel(options.rigid_body_modes_load_index)
+      load_case(options.rigid_body_modes_load_index(i)).joints(ijoint_offset + (1:numel(bearing_surf))) = zero_U;
+    endfor
+    
+    zero_U = struct("U", repmat({zeros(6, 1)}, size(mesh.elements.joints)));
 
     for i=1:numel(bearing_surf)
       if (~bearing_surf(i).options.include_rigid_body_modes)
@@ -365,9 +387,13 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
       endfor
     endfor
 
+    if (~isempty(options.rigid_body_modes_load_index))
+      load_case_itf_flex = fem_pre_load_case_merge(load_case(options.rigid_body_modes_load_index), load_case_itf_flex);
+    endif
+    
     clear zero_U;
 
-    dof_map_itf_flex = fem_ass_dof_map(mesh, load_case);
+    dof_map_itf_flex = fem_ass_dof_map(mesh, load_case(1));
 
     [mat_ass_itf_flex.K, ...
      mat_ass_itf_flex.R] = fem_ass_matrix(mesh, ...
@@ -398,10 +424,12 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     endfor
   endif
 
-  mesh.elements.joints = elem_joints;
+  mesh.elements.joints = elem_joints_itf;
 
+  zero_U = struct("U", cellfun(@(C) zeros(rows(C), 1), {elem_joints_itf.C}, "UniformOutput", false));
+  
   for i=1:numel(load_case_press_dist)
-    load_case_press_dist(i).joints = struct("U", cellfun(@(C) zeros(rows(C), 1), {elem_joints.C}, "UniformOutput", false));
+    load_case_press_dist(i).joints = zero_U;
   endfor
 
   load_case = fem_pre_load_case_merge(load_case_press_dist, load_case_displ);
