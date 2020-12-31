@@ -213,7 +213,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     inum_joints += numel(idx_joint);
   endfor
 
-  empty_cell = cell(1, inum_joints);
+  empty_cell = cell(size(inum_joints));
 
   elem_joints = struct("nodes", empty_cell, "C", empty_cell);
 
@@ -223,8 +223,8 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   
   for i=1:numel(bearing_surf)
     node_idx = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
-    elem_joints(ijoint_idx(i, 1) + (1:numel(node_idx)) - 1) = struct("nodes", mat2cell(node_idx, 1, ones(1, numel(node_idx))), ...
-								     "C", repmat({[eye(3), zeros(3,3)]}, 1, numel(node_idx)));
+    elem_joints(ijoint_idx(i, 1) + (1:numel(node_idx)) - 1) = struct("nodes", mat2cell(node_idx, 1, ones(size(node_idx))), ...
+								     "C", repmat({[eye(3), zeros(3,3)]}, size(node_idx)));
   endfor
 
   load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
@@ -311,7 +311,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     U *= diag(1 ./ max(abs(U), [], 1));
 
     for k=1:columns(U)
-      load_case_displ(inum_modes_tot + k).joints(ijoint_idx(i, 1) + (1:numel(inode_idx_bs)) - 1) = struct("U", mat2cell(U(:, k), repmat(3, numel(inode_idx_bs), 1), 1));
+      load_case_displ(inum_modes_tot + k).joints(ijoint_idx(i, 1) + (1:numel(inode_idx_bs)) - 1) = struct("U", mat2cell(U(:, k), repmat(3, size(inode_idx_bs)), 1));
     endfor
 
     if (nargout >= 5)
@@ -350,7 +350,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
     load_case_itf_flex = fem_pre_load_case_create_empty(inum_modes_itf_flex);
 
-    zero_U = struct("U", repmat({zeros(6, 1)}, 1, numel(mesh.elements.joints)));
+    zero_U = struct("U", repmat({zeros(6, 1)}, size(mesh.elements.joints)));
 
     idx_load_case_itf_flex = int32(0);
 
