@@ -92,7 +92,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
       options.active_joint_idx_eig = [];
     endif
   endif
-  
+
   if (~isfield(options, "rigid_body_modes"))
     options.rigid_body_modes = "rigid";
   endif
@@ -100,11 +100,11 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   if (~isfield(options, "rigid_body_modes_load_index"))
     options.rigid_body_modes_load_index = [];
   endif
-  
+
   switch (options.rigid_body_modes)
     case "flexible"
       if (~isfield(bearing_surf, "master_node_no"))
-	error("missing field bearing_surf.master_node_no needed for flexible rigid body modes");
+        error("missing field bearing_surf.master_node_no needed for flexible rigid body modes");
       endif
 
       rigid_body_modes_flexible = true;
@@ -162,19 +162,19 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   endif
 
   mesh.elements.joints = elem_joints(options.active_joint_idx_eig);
-  
+
   dof_map_press = fem_ass_dof_map(mesh, load_case(1));
 
   [mat_ass_press.K, ...
    mat_ass_press.R] = fem_ass_matrix(mesh, ...
-				     dof_map_press, ...
-				     [mat_type_stiffness, ...
-				      FEM_VEC_LOAD_CONSISTENT], ...
-				     load_case_press_mod);
+                                     dof_map_press, ...
+                                     [mat_type_stiffness, ...
+                                      FEM_VEC_LOAD_CONSISTENT], ...
+                                     load_case_press_mod);
 
 
   mesh.elements.joints = elem_joints;
-  
+
   diagA = zeros(rows(mesh.nodes), numel(bearing_surf));
 
   for i=1:columns(dof_map_press.ndof)
@@ -183,7 +183,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     diagA(idx_act_dof, :) += mat_ass_press.R(dof_idx(idx_act_dof), :).^2;
   endfor
 
-  inum_modes_tot = int32(0);
+  inum_modes_tot = numel(options.rigid_body_modes_load_index);
   inum_modes_press = int32(0);
 
   for i=1:numel(bearing_surf)
@@ -213,12 +213,12 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   opt = struct();
 
   ir = int32([3, 2;
-	      1, 3;
-	      2, 1]);
+              1, 3;
+              2, 1]);
 
   ic = int32([2, 3;
-	      3, 1;
-	      1, 2]);
+              3, 1;
+              1, 2]);
 
   dc = [1, -1];
 
@@ -238,17 +238,17 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   elem_joints_itf = struct("nodes", empty_cell, "C", empty_cell);
 
   elem_joints_itf(1:ijoint_offset) = elem_joints(1:ijoint_offset);
-  
+
   for i=1:numel(bearing_surf)
     node_idx = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
     elem_joints_itf(ijoint_idx(i, 1) + (1:numel(node_idx)) - 1) = struct("nodes", mat2cell(node_idx, 1, ones(size(node_idx))), ...
-									 "C", repmat({[eye(3), zeros(3,3)]}, size(node_idx)));
+                                                                         "C", repmat({[eye(3), zeros(3,3)]}, size(node_idx)));
   endfor
 
   load_case_displ = fem_pre_load_case_create_empty(inum_modes_tot);
 
   zero_U = struct("U", cellfun(@(C) zeros(rows(C), 1), {elem_joints_itf.C}, "UniformOutput", false));
-  
+
   for i=1:numel(load_case_displ)
     load_case_displ(i).joints = zero_U;
   endfor
@@ -290,7 +290,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
       Phi = zeros(rows(mat_ass_press.K), 0);
       kappa = [];
     endif
-    
+
     clear oper Ap;
 
     if (options.shift_A ~= 0)
@@ -313,7 +313,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
     for j=1:3
       for k=1:2
-	Arb(ir(j, k):3:end, ic(j, k) + 3) = -dc(k) * l(:, j);
+        Arb(ir(j, k):3:end, ic(j, k) + 3) = -dc(k) * l(:, j);
       endfor
     endfor
 
@@ -338,12 +338,12 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
       idx_mode_press = inum_modes_press + (1:columns(Phi));
 
       for j=1:columns(dof_map_press.ndof)
-	idof_idx = dof_map_press.ndof(:, j);
-	iactive_dof = find(idof_idx > 0);
-	idof_idx = idof_idx(iactive_dof);
+        idof_idx = dof_map_press.ndof(:, j);
+        iactive_dof = find(idof_idx > 0);
+        idof_idx = idof_idx(iactive_dof);
 
-	sol_eig.def(iactive_dof, j, idx_mode_press) = Phi(idof_idx, :);
-	clear idof_idx iactive_dof;
+        sol_eig.def(iactive_dof, j, idx_mode_press) = Phi(idof_idx, :);
+        clear idof_idx iactive_dof;
       endfor
 
       sol_eig.lambda(idx_mode_press) = diag(kappa) - gamma;
@@ -357,50 +357,48 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   clear mat_ass_press dof_map_press;
 
   if (rigid_body_modes_flexible)
-    inum_modes_itf_flex = int32(0);
-
     mesh.elements.joints(ijoint_offset + (1:numel(bearing_surf))) = struct("nodes", {bearing_surf.master_node_no}, ...
-									   "C", repmat({eye(6)}, size(bearing_surf)));
-    
+                                                                           "C", repmat({eye(6)}, size(bearing_surf)));
+
     inum_modes_itf_flex = 6 * sum([[bearing_surf.options].include_rigid_body_modes]);
 
     load_case_itf_flex = fem_pre_load_case_create_empty(inum_modes_itf_flex);
 
-    idx_load_case_itf_flex = numel(options.rigid_body_modes_load_index);
-
     zero_U = struct("U", repmat({zeros(6, 1)}, 1, numel(bearing_surf)));
-    
+
     for i=1:numel(options.rigid_body_modes_load_index)
       load_case(options.rigid_body_modes_load_index(i)).joints(ijoint_offset + (1:numel(bearing_surf))) = zero_U;
     endfor
-    
+
     zero_U = struct("U", repmat({zeros(6, 1)}, size(mesh.elements.joints)));
+
+    idx_load_case_itf_flex = int32(0);
 
     for i=1:numel(bearing_surf)
       if (~bearing_surf(i).options.include_rigid_body_modes)
-	continue;
+        continue;
       endif
 
       for j=1:6
-	load_case_itf_flex(++idx_load_case_itf_flex).joints = zero_U;
-	load_case_itf_flex(idx_load_case_itf_flex).joints(ijoint_offset + i).U(j) = 1;
+        load_case_itf_flex(++idx_load_case_itf_flex).joints = zero_U;
+        load_case_itf_flex(idx_load_case_itf_flex).joints(ijoint_offset + i).U(j) = 1;
       endfor
     endfor
 
     if (~isempty(options.rigid_body_modes_load_index))
       load_case_itf_flex = fem_pre_load_case_merge(load_case(options.rigid_body_modes_load_index), load_case_itf_flex);
     endif
-    
+
     clear zero_U;
 
     dof_map_itf_flex = fem_ass_dof_map(mesh, load_case(1));
 
     [mat_ass_itf_flex.K, ...
      mat_ass_itf_flex.R] = fem_ass_matrix(mesh, ...
-					  dof_map_itf_flex, ...
-					  [mat_type_stiffness, ...
-					   FEM_VEC_LOAD_CONSISTENT], ...
-					  load_case_itf_flex);
+                                          dof_map_itf_flex, ...
+                                          [mat_type_stiffness, ...
+                                           FEM_VEC_LOAD_CONSISTENT], ...
+                                          load_case_itf_flex);
 
     Kfact = fem_sol_factor(mat_ass_itf_flex.K, options);
 
@@ -410,24 +408,29 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
     for i=1:numel(bearing_surf)
       inode_idx_bs = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
+
       Ubs = zeros(3, numel(inode_idx_bs), columns(U));
 
       for j=1:3
-	idof_idx = dof_map_itf_flex.ndof(inode_idx_bs, j);
-	iactive_dof = find(idof_idx > 0);
-	Ubs(j, iactive_dof, :) = U(idof_idx(iactive_dof), :);
+        idof_idx = dof_map_itf_flex.ndof(inode_idx_bs, j);
+        iactive_dof = find(idof_idx > 0);
+        Ubs(j, iactive_dof, :) = U(idof_idx(iactive_dof), :);
       endfor
 
       for k=1:size(Ubs, 3)
 	load_case_displ(inum_modes_tot + k).joints(ijoint_idx(i, 1) + (1:numel(inode_idx_bs)) - 1) = struct("U", mat2cell(Ubs(:, :, k), rows(Ubs), ones(1, columns(Ubs))));
       endfor
     endfor
+
+    for i=1:numel(options.rigid_body_modes_load_index)
+      load_case_displ(inum_modes_tot + i).joints(1:ijoint_offset) = load_case(options.rigid_body_modes_load_index(i)).joints(1:ijoint_offset);
+    endfor
   endif
 
   mesh.elements.joints = elem_joints_itf;
 
   zero_U = struct("U", cellfun(@(C) zeros(rows(C), 1), {elem_joints_itf.C}, "UniformOutput", false));
-  
+
   for i=1:numel(load_case_press_dist)
     load_case_press_dist(i).joints = zero_U;
   endfor
@@ -502,6 +505,7 @@ endfunction
 %!	  fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
 %!	  fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
 %!	  fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!        fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %!	unwind_protect_cleanup
 %!	  if (fd ~= -1)
 %!	    fclose(fd);
@@ -509,7 +513,7 @@ endfunction
 %!	  endif
 %!	end_unwind_protect
 %!	fprintf(stderr, "meshing ...\n");
-%!	pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%!	pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-ho_min", "0.5", "-ho_max", "1.5", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!	status = spawn_wait(pid);
 %!	if (status ~= 0)
 %!	  error("gmsh failed with status %d", status);
@@ -701,6 +705,7 @@ endfunction
 %!	fputs(fd, "tmp[] = Extrude {0, 0, w} { Surface{18}; };\n");
 %!	fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
 %!	fputs(fd, "ReorientMesh Volume{tmp[1]};\n");
+%!      fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %!	fprintf(fd, "Physical Surface(\"small-end\", %d) = {tmp[8],tmp[9],tmp[10],tmp[11]};\n", grp_id_p1);
 %!	fprintf(fd, "Physical Surface(\"big-end\", %d) = {tmp[12],tmp[13],tmp[14],tmp[15]};\n", grp_id_p2);
 %!       unwind_protect_cleanup
@@ -710,7 +715,7 @@ endfunction
 %!	endif
 %!       end_unwind_protect
 %!       fprintf(stderr, "meshing ...\n");
-%!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-ho_min", "0.5", "-ho_max", "1.5",  "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!       status = spawn_wait(pid);
 %!       if (status ~= 0)
 %!	   error("gmsh failed with status %d", status);
