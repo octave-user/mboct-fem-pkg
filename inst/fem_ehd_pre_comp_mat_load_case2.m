@@ -186,10 +186,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   inum_modes_tot = numel(options.rigid_body_modes_load_index);
   inum_modes_press = int32(0);
 
-  ##dof_map = fem_ass_dof_map(mesh, load_case(1));
-  
   for i=1:numel(bearing_surf)
-    ##bearing_surf(i).options.number_of_modes = min(bearing_surf(i).options.number_of_modes, floor(sum(sum(dof_map.ndof(mesh.groups.tria6(bearing_surf(i).group_idx).nodes, :) > 0)) / 2 - 6));
     inum_modes_tot += bearing_surf(i).options.number_of_modes;
     inum_modes_press += bearing_surf(i).options.number_of_modes;
 
@@ -319,10 +316,6 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
         Arb(ir(j, k):3:end, ic(j, k) + 3) = -dc(k) * l(:, j);
       endfor
     endfor
-
-    ## for j=1:numel(inode_idx_bs)
-    ##   assert(Arb((j - 1) * 3 + (1:3), :), [eye(3), -skew(l(j, :))]);
-    ## endfor
     
     U -= Arb * (Arb \ U);
 
@@ -871,7 +864,7 @@ endfunction
 %!     grp_id_p1 = 2;
 %!     grp_id_p2 = 3;
 %!     scale_def = 5e-3;
-%!     mesh_size = 7e-3;
+%!     mesh_size = 3.5e-3;
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "d = %g;\n", d);
 %!     fprintf(fd, "D = %g;\n", D);
@@ -971,6 +964,7 @@ endfunction
 %!   cms_opt.static_modes = false;
 %!   cms_opt.modal_node_constraint = false;
 %!   cms_opt.load_cases = "index";
+%!   cms_opt.solver = "umfpack";
 %!   cms_opt.refine_max_iter = int32(10);
 %!   load_case(1).locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -980,10 +974,14 @@ endfunction
 %!   opt_modes.shift_A = 1e-6;
 %!   opt_modes.refine_max_iter = int32(10);
 %!   opt_modes.verbose = int32(0);
-%!   num_modes = [floor(numel(mesh.groups.tria6(grp_idx_p1).nodes) * 3 / 2 - 6)];
+%!   opt_modes.solver = "umfpack";
+%!   num_modes = [10, 50, 100, floor(numel(mesh.groups.tria6(grp_idx_p1).nodes) * 3 / 2 - 6)];
 %!   err_red = zeros(7, numel(num_modes));
-%!   interfaces = {"rigid", "flexible"};
-%!   num_modes_cms = int32([0, 10]);
+%!   err_mod = zeros(1, numel(num_modes));
+%!   interfaces = {"flexible"};
+%!   num_modes_cms = int32([10]);
+%!   k1 = 1;
+%!   k2 = 0;
 %!   for k=1:numel(num_modes_cms)
 %!     cms_opt.modes.number = num_modes_cms(k);
 %!     for j=1:numel(interfaces)
@@ -994,6 +992,14 @@ endfunction
 %!         endfor
 %!         [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!         [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
+%!         [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
+%!         [lambda, idx_lambda] = sort(diag(lambda));
+%!         qred = qred(:, idx_lambda);
+%!         sol_eig_red.def = fem_post_cms_expand_body(mesh_l, dof_map, mat_ass, qred);
+%!         for i=1:size(sol_eig_red.def, 3)
+%!           sol_eig_red.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_red.def(:, 1:3, i))));
+%!         endfor
+%!         sol_eig_red.f = imag(sqrt(-lambda)) / (2 * pi);
 %!         comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh_l, mat_ass, dof_map, cms_opt, bearing_surf_l);
 %!         load_case_itf = fem_pre_load_case_create_empty(6);
 %!         for i=1:6
@@ -1008,7 +1014,7 @@ endfunction
 %!         nz2 = numel(comp_mat(2).bearing_surf.grid_z);
 %!         X1 = mesh_l.nodes(mesh_l.groups.tria6(bearing_surf_l(1).group_idx).nodes, 1:3) - bearing_surf_l(1).X0.';
 %!         Phi1 = atan2(X1(:, 2), X1(:, 1));
-%!         p1 = sin(Phi1) .* (2 * X1(:, 3) / (max(X1(:, 3)) - min(X1(:, 3)))) * bearing_surf_l(1).options.reference_pressure;
+%!         p1 = k1 * sin(Phi1).^2 * bearing_surf_l(1).options.reference_pressure;
 %!         Phi1g = comp_mat(1).bearing_surf.grid_x(:) / (0.5 * comp_mat(1).bearing_dimensions.bearing_diameter);
 %!         z1g = comp_mat(1).bearing_surf.grid_z(:);
 %!         p1red = zeros(numel(z1g), numel(Phi1g));
@@ -1018,7 +1024,7 @@ endfunction
 %!         p1red = p1red(:);
 %!         X2 = mesh_l.nodes(mesh_l.groups.tria6(bearing_surf_l(2).group_idx).nodes, 1:3) - bearing_surf_l(2).X0.';
 %!         Phi2 = atan2(X2(:, 2), X2(:, 1));
-%!         p2 = cos(Phi2) .* sin(pi * X2(:, 3) / (max(X2(:, 3)) - min(X2(:, 3)))) * bearing_surf_l(2).options.reference_pressure;
+%!         p2 = k2 * cos(Phi2).^2 .* sin(pi * X2(:, 3) / (max(X2(:, 3)) - min(X2(:, 3)))) * bearing_surf_l(2).options.reference_pressure;
 %!         Phi2g = comp_mat(2).bearing_surf.grid_x(:) / (0.5 * comp_mat(2).bearing_dimensions.bearing_diameter);
 %!         z2g = comp_mat(2).bearing_surf.grid_z(:);
 %!         p2red = zeros(numel(z2g), numel(Phi2g));
@@ -1049,8 +1055,19 @@ endfunction
 %!         mesh_post.elements.joints.C = eye(6);
 %!         mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
 %!         dof_map_post = fem_ass_dof_map(mesh_post, load_case_post(1));
-%!         [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
+%!         [mat_ass_post.M, ...
+%!          mat_ass_post.K, ...
+%!          mat_ass_post.R] = fem_ass_matrix(mesh_post, ...
+%!                                           dof_map_post, ...
+%!                                           [FEM_MAT_MASS, FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
+%!                                           load_case_post);
 %!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred));
+%!         for i=1:size(sol_eig_post.def, 3)
+%!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
+%!         endfor
+%!         num_modes_comp = min(40, floor(numel(sol_eig_red.f) / 3));
+%!         err_mod(l) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
 %!         mesh_data(1).mesh = mesh_l;
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
@@ -1069,9 +1086,12 @@ endfunction
 %!         for i=1:size(sol_post.def, 3)
 %!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i,l));
 %!         endfor
+%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(l));
 %!       endfor
 %!       tol_red = 6e-2;
+%!       tol_mod = 6e-2;
 %!       assert(all(err_red(:, end) < tol_red));
+%!       assert(err_mod(end) < tol_mod);
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup
