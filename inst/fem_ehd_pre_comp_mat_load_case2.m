@@ -864,7 +864,7 @@ endfunction
 %!     grp_id_p1 = 2;
 %!     grp_id_p2 = 3;
 %!     scale_def = 5e-3;
-%!     mesh_size = 3.5e-3;
+%!     mesh_size = 2.5e-3;
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "d = %g;\n", d);
 %!     fprintf(fd, "D = %g;\n", D);
@@ -978,6 +978,7 @@ endfunction
 %!   num_modes = [10, 50, 100, floor(numel(mesh.groups.tria6(grp_idx_p1).nodes) * 3 / 2 - 6)];
 %!   err_red = zeros(7, numel(num_modes));
 %!   err_mod = zeros(1, numel(num_modes));
+%!   err_w = zeros(1, numel(num_modes));
 %!   interfaces = {"flexible"};
 %!   num_modes_cms = int32([10]);
 %!   k1 = 1;
@@ -1035,6 +1036,8 @@ endfunction
 %!         Fred = comp_mat(1).E(:, 1:end -  nz1) * p1red(1:end -  nz1) / bearing_surf_l(1).options.reference_pressure + comp_mat(2).E(:, 1:end - nz2) * p2red(1:end -  nz2) / bearing_surf_l(2).options.reference_pressure;
 %!         Fred = [full(mat_ass.Tred.' * Ritf(dof_map.idx_node, :)), Fred];
 %!         qred = mat_ass.Kred \ Fred;
+%!         w1red = comp_mat(1).D * qred;
+%!         w2red = comp_mat(2).D * qred;
 %!         sol_red.def = fem_post_cms_expand_body(mesh_l, dof_map, mat_ass, qred);
 %!         mesh_post = mesh_l;
 %!         mesh_post.elements = rmfield(mesh_post.elements, "joints");
@@ -1062,12 +1065,38 @@ endfunction
 %!                                           [FEM_MAT_MASS, FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
 %!                                           load_case_post);
 %!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!         node_idx1 = mesh_l.groups.tria6(bearing_surf(1).group_idx).nodes;
+%!         w1post = zeros(numel(node_idx1), size(sol_post.def, 3));
+%!         for i=1:numel(node_idx1)
+%!            ni = [mesh_l.nodes(node_idx1(i), 1:2).' - bearing_surf(1).X0(1:2); 0];
+%!            ni /= norm(ni);
+%!            w1post(i, :) = ni.' * reshape(sol_post.def(node_idx1(i), 1:3, :), 3, size(sol_post.def, 3));
+%!         endfor
+%!         w1postint = zeros(rows(comp_mat(1).D), columns(w1post));
+%!         for i=1:columns(w1postint)
+%!            for m=1:numel(Phi1g)
+%!               w1postint((m - 1) * numel(z1g) + (1:numel(z1g)), i) = griddata([Phi1 - 2 * pi; Phi1; Phi1 + 2 * pi], repmat(X1(:, 3), 3, 1), repmat(w1post(:, i), 3, 1), repmat(Phi1g(m), numel(z1g), 1), z1g);
+%!            endfor
+%!         endfor
+%!         for m=1:columns(w1red)
+%!           for i=1:numel(z1g)
+%!             figure("visible", "off");
+%!             hold("on");
+%!             plot(Phi1g * 180 / pi, 1e6 * w1red(i:numel(z1g):end, m), "-;modal;1");
+%!             plot(Phi1g * 180 / pi, 1e6 * w1postint(i:numel(z1g):end, m), "-;nodal;0");
+%!             ylim(1e6 * [min(min(w1postint(:, m))), max(max(w1postint(:, m)))]);
+%!             title(sprintf("%d modes: i=%d m=%d", num_modes(l), i, m));
+%!             xlabel("Phi [deg]");
+%!             ylabel("w [um]");
+%!           endfor
+%!         endfor
 %!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred));
 %!         for i=1:size(sol_eig_post.def, 3)
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
 %!         num_modes_comp = min(40, floor(numel(sol_eig_red.f) / 3));
 %!         err_mod(l) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
+%!         err_w(l) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
 %!         mesh_data(1).mesh = mesh_l;
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
@@ -1087,11 +1116,14 @@ endfunction
 %!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i,l));
 %!         endfor
 %!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(l));
+%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(l));
 %!       endfor
 %!       tol_red = 6e-2;
 %!       tol_mod = 6e-2;
+%!       tol_w = 5e-2;
 %!       assert(all(err_red(:, end) < tol_red));
 %!       assert(err_mod(end) < tol_mod);
+%!       assert(err_w(end) < tol_w);
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup
