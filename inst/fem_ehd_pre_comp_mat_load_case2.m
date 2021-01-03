@@ -1050,19 +1050,7 @@ endfunction
 %!         mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
 %!         dof_map_post = fem_ass_dof_map(mesh_post, load_case_post(1));
 %!         [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
-%!         opt_sol.solver = "mldivide";
-%!         mat_ass_post.K = matrix_type(mat_ass_post.K, "singular");
-%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, opt_sol);
-%!         A = zeros(rows(mesh_post.nodes) * 3, 6);
-%!         li = mesh_post.nodes(:, 1:3) - mesh_post.nodes(cms_opt.nodes.modal.number, 1:3);
-%!         for i=1:rows(mesh.nodes)
-%!           A((i - 1) * 3 + (1:3), :) = [eye(3), -skew(li(i, :))];
-%!         endfor
-%!         qmod = reshape(sol_post.def(cms_opt.nodes.modal.number, :, :), 6, size(sol_post.def, 3));
-%!         Urb = A * qmod;
-%!         for i=1:size(sol_post.def, 1)
-%!           sol_post.def(i, 1:3, :) -= reshape(Urb((i - 1) * 3 + (1:3), :), 1, 3, columns(Urb));
-%!         endfor
+%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
 %!         mesh_data(1).mesh = mesh_l;
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
