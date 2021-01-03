@@ -258,6 +258,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   opt_sol.number_of_threads = cms_opt.number_of_threads;
   opt_sol.refine_max_iter = cms_opt.refine_max_iter;
   opt_sol.solver = cms_opt.solver;
+  opt_sol.verbose = cms_opt.verbose;
   
   Kfact = fem_sol_factor(mat_ass.K, opt_sol);
   
