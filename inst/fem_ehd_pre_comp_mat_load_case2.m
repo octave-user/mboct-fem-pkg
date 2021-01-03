@@ -1018,7 +1018,7 @@ endfunction
 %!         p1red = p1red(:);
 %!         X2 = mesh_l.nodes(mesh_l.groups.tria6(bearing_surf_l(2).group_idx).nodes, 1:3) - bearing_surf_l(2).X0.';
 %!         Phi2 = atan2(X2(:, 2), X2(:, 1));
-%!         p2 = cos(Phi2).^2 .* sin(pi * X2(:, 3) / (max(X2(:, 3)) - min(X2(:, 3)))) * bearing_surf_l(2).options.reference_pressure;
+%!         p2 = cos(Phi2) .* sin(pi * X2(:, 3) / (max(X2(:, 3)) - min(X2(:, 3)))) * bearing_surf_l(2).options.reference_pressure;
 %!         Phi2g = comp_mat(2).bearing_surf.grid_x(:) / (0.5 * comp_mat(2).bearing_dimensions.bearing_diameter);
 %!         z2g = comp_mat(2).bearing_surf.grid_z(:);
 %!         p2red = zeros(numel(z2g), numel(Phi2g));
@@ -1055,6 +1055,7 @@ endfunction
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
 %!         mesh_data(2).dof_map = dof_map_post;
+%!         mesh_data(2).mesh.nodes(:, 2) += 40e-3;
 %!         [mesh_comb, dof_map_comb] = fem_post_mesh_merge(mesh_data, struct());
 %!         sol_comb.def = zeros(rows(mesh_comb.nodes), columns(mesh_comb.nodes), size(sol_post.def, 3));
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(2) + (1:rows(sol_post.def)), :, :) = sol_post.def;
