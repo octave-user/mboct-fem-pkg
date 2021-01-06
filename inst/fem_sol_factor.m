@@ -74,7 +74,7 @@ function Afact = fem_sol_factor(A, options)
   options.solver = fem_sol_select(blambda, options.solver);
   
   switch (options.solver)
-    case "pastix"
+    case {"pastix", "pastix_ref"}
       if (~isfield(options, "matrix_type"))
         options.matrix_type = PASTIX_API_SYM_YES;
       endif
@@ -90,8 +90,13 @@ function Afact = fem_sol_factor(A, options)
       if (~isfield(options, "bind_thread_mode"))
         options.bind_thread_mode = PASTIX_API_BIND_NO;
       endif
-      
-      linear_solver = @fem_fact_pastix;
+
+      switch (options.solver)
+	case "pastix"
+	  linear_solver = @fem_fact_pastix;
+	case "pastix_ref"
+	  linear_solver = @fem_fact_pastix_ref;
+      endswitch
     case "mumps"
       if (blambda)
         options.matrix_type = MUMPS_MAT_SYM;

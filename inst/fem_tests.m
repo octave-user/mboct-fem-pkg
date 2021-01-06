@@ -2059,8 +2059,8 @@
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
-%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "mumps"};
-%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_mumps};
+%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps"};
+%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_pastix_ref, @fem_fact_mumps};
 %!   warnfunc = false(size(func));
 %!   options.refine_max_iter = int32(100);
 %!   options.verbose = int32(0);
@@ -4129,6 +4129,49 @@
 %!   endfor
 %! unwind_protect_cleanup
 %!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST 54
+%! if (~fem_sol_check_func("pastix"))
+%!   return;
+%! endif
+%! s = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   N = 1000;
+%!   for i=1:100
+%!     for j=1:3
+%!       A = sprand(N, N, 0.01) + diag(rand(N, 1));
+%!       A += A.';
+%!       opts.factorization = PASTIX_API_FACT_LDLT;
+%!       opts.refine_max_iter = int32(100);
+%!       opts.matrix_type = PASTIX_API_SYM_YES;
+%!       opts.epsilon_refine = eps^0.7;
+%!       opts.verbose = PASTIX_API_VERBOSE_NOT;
+%!       switch (j)
+%!         case 1
+%!           Asym = A;
+%!           opts.symmetric = false;
+%!         case {2, 3}
+%!           [r, c, d] = find(A);
+%!           switch (j)
+%!             case 2
+%!               idx = find(r >= c);
+%!             case 3
+%!               idx = find(r <= c);
+%!           endswitch
+%!           Asym = sparse(r(idx), c(idx), d(idx), rows(A), columns(A));
+%!           opts.symmetric = true;
+%!       endswitch
+%!       Afact = fem_fact_pastix_ref(Asym, opts);
+%!       B = rand(rows(A), 30);
+%!       X = Afact \ B;
+%!       assert(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) < opts.epsilon_refine);
+%!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", s);
 %! end_unwind_protect
 
 %!demo

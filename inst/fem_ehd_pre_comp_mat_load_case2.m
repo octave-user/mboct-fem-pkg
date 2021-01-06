@@ -112,6 +112,10 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
       rigid_body_modes_flexible = true;
     case "rigid"
       rigid_body_modes_flexible = false;
+
+      if (~isempty(options.rigid_body_modes_load_index))
+        error("option rigid_body_modes_load_index can be used only with flexible interfaces");
+      endif
     otherwise
       error("invalid option rigid_body_modes=\"%s\"", options.rigid_body_modes);
   endswitch
@@ -987,13 +991,15 @@ endfunction
 %!   opt_modes.verbose = int32(0);
 %!   opt_modes.solver = "pastix";
 %!   num_modes = [intmax];
-%!   err_red = zeros(7, numel(num_modes));
-%!   err_mod = zeros(1, numel(num_modes));
-%!   err_w = zeros(1, numel(num_modes));
-%!   interfaces = {"flexible"};
-%!   num_modes_cms = int32([50]);
+%!   interfaces = {"rigid", "flexible"};
+%!   num_modes_cms = int32([0, 50]);
 %!   k1 = 1;
 %!   k2 = 0;
+%!   num_cases = numel(num_modes) * numel(interfaces) * numel(num_modes_cms);
+%!   err_red = zeros(7, num_cases);
+%!   err_mod = zeros(1, num_cases);
+%!   err_w = zeros(1, num_cases);
+%!   icase = int32(0);
 %!   for k=1:numel(num_modes_cms)
 %!     cms_opt.modes.number = num_modes_cms(k);
 %!     for j=1:numel(interfaces)
@@ -1115,8 +1121,8 @@ endfunction
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
 %!         num_modes_comp = min(40, floor(numel(sol_eig_red.f) / 3));
-%!         err_mod(l) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
-%!         err_w(l) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
+%!         err_mod(++icase) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
+%!         err_w(icase) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
 %!         mesh_data(1).mesh = mesh_l;
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
@@ -1127,25 +1133,25 @@ endfunction
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(2) + (1:rows(sol_post.def)), :, :) = sol_post.def;
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(1) + (1:rows(sol_red.def)), :, :) = sol_red.def;
 %!         for i=1:size(sol_post.def, 3)
-%!           err_red(i, l) = max(max(abs(sol_post.def(1:end - 2, :, i) - sol_red.def(1:end - 2, :, i)))) / max(max(abs(sol_post.def(1:end - 2, :, i))));
+%!           err_red(i, icase) = max(max(abs(sol_post.def(1:end - 2, :, i) - sol_red.def(1:end - 2, :, i)))) / max(max(abs(sol_post.def(1:end - 2, :, i))));
 %!         endfor
 %!       endfor
 %!       for l=1:numel(num_modes)
 %!         fprintf(stderr, "%s interfaces using %d static pressure modes, %d dynamic modes:\n", interfaces{j}, num_modes(l), num_modes_cms(k));
 %!         for i=1:size(sol_post.def, 3)
-%!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i,l));
+%!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i, icase));
 %!         endfor
-%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(l));
-%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(l));
+%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(icase));
+%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(icase));
 %!       endfor
-%!       tol_red = 6e-2;
-%!       tol_mod = 6e-2;
-%!       tol_w = 5e-2;
-%!       assert(all(err_red(:, end) < tol_red));
-%!       assert(err_mod(end) < tol_mod);
-%!       assert(err_w(end) < tol_w);
 %!     endfor
 %!   endfor
+%!   tol_red = 6e-2;
+%!   tol_mod = 6e-2;
+%!   tol_w = 5e-2;
+%!   assert(all(err_red(:, end) < tol_red));
+%!   assert(err_mod(end) < tol_mod);
+%!   assert(err_w(end) < tol_w);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -1270,12 +1276,14 @@ endfunction
 %!   opt_modes.solver = "pastix";
 %!   opt_modes.active_joint_idx_eig = 1:numel(mesh.elements.joints);
 %!   num_modes = [intmax];
+%!   interfaces = {"rigid", "flexible"};
+%!   num_modes_cms = int32([0, 50]);
+%!   num_cases = numel(num_modes) * numel(interfaces) * numel(num_modes_cms);
 %!   err_red = zeros(7, numel(num_modes));
 %!   err_mod = zeros(1, numel(num_modes));
 %!   err_w = zeros(1, numel(num_modes));
-%!   interfaces = {"flexible"};
-%!   num_modes_cms = int32([50]);
 %!   k1 = 1;
+%!   icase = int32(0);
 %!   for k=1:numel(num_modes_cms)
 %!     cms_opt.modes.number = num_modes_cms(k);
 %!     for j=1:numel(interfaces)
@@ -1381,8 +1389,8 @@ endfunction
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
 %!         num_modes_comp = min(40, floor(numel(sol_eig_red.f) / 3));
-%!         err_mod(l) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
-%!         err_w(l) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
+%!         err_mod(++icase) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
+%!         err_w(icase) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
 %!         mesh_data(1).mesh = mesh_l;
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
@@ -1393,25 +1401,25 @@ endfunction
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(2) + (1:rows(sol_post.def)), :, :) = sol_post.def;
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(1) + (1:rows(sol_red.def)), :, :) = sol_red.def;
 %!         for i=1:size(sol_post.def, 3)
-%!           err_red(i, l) = max(max(abs(sol_post.def(1:end - 2, :, i) - sol_red.def(1:end - 2, :, i)))) / max(max(abs(sol_post.def(1:end - 2, :, i))));
+%!           err_red(i, icase) = max(max(abs(sol_post.def(1:end - 2, :, i) - sol_red.def(1:end - 2, :, i)))) / max(max(abs(sol_post.def(1:end - 2, :, i))));
 %!         endfor
 %!       endfor
 %!       for l=1:numel(num_modes)
 %!         fprintf(stderr, "%s interfaces using %d static pressure modes, %d dynamic modes:\n", interfaces{j}, num_modes(l), num_modes_cms(k));
 %!         for i=1:size(sol_post.def, 3)
-%!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i,l));
+%!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i, icase));
 %!         endfor
-%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(l));
-%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(l));
+%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(icase));
+%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(icase));
 %!       endfor
-%!       tol_red = 6e-2;
-%!       tol_mod = 6e-2;
-%!       tol_w = 5e-2;
-%!       assert(all(err_red(:, end) < tol_red));
-%!       assert(err_mod(end) < tol_mod);
-%!       assert(err_w(end) < tol_w);
 %!     endfor
 %!   endfor
+%!   tol_red = 6e-2;
+%!   tol_mod = 6e-2;
+%!   tol_w = 5e-2;
+%!   assert(all(err_red(:, end) < tol_red));
+%!   assert(err_mod(end) < tol_mod);
+%!   assert(err_w(end) < tol_w);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -1559,12 +1567,14 @@ endfunction
 %!   opt_modes.active_joint_idx_eig = [1:2];
 %!   opt_modes.rigid_body_modes_load_index = 1:6;
 %!   num_modes = [intmax];
-%!   err_red = zeros(7, numel(num_modes));
-%!   err_mod = zeros(1, numel(num_modes));
-%!   err_w = zeros(1, numel(num_modes));
 %!   interfaces = {"flexible"};
-%!   num_modes_cms = int32([50]);
+%!   num_modes_cms = int32([0, 50]);
+%!   num_cases = numel(num_modes) * numel(interfaces) * numel(num_modes_cms);
+%!   err_red = zeros(7, num_cases);
+%!   err_mod = zeros(1, num_cases);
+%!   err_w = zeros(1, num_cases);
 %!   k1 = 1;
+%!   icase = int32(0);
 %!   for k=1:numel(num_modes_cms)
 %!     cms_opt.modes.number = num_modes_cms(k);
 %!     for j=1:numel(interfaces)
@@ -1670,8 +1680,8 @@ endfunction
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
 %!         num_modes_comp = min(40, floor(numel(sol_eig_red.f) / 3));
-%!         err_mod(l) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
-%!         err_w(l) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
+%!         err_mod(++icase) = max(abs(sol_eig_red.f(num_modes_comp) - sol_eig_post.f(num_modes_comp)), [], 2) / max(sol_eig_post.f(num_modes_comp), [], 2);
+%!         err_w(icase) = max(max(abs(w1red - w1postint))) / max(max(abs(w1postint)));
 %!         mesh_data(1).mesh = mesh_l;
 %!         mesh_data(1).dof_map = dof_map;
 %!         mesh_data(2).mesh = mesh_post;
@@ -1682,25 +1692,25 @@ endfunction
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(2) + (1:rows(sol_post.def)), :, :) = sol_post.def;
 %!         sol_comb.def(dof_map_comb.submesh.offset.nodes(1) + (1:rows(sol_red.def)), :, :) = sol_red.def;
 %!         for i=1:size(sol_post.def, 3)
-%!           err_red(i, l) = norm(sol_post.def(:, :, i) - sol_red.def(:, :, i)) / norm(sol_post.def(:, :, i));
+%!           err_red(i, icase) = norm(sol_post.def(:, :, i) - sol_red.def(:, :, i)) / norm(sol_post.def(:, :, i));
 %!         endfor
 %!       endfor
 %!       for l=1:numel(num_modes)
 %!         fprintf(stderr, "%s interfaces using %d static pressure modes, %d dynamic modes:\n", interfaces{j}, num_modes(l), num_modes_cms(k));
 %!         for i=1:size(sol_post.def, 3)
-%!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i,l));
+%!           fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i, icase));
 %!         endfor
-%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(l));
-%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(l));
+%!         fprintf(stderr, "natural frequency: %.1f%%\n", 100 * err_mod(icase));
+%!         fprintf(stderr, "bearing radial deformation: %.1f%%\n", 100 * err_w(icase));
 %!       endfor
-%!       tol_red = 6e-2;
-%!       tol_mod = 6e-2;
-%!       tol_w = 5e-2;
-%!       assert(all(err_red(:, end) < tol_red));
-%!       assert(err_mod(end) < tol_mod);
-%!       assert(err_w(end) < tol_w);
 %!     endfor
 %!   endfor
+%!   tol_red = 6e-2;
+%!   tol_mod = 6e-2;
+%!   tol_w = 5e-2;
+%!   assert(all(err_red(:, end) < tol_red));
+%!   assert(err_mod(end) < tol_mod);
+%!   assert(err_w(end) < tol_w);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

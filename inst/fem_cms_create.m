@@ -175,10 +175,12 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   mat_type_damping = FEM_MAT_DAMPING_SYM_L;
 
   cms_opt.solver = fem_sol_select(true, cms_opt.solver);
+  cms_opt.symmetric = true;
   
   switch (cms_opt.solver)
     case {"umfpack", "lu", "mldivide"}
       mat_type_stiffness = FEM_MAT_STIFFNESS;
+      cms_opt.symmetric = false;
   endswitch
 
   switch (cms_opt.algorithm)

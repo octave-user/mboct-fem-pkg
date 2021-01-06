@@ -25,6 +25,11 @@ function flag = fem_sol_check_func(func)
   if (nargin ~= 1 || nargout > 1)
     print_usage();
   endif
+
+  switch (func)
+    case "pastix_ref"
+      func = "pastix";
+  endswitch
   
   flag = false;
   
