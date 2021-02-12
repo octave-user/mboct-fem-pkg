@@ -2022,6 +2022,8 @@ protected:
           Matrix Cepsilon(iNumStrains, iNumLoads);
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+               
                for (octave_idx_type j = 0; j < iNumDir; ++j) {
                     rv.xelem(j) = oIntegRule.dGetPosition(i, j);
                }
@@ -2070,7 +2072,7 @@ protected:
                               Rkj += B.xelem(l, k) * Cepsilon.xelem(l, j);
                          }
 
-                         R.xelem(k, j) += Rkj;
+                         R.xelem(k, j) += detJ * alpha * Rkj;
                     }
                }
           }
