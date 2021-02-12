@@ -2011,7 +2011,7 @@ protected:
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumDof = iGetNumDof();
           const Matrix& C = material->LinearElasticity();
-          const double alpha = material->ThermalExpansion();
+          const double gamma = material->ThermalExpansion();
           const octave_idx_type iNumStrains = C.rows();
 
           Matrix Ht(1, iNumNodes);
@@ -2037,7 +2037,7 @@ protected:
                          dThetaik += Ht.xelem(j) * dTheta.xelem(j, k);
                     }
 
-                    const double epsilonk = alpha * dThetaik;
+                    const double epsilonk = gamma * dThetaik;
 
                     FEM_ASSERT(iNumStrains >= 3);
 
