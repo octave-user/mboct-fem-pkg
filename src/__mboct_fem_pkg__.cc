@@ -1927,9 +1927,11 @@ protected:
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
           const octave_idx_type iNumNodes = nodes.numel();
-
+          const bool bThermalLoad = dTheta.columns();
+          
           ColumnVector rv(iNumDir);
           const Matrix& C = material->LinearElasticity();
+          const double gamma = material->ThermalExpansion();
           const octave_idx_type iNumStrains = C.rows();
 
           FEM_ASSERT(C.rows() == C.columns());
@@ -1943,9 +1945,13 @@ protected:
           FEM_ASSERT(U.dim2() >= 3);
           FEM_ASSERT(iNumDof == 3 * X.columns());
 
-          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
+          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht;
           ColumnVector Ue(iNumDof);
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
+
+          if (bThermalLoad) {
+               Ht.resize(1, iNumNodes);
+          }
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
                for (octave_idx_type j = 0; j < iNumDir; ++j) {
@@ -1955,6 +1961,10 @@ protected:
                Jacobian(rv, J);
 
                StrainMatrix(rv, J.inverse(), B);
+
+               if (bThermalLoad) {
+                    ScalarInterpMatrix(rv, Ht, 0);
+               }
 
                for (octave_idx_type j = 0; j < iNumStrains; ++j) {
                     for (octave_idx_type k = 0; k < iNumDof; ++k) {
@@ -1977,6 +1987,14 @@ protected:
                          }
                     }
 
+                    double dThetail = 0.;
+
+                    if (bThermalLoad) {
+                         for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                              dThetail += Ht.xelem(j) * dTheta.xelem(j, l);
+                         }
+                    }
+                    
                     for (octave_idx_type j = 0; j < iNumStrains; ++j) {
                          double taugj = 0;
 
@@ -1984,6 +2002,12 @@ protected:
                               taugj += CB.xelem(j, k) * Ue.xelem(k);
                          }
 
+                         if (bThermalLoad) {
+                              for (octave_idx_type k = 0; k < 3; ++k) {
+                                   taugj -= C.xelem(j, k) * gamma * dThetail;
+                              }
+                         }
+                         
                          taug.xelem(i, l * iNumStrains + j) = taugj;
                     }
                }
