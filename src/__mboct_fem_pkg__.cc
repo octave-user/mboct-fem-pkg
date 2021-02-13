@@ -26,8 +26,6 @@
 
 using namespace std::string_literals;
 
-#define DEBUG 2
-
 #if HAVE_NLOPT == 1
 #include <nlopt.h>
 #endif
@@ -2040,7 +2038,7 @@ protected:
           const double gamma = material->ThermalExpansion();
           const octave_idx_type iNumStrains = C.rows();
 
-          Matrix Ht(1, iNumNodes);
+          Matrix Ht(1, iNumNodes, 0.);
           ColumnVector rv(iNumDir);
 
           Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
