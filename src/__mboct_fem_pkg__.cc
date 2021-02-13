@@ -1950,7 +1950,7 @@ protected:
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
 
           if (bThermalLoad) {
-               Ht.resize(1, iNumNodes);
+               Ht.resize(1, iNumNodes, 0.);
           }
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
