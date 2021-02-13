@@ -26,6 +26,8 @@
 
 using namespace std::string_literals;
 
+#define DEBUG 2
+
 #if HAVE_NLOPT == 1
 #include <nlopt.h>
 #endif
