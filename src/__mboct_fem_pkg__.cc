@@ -3823,6 +3823,8 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
                iIntegRule = R1;
                break;
 
@@ -4263,6 +4265,8 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case VEC_STRESS_CAUCH:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
                if (!oIntegStiff.iGetNumEvalPoints()) {
                     constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
                     constexpr double beta = (5. - sqrt(5.)) / 20.;
