@@ -1950,7 +1950,7 @@ protected:
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
 
           if (bThermalLoad) {
-               Ht.resize(1, iNumNodes, 0.);
+               Ht.resize(1, iNumNodes);
           }
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
@@ -2038,7 +2038,7 @@ protected:
           const double gamma = material->ThermalExpansion();
           const octave_idx_type iNumStrains = C.rows();
 
-          Matrix Ht(1, iNumNodes, 0.);
+          Matrix Ht(1, iNumNodes);
           ColumnVector rv(iNumDir);
 
           Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
@@ -4202,7 +4202,7 @@ protected:
                     rv.xelem(j) = oIntegRule.dGetPosition(i, j);
                }
 
-               ScalarInterpMatrix(rv, H, i);
+               ScalarInterpMatrixCornerNodes(rv, H, i);
           }
 
           Matrix taun = H.solve(taug);
@@ -4229,8 +4229,30 @@ protected:
           return taun;
      }
 
-private:
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hs.columns() == 10);
+          FEM_ASSERT(irow >= 0);
+          FEM_ASSERT(irow < Hs.rows());
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+          
+          Hs.xelem(irow,0) = s*(2*s-1);
+          Hs.xelem(irow,1) = t*(2*t-1);
+          Hs.xelem(irow,2) = ((-2*t)-2*s-2*r+1)*((-t)-s-r+1);
+          Hs.xelem(irow,3) = r*(2*r-1);
+          Hs.xelem(irow,4) = 4*s*t;
+          Hs.xelem(irow,5) = 4*((-t)-s-r+1)*t;
+          Hs.xelem(irow,6) = 4*s*((-t)-s-r+1);
+          Hs.xelem(irow,7) = 4*r*s;
+          Hs.xelem(irow,8) = 4*r*t;
+          Hs.xelem(irow,9) = 4*r*((-t)-s-r+1);
+     }
+     
+private:
+     void ScalarInterpMatrixCornerNodes(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 4);
           FEM_ASSERT(irow >= 0);
@@ -4715,7 +4737,7 @@ protected:
                     rv.xelem(j) = oIntegRule.dGetPosition(i, j);
                }
 
-               ScalarInterpMatrix(rv, H, i);
+               ScalarInterpMatrixCornerNodes(rv, H, i);
           }
 
           Matrix taun = H.solve(taug);
@@ -4742,8 +4764,31 @@ protected:
           return taun;
      }
 
-private:
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+          FEM_ASSERT(rv.numel() == 4);
+          FEM_ASSERT(Hs.columns() == 10);
+          FEM_ASSERT(irow >= 0);
+          FEM_ASSERT(irow < Hs.rows());
+
+          const double Zeta1 = rv.xelem(0);
+          const double Zeta2 = rv.xelem(1);
+          const double Zeta3 = rv.xelem(2);
+          const double Zeta4 = rv.xelem(3);
+
+          Hs.xelem(irow, 0) = Zeta1*(2*Zeta1-1);
+          Hs.xelem(irow, 1) = Zeta2*(2*Zeta2-1);
+          Hs.xelem(irow, 2) = Zeta3*(2*Zeta3-1);
+          Hs.xelem(irow, 3) = Zeta4*(2*Zeta4-1);
+          Hs.xelem(irow, 4) = 4*Zeta1*Zeta2;
+          Hs.xelem(irow, 5) = 4*Zeta2*Zeta3;
+          Hs.xelem(irow, 6) = 4*Zeta1*Zeta3;
+          Hs.xelem(irow, 7) = 4*Zeta1*Zeta4;
+          Hs.xelem(irow, 8) = 4*Zeta2*Zeta4;
+          Hs.xelem(irow, 9) = 4*Zeta3*Zeta4;
+     }
+     
+private:
+     void ScalarInterpMatrixCornerNodes(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
           FEM_ASSERT(rv.numel() == 4);
           FEM_ASSERT(Hs.columns() == 4);
           FEM_ASSERT(irow >= 0);
