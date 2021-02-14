@@ -3844,6 +3844,7 @@ public:
                break;
 
           case VEC_STRESS_CAUCH:
+          case SCA_STRESS_VMIS:
                iIntegRule = R3;
                break;
 
@@ -5936,7 +5937,7 @@ public:
                static constexpr octave_idx_type N[2] = {6, 7};
                static constexpr double zeta[2][7] = {{0., 1., 0., 1./2., 1./2., 0.}, {1./3., A, 1. - 2. * A, A, B, 1. - 2. * B, B}};
                static constexpr double eta[2][7] = {{0., 0., 1., 0., 1./2., 1./2.}, {1./3., A, A, 1. - 2. * A, B, B, 1. - 2. * B}};
-               static constexpr double w[2][7] = {{1./6., 1./6., 1./6., 1./6., 1./6., 1./6.}, {9./80., P1, P1, P1, P2, P2, P2}};
+               static constexpr double w[2][7] = {{1./12., 1./12., 1./12., 1./12., 1./12., 1./12.}, {9./80., P1, P1, P1, P2, P2, P2}};
 
                rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule], 2);
 
