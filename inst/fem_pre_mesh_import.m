@@ -7565,6 +7565,830 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
+%!test
+%! ## TEST 37: thermal strain iso20
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   a = 40e-3;
+%!   b = 15e-3;
+%!   c = 15e-3;
+%!   dT = 400;
+%!   mesh_size = 3.5e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "a = %g;\n", a);
+%!   fprintf(fd, "b = %g;\n", b);
+%!   fprintf(fd, "c = %g;\n", c);
+%!   fprintf(fd, "h = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_x).nodes, 1:3) = true;
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.gamma = 1.26e-5;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   load_case.dTheta = mesh.nodes(:, 1) * (dT / a);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   figure("visible", "off");
+%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!   xlabel("x [m]");
+%!   ylabel("y [m]");
+%!   zlabel("z [m]");
+%!   grid on;
+%!   grid minor on;
+%!   title("static deflection - consistent pressure load");
+%!   figure_list();
+%!   tol = eps^0.8;
+%!   epsilon_th = dT * mesh.material_data.gamma;
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 38: thick walled cylinder with internal pressure tet10
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   ro = 50e-3;
+%!   ri = 25e-3;
+%!   L = 20e-3;
+%!   dT = 100;
+%!   Pi = 2e8;
+%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!   E = 2.1e11;
+%!   nu = 0.3;
+%!   gamma = 0.12e-4;
+%!   rho = 7850;
+%!   mesh_size = 2.5e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "ro = %g;\n", ro);
+%!   fprintf(fd, "ri = %g;\n", ri);
+%!   fprintf(fd, "L = %g;\n", L);
+%!   fprintf(fd, "H = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; };\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
+%!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
+%!   grp_id_clamp_z = find([[mesh.groups.tria6].id] == 4);
+%!   grp_id_Pi = find([mesh.groups.tria6.id] == 5);
+%!   grp_id_sigmaz = find([mesh.groups.tria6.id] == 6);
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_z).nodes, 3) = true;
+%!   elem_Pi = mesh.elements.tria6(mesh.groups.tria6(grp_id_Pi).elements, :);
+%!   elem_sigmaz = mesh.elements.tria6(mesh.groups.tria6(grp_id_sigmaz).elements, :);
+%!   load_case.pressure.tria6.elements = [elem_Pi; elem_sigmaz];
+%!   load_case.pressure.tria6.p = [repmat(Pi, size(elem_Pi)); repmat(-sigmaz, size(elem_sigmaz))];
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.material_data.gamma = gamma;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2);
+%!   z = mesh.nodes(:, 3);
+%!   Theta = atan2(mesh.nodes(:, 2), mesh.nodes(:, 1));
+%!   sigmaR = Pi * ri^2 / (ro^2 - ri^2) * (1 - ro^2 ./ r.^2);
+%!   sigmaTheta = Pi * ri^2 / (ro^2 - ri^2) * (1 + ro^2 ./ r.^2);
+%!   sigmaZ = Pi * ri^2 / (ro^2 - ri^2);
+%!   epsilonR = 1 / E * (sigmaR - nu * (sigmaTheta + sigmaZ));
+%!   epsilonTheta = 1 / E * (sigmaTheta - nu * (sigmaR + sigmaZ));
+%!   epsilonZ = 1 / E * (sigmaZ - nu * (sigmaR + sigmaTheta)) + gamma * dT;
+%!   Uz = z .* epsilonZ;
+%!   sigmaX = sigmaR .* cos(Theta) - sigmaTheta .* sin(Theta);
+%!   sigmaY = sigmaR .* sin(Theta) + sigmaTheta .* cos(Theta);
+%!   theta = Theta(mesh.elements.tet10);
+%!   sigmar = sigmatheta = sigmaz = zeros(size(mesh.elements.tet10));
+%!   idxtens = int32([1, 4, 6;
+%!                    4, 2, 5;
+%!                    6, 5, 3]);
+%!   for i=1:rows(mesh.elements.tet10)
+%!     for j=1:columns(mesh.elements.tet10)
+%!       e1 = mesh.nodes(mesh.elements.tet10(i, j), 1:3).';
+%!       e1(3) = 0;
+%!       e3 = [0; 0; 1];
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       SIGMAIJ = R.' * sol_stat.stress.taum.tet10(i, j, :)(idxtens) * R;
+%!       sigmar(i, j) = SIGMAIJ(1, 1);
+%!       sigmatheta(i, j) = SIGMAIJ(2, 2);
+%!       sigmaz(i, j) = SIGMAIJ(3, 3);
+%!     endfor
+%!   endfor
+%!   tol = 3e-2;
+%!   assert(sigmar, sigmaR(mesh.elements.tet10), tol * max(abs(sigmaR)));
+%!   assert(sigmatheta, sigmaTheta(mesh.elements.tet10), tol * max(abs(sigmaTheta)));
+%!   assert(sigmaz, repmat(sigmaZ, size(sigmaz)), tol * abs(sigmaZ));
+%!   assert(sol_stat.def(:, 3), Uz, tol * max(abs(Uz)));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 39: thick walled cylinder with internal pressure iso20
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   ro = 50e-3;
+%!   ri = 25e-3;
+%!   L = 20e-3;
+%!   dT = 100;
+%!   Pi = 2e8;
+%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!   E = 2.1e11;
+%!   nu = 0.3;
+%!   gamma = 0.12e-4;
+%!   rho = 7850;
+%!   mesh_size = 2.5e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "ro = %g;\n", ro);
+%!   fprintf(fd, "ri = %g;\n", ri);
+%!   fprintf(fd, "L = %g;\n", L);
+%!   fprintf(fd, "H = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
+%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 2);
+%!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 3);
+%!   grp_id_clamp_z = find([[mesh.groups.quad8].id] == 4);
+%!   grp_id_Pi = find([mesh.groups.quad8.id] == 5);
+%!   grp_id_sigmaz = find([mesh.groups.quad8.id] == 6);
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_z).nodes, 3) = true;
+%!   elem_Pi = mesh.elements.quad8(mesh.groups.quad8(grp_id_Pi).elements, :);
+%!   elem_sigmaz = mesh.elements.quad8(mesh.groups.quad8(grp_id_sigmaz).elements, :);
+%!   load_case.pressure.quad8.elements = [elem_Pi; elem_sigmaz];
+%!   load_case.pressure.quad8.p = [repmat(Pi, size(elem_Pi)); repmat(-sigmaz, size(elem_sigmaz))];
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.material_data.gamma = gamma;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2);
+%!   z = mesh.nodes(:, 3);
+%!   Theta = atan2(mesh.nodes(:, 2), mesh.nodes(:, 1));
+%!   sigmaR = Pi * ri^2 / (ro^2 - ri^2) * (1 - ro^2 ./ r.^2);
+%!   sigmaTheta = Pi * ri^2 / (ro^2 - ri^2) * (1 + ro^2 ./ r.^2);
+%!   sigmaZ = Pi * ri^2 / (ro^2 - ri^2);
+%!   epsilonR = 1 / E * (sigmaR - nu * (sigmaTheta + sigmaZ));
+%!   epsilonTheta = 1 / E * (sigmaTheta - nu * (sigmaR + sigmaZ));
+%!   epsilonZ = 1 / E * (sigmaZ - nu * (sigmaR + sigmaTheta)) + gamma * dT;
+%!   Uz = z .* epsilonZ;
+%!   sigmaX = sigmaR .* cos(Theta) - sigmaTheta .* sin(Theta);
+%!   sigmaY = sigmaR .* sin(Theta) + sigmaTheta .* cos(Theta);
+%!   theta = Theta(mesh.elements.iso20);
+%!   sigmar = sigmatheta = sigmaz = zeros(size(mesh.elements.iso20));
+%!   idxtens = int32([1, 4, 6;
+%!                    4, 2, 5;
+%!                    6, 5, 3]);
+%!   for i=1:rows(mesh.elements.iso20)
+%!     for j=1:columns(mesh.elements.iso20)
+%!       e1 = mesh.nodes(mesh.elements.iso20(i, j), 1:3).';
+%!       e1(3) = 0;
+%!       e3 = [0; 0; 1];
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       SIGMAIJ = R.' * sol_stat.stress.taum.iso20(i, j, :)(idxtens) * R;
+%!       sigmar(i, j) = SIGMAIJ(1, 1);
+%!       sigmatheta(i, j) = SIGMAIJ(2, 2);
+%!       sigmaz(i, j) = SIGMAIJ(3, 3);
+%!     endfor
+%!   endfor
+%!   tol = 3e-2;
+%!   assert(sigmar, sigmaR(mesh.elements.iso20), tol * max(abs(sigmaR)));
+%!   assert(sigmatheta, sigmaTheta(mesh.elements.iso20), tol * max(abs(sigmaTheta)));
+%!   assert(sigmaz, repmat(sigmaZ, size(sigmaz)), tol * abs(sigmaZ));
+%!   assert(sol_stat.def(:, 3), Uz, tol * max(abs(Uz)));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 40: thick walled cylinder with internal pressure iso8
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   ro = 50e-3;
+%!   ri = 25e-3;
+%!   L = 20e-3;
+%!   dT = 100;
+%!   Pi = 2e8;
+%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!   E = 2.1e11;
+%!   nu = 0.3;
+%!   gamma = 0.12e-4;
+%!   rho = 7850;
+%!   mesh_size = 1.25e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "ro = %g;\n", ro);
+%!   fprintf(fd, "ri = %g;\n", ri);
+%!   fprintf(fd, "L = %g;\n", L);
+%!   fprintf(fd, "H = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
+%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_y = find([[mesh.groups.iso4].id] == 2);
+%!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 3);
+%!   grp_id_clamp_z = find([[mesh.groups.iso4].id] == 4);
+%!   grp_id_Pi = find([mesh.groups.iso4.id] == 5);
+%!   grp_id_sigmaz = find([mesh.groups.iso4.id] == 6);
+%!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp_z).nodes, 3) = true;
+%!   elem_Pi = mesh.elements.iso4(mesh.groups.iso4(grp_id_Pi).elements, :);
+%!   elem_sigmaz = mesh.elements.iso4(mesh.groups.iso4(grp_id_sigmaz).elements, :);
+%!   load_case.pressure.iso4.elements = [elem_Pi; elem_sigmaz];
+%!   load_case.pressure.iso4.p = [repmat(Pi, size(elem_Pi)); repmat(-sigmaz, size(elem_sigmaz))];
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.gamma = gamma;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2);
+%!   z = mesh.nodes(:, 3);
+%!   Theta = atan2(mesh.nodes(:, 2), mesh.nodes(:, 1));
+%!   sigmaR = Pi * ri^2 / (ro^2 - ri^2) * (1 - ro^2 ./ r.^2);
+%!   sigmaTheta = Pi * ri^2 / (ro^2 - ri^2) * (1 + ro^2 ./ r.^2);
+%!   sigmaZ = Pi * ri^2 / (ro^2 - ri^2);
+%!   epsilonR = 1 / E * (sigmaR - nu * (sigmaTheta + sigmaZ));
+%!   epsilonTheta = 1 / E * (sigmaTheta - nu * (sigmaR + sigmaZ));
+%!   epsilonZ = 1 / E * (sigmaZ - nu * (sigmaR + sigmaTheta)) + gamma * dT;
+%!   Uz = z .* epsilonZ;
+%!   sigmaX = sigmaR .* cos(Theta) - sigmaTheta .* sin(Theta);
+%!   sigmaY = sigmaR .* sin(Theta) + sigmaTheta .* cos(Theta);
+%!   theta = Theta(mesh.elements.iso8);
+%!   sigmar = sigmatheta = sigmaz = zeros(size(mesh.elements.iso8));
+%!   idxtens = int32([1, 4, 6;
+%!                    4, 2, 5;
+%!                    6, 5, 3]);
+%!   for i=1:rows(mesh.elements.iso8)
+%!     for j=1:columns(mesh.elements.iso8)
+%!       e1 = mesh.nodes(mesh.elements.iso8(i, j), 1:3).';
+%!       e1(3) = 0;
+%!       e3 = [0; 0; 1];
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       SIGMAIJ = R.' * sol_stat.stress.taum.iso8(i, j, :)(idxtens) * R;
+%!       sigmar(i, j) = SIGMAIJ(1, 1);
+%!       sigmatheta(i, j) = SIGMAIJ(2, 2);
+%!       sigmaz(i, j) = SIGMAIJ(3, 3);
+%!     endfor
+%!   endfor
+%!   tol = 16e-2; ## FIXME: not very accurate results with linear elements
+%!   assert(sigmar, sigmaR(mesh.elements.iso8), tol * max(abs(sigmaR)));
+%!   assert(sigmatheta, sigmaTheta(mesh.elements.iso8), tol * max(abs(sigmaTheta)));
+%!   assert(sigmaz, repmat(sigmaZ, size(sigmaz)), tol * abs(sigmaZ));
+%!   assert(sol_stat.def(:, 3), Uz, tol * max(abs(Uz)));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 41: thick walled cylinder with internal pressure penta15
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   ro = 50e-3;
+%!   ri = 25e-3;
+%!   L = 20e-3;
+%!   dT = 100;
+%!   Pi = 2e8;
+%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!   E = 2.1e11;
+%!   nu = 0.3;
+%!   gamma = 0.12e-4;
+%!   rho = 7850;
+%!   mesh_size = 2.5e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "ro = %g;\n", ro);
+%!   fprintf(fd, "ri = %g;\n", ri);
+%!   fprintf(fd, "L = %g;\n", L);
+%!   fprintf(fd, "H = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
+%!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
+%!   grp_id_clamp_z = find([[mesh.groups.quad8].id] == 4);
+%!   grp_id_Pi = find([mesh.groups.quad8.id] == 5);
+%!   grp_id_sigmaz = find([mesh.groups.quad8.id] == 6);
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_z).nodes, 3) = true;
+%!   elem_Pi = mesh.elements.quad8(mesh.groups.quad8(grp_id_Pi).elements, :);
+%!   elem_sigmaz = mesh.elements.quad8(mesh.groups.quad8(grp_id_sigmaz).elements, :);
+%!   load_case.pressure.quad8.elements = [elem_Pi; elem_sigmaz];
+%!   load_case.pressure.quad8.p = [repmat(Pi, size(elem_Pi)); repmat(-sigmaz, size(elem_sigmaz))];
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.material_data.gamma = gamma;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2);
+%!   z = mesh.nodes(:, 3);
+%!   Theta = atan2(mesh.nodes(:, 2), mesh.nodes(:, 1));
+%!   sigmaR = Pi * ri^2 / (ro^2 - ri^2) * (1 - ro^2 ./ r.^2);
+%!   sigmaTheta = Pi * ri^2 / (ro^2 - ri^2) * (1 + ro^2 ./ r.^2);
+%!   sigmaZ = Pi * ri^2 / (ro^2 - ri^2);
+%!   epsilonR = 1 / E * (sigmaR - nu * (sigmaTheta + sigmaZ));
+%!   epsilonTheta = 1 / E * (sigmaTheta - nu * (sigmaR + sigmaZ));
+%!   epsilonZ = 1 / E * (sigmaZ - nu * (sigmaR + sigmaTheta)) + gamma * dT;
+%!   Uz = z .* epsilonZ;
+%!   sigmaX = sigmaR .* cos(Theta) - sigmaTheta .* sin(Theta);
+%!   sigmaY = sigmaR .* sin(Theta) + sigmaTheta .* cos(Theta);
+%!   theta = Theta(mesh.elements.penta15);
+%!   sigmar = sigmatheta = sigmaz = zeros(size(mesh.elements.penta15));
+%!   idxtens = int32([1, 4, 6;
+%!                    4, 2, 5;
+%!                    6, 5, 3]);
+%!   for i=1:rows(mesh.elements.penta15)
+%!     for j=1:columns(mesh.elements.penta15)
+%!       e1 = mesh.nodes(mesh.elements.penta15(i, j), 1:3).';
+%!       e1(3) = 0;
+%!       e3 = [0; 0; 1];
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       SIGMAIJ = R.' * sol_stat.stress.taum.penta15(i, j, :)(idxtens) * R;
+%!       sigmar(i, j) = SIGMAIJ(1, 1);
+%!       sigmatheta(i, j) = SIGMAIJ(2, 2);
+%!       sigmaz(i, j) = SIGMAIJ(3, 3);
+%!     endfor
+%!   endfor
+%!   tol = 3e-2;
+%!   assert(sigmar, sigmaR(mesh.elements.penta15), tol * max(abs(sigmaR)));
+%!   assert(sigmatheta, sigmaTheta(mesh.elements.penta15), tol * max(abs(sigmaTheta)));
+%!   assert(sigmaz, repmat(sigmaZ, size(sigmaz)), tol * abs(sigmaZ));
+%!   assert(sol_stat.def(:, 3), Uz, tol * max(abs(Uz)));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 42: thick walled cylinder with internal pressure tet10h
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   ro = 50e-3;
+%!   ri = 25e-3;
+%!   L = 20e-3;
+%!   dT = 100;
+%!   Pi = 2e8;
+%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!   E = 2.1e11;
+%!   nu = 0.3;
+%!   gamma = 0.12e-4;
+%!   rho = 7850;
+%!   mesh_size = 2.5e-3;
+%!   scale_def = 10e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "ro = %g;\n", ro);
+%!   fprintf(fd, "ri = %g;\n", ri);
+%!   fprintf(fd, "L = %g;\n", L);
+%!   fprintf(fd, "H = %g;\n", mesh_size);
+%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; };\n");
+%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opts.elem_type = {"tria6", "tet10h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
+%!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
+%!   grp_id_clamp_z = find([[mesh.groups.tria6].id] == 4);
+%!   grp_id_Pi = find([mesh.groups.tria6.id] == 5);
+%!   grp_id_sigmaz = find([mesh.groups.tria6.id] == 6);
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_z).nodes, 3) = true;
+%!   elem_Pi = mesh.elements.tria6(mesh.groups.tria6(grp_id_Pi).elements, :);
+%!   elem_sigmaz = mesh.elements.tria6(mesh.groups.tria6(grp_id_sigmaz).elements, :);
+%!   load_case.pressure.tria6.elements = [elem_Pi; elem_sigmaz];
+%!   load_case.pressure.tria6.p = [repmat(Pi, size(elem_Pi)); repmat(-sigmaz, size(elem_sigmaz))];
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.material_data.gamma = gamma;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2);
+%!   z = mesh.nodes(:, 3);
+%!   Theta = atan2(mesh.nodes(:, 2), mesh.nodes(:, 1));
+%!   sigmaR = Pi * ri^2 / (ro^2 - ri^2) * (1 - ro^2 ./ r.^2);
+%!   sigmaTheta = Pi * ri^2 / (ro^2 - ri^2) * (1 + ro^2 ./ r.^2);
+%!   sigmaZ = Pi * ri^2 / (ro^2 - ri^2);
+%!   epsilonR = 1 / E * (sigmaR - nu * (sigmaTheta + sigmaZ));
+%!   epsilonTheta = 1 / E * (sigmaTheta - nu * (sigmaR + sigmaZ));
+%!   epsilonZ = 1 / E * (sigmaZ - nu * (sigmaR + sigmaTheta)) + gamma * dT;
+%!   Uz = z .* epsilonZ;
+%!   sigmaX = sigmaR .* cos(Theta) - sigmaTheta .* sin(Theta);
+%!   sigmaY = sigmaR .* sin(Theta) + sigmaTheta .* cos(Theta);
+%!   theta = Theta(mesh.elements.tet10h);
+%!   sigmar = sigmatheta = sigmaz = zeros(size(mesh.elements.tet10h));
+%!   idxtens = int32([1, 4, 6;
+%!                    4, 2, 5;
+%!                    6, 5, 3]);
+%!   for i=1:rows(mesh.elements.tet10h)
+%!     for j=1:columns(mesh.elements.tet10h)
+%!       e1 = mesh.nodes(mesh.elements.tet10h(i, j), 1:3).';
+%!       e1(3) = 0;
+%!       e3 = [0; 0; 1];
+%!       e2 = cross(e3, e1);
+%!       e1 /= norm(e1);
+%!       e2 /= norm(e2);
+%!       e3 /= norm(e3);
+%!       R = [e1, e2, e3];
+%!       SIGMAIJ = R.' * sol_stat.stress.taum.tet10h(i, j, :)(idxtens) * R;
+%!       sigmar(i, j) = SIGMAIJ(1, 1);
+%!       sigmatheta(i, j) = SIGMAIJ(2, 2);
+%!       sigmaz(i, j) = SIGMAIJ(3, 3);
+%!     endfor
+%!   endfor
+%!   tol = 3e-2;
+%!   assert(sigmar, sigmaR(mesh.elements.tet10h), tol * max(abs(sigmaR)));
+%!   assert(sigmatheta, sigmaTheta(mesh.elements.tet10h), tol * max(abs(sigmaTheta)));
+%!   assert(sigmaz, repmat(sigmaZ, size(sigmaz)), tol * abs(sigmaZ));
+%!   assert(sol_stat.def(:, 3), Uz, tol * max(abs(Uz)));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
 %!demo
 %! ## DEMO 1
 %! ## K.J.Bathe 2002, page 328 4.20a
