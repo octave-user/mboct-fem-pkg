@@ -76,7 +76,7 @@ function groups = fem_pre_mesh_groups_create(mesh, group_defs, tolrel, tolabs, e
 
   tol = norm(dX) * tolrel + tolabs;
 
-  elem_types = {"iso4", "quad8", "tria6", "quad8"};
+  elem_types = {"iso4", "quad8", "tria6", "quad8", "tria6h"};
 
   empty_cell = cell(1, 0);
 
@@ -95,7 +95,7 @@ function groups = fem_pre_mesh_groups_create(mesh, group_defs, tolrel, tolabs, e
     endif
     
     switch (elem_type)
-      case {"iso4", "tria6", "quad8"}
+      case {"iso4", "tria6", "quad8", "tria6h"}
         if (isfield(mesh.groups, elem_type))
           grp_data = getfield(groups, elem_type);
           mgrp_data = getfield(mesh.groups, elem_type);

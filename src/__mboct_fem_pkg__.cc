@@ -5680,6 +5680,277 @@ public:
      }
 };
 
+class ShapeTria6H {
+public:
+     static constexpr octave_idx_type iGetNumNodes() {
+          return 6;
+     }
+
+     static constexpr octave_idx_type iGetNumDirections() {
+          return 2;
+     }
+
+     static constexpr octave_idx_type iGetNumDofNode() {
+          return 3;
+     }
+
+     static constexpr octave_idx_type iGetNumEqualityConstr() {
+          return 0;
+     }
+
+     static constexpr double EqualityConstr(const ColumnVector&) {
+          return 0;
+     }
+
+     static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+          FEM_ASSERT(rmin.rows() == iGetNumDirections());
+          FEM_ASSERT(rmax.rows() == rmin.rows());
+
+          for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+               rmin.xelem(i) = 0.;
+          }
+
+          for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+               rmax.xelem(i) = 1.;
+          }
+     }
+
+     static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          HA.xelem(0) = (1-2*((-zeta)-eta+1))*(zeta+eta-1);
+          HA.xelem(1) = -(1-2*zeta)*zeta;
+          HA.xelem(2) = -(1-2*eta)*eta;
+          HA.xelem(3) = 4*((-zeta)-eta+1)*zeta;
+          HA.xelem(4) = 4*eta*zeta;
+          HA.xelem(5) = 4*eta*((-zeta)-eta+1);
+     }
+
+     static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          Hf.xelem(0,0) = (1-2*((-zeta)-eta+1))*(zeta+eta-1);
+          Hf.xelem(1,0) = 0;
+          Hf.xelem(2,0) = 0;
+          Hf.xelem(0,1) = 0;
+          Hf.xelem(1,1) = (1-2*((-zeta)-eta+1))*(zeta+eta-1);
+          Hf.xelem(2,1) = 0;
+          Hf.xelem(0,2) = 0;
+          Hf.xelem(1,2) = 0;
+          Hf.xelem(2,2) = (1-2*((-zeta)-eta+1))*(zeta+eta-1);
+          Hf.xelem(0,3) = -(1-2*zeta)*zeta;
+          Hf.xelem(1,3) = 0;
+          Hf.xelem(2,3) = 0;
+          Hf.xelem(0,4) = 0;
+          Hf.xelem(1,4) = -(1-2*zeta)*zeta;
+          Hf.xelem(2,4) = 0;
+          Hf.xelem(0,5) = 0;
+          Hf.xelem(1,5) = 0;
+          Hf.xelem(2,5) = -(1-2*zeta)*zeta;
+          Hf.xelem(0,6) = -(1-2*eta)*eta;
+          Hf.xelem(1,6) = 0;
+          Hf.xelem(2,6) = 0;
+          Hf.xelem(0,7) = 0;
+          Hf.xelem(1,7) = -(1-2*eta)*eta;
+          Hf.xelem(2,7) = 0;
+          Hf.xelem(0,8) = 0;
+          Hf.xelem(1,8) = 0;
+          Hf.xelem(2,8) = -(1-2*eta)*eta;
+          Hf.xelem(0,9) = 4*((-zeta)-eta+1)*zeta;
+          Hf.xelem(1,9) = 0;
+          Hf.xelem(2,9) = 0;
+          Hf.xelem(0,10) = 0;
+          Hf.xelem(1,10) = 4*((-zeta)-eta+1)*zeta;
+          Hf.xelem(2,10) = 0;
+          Hf.xelem(0,11) = 0;
+          Hf.xelem(1,11) = 0;
+          Hf.xelem(2,11) = 4*((-zeta)-eta+1)*zeta;
+          Hf.xelem(0,12) = 4*eta*zeta;
+          Hf.xelem(1,12) = 0;
+          Hf.xelem(2,12) = 0;
+          Hf.xelem(0,13) = 0;
+          Hf.xelem(1,13) = 4*eta*zeta;
+          Hf.xelem(2,13) = 0;
+          Hf.xelem(0,14) = 0;
+          Hf.xelem(1,14) = 0;
+          Hf.xelem(2,14) = 4*eta*zeta;
+          Hf.xelem(0,15) = 4*eta*((-zeta)-eta+1);
+          Hf.xelem(1,15) = 0;
+          Hf.xelem(2,15) = 0;
+          Hf.xelem(0,16) = 0;
+          Hf.xelem(1,16) = 4*eta*((-zeta)-eta+1);
+          Hf.xelem(2,16) = 0;
+          Hf.xelem(0,17) = 0;
+          Hf.xelem(1,17) = 0;
+          Hf.xelem(2,17) = 4*eta*((-zeta)-eta+1);
+     }
+
+     static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+          
+          dHf_dr.xelem(0,0) = 2*(zeta+eta-1)-2*((-zeta)-eta+1)+1;
+          dHf_dr.xelem(1,0) = 0;
+          dHf_dr.xelem(2,0) = 0;
+          dHf_dr.xelem(0,1) = 0;
+          dHf_dr.xelem(1,1) = 2*(zeta+eta-1)-2*((-zeta)-eta+1)+1;
+          dHf_dr.xelem(2,1) = 0;
+          dHf_dr.xelem(0,2) = 0;
+          dHf_dr.xelem(1,2) = 0;
+          dHf_dr.xelem(2,2) = 2*(zeta+eta-1)-2*((-zeta)-eta+1)+1;
+          dHf_dr.xelem(0,3) = 4*zeta-1;
+          dHf_dr.xelem(1,3) = 0;
+          dHf_dr.xelem(2,3) = 0;
+          dHf_dr.xelem(0,4) = 0;
+          dHf_dr.xelem(1,4) = 4*zeta-1;
+          dHf_dr.xelem(2,4) = 0;
+          dHf_dr.xelem(0,5) = 0;
+          dHf_dr.xelem(1,5) = 0;
+          dHf_dr.xelem(2,5) = 4*zeta-1;
+          dHf_dr.xelem(0,6) = 0;
+          dHf_dr.xelem(1,6) = 0;
+          dHf_dr.xelem(2,6) = 0;
+          dHf_dr.xelem(0,7) = 0;
+          dHf_dr.xelem(1,7) = 0;
+          dHf_dr.xelem(2,7) = 0;
+          dHf_dr.xelem(0,8) = 0;
+          dHf_dr.xelem(1,8) = 0;
+          dHf_dr.xelem(2,8) = 0;
+          dHf_dr.xelem(0,9) = 4*((-zeta)-eta+1)-4*zeta;
+          dHf_dr.xelem(1,9) = 0;
+          dHf_dr.xelem(2,9) = 0;
+          dHf_dr.xelem(0,10) = 0;
+          dHf_dr.xelem(1,10) = 4*((-zeta)-eta+1)-4*zeta;
+          dHf_dr.xelem(2,10) = 0;
+          dHf_dr.xelem(0,11) = 0;
+          dHf_dr.xelem(1,11) = 0;
+          dHf_dr.xelem(2,11) = 4*((-zeta)-eta+1)-4*zeta;
+          dHf_dr.xelem(0,12) = 4*eta;
+          dHf_dr.xelem(1,12) = 0;
+          dHf_dr.xelem(2,12) = 0;
+          dHf_dr.xelem(0,13) = 0;
+          dHf_dr.xelem(1,13) = 4*eta;
+          dHf_dr.xelem(2,13) = 0;
+          dHf_dr.xelem(0,14) = 0;
+          dHf_dr.xelem(1,14) = 0;
+          dHf_dr.xelem(2,14) = 4*eta;
+          dHf_dr.xelem(0,15) = -4*eta;
+          dHf_dr.xelem(1,15) = 0;
+          dHf_dr.xelem(2,15) = 0;
+          dHf_dr.xelem(0,16) = 0;
+          dHf_dr.xelem(1,16) = -4*eta;
+          dHf_dr.xelem(2,16) = 0;
+          dHf_dr.xelem(0,17) = 0;
+          dHf_dr.xelem(1,17) = 0;
+          dHf_dr.xelem(2,17) = -4*eta;
+     }
+
+     static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+          
+          dHf_ds.xelem(0,0) = 2*(zeta+eta-1)-2*((-zeta)-eta+1)+1;
+          dHf_ds.xelem(1,0) = 0;
+          dHf_ds.xelem(2,0) = 0;
+          dHf_ds.xelem(0,1) = 0;
+          dHf_ds.xelem(1,1) = 2*(zeta+eta-1)-2*((-zeta)-eta+1)+1;
+          dHf_ds.xelem(2,1) = 0;
+          dHf_ds.xelem(0,2) = 0;
+          dHf_ds.xelem(1,2) = 0;
+          dHf_ds.xelem(2,2) = 2*(zeta+eta-1)-2*((-zeta)-eta+1)+1;
+          dHf_ds.xelem(0,3) = 0;
+          dHf_ds.xelem(1,3) = 0;
+          dHf_ds.xelem(2,3) = 0;
+          dHf_ds.xelem(0,4) = 0;
+          dHf_ds.xelem(1,4) = 0;
+          dHf_ds.xelem(2,4) = 0;
+          dHf_ds.xelem(0,5) = 0;
+          dHf_ds.xelem(1,5) = 0;
+          dHf_ds.xelem(2,5) = 0;
+          dHf_ds.xelem(0,6) = 4*eta-1;
+          dHf_ds.xelem(1,6) = 0;
+          dHf_ds.xelem(2,6) = 0;
+          dHf_ds.xelem(0,7) = 0;
+          dHf_ds.xelem(1,7) = 4*eta-1;
+          dHf_ds.xelem(2,7) = 0;
+          dHf_ds.xelem(0,8) = 0;
+          dHf_ds.xelem(1,8) = 0;
+          dHf_ds.xelem(2,8) = 4*eta-1;
+          dHf_ds.xelem(0,9) = -4*zeta;
+          dHf_ds.xelem(1,9) = 0;
+          dHf_ds.xelem(2,9) = 0;
+          dHf_ds.xelem(0,10) = 0;
+          dHf_ds.xelem(1,10) = -4*zeta;
+          dHf_ds.xelem(2,10) = 0;
+          dHf_ds.xelem(0,11) = 0;
+          dHf_ds.xelem(1,11) = 0;
+          dHf_ds.xelem(2,11) = -4*zeta;
+          dHf_ds.xelem(0,12) = 4*zeta;
+          dHf_ds.xelem(1,12) = 0;
+          dHf_ds.xelem(2,12) = 0;
+          dHf_ds.xelem(0,13) = 0;
+          dHf_ds.xelem(1,13) = 4*zeta;
+          dHf_ds.xelem(2,13) = 0;
+          dHf_ds.xelem(0,14) = 0;
+          dHf_ds.xelem(1,14) = 0;
+          dHf_ds.xelem(2,14) = 4*zeta;
+          dHf_ds.xelem(0,15) = 4*((-zeta)-eta+1)-4*eta;
+          dHf_ds.xelem(1,15) = 0;
+          dHf_ds.xelem(2,15) = 0;
+          dHf_ds.xelem(0,16) = 0;
+          dHf_ds.xelem(1,16) = 4*((-zeta)-eta+1)-4*eta;
+          dHf_ds.xelem(2,16) = 0;
+          dHf_ds.xelem(0,17) = 0;
+          dHf_ds.xelem(1,17) = 0;
+          dHf_ds.xelem(2,17) = 4*((-zeta)-eta+1)-4*eta;
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+          static array<IntegrationRule, 2> rgIntegRule;
+
+          octave_idx_type iIntegRule;
+          
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               iIntegRule = 0;
+               break;
+          default: 
+               iIntegRule = 1;
+          }
+
+          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+               constexpr double A = 0.470142064105115;
+               constexpr double B = 0.101286507323456;
+               constexpr double P1 = 0.066197076394253;
+               constexpr double P2 = 0.062969590272413;
+               static constexpr octave_idx_type N[2] = {6, 7};
+               static constexpr double zeta[2][7] = {{0., 1., 0., 1./2., 1./2., 0.}, {1./3., A, 1. - 2. * A, A, B, 1. - 2. * B, B}};
+               static constexpr double eta[2][7] = {{0., 0., 1., 0., 1./2., 1./2.}, {1./3., A, A, 1. - 2. * A, B, B, 1. - 2. * B}};
+               static constexpr double w[2][7] = {{1./6., 1./6., 1./6., 1./6., 1./6., 1./6.}, {9./80., P1, P1, P1, P2, P2, P2}};
+
+               rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule], 2);
+
+               for (octave_idx_type i = 0; i < N[iIntegRule]; ++i) {
+                    rgIntegRule[iIntegRule].SetPosition(i, 0, zeta[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetPosition(i, 1, eta[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetWeight(i, w[iIntegRule][i]);
+               }
+          }
+          
+          return rgIntegRule[iIntegRule];
+     }
+};
+
 class PressureLoad: public Element {
 public:
      PressureLoad(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
@@ -5853,6 +6124,7 @@ protected:
 typedef PressureLoadImp<ShapeIso4> PressureLoadIso4;
 typedef PressureLoadImp<ShapeQuad8> PressureLoadQuad8;
 typedef PressureLoadImp<ShapeTria6> PressureLoadTria6;
+typedef PressureLoadImp<ShapeTria6H> PressureLoadTria6H;
 
 class StructForce: public Element {
 public:
@@ -5917,10 +6189,12 @@ public:
           ELEM_JOINT,
           ELEM_SFNCON4,
           ELEM_SFNCON6,
+          ELEM_SFNCON6H,
           ELEM_SFNCON8,
           ELEM_PRESSURE_ISO4,
           ELEM_PRESSURE_QUAD8,
           ELEM_PRESSURE_TRIA6,
+          ELEM_PRESSURE_TRIA6H,
           ELEM_STRUCT_FORCE,
           ELEM_TYPE_COUNT
      };
@@ -5958,10 +6232,12 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_JOINT,            "joints",   1, -1, DofMap::ELEM_JOINT},
      {ElementTypes::ELEM_SFNCON4,          "sfncon4",  1, -1, DofMap::ELEM_JOINT},
      {ElementTypes::ELEM_SFNCON6,          "sfncon6",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6H,         "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
      {ElementTypes::ELEM_SFNCON8,          "sfncon8",  1, -1, DofMap::ELEM_JOINT},
      {ElementTypes::ELEM_PRESSURE_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PRESSURE_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},     
      {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF}
 };
 
@@ -6248,6 +6524,11 @@ namespace shape_func_util {
      struct SelectElemPerSlaveNode<ShapeTria6> {
           static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
      };
+
+     template <>
+     struct SelectElemPerSlaveNode<ShapeTria6H> {
+          static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
+     };     
 };
 
 class SurfToNodeConstrBase {
@@ -6885,6 +7166,9 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           case ElementTypes::ELEM_SFNCON6:
                iNumNodesElem = ShapeTria6::iGetNumNodes();
                break;
+          case ElementTypes::ELEM_SFNCON6H:
+               iNumNodesElem = ShapeTria6H::iGetNumNodes();
+               break;
           case ElementTypes::ELEM_SFNCON8:
                iNumNodesElem = ShapeQuad8::iGetNumNodes();
                break;
@@ -6945,6 +7229,15 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                                  eConstrType,
                                                                  uConstraintFlags);
                break;
+          case ElementTypes::ELEM_SFNCON6H:
+               pElem = SurfToNodeConstr<ShapeTria6H>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                                  nodes,
+                                                                  nidxmaster,
+                                                                  nidxslave,
+                                                                  maxdist,
+                                                                  eConstrType,
+                                                                  uConstraintFlags);
+               break;               
           case ElementTypes::ELEM_SFNCON8:
                pElem = SurfToNodeConstr<ShapeQuad8>::BuildJoints(dofelemid[oElemType.dof_type],
                                                                  nodes,
@@ -7308,6 +7601,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_JOINT:
                case ElementTypes::ELEM_SFNCON4:
                case ElementTypes::ELEM_SFNCON6:
+               case ElementTypes::ELEM_SFNCON6H:
                case ElementTypes::ELEM_SFNCON8:
                     break;
 
@@ -7335,6 +7629,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_JOINT:
                case ElementTypes::ELEM_SFNCON4:
                case ElementTypes::ELEM_SFNCON6:
+               case ElementTypes::ELEM_SFNCON6H:
                case ElementTypes::ELEM_SFNCON8: {
                     const char* const fn = oElemType.type == ElementTypes::ELEM_JOINT
                          ? "C"
@@ -7354,6 +7649,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     switch (oElemType.type) {
                     case ElementTypes::ELEM_SFNCON4:
                     case ElementTypes::ELEM_SFNCON6:
+                    case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8: {
                          const auto iter_constr = m_etype.seek("constraint");
 
@@ -7377,6 +7673,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    break;
                               case ElementTypes::ELEM_SFNCON4:
                               case ElementTypes::ELEM_SFNCON6:
+                              case ElementTypes::ELEM_SFNCON6H:
                               case ElementTypes::ELEM_SFNCON8:
 #if HAVE_NLOPT == 1
                                    icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
@@ -7411,6 +7708,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    break;
                               case ElementTypes::ELEM_SFNCON4:
                               case ElementTypes::ELEM_SFNCON6:
+                              case ElementTypes::ELEM_SFNCON6H:
                               case ElementTypes::ELEM_SFNCON8:
 #if HAVE_NLOPT == 1
                                    icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
@@ -7920,6 +8218,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     rgElemUse[ElementTypes::ELEM_JOINT] = true;
                     rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                     rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
+                    rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                     rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
                     // fall through
                case Element::MAT_MASS:
@@ -7957,6 +8256,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
                     rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
+                    rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                     rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
                     rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
                     rgElemUse[ElementTypes::ELEM_JOINT] = true;
@@ -8389,6 +8689,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                } break;
                case ElementTypes::ELEM_SFNCON4:
                case ElementTypes::ELEM_SFNCON6:
+               case ElementTypes::ELEM_SFNCON6H:
                case ElementTypes::ELEM_SFNCON8: {
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
@@ -8406,6 +8707,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_PRESSURE_TRIA6:
                     InsertPressureElem<PressureLoadTria6>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_PRESSURE_TRIA6H:
+                    InsertPressureElem<PressureLoadTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;                    
                case ElementTypes::ELEM_STRUCT_FORCE: {
                     const auto iter_loads = load_case.seek("loads");
                     const auto iter_loaded_nodes = load_case.seek("loaded_nodes");
