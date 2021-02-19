@@ -8183,19 +8183,19 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     throw std::runtime_error("mesh.material_data.rho is not a valid scalar in argument mesh");
                }
 
-               const double alpha = iterAlpha != material_data.end() ? cellAlpha(i).scalar_value() : 0.;
+               const double alpha = iterAlpha != material_data.end() && !cellAlpha(i).isempty() ? cellAlpha(i).scalar_value() : 0.;
 
                if (error_state) {
                     throw std::runtime_error("mesh.material_data.alpha is not a valid scalar in argument mesh");
                }
 
-               const double beta = iterBeta != material_data.end() ? cellBeta(i).scalar_value() : 0.;
+               const double beta = iterBeta != material_data.end() && !cellBeta(i).isempty() ? cellBeta(i).scalar_value() : 0.;
 
                if (error_state) {
                     throw std::runtime_error("mesh.material_data.beta is not a valid scalar in argument mesh");
                }
 
-               const double gamma = iterGamma != material_data.end() ? cellGamma(i).scalar_value() : 0.;
+               const double gamma = iterGamma != material_data.end() && !cellGamma(i).isempty() ? cellGamma(i).scalar_value() : 0.;
 
                if (buseC) {
                     rgMaterials.emplace_back(C, rho, alpha, beta, gamma);
