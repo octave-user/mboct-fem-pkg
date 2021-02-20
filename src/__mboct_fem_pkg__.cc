@@ -2144,7 +2144,7 @@ protected:
                     if (epsilonRef.numel()) {
                          for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                               for (octave_idx_type k = 0; k < iNumStrains; ++k) {
-                                   epsilonik.xelem(k) += Ht.xelem(j) * epsilonRef(k, j, l);
+                                   epsilonik.xelem(k) += Ht.xelem(j) * epsilonRef.xelem(k, j, l);
                               }
                          }
                     }
