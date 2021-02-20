@@ -430,7 +430,8 @@ public:
           VEC_LOAD_CONSISTENT = 0xD00u,
           VEC_LOAD_LUMPED = 0xE00u,
           VEC_STRESS_CAUCH = 0xF00u,
-          SCA_STRESS_VMIS = 0x1000u
+          VEC_STRAIN_TOTAL = 0x1000u,
+          SCA_STRESS_VMIS = 0x2000u
      };
 
      Element(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -1374,6 +1375,10 @@ public:
                StressNodalElem(mat, eMatType, U);
                break;
 
+          case VEC_STRAIN_TOTAL:
+               StrainNodalElem(mat, eMatType, U);
+               break;
+               
           default:
                break;
           }
@@ -1983,6 +1988,75 @@ protected:
           }
      }
 
+     void StrainNodalElem(NDArray& epsilonn, MatrixType eMatType, const NDArray& U) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
+          const octave_idx_type iNumNodes = nodes.numel();
+          
+          ColumnVector rv(iNumDir);
+          const octave_idx_type iNumStrains = material->LinearElasticity().rows();
+
+          FEM_ASSERT(epsilonn.ndims() >= 3);
+          FEM_ASSERT(id >= 1);
+          FEM_ASSERT(epsilonn.dim1() >= id);
+          FEM_ASSERT(epsilonn.dim2() == iNumNodes);
+          FEM_ASSERT(epsilonn.dim3() == iNumStrains);
+          FEM_ASSERT((iNumLoads == 1 && epsilonn.ndims() == 3) || (epsilonn.dims()(3) == iNumLoads));
+          FEM_ASSERT(U.ndims() >= 2);
+          FEM_ASSERT(U.dim2() >= 3);
+          FEM_ASSERT(iNumDof == 3 * X.columns());
+
+          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
+          ColumnVector Ue(iNumDof);
+          Matrix epsilong(iNumGauss, iNumStrains * iNumLoads);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               Jacobian(rv, J);
+
+               StrainMatrix(rv, J.inverse(), B);
+
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                         for (octave_idx_type k = 0; k < 3; ++k) {
+                              FEM_ASSERT(nodes(j).value() > 0);
+                              FEM_ASSERT(nodes(j).value() <= U.dim1());
+                              Ue.xelem(3 * j + k) = U.xelem(nodes.xelem(j).value() - 1, k, l);
+                         }
+                    }
+                    
+                    for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+                         double epsilongj = 0.;
+
+                         for (octave_idx_type k = 0; k < iNumDof; ++k) {
+                              epsilongj += B.xelem(j, k) * Ue.xelem(k);
+                         }
+                         
+                         epsilong.xelem(i, l * iNumStrains + j) = epsilongj;
+                    }
+               }
+          }
+
+          const Matrix epsilonen = InterpGaussToNodal(eMatType, epsilong);
+
+          FEM_ASSERT(epsilonen.rows() == iNumNodes);
+          FEM_ASSERT(epsilonen.columns() == epsilong.columns());
+
+          for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+                    for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                         epsilonn.xelem(id - 1, i, j + k * iNumStrains) = epsilonen.xelem(i, k * iNumStrains + j);
+                    }
+               }
+          }
+     }
+     
      void StressNodalElem(NDArray& taun, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
@@ -3931,6 +4005,7 @@ public:
                break;
 
           case VEC_STRESS_CAUCH:
+          case VEC_STRAIN_TOTAL:
           case SCA_STRESS_VMIS:
                iIntegRule = R3;
                break;
@@ -4375,6 +4450,7 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case VEC_STRESS_CAUCH:
+          case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
                if (!oIntegStiff.iGetNumEvalPoints()) {
@@ -7375,6 +7451,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_VEC_LOAD_CONSISTENT", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_LUMPED", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_STRESS_CAUCH", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_STRAIN_TOTAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_SCA_STRESS_VMIS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct");
@@ -7404,6 +7481,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_VEC_LOAD_CONSISTENT", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_LOAD_LUMPED", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_STRESS_CAUCH", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_STRAIN_TOTAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_SCA_STRESS_VMIS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct", "remove");
@@ -8315,6 +8393,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     rgElemUse[ElementTypes::ELEM_BEAM2] = true;
                     // fall through
                case Element::VEC_STRESS_CAUCH:
+               case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS:
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
                     rgElemUse[ElementTypes::ELEM_ISO20] = true;
@@ -9012,6 +9091,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     retval.append(mat);
                } break;
                case Element::VEC_STRESS_CAUCH:
+               case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS: {
                     if (nargin <= 4) {
                          throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
@@ -9028,7 +9108,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     constexpr octave_idx_type iNumStress = 6;
                     const octave_idx_type iNumLoads = sol_U.ndims() >= 3 ? sol_U.dim3() : 1;
 
-                    octave_scalar_map s_tau, s_taum, s_vmis;
+                    octave_scalar_map s_StressStrain, s_StressStrainm, s_vmis;
 
                     for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
                          const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
@@ -9051,44 +9131,46 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
 
-                              NDArray tau(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.);
+                              const Element::MatrixType eMatTypeStressStrain = eMatType == Element::SCA_STRESS_VMIS ? Element::VEC_STRESS_CAUCH : eMatType;
+
+                              NDArray oElemStressStrain(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.);
 
                               for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
                                    if ((*k)->GetElementType() == oElemType.type) {
-                                        (*k)->PostProcElem(tau, Element::VEC_STRESS_CAUCH, sol_U);
+                                        (*k)->PostProcElem(oElemStressStrain, eMatTypeStressStrain, sol_U);
                                    }
                               }
 
-                              int32NDArray itaun(dim_vector(nodes.rows(), 1), 0);
+                              intNDArray<octave_idx_type> iStressStrain(dim_vector(nodes.rows(), 1), 0);
 
-                              for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                   for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+                              for (octave_idx_type k = 0; k < oElemStressStrain.dim1(); ++k) {
+                                   for (octave_idx_type l = 0; l < oElemStressStrain.dim2(); ++l) {
                                         const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
-                                        itaun.xelem(inode) += 1;
+                                        ++iStressStrain.xelem(inode);
                                    }
                               }
 
-                              NDArray taun(dim_vector(nodes.rows(), iNumStress, iNumLoads), 0.);
+                              NDArray oNodalStressStrain(dim_vector(nodes.rows(), iNumStress, iNumLoads), 0.);
 
                               for (octave_idx_type n = 0; n < iNumLoads; ++n) {
                                    for (octave_idx_type m = 0; m < iNumStress; ++m) {
-                                        for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                             for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+                                        for (octave_idx_type k = 0; k < oElemStressStrain.dim1(); ++k) {
+                                             for (octave_idx_type l = 0; l < oElemStressStrain.dim2(); ++l) {
                                                   const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
-                                                  taun.xelem(inode, m, n) += tau.xelem(k, l, m + n * iNumStress) / itaun.xelem(inode).value();
+                                                  oNodalStressStrain.xelem(inode, m, n) += oElemStressStrain.xelem(k, l, m + n * iNumStress) / iStressStrain.xelem(inode);
                                              }
                                         }
                                    }
                               }
 
-                              NDArray taum(tau.dims());
+                              NDArray oContStressStrain(oElemStressStrain.dims());
 
                               for (octave_idx_type n = 0; n < iNumLoads; ++n) {
                                    for (octave_idx_type m = 0; m < iNumStress; ++m) {
-                                        for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
-                                             for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
+                                        for (octave_idx_type k = 0; k < oElemStressStrain.dim1(); ++k) {
+                                             for (octave_idx_type l = 0; l < oElemStressStrain.dim2(); ++l) {
                                                   const octave_idx_type inode = elem_nodes.xelem(k, l).value() - 1;
-                                                  taum.xelem(k, l, m + n * iNumStress) = taun.xelem(inode, m, n);
+                                                  oContStressStrain.xelem(k, l, m + n * iNumStress) = oNodalStressStrain.xelem(inode, m, n);
                                              }
                                         }
                                    }
@@ -9098,16 +9180,16 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                    NDArray vmis(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumLoads));
 
                                    for (octave_idx_type n = 0; n < iNumLoads; ++n) {
-                                        for (octave_idx_type l = 0; l < tau.dim2(); ++l) {
-                                             for (octave_idx_type k = 0; k < tau.dim1(); ++k) {
+                                        for (octave_idx_type l = 0; l < oElemStressStrain.dim2(); ++l) {
+                                             for (octave_idx_type k = 0; k < oElemStressStrain.dim1(); ++k) {
                                                   const octave_idx_type ioffset = n * iNumStress;
 
-                                                  const double tauxx = taum.xelem(k, l, ioffset);
-                                                  const double tauyy = taum.xelem(k, l, ioffset + 1);
-                                                  const double tauzz = taum.xelem(k, l, ioffset + 2);
-                                                  const double tauxy = taum.xelem(k, l, ioffset + 3);
-                                                  const double tauyz = taum.xelem(k, l, ioffset + 4);
-                                                  const double tauzx = taum.xelem(k, l, ioffset + 5);
+                                                  const double tauxx = oContStressStrain.xelem(k, l, ioffset);
+                                                  const double tauyy = oContStressStrain.xelem(k, l, ioffset + 1);
+                                                  const double tauzz = oContStressStrain.xelem(k, l, ioffset + 2);
+                                                  const double tauxy = oContStressStrain.xelem(k, l, ioffset + 3);
+                                                  const double tauyz = oContStressStrain.xelem(k, l, ioffset + 4);
+                                                  const double tauzx = oContStressStrain.xelem(k, l, ioffset + 5);
 
                                                   vmis.xelem(k, l, n) = sqrt(tauxx * tauxx + tauyy * tauyy + tauzz * tauzz
                                                                              - (tauxx * tauyy + tauyy * tauzz + tauxx * tauzz)
@@ -9119,8 +9201,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                                    s_vmis.assign(oElemType.name, vmis);
                               } else {
-                                   s_tau.assign(oElemType.name, tau);
-                                   s_taum.assign(oElemType.name, taum);
+                                   s_StressStrain.assign(oElemType.name, oElemStressStrain);
+                                   s_StressStrainm.assign(oElemType.name, oContStressStrain);
                               }
                          } break;
 
@@ -9129,16 +9211,23 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          }
                     }
 
-                    octave_scalar_map stress;
+                    octave_scalar_map mapStressStrain;
 
-                    if (eMatType == Element::SCA_STRESS_VMIS) {
-                         stress.assign("vmis", s_vmis);
-                    } else {
-                         stress.assign("tau", s_tau);
-                         stress.assign("taum", s_taum);
+                    switch (eMatType) {
+                    case Element::SCA_STRESS_VMIS:
+                         mapStressStrain.assign("vmis", s_vmis);
+                         break;
+                    case Element::VEC_STRESS_CAUCH:
+                         mapStressStrain.assign("tau", s_StressStrain);
+                         mapStressStrain.assign("taum", s_StressStrainm);
+                         break;
+                    case Element::VEC_STRAIN_TOTAL:
+                         mapStressStrain.assign("epsilon", s_StressStrain);
+                         mapStressStrain.assign("epsilonm", s_StressStrainm);
+                         break;
                     }
 
-                    retval.append(stress);
+                    retval.append(mapStressStrain);
                } break;
                default:
                     throw std::runtime_error("invalid value for argument matrix_type");
@@ -9199,6 +9288,7 @@ DEFINE_GLOBAL_CONSTANT(Element, SCA_TOT_MASS, "total mass of all elements")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_INERTIA_M1, "center of mass times total mass of all elements with respect to the origin of the global reference frame")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_CONSISTENT, "consistent load vector")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_LUMPED, "lumped load vector")
-DEFINE_GLOBAL_CONSTANT(Element, VEC_STRESS_CAUCH, "Cauchy stress")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_STRESS_CAUCH, "linear stress tensor")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_STRAIN_TOTAL, "linear strain tensor")
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_FIXED, "build constraints in all three directions in space")
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_SLIDING, "build only one constraint normal to the surface")
