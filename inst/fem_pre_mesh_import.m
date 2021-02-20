@@ -8956,7 +8956,7 @@ endfunction
 %!   h1 = 5e-3;
 %!   h2 = 5e-3;
 %!   w = 10e-3;
-%!   h = 2.5e-3;
+%!   h = 1.25e-3;
 %!   r2 = r1 + h1;
 %!   r3 = r2 + h2;
 %!   fprintf(fd, "w = %g;\n", w);
@@ -9004,14 +9004,14 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   unlink([filename, ".geo"]);
-%!   opts.elem_type = {"tria6", "tet10h"};
+%!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
 %!   unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10h.id] == 2);
-%!   grp_id_master = find([mesh.groups.tria6.id] == 6);
-%!   grp_id_slave = find([mesh.groups.tria6.id] == 7);
+%!   grp_id_master = find([mesh.groups.tria6h.id] == 6);
+%!   grp_id_slave = find([mesh.groups.tria6h.id] == 7);
 %!   for i=1:numel(grp_id_mat1)
 %!     mesh.materials.tet10h(mesh.groups.tet10h(grp_id_mat1(i)).elements(:)) = 1;
 %!   endfor
@@ -9027,16 +9027,16 @@ endfunction
 %!   mesh.material_data(2).nu = 0.35;
 %!   mesh.material_data(2).rho = 8900;
 %!   mesh.material_data(2).gamma = 16.7e-6;
-%!   mesh.elements.sfncon6.slave = mesh.groups.tria6(grp_id_slave).nodes(:);
-%!   mesh.elements.sfncon6.master = mesh.elements.tria6(mesh.groups.tria6(grp_id_master).elements, :);
+%!   mesh.elements.sfncon6.slave = mesh.groups.tria6h(grp_id_slave).nodes(:);
+%!   mesh.elements.sfncon6.master = mesh.elements.tria6h(mesh.groups.tria6h(grp_id_master).elements, :);
 %!   mesh.elements.sfncon6.maxdist = 1e-6;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
-%!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 4);
-%!   grp_id_clamp_z = find([[mesh.groups.tria6].id] == 5);
-%!   node_id_clamp_x = mesh.groups.tria6(grp_id_clamp_x).nodes;
-%!   node_id_clamp_y = mesh.groups.tria6(grp_id_clamp_y).nodes;
-%!   node_id_clamp_z = mesh.groups.tria6(grp_id_clamp_z).nodes;
+%!   grp_id_clamp_x = find([[mesh.groups.tria6h].id] == 3);
+%!   grp_id_clamp_y = find([[mesh.groups.tria6h].id] == 4);
+%!   grp_id_clamp_z = find([[mesh.groups.tria6h].id] == 5);
+%!   node_id_clamp_x = mesh.groups.tria6h(grp_id_clamp_x).nodes;
+%!   node_id_clamp_y = mesh.groups.tria6h(grp_id_clamp_y).nodes;
+%!   node_id_clamp_z = mesh.groups.tria6h(grp_id_clamp_z).nodes;
 %!   idx_x = true(1, numel(node_id_clamp_x));
 %!   idx_y = true(1, numel(node_id_clamp_y));
 %!   idx_z = true(1, numel(node_id_clamp_z));
@@ -9057,16 +9057,38 @@ endfunction
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_SCA_TOT_MASS], ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                 load_case);
 %!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     grp_id_load = find([mesh.groups.tria6.id] == 4);
+%!     [sol_stat.stress, ...
+%!      sol_stat.strain] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_VEC_STRESS_CAUCH, ...
+%!                                         FEM_VEC_STRAIN_TOTAL], ...
+%!                                        load_case, ...
+%!                                        sol_stat);
+%!     load_case2.epsilon0 = zeros(rows(mesh.nodes), 6);
+%!     for i=1:columns(mesh.elements.tet10h)
+%!       load_case2.epsilon0(mesh.elements.tet10h(:, i), :) = sol_stat.strain.epsilonm.tet10h(:, i, :);
+%!     endfor
+%!     [mat_ass2.K, ...
+%!      mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                   dof_map, ...
+%!                                   [FEM_MAT_STIFFNESS, ...
+%!                                    FEM_VEC_LOAD_CONSISTENT], ...
+%!                                   load_case2);
+%!     [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!     [sol_stat2.stress, ...
+%!      sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                         dof_map, ...
+%!                                         [FEM_VEC_STRESS_CAUCH, ...
+%!                                          FEM_VEC_STRAIN_TOTAL], ...
+%!                                         load_case2, ...
+%!                                         sol_stat2);
+%!     tol_def = 2e-3;
+%!     tol_strain = 4e-2;
+%!     assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
+%!     assert(sol_stat2.strain.epsilonm.tet10h, sol_stat.strain.epsilonm.tet10h, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10h)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -9234,7 +9256,7 @@ endfunction
 %!   Ei = 125000e6;
 %!   CTEc = 12.5e-6;
 %!   CTEi = 16.7e-6;
-%!   dT = 100;
+%!   dT = [100, 200];
 %!   H = 1e-3;
 %!   r1 = 0;
 %!   h1 = H;
@@ -9318,7 +9340,7 @@ endfunction
 %!   mesh.elements.sfncon6.slave = mesh.groups.tria6(grp_id_slave).nodes(:);
 %!   mesh.elements.sfncon6.master = mesh.elements.tria6(mesh.groups.tria6(grp_id_master).elements, :);
 %!   mesh.elements.sfncon6.maxdist = 1e-6;
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   constr.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 3);
 %!   node_id_clamp = mesh.groups.tria6(grp_id_clamp).nodes;
 %!   idx_clamp = true(1, numel(node_id_clamp));
@@ -9327,14 +9349,16 @@ endfunction
 %!   endfor
 %!   node_id_clamp = node_id_clamp(idx_clamp);
 %!   mesh.elements.joints = struct("nodes", mat2cell(node_id_clamp,1,ones(1,numel(node_id_clamp))), "C", repmat({[eye(3),zeros(3,3)]}, 1, numel(node_id_clamp)));
-%!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   load_case = struct("dTheta", cell(1, numel(dT)));
+%!   for i=1:numel(dT)
+%!     load_case(i).dTheta = repmat(dT(i), rows(mesh.nodes), 1);
+%!   endfor
+%!   dof_map = fem_ass_dof_map(mesh, constr);
 %!   [mat_ass.K, ...
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_SCA_TOT_MASS], ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                 load_case);
 %!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
@@ -9344,30 +9368,35 @@ endfunction
 %!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   Uy = mean(sol_stat.def(mesh.groups.tria6(grp_id_end).nodes, 2));
-%!   tol = 2e-2;
-%!   assert(Uy, Uy_ref, tol * abs(Uy));
-%!   load_case2.epsilon0 = zeros(rows(mesh.nodes), 6);
-%!   for i=1:columns(mesh.elements.tet10)
-%!     load_case2.epsilon0(mesh.elements.tet10(:, i), :) = sol_stat.strain.epsilon.tet10(:, i, :);
+%!   load_case2 = struct("epsilon0", cell(1, numel(load_case)));
+%!   for k=1:numel(load_case)
+%!     load_case2(k).epsilon0 = zeros(rows(mesh.nodes), 6);
+%!     for i=1:columns(mesh.elements.tet10)
+%!       for j=1:6
+%!         load_case2(k).epsilon0(mesh.elements.tet10(:, i), j) = sol_stat.strain.epsilonm.tet10(:, i, j, k);
+%!       endfor
+%!     endfor
 %!   endfor
 %!   [mat_ass2.K, ...
 %!    mat_ass2.R] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
 %!                                 [FEM_MAT_STIFFNESS, ...
 %!                                  FEM_VEC_LOAD_CONSISTENT], ...
-%!                                 load_case);
+%!                                 load_case2);
 %!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
 %!   [sol_stat2.stress, ...
 %!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
 %!                                       dof_map, ...
 %!                                       [FEM_VEC_STRESS_CAUCH, ...
 %!                                        FEM_VEC_STRAIN_TOTAL], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!   assert(sol_stat2.def, sol_stat.def, sqrt(eps) * max(max(abs(sol_stat.def))));
-%!   assert(sol_stat2.stress.tau.tet10, sol_stat.stress.tau.tet10, sqrt(eps) * max(max(max(abs(sol_stat.stress.tau.tet10)))));
-%!   assert(sol_stat2.strain.epsilon.tet10, sol_stat.strain.epsilon.tet10, sqrt(eps) * max(max(max(abs(sol_stat.strain.epsilon.tet10)))));
+%!                                       load_case2, ...
+%!                                       sol_stat2);
+%!   Uy = reshape(mean(sol_stat.def(mesh.groups.tria6(grp_id_end).nodes, 2, :)), 1, numel(dT));
+%!   Uy2 = reshape(mean(sol_stat2.def(mesh.groups.tria6(grp_id_end).nodes, 2, :)), 1, numel(dT));
+%!   tol = 2e-2;
+%!   assert(Uy, Uy_ref, tol * abs(Uy_ref));
+%!   assert(Uy2, Uy_ref, tol * abs(Uy_ref));
+%!   assert(sol_stat2.def, sol_stat.def, 1e-3 * max(max(max(abs(sol_stat.def)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
