@@ -1190,12 +1190,13 @@ public:
 
           FEM_ASSERT(X.rows() == 3);
 
-          const octave_idx_type iNumNodes = nodes.numel(), iNumLoadsTemp = oRefStrain.rgTemperature.numel();
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumLoadsTemp = oRefStrain.rgTemperature.numel();
           const octave_idx_type iNumLoadsStrain = oRefStrain.rgRefStrain.numel();
-
-          FEM_ASSERT(iNumLoadsTemp && iNumLoadsStrain ? iNumLoadsTemp == iNumLoadsStrain : true);
           
-          iNumLoads = std::max(iNumLoadsTemp, iNumLoadsStrain);
+          iNumPreLoads = std::max(iNumLoadsTemp, iNumLoadsStrain);
+          
+          FEM_ASSERT(iNumLoadsTemp && iNumLoadsStrain ? iNumLoadsTemp == iNumLoadsStrain : true);
           
           if (iNumLoadsTemp) {
                dTheta.resize(iNumNodes, iNumLoadsTemp);
@@ -1211,7 +1212,8 @@ public:
 
           if (iNumLoadsStrain) {
                const octave_idx_type iNumStrains = material->LinearElasticity().rows();
-               epsilonRef.resize(dim_vector(iNumStrains, iNumNodes, iNumLoads));
+               
+               epsilonRef.resize(dim_vector(iNumStrains, iNumNodes, iNumLoadsStrain));
 
                for (octave_idx_type k = 0; k < iNumLoadsStrain; ++k) {
                     const NDArray epsilonRefk = oRefStrain.rgRefStrain.xelem(k).array_value();
@@ -1261,7 +1263,7 @@ public:
           case VEC_LOAD_LUMPED:
                pFunc = &Element3D::ThermalLoadVector;
                iNumRows = iNumDof;
-               iNumCols = iNumLoads;
+               iNumCols = iNumPreLoads;
                break;
 
           case MAT_ACCEL_LOAD:
@@ -2082,10 +2084,10 @@ protected:
           FEM_ASSERT(iNumDof == 3 * X.columns());
 
           Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht;
-          ColumnVector Ue(iNumDof), epsilonik(iNumLoads ? iNumStrains : 0);
+          ColumnVector Ue(iNumDof), epsilonik(iNumPreLoads ? iNumStrains : 0);
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
 
-          if (iNumLoads) {
+          if (iNumPreLoads) {
                Ht.resize(1, iNumNodes);
           }
 
@@ -2098,7 +2100,7 @@ protected:
 
                StrainMatrix(rv, J.inverse(), B);
 
-               if (iNumLoads) {
+               if (iNumPreLoads) {
                     ScalarInterpMatrix(rv, Ht, 0);
                }
 
@@ -2125,7 +2127,7 @@ protected:
 
                     double dThetail = 0.;
 
-                    if (dTheta.numel()) {
+                    if (dTheta.columns()) {
                          for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                               dThetail += Ht.xelem(j) * dTheta.xelem(j, l);
                          }
@@ -2152,7 +2154,7 @@ protected:
                               taugj += CB.xelem(j, k) * Ue.xelem(k);
                          }
 
-                         if (iNumLoads) {
+                         if (iNumPreLoads) {
                               for (octave_idx_type k = 0; k < iNumStrains; ++k) {
                                    taugj -= C.xelem(j, k) * epsilonik.xelem(k);
                               }
@@ -2191,8 +2193,8 @@ protected:
           ColumnVector rv(iNumDir);
 
           Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
-          Matrix epsilon(iNumStrains, iNumLoads);
-          Matrix Cepsilon(iNumStrains, iNumLoads);
+          Matrix epsilon(iNumStrains, iNumPreLoads);
+          Matrix Cepsilon(iNumStrains, iNumPreLoads);
           
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
@@ -2203,10 +2205,10 @@ protected:
 
                ScalarInterpMatrix(rv, Ht, 0);
 
-               for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type k = 0; k < iNumPreLoads; ++k) {
                     double dThetaik = 0.;
 
-                    if (dTheta.numel()) {
+                    if (dTheta.columns()) {
                          for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                               dThetaik += Ht.xelem(j) * dTheta.xelem(j, k);
                          }
@@ -2229,7 +2231,7 @@ protected:
                     }
                }
 
-               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+               for (octave_idx_type l = 0; l < iNumPreLoads; ++l) {
                     for (octave_idx_type j = 0; j < iNumStrains; ++j) {
                          double Cepsilonjl = 0.;
 
@@ -2247,7 +2249,7 @@ protected:
 
                StrainMatrix(rv, J.inverse(), B);
 
-               for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               for (octave_idx_type j = 0; j < iNumPreLoads; ++j) {
                     for (octave_idx_type k = 0; k < iNumDof; ++k) {
                          double Rkj = 0.;
 
@@ -2262,7 +2264,7 @@ protected:
      }
 
 private:
-     octave_idx_type iNumLoads;
+     octave_idx_type iNumPreLoads;
      Matrix dTheta;
      NDArray epsilonRef;
 };
@@ -7094,26 +7096,60 @@ private:
 
      static double Objective(unsigned n, const double x[], double gradient[], void* pData) {
           auto pFuncData = static_cast<FuncData*>(pData);
+          
+          Matrix& Hf = pFuncData->Hf;
+          ColumnVector& rv = pFuncData->rv;
+          ColumnVector& F = pFuncData->f;
+          const SurfToNodeConstr& oSNCO = pFuncData->oSNCO;
+          const octave_idx_type N = rv.rows();
+          
+          FEM_ASSERT(n == N);
 
-          FEM_ASSERT(n == pFuncData->rv.rows());
-
-          for (octave_idx_type i = 0; i < pFuncData->rv.rows(); ++i) {
-               pFuncData->rv.xelem(i) = x[i];
+          for (octave_idx_type i = 0; i < N; ++i) {
+               rv.xelem(i) = x[i];
           }
 
-          return pFuncData->oSNCO.Objective(pFuncData->rv, pFuncData->f, pFuncData->Hf);
+          const double f0 = oSNCO.Objective(rv, F, Hf);
+
+          if (gradient) {
+               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.3);
+               
+               for (octave_idx_type i = 0; i < N; ++i) {
+                    rv.xelem(i) += delta;
+                    const double fi = oSNCO.Objective(rv, F, Hf);
+                    gradient[i] = (fi - f0) / delta;
+                    rv.xelem(i) -= delta;
+               }
+          }
+          
+          return f0;
      }
 
      static double EqualityConstr(unsigned n, const double x[], double gradient[], void* pData) {
           auto pFuncData = static_cast<FuncData*>(pData);
 
-          FEM_ASSERT(n == pFuncData->rv.rows());
+          const octave_idx_type N = pFuncData->rv.rows();
+          
+          FEM_ASSERT(n == N);
 
-          for (octave_idx_type i = 0; i < pFuncData->rv.rows(); ++i) {
+          for (octave_idx_type i = 0; i < N; ++i) {
                pFuncData->rv.xelem(i) = x[i];
           }
 
-          return pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
+          const double f0 = pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
+
+          if (gradient) {
+               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.3);
+               
+               for (octave_idx_type i = 0; i < N; ++i) {
+                    pFuncData->rv.xelem(i) += delta;
+                    const double fi = pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
+                    gradient[i] = (fi - f0) / delta;
+                    pFuncData->rv.xelem(i) -= delta;                    
+               }
+          }
+          
+          return f0;
      }
 
      double Objective(const ColumnVector& rv, ColumnVector& f, Matrix& Hf) const {
