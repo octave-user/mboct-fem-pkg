@@ -354,6 +354,47 @@ private:
      ColumnVector alpha;
 };
 
+struct StrainField {
+     StrainField(const octave_map& load_case, const Matrix& nodes) {
+          const auto iterTemperature = load_case.seek("dTheta");
+          
+          if (iterTemperature != load_case.end()) {
+               rgTemperature = load_case.contents(iterTemperature);
+          }
+
+          const auto iterRefStrain = load_case.seek("epsilon0");
+
+          if (iterRefStrain != load_case.end()) {
+               rgRefStrain = load_case.contents(iterRefStrain);
+          }
+
+          for (octave_idx_type i = 0; i < rgTemperature.numel(); ++i) {
+               const octave_value ov_dTheta = rgTemperature.xelem(i);
+
+               if (!(ov_dTheta.is_matrix_type() &&
+                     ov_dTheta.OV_ISREAL() &&
+                     ov_dTheta.rows() == nodes.rows() &&
+                     ov_dTheta.columns() == 1)) {
+                    throw std::runtime_error("argument load_case.dTheta must be a real column vector with the same number of rows like mesh.nodes");
+               }
+          }
+
+          for (octave_idx_type i = 0; i < rgRefStrain.numel(); ++i) {
+               const octave_value ov_RefStrain = rgRefStrain.xelem(i);
+
+               if (!(ov_RefStrain.is_matrix_type() &&
+                     ov_RefStrain.OV_ISREAL() &&
+                     ov_RefStrain.rows() == nodes.rows() &&
+                     ov_RefStrain.columns() == 6)) {
+                    throw std::runtime_error("argument load_case.epsilon0 must be a real column vector with the same number of rows like mesh.nodes and six columns");
+               }
+          }          
+     }
+
+     Cell rgTemperature;
+     Cell rgRefStrain;
+};
+
 class Element
 {
 public:
@@ -1143,21 +1184,43 @@ private:
 class Element3D: public Element
 {
 public:
-     Element3D(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Cell& rgTemperature)
+     Element3D(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
           :Element(id, X, material, nodes) {
 
           FEM_ASSERT(X.rows() == 3);
 
-          const octave_idx_type iNumNodes = nodes.numel(), iNumLoads = rgTemperature.numel();
+          const octave_idx_type iNumNodes = nodes.numel(), iNumLoadsTemp = oRefStrain.rgTemperature.numel();
+          const octave_idx_type iNumLoadsStrain = oRefStrain.rgRefStrain.numel();
 
-          if (iNumLoads) {
-               dTheta.resize(iNumNodes, iNumLoads);
-
-               for (octave_idx_type j = 0; j < iNumLoads; ++j) {
-                    const NDArray dThetaj = rgTemperature.xelem(j).array_value();
+          FEM_ASSERT(iNumLoadsTemp && iNumLoadsStrain ? iNumLoadsTemp == iNumLoadsStrain : true);
+          
+          iNumLoads = std::max(iNumLoadsTemp, iNumLoadsStrain);
+          
+          if (iNumLoadsTemp) {
+               dTheta.resize(iNumNodes, iNumLoadsTemp);
+               
+               for (octave_idx_type j = 0; j < iNumLoadsTemp; ++j) {
+                    const NDArray dThetaj = oRefStrain.rgTemperature.xelem(j).array_value();
 
                     for (octave_idx_type i = 0; i < iNumNodes; ++i) {
                          dTheta.xelem(i, j) = dThetaj.xelem(nodes.xelem(i).value() - 1);
+                    }
+               }
+          }
+
+          if (iNumLoadsStrain) {
+               const octave_idx_type iNumStrains = material->LinearElasticity().rows();
+               epsilonRef.resize(dim_vector(iNumStrains, iNumNodes, iNumLoads));
+
+               for (octave_idx_type k = 0; k < iNumLoadsStrain; ++k) {
+                    const NDArray epsilonRefk = oRefStrain.rgRefStrain.xelem(k).array_value();
+                    
+                    FEM_ASSERT(epsilonRefk.dim2() == iNumStrains);
+                    
+                    for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                         for (octave_idx_type i = 0; i < iNumStrains; ++i) {
+                              epsilonRef.xelem(i, j, k) = epsilonRefk.xelem(nodes.xelem(j).value() - 1, i);
+                         }
                     }
                }
           }
@@ -1197,7 +1260,7 @@ public:
           case VEC_LOAD_LUMPED:
                pFunc = &Element3D::ThermalLoadVector;
                iNumRows = iNumDof;
-               iNumCols = dTheta.columns();
+               iNumCols = iNumLoads;
                break;
 
           case MAT_ACCEL_LOAD:
@@ -1927,7 +1990,6 @@ protected:
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
           const octave_idx_type iNumNodes = nodes.numel();
-          const bool bThermalLoad = dTheta.columns();
           
           ColumnVector rv(iNumDir);
           const Matrix& C = material->LinearElasticity();
@@ -1946,10 +2008,10 @@ protected:
           FEM_ASSERT(iNumDof == 3 * X.columns());
 
           Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht;
-          ColumnVector Ue(iNumDof);
+          ColumnVector Ue(iNumDof), epsilonik(iNumLoads ? iNumStrains : 0);
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
 
-          if (bThermalLoad) {
+          if (iNumLoads) {
                Ht.resize(1, iNumNodes);
           }
 
@@ -1962,7 +2024,7 @@ protected:
 
                StrainMatrix(rv, J.inverse(), B);
 
-               if (bThermalLoad) {
+               if (iNumLoads) {
                     ScalarInterpMatrix(rv, Ht, 0);
                }
 
@@ -1989,22 +2051,36 @@ protected:
 
                     double dThetail = 0.;
 
-                    if (bThermalLoad) {
+                    if (dTheta.numel()) {
                          for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                               dThetail += Ht.xelem(j) * dTheta.xelem(j, l);
                          }
                     }
                     
+                    const double epsilonTherm = gamma * dThetail;
+                    
                     for (octave_idx_type j = 0; j < iNumStrains; ++j) {
-                         double taugj = 0;
+                         epsilonik.xelem(j) = j < 3 ? epsilonTherm : 0.;
+                    }
+
+                    if (epsilonRef.numel()) {
+                         for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                              for (octave_idx_type k = 0; k < iNumStrains; ++k) {
+                                   epsilonik.xelem(k) += Ht.xelem(j) * epsilonRef(k, j, l);
+                              }
+                         }
+                    }
+                    
+                    for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+                         double taugj = 0.;
 
                          for (octave_idx_type k = 0; k < iNumDof; ++k) {
                               taugj += CB.xelem(j, k) * Ue.xelem(k);
                          }
 
-                         if (bThermalLoad) {
-                              for (octave_idx_type k = 0; k < 3; ++k) {
-                                   taugj -= C.xelem(j, k) * gamma * dThetail;
+                         if (iNumLoads) {
+                              for (octave_idx_type k = 0; k < iNumStrains; ++k) {
+                                   taugj -= C.xelem(j, k) * epsilonik.xelem(k);
                               }
                          }
                          
@@ -2031,7 +2107,6 @@ protected:
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-          const octave_idx_type iNumLoads = dTheta.columns();
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumDof = iGetNumDof();
           const Matrix& C = material->LinearElasticity();
@@ -2044,7 +2119,7 @@ protected:
           Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
           Matrix epsilon(iNumStrains, iNumLoads);
           Matrix Cepsilon(iNumStrains, iNumLoads);
-
+          
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
                
@@ -2057,16 +2132,26 @@ protected:
                for (octave_idx_type k = 0; k < iNumLoads; ++k) {
                     double dThetaik = 0.;
 
-                    for (octave_idx_type j = 0; j < iNumNodes; ++j) {
-                         dThetaik += Ht.xelem(j) * dTheta.xelem(j, k);
+                    if (dTheta.numel()) {
+                         for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                              dThetaik += Ht.xelem(j) * dTheta.xelem(j, k);
+                         }
                     }
 
-                    const double epsilonk = gamma * dThetaik;
-
                     FEM_ASSERT(iNumStrains >= 3);
-
-                    for (octave_idx_type j = 0; j < iNumStrains; ++j) {
-                         epsilon.xelem(j, k) = j < 3 ? epsilonk : 0.;
+                    
+                    const double epsilonk = gamma * dThetaik;
+                    
+                    for (octave_idx_type i = 0; i < iNumStrains; ++i) {
+                         epsilon.xelem(i, k) = i < 3 ? epsilonk : 0.;
+                    }
+                    
+                    if (epsilonRef.numel()) {                         
+                         for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                              for (octave_idx_type i = 0; i < iNumStrains; ++i) {
+                                   epsilon.xelem(i, k) += Ht.xelem(j) * epsilonRef.xelem(i, j, k);
+                              }                             
+                         }
                     }
                }
 
@@ -2103,14 +2188,16 @@ protected:
      }
 
 private:
+     octave_idx_type iNumLoads;
      Matrix dTheta;
+     NDArray epsilonRef;
 };
 
 class Iso8: public Element3D
 {
 public:
-     Iso8(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Cell& rgTemperature)
-          :Element3D(id, X, material, nodes, rgTemperature) {
+     Iso8(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 8);
      }
 
@@ -2476,8 +2563,8 @@ private:
 class Iso20: public Element3D
 {
 public:
-     Iso20(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Cell& rgTemperature)
-          :Element3D(id, X, material, nodes, rgTemperature) {
+     Iso20(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 20);
      }
 
@@ -3175,8 +3262,8 @@ private:
 class Penta15: public Element3D
 {
 public:
-     Penta15(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Cell& rgTemperature)
-          :Element3D(id, X, material, nodes, rgTemperature) {
+     Penta15(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 15);
      }
 
@@ -3753,8 +3840,8 @@ private:
 class Tet10h: public Element3D
 {
 public:
-     Tet10h(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Cell& rgTemperature)
-          :Element3D(id, X, material, nodes, rgTemperature) {
+     Tet10h(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 10);
      }
 
@@ -4275,8 +4362,8 @@ class Tet10: public Element3D
      static constexpr double gamma = 1. / 6.;
 
 public:
-     Tet10(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Cell& rgTemperature)
-          :Element3D(id, X, material, nodes, rgTemperature) {
+     Tet10(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 10);
      }
 
@@ -7987,20 +8074,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                throw std::runtime_error("argument load case must be a struct array");
           }
 
-          const auto iterTemperature = load_case.seek("dTheta");
-
-          const Cell rgTemperature = iterTemperature != load_case.end() ? load_case.contents(iterTemperature) : Cell();
-
-          for (octave_idx_type i = 0; i < rgTemperature.numel(); ++i) {
-               const octave_value ov_dTheta = rgTemperature.xelem(i);
-
-               if (!(ov_dTheta.is_matrix_type() &&
-                     ov_dTheta.OV_ISREAL() &&
-                     ov_dTheta.rows() == nodes.rows() &&
-                     ov_dTheta.columns() == 1)) {
-                    throw std::runtime_error("argument load_case.dTheta must be a real column vector with the same number of rows like mesh.nodes");
-               }
-          }
+          const StrainField oRefStrain(load_case, nodes);
 
           const octave_scalar_map sol(nargin > 4 ? args(4).scalar_map_value() : octave_scalar_map());
 
@@ -8339,23 +8413,23 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     switch (oElemType.type) {
                     case ElementTypes::ELEM_ISO8:
-                         rgElemBlocks.emplace_back(new ElementBlock<Iso8>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, rgTemperature));
+                         rgElemBlocks.emplace_back(new ElementBlock<Iso8>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
                          break;
 
                     case ElementTypes::ELEM_ISO20:
-                         rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, rgTemperature));
+                         rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
                          break;
 
                     case ElementTypes::ELEM_PENTA15:
-                         rgElemBlocks.emplace_back(new ElementBlock<Penta15>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, rgTemperature));
+                         rgElemBlocks.emplace_back(new ElementBlock<Penta15>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
                          break;
 
                     case ElementTypes::ELEM_TET10H:
-                         rgElemBlocks.emplace_back(new ElementBlock<Tet10h>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, rgTemperature));
+                         rgElemBlocks.emplace_back(new ElementBlock<Tet10h>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
                          break;
 
                     case ElementTypes::ELEM_TET10:
-                         rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, rgTemperature));
+                         rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
                          break;
 
                     default:
