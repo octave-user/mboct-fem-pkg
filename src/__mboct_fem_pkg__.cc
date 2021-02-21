@@ -7221,7 +7221,7 @@ private:
      struct FuncData {
           FuncData(const ColumnVector& Xm, const ColumnVector& Xs)
                :oSNCO(Xm, Xs),
-                opt(nlopt_create(NLOPT_LN_COBYLA, iNumDir)),
+                opt(nlopt_create(SHAPE_FUNC::iGetNumEqualityConstr() == 0 ? NLOPT_LD_LBFGS : NLOPT_LN_COBYLA, iNumDir)),
                 Hf(iNumDofNode, iNumNodesElem * iNumDofNode),
                 rv(iNumDir, 0.),
                 f(iNumDofNode) {
