@@ -38,7 +38,7 @@ using namespace std::string_literals;
                     << __LINE__ << ":"                  \
                     << __FUNCTION__ << std::endl;       \
           asm("int3");                                  \
-          assert(expr);                                 \
+          abort();                                      \
      }
 #else
 #define FEM_ASSERT(expr) static_cast<void>(0)
@@ -127,6 +127,11 @@ struct array
 
 class DofMap {
 public:
+     enum DomainType: unsigned {
+          DO_STRUCTURAL = 0x00000000u,
+          DO_THERMAL    = 0x01000000u,
+     };
+
      enum ElementType {
           ELEM_RBE3 = 0,
           ELEM_JOINT,
@@ -134,12 +139,12 @@ public:
           ELEM_NODOF = -1
      };
 
-     explicit DofMap(const int32NDArray& ndof, const array<int32NDArray, ELEM_TYPE_COUNT>& edof, octave_idx_type totdof)
-          :ndof(ndof), edof(edof), totdof(totdof) {
+     explicit DofMap(DomainType eDomain, const int32NDArray& ndof, const array<int32NDArray, ELEM_TYPE_COUNT>& edof, octave_idx_type totdof)
+          :eDomain(eDomain), ndof(ndof), edof(edof), totdof(totdof) {
      }
 
-     explicit DofMap(const int32NDArray& ndof, octave_idx_type totdof)
-          :ndof(ndof), totdof(totdof) {
+     explicit DofMap(DomainType eDomain, const int32NDArray& ndof, octave_idx_type totdof)
+          :eDomain(eDomain), ndof(ndof), totdof(totdof) {
      }
 
      octave_idx_type GetNodeDofIndex(octave_idx_type inode, octave_idx_type idof) const {
@@ -154,7 +159,29 @@ public:
           return totdof;
      }
 
+     octave_idx_type iGetNodeMaxDofIndex() const {
+          return ndof.columns();
+     }
+
+     static octave_idx_type iGetNodeMaxDofIndex(DomainType eDomain) {
+          switch (eDomain) {
+          case DO_STRUCTURAL:
+               return 6;
+               
+          case DO_THERMAL:
+               return 1;
+               
+          default:
+               return -1;
+          }
+     }
+
+     DomainType GetDomain() const {
+          return eDomain;
+     }
+
 private:
+     DomainType eDomain;
      int32NDArray ndof;
      array<int32NDArray, ELEM_TYPE_COUNT> edof;
      octave_idx_type totdof;
@@ -247,12 +274,12 @@ private:
 class Material
 {
 public:
-     Material(const Matrix& C, double rho, double alpha, double beta, double gamma)
+     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k)
           :rho(rho),
            alpha(alpha),
            beta(beta),
            gamma(gamma),
-           C(C) {
+           C(C), k(k) {
           FEM_ASSERT(C.rows() == 6);
           FEM_ASSERT(C.columns() == 6);
 
@@ -263,8 +290,8 @@ public:
           nu = (2 * b - 1) / (2 * b - 2);
      }
 
-     Material(double E, double nu, double rho, double alpha, double beta, double gamma)
-          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), C(6, 6, 0.) {
+     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k)
+          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), C(6, 6, 0.), k(k) {
 
           const double a = nu / (1 - nu);
           const double b = (1 - 2 * nu) / (2 * (1 - nu));
@@ -280,13 +307,17 @@ public:
      }
 
      Material(const Material& oMat)
-          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), C(oMat.C) {
+          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), C(oMat.C), k(oMat.k) {
      }
 
      const Matrix& LinearElasticity() const {
           return C;
      }
 
+     const Matrix& ThermalConductivity() const {
+          return k;
+     }
+     
      double ThermalExpansion() const {
           return gamma;
      }
@@ -309,7 +340,7 @@ public:
 
 private:
      double E, nu, rho, alpha, beta, gamma;
-     Matrix C;
+     Matrix C, k;
 };
 
 class IntegrationRule
@@ -493,7 +524,8 @@ public:
           VEC_LOAD_LUMPED = 0xE00u,
           VEC_STRESS_CAUCH = 0xF00u,
           VEC_STRAIN_TOTAL = 0x1000u,
-          SCA_STRESS_VMIS = 0x2000u
+          SCA_STRESS_VMIS = 0x2000u,
+          MAT_THERMAL_COND = 0x4000u | DofMap::DO_THERMAL
      };
 
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -1306,7 +1338,7 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
           void (Element3D::*pFunc)(Matrix&, MeshInfo&, MatrixType) const;
 
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
           octave_idx_type iNumRows, iNumCols;
 
@@ -1345,7 +1377,12 @@ public:
                iNumRows = iNumDof;
                iNumCols = 3;
                break;
-
+               
+          case MAT_THERMAL_COND:
+               pFunc = &Element3D::ThermalConductivityMatrix;
+               iNumRows = iNumCols = iNumDof;
+               break;
+               
           default:
                return;
           }
@@ -1356,9 +1393,11 @@ public:
 
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
+          const octave_idx_type inodemaxdof = dof.iGetNodeMaxDofIndex();
+          
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
-               for (octave_idx_type idof = 0; idof < 3; ++idof) {
-                    dofidx.xelem(inode * 3 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
+               for (octave_idx_type idof = 0; idof < inodemaxdof; ++idof) {
+                    dofidx.xelem(inode * inodemaxdof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
                }
           }
 
@@ -1383,16 +1422,22 @@ public:
           }
      }
 
-     octave_idx_type iGetNumDof() const {
-          return nodes.numel() * 3;
+     octave_idx_type iGetNumDof(MatrixType eMatType) const {
+          switch (eMatType) {
+          case MAT_THERMAL_COND:
+               return nodes.numel();
+          default:
+               return nodes.numel() * 3;
+          }
      }
 
      virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
           switch (eMatType) {
           case MAT_MASS:
           case MAT_STIFFNESS:
-          case MAT_DAMPING: {
-               const octave_idx_type iNumDof = iGetNumDof();
+          case MAT_DAMPING:
+          case MAT_THERMAL_COND: {
+               const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
                return iNumDof * iNumDof;
           }
@@ -1402,15 +1447,15 @@ public:
           case MAT_STIFFNESS_SYM_L:
           case MAT_DAMPING_SYM:
           case MAT_DAMPING_SYM_L: {
-               const octave_idx_type iNumDof = iGetNumDof();
+               const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
                return (iNumDof + 1) * iNumDof / 2;
           }
           case MAT_MASS_LUMPED:
-               return iGetNumDof();
+               return iGetNumDof(eMatType);
 
           case MAT_ACCEL_LOAD:
-               return iGetNumDof() * 3;
+               return iGetNumDof(eMatType) * 3;
 
           default:
                return 0;
@@ -1494,14 +1539,17 @@ protected:
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
      virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
-
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+          throw std::runtime_error("TemperatureGradientMatrix is not implemented for the selected element type");
+     }
+     
      void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
           info.Add(MeshInfo::JACOBIAN_DET, detJ);
      }
 
      void StiffnessMatrix(Matrix& Ke, MeshInfo& info, MatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
           const Matrix& C = material->LinearElasticity();
@@ -1578,7 +1626,7 @@ protected:
 
      void MassMatrix(Matrix& Me, MeshInfo& info, MatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
           const double rho = material->Density();
@@ -1658,7 +1706,7 @@ protected:
 
      void AccelerationLoad(Matrix& C1, MeshInfo& info, MatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
           const double rho = material->Density();
@@ -1694,7 +1742,7 @@ protected:
 
      void InertiaMoment1(NDArray& S, MatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -1735,7 +1783,7 @@ protected:
 
      void InertiaMatrix(NDArray& Inv7, MatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -1784,7 +1832,7 @@ protected:
 
      void InertiaInv3(NDArray& Inv3, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -1831,7 +1879,7 @@ protected:
 
      void InertiaInv4(NDArray& Inv4, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -1883,7 +1931,7 @@ protected:
 
      void InertiaInv5(NDArray& Inv5, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -1940,7 +1988,7 @@ protected:
 
      void InertiaInv8(NDArray& Inv8, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -2000,7 +2048,7 @@ protected:
 
      void InertiaInv9(NDArray& Inv9, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
@@ -2067,7 +2115,7 @@ protected:
      void StrainNodalElem(NDArray& epsilonn, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
           const octave_idx_type iNumNodes = nodes.numel();
@@ -2136,7 +2184,7 @@ protected:
      void StressNodalElem(NDArray& taun, MatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
           const octave_idx_type iNumNodes = nodes.numel();
@@ -2260,7 +2308,7 @@ protected:
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const octave_idx_type iNumNodes = nodes.numel();
-          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const Matrix& C = material->LinearElasticity();
           const double gamma = material->ThermalExpansion();
           const octave_idx_type iNumStrains = C.rows();
@@ -2339,6 +2387,82 @@ protected:
           }
      }
 
+     void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, MatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          ColumnVector rv(iNumDir);
+          const Matrix& k = material->ThermalConductivity();
+          const octave_idx_type iNumStrains = k.rows();
+
+          FEM_ASSERT(k.rows() == k.columns());
+
+          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), kB(iNumStrains, iNumDof);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               const double detJ = Jacobian(rv, J);
+
+               AddMeshInfo(info, oIntegRule, detJ);
+
+               TemperatureGradientMatrix(rv, J.inverse(), B);
+
+               for (octave_idx_type l = 0; l < iNumStrains; ++l) {
+                    for (octave_idx_type m = 0; m < iNumDof; ++m) {
+                         double kBlm = 0.;
+
+                         for (octave_idx_type n = 0; n < iNumStrains; ++n) {
+                              kBlm += detJ * alpha * k.xelem(l, n) * B.xelem(n, m);
+                         }
+
+                         FEM_ASSERT(std::isfinite(kBlm));
+
+                         kB.xelem(l, m) = kBlm;
+                    }
+               }
+
+#ifdef DEBUG
+               for (octave_idx_type i = 0; i < kB.rows(); ++i) {
+                    for (octave_idx_type j = 0; j < kB.columns(); ++j) {
+                         FEM_ASSERT(std::isfinite(kB(i, j)));
+                    }
+               }
+#endif
+
+               for (octave_idx_type l = 0; l < iNumDof; ++l) {
+                    for (octave_idx_type m = l; m < iNumDof; ++m) {
+                         double Kelm = 0.;
+
+                         for (octave_idx_type n = 0; n < iNumStrains; ++n) {
+                              Kelm += B.xelem(n, l) * kB.xelem(n, m);
+                         }
+
+                         FEM_ASSERT(std::isfinite(Kelm));
+
+                         Ke.xelem(l, m) += Kelm;
+                    }
+               }
+          }
+
+          for (octave_idx_type i = 1; i < iNumDof; ++i) {
+               for (octave_idx_type j = 0; j < i; ++j) {
+                    Ke.xelem(i, j) = Ke.xelem(j, i);
+               }
+          }
+
+#ifdef DEBUG
+          for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
+                    FEM_ASSERT(std::isfinite(Ke(i, j)));
+               }
+          }
+#endif
+     }
 private:
      octave_idx_type iNumPreLoads;
      Matrix dTheta;
@@ -2669,6 +2793,91 @@ protected:
 #endif
      }
 
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(invJ.rows() == 3);
+          FEM_ASSERT(invJ.columns() == 3);
+          FEM_ASSERT(Bt.rows() == 3);
+          FEM_ASSERT(Bt.columns() == 24);
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);   
+          // temperature gradient matrix Bt
+          Bt.xelem(0,0) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0E+0;
+          Bt.xelem(1,0) = 0;
+          Bt.xelem(2,0) = 0;
+          Bt.xelem(0,1) = 0;
+          Bt.xelem(1,1) = (invJ.xelem(1,0)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(1,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(1,2)*(r+1)*(s+1))/8.0E+0;
+          Bt.xelem(2,1) = 0;
+          Bt.xelem(0,2) = 0;
+          Bt.xelem(1,2) = 0;
+          Bt.xelem(2,2) = (invJ.xelem(2,0)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(2,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(2,2)*(r+1)*(s+1))/8.0E+0;
+          Bt.xelem(0,3) = (-(invJ.xelem(0,0)*(s+1)*(t+1))/8.0E+0)+(invJ.xelem(0,1)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(0,2)*(1-r)*(s+1))/8.0E+0;
+          Bt.xelem(1,3) = 0;
+          Bt.xelem(2,3) = 0;
+          Bt.xelem(0,4) = 0;
+          Bt.xelem(1,4) = (-(invJ.xelem(1,0)*(s+1)*(t+1))/8.0E+0)+(invJ.xelem(1,1)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(1,2)*(1-r)*(s+1))/8.0E+0;
+          Bt.xelem(2,4) = 0;
+          Bt.xelem(0,5) = 0;
+          Bt.xelem(1,5) = 0;
+          Bt.xelem(2,5) = (-(invJ.xelem(2,0)*(s+1)*(t+1))/8.0E+0)+(invJ.xelem(2,1)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(2,2)*(1-r)*(s+1))/8.0E+0;
+          Bt.xelem(0,6) = (-(invJ.xelem(0,0)*(1-s)*(t+1))/8.0E+0)-(invJ.xelem(0,1)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(0,2)*(1-r)*(1-s))/8.0E+0;
+          Bt.xelem(1,6) = 0;
+          Bt.xelem(2,6) = 0;
+          Bt.xelem(0,7) = 0;
+          Bt.xelem(1,7) = (-(invJ.xelem(1,0)*(1-s)*(t+1))/8.0E+0)-(invJ.xelem(1,1)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(1,2)*(1-r)*(1-s))/8.0E+0;
+          Bt.xelem(2,7) = 0;
+          Bt.xelem(0,8) = 0;
+          Bt.xelem(1,8) = 0;
+          Bt.xelem(2,8) = (-(invJ.xelem(2,0)*(1-s)*(t+1))/8.0E+0)-(invJ.xelem(2,1)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(2,2)*(1-r)*(1-s))/8.0E+0;
+          Bt.xelem(0,9) = (invJ.xelem(0,0)*(1-s)*(t+1))/8.0E+0-(invJ.xelem(0,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(0,2)*(r+1)*(1-s))/8.0E+0;
+          Bt.xelem(1,9) = 0;
+          Bt.xelem(2,9) = 0;
+          Bt.xelem(0,10) = 0;
+          Bt.xelem(1,10) = (invJ.xelem(1,0)*(1-s)*(t+1))/8.0E+0-(invJ.xelem(1,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(1,2)*(r+1)*(1-s))/8.0E+0;
+          Bt.xelem(2,10) = 0;
+          Bt.xelem(0,11) = 0;
+          Bt.xelem(1,11) = 0;
+          Bt.xelem(2,11) = (invJ.xelem(2,0)*(1-s)*(t+1))/8.0E+0-(invJ.xelem(2,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(2,2)*(r+1)*(1-s))/8.0E+0;
+          Bt.xelem(0,12) = (invJ.xelem(0,0)*(s+1)*(1-t))/8.0E+0+(invJ.xelem(0,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(0,2)*(r+1)*(s+1))/8.0E+0;
+          Bt.xelem(1,12) = 0;
+          Bt.xelem(2,12) = 0;
+          Bt.xelem(0,13) = 0;
+          Bt.xelem(1,13) = (invJ.xelem(1,0)*(s+1)*(1-t))/8.0E+0+(invJ.xelem(1,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(1,2)*(r+1)*(s+1))/8.0E+0;
+          Bt.xelem(2,13) = 0;
+          Bt.xelem(0,14) = 0;
+          Bt.xelem(1,14) = 0;
+          Bt.xelem(2,14) = (invJ.xelem(2,0)*(s+1)*(1-t))/8.0E+0+(invJ.xelem(2,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(2,2)*(r+1)*(s+1))/8.0E+0;
+          Bt.xelem(0,15) = (-(invJ.xelem(0,0)*(s+1)*(1-t))/8.0E+0)+(invJ.xelem(0,1)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(0,2)*(1-r)*(s+1))/8.0E+0;
+          Bt.xelem(1,15) = 0;
+          Bt.xelem(2,15) = 0;
+          Bt.xelem(0,16) = 0;
+          Bt.xelem(1,16) = (-(invJ.xelem(1,0)*(s+1)*(1-t))/8.0E+0)+(invJ.xelem(1,1)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(1,2)*(1-r)*(s+1))/8.0E+0;
+          Bt.xelem(2,16) = 0;
+          Bt.xelem(0,17) = 0;
+          Bt.xelem(1,17) = 0;
+          Bt.xelem(2,17) = (-(invJ.xelem(2,0)*(s+1)*(1-t))/8.0E+0)+(invJ.xelem(2,1)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(2,2)*(1-r)*(s+1))/8.0E+0;
+          Bt.xelem(0,18) = (-(invJ.xelem(0,0)*(1-s)*(1-t))/8.0E+0)-(invJ.xelem(0,1)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(0,2)*(1-r)*(1-s))/8.0E+0;
+          Bt.xelem(1,18) = 0;
+          Bt.xelem(2,18) = 0;
+          Bt.xelem(0,19) = 0;
+          Bt.xelem(1,19) = (-(invJ.xelem(1,0)*(1-s)*(1-t))/8.0E+0)-(invJ.xelem(1,1)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(1,2)*(1-r)*(1-s))/8.0E+0;
+          Bt.xelem(2,19) = 0;
+          Bt.xelem(0,20) = 0;
+          Bt.xelem(1,20) = 0;
+          Bt.xelem(2,20) = (-(invJ.xelem(2,0)*(1-s)*(1-t))/8.0E+0)-(invJ.xelem(2,1)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(2,2)*(1-r)*(1-s))/8.0E+0;
+          Bt.xelem(0,21) = (invJ.xelem(0,0)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(0,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(0,2)*(r+1)*(1-s))/8.0E+0;
+          Bt.xelem(1,21) = 0;
+          Bt.xelem(2,21) = 0;
+          Bt.xelem(0,22) = 0;
+          Bt.xelem(1,22) = (invJ.xelem(1,0)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(1,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(1,2)*(r+1)*(1-s))/8.0E+0;
+          Bt.xelem(2,22) = 0;
+          Bt.xelem(0,23) = 0;
+          Bt.xelem(1,23) = 0;
+          Bt.xelem(2,23) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0E+0;
+     }
+     
      virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
@@ -5422,6 +5631,8 @@ public:
 
      static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
           FEM_ASSERT(rv.rows() == 2);
+          FEM_ASSERT(Hf.rows() == 3);
+          FEM_ASSERT(Hf.columns() == 12);
 
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
@@ -7515,6 +7726,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_SCA_STRESS_VMIS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct");
 
 // PKG_DEL: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct", "remove");
@@ -7545,6 +7757,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_SCA_STRESS_VMIS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct", "remove");
+// PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
@@ -7606,10 +7819,25 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
           return retval;
      }
 
+     const auto it_domain = m_load_case.seek("domain");
+
+     DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
+     
+     if (it_domain != m_load_case.end()) {
+          eDomain = static_cast<DofMap::DomainType>(m_load_case.contents(it_domain).int_value());
+     }
+
+     const octave_idx_type iNodeMaxDofIndex = DofMap::iGetNodeMaxDofIndex(eDomain);
+
+     if (iNodeMaxDofIndex <= 0) {
+          error("invalid value for load_case.domain=%d", static_cast<int>(eDomain));
+          return retval;
+     }
+     
      if (locked_dof.ndims() != 2 ||
-         locked_dof.columns() != nodes.columns() ||
+         locked_dof.columns() != iNodeMaxDofIndex ||
          locked_dof.rows() != nodes.rows()) {
-          error("size of load_case.locked_dof does not match size of mesh.nodes");
+          error("size of load_case.locked_dof is not valid");
           return retval;
      }
 
@@ -7765,8 +7993,8 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      }
 
      octave_idx_type icurrdof = 0;
-
-     int32NDArray ndof(dim_vector(nodes.rows(), nodes.columns()), -1);
+     
+     int32NDArray ndof(dim_vector(nodes.rows(), iNodeMaxDofIndex), -1);
 
      for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
           for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
@@ -7779,6 +8007,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      octave_map dof_map;
 
      dof_map.assign("ndof", octave_value(ndof));
+     dof_map.assign("domain", octave_value(eDomain));
 
      int32NDArray idx_node(dim_vector(icurrdof, 1), -1);
      octave_idx_type icurrndof = 0;
@@ -8230,6 +8459,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                throw std::runtime_error("field \"ndof\" not found in argument dof_map");
           }
 
+          const auto iter_domain = dof_map.seek("domain");
+
+          if (iter_domain == dof_map.end()) {
+               throw std::runtime_error("field \"domain\" not found in argument dof_map");
+          }
+
+          const auto eDomain = static_cast<DofMap::DomainType>(dof_map.contents(iter_domain).int_value());
+
           const int32NDArray ndof(dof_map.contents(iter_ndof).int32_array_value());
 
           if (error_state) {
@@ -8248,8 +8485,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                throw std::runtime_error("field dof_map.totdof must be an scalar integer in argument dof_map");
           }
 
-          if (ndof.rows() != nodes.rows() || ndof.columns() != nodes.columns()) {
-               throw std::runtime_error("shape of dof_map.ndof does not match shape of nodes in argument dof_map");
+          if (ndof.rows() != nodes.rows() || ndof.columns() != DofMap::iGetNodeMaxDofIndex(eDomain)) {
+               throw std::runtime_error("shape of dof_map.ndof is not valid");
           }
 
           for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
@@ -8330,6 +8567,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const auto iterAlpha = material_data.seek("alpha");
           const auto iterBeta = material_data.seek("beta");
           const auto iterGamma = material_data.seek("gamma");
+          const auto iterk = material_data.seek("k");
 
           if (iterC == material_data.end() && (iterE == material_data.end() || iternu == material_data.end())) {
                throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
@@ -8346,7 +8584,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const Cell cellAlpha = iterAlpha != material_data.end() ? material_data.contents(iterAlpha) : Cell();
           const Cell cellBeta = iterBeta != material_data.end() ? material_data.contents(iterBeta) : Cell();
           const Cell cellGamma = iterGamma != material_data.end() ? material_data.contents(iterGamma) : Cell();
-
+          const Cell cellk = iterk != material_data.end() ? material_data.contents(iterk) : Cell();
+          
           vector<Material> rgMaterials;
 
           rgMaterials.reserve(material_data.numel());
@@ -8409,21 +8648,33 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                const double gamma = iterGamma != material_data.end() && !cellGamma(i).isempty() ? cellGamma(i).scalar_value() : 0.;
 
+               const Matrix k = iterk != material_data.end() && !cellk(i).isempty() ? cellk(i).matrix_value() : Matrix(3, 3, 0.);
+
+               if (k.rows() != 3 || k.columns() != 3) {
+                    throw std::runtime_error("mesh.material_data.k must be a real 3x3 matrix");
+               }
+
                if (buseC) {
-                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma);
+                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k);
                } else {
-                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma);
+                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k);
                }
           }
 
-          DofMap oDof(ndof, edof, inumdof);
+          DofMap oDof(eDomain, ndof, edof, inumdof);
 
           array<bool, ElementTypes::iGetNumTypes()> rgElemUse;
 
           std::fill(std::begin(rgElemUse), std::end(rgElemUse), false);
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
-               switch (matrix_type(i).value()) {
+               const auto eMatType = static_cast<Element::MatrixType>(matrix_type(i).value());
+
+               if ((eMatType & eDomain) != eDomain) {
+                    throw std::runtime_error("matrix type is not valid for selected domain");
+               }
+               
+               switch (eMatType) {
                case Element::MAT_STIFFNESS:
                case Element::MAT_STIFFNESS_SYM:
                case Element::MAT_STIFFNESS_SYM_L:
@@ -8474,6 +8725,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
                     rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
                     rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                    // Needed for thermal stress only
+                    rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                    rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                    rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                    rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                    rgElemUse[ElementTypes::ELEM_TET10] = true;                    
                     break;
 
                default:
@@ -9354,3 +9611,6 @@ DEFINE_GLOBAL_CONSTANT(Element, VEC_STRESS_CAUCH, "linear stress tensor")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_STRAIN_TOTAL, "linear strain tensor")
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_FIXED, "build constraints in all three directions in space")
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_SLIDING, "build only one constraint normal to the surface")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_THERMAL_COND, "thermal conductivity matrix")
+DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
+DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
