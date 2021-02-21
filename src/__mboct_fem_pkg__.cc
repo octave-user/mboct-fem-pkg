@@ -7120,7 +7120,7 @@ private:
           const double f0 = oSNCO.Objective(rv, F, Hf);
 
           if (gradient) {
-               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.3);
+               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
                
                for (octave_idx_type i = 0; i < N; ++i) {
                     rv.xelem(i) += delta;
@@ -7147,7 +7147,7 @@ private:
           const double f0 = pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
 
           if (gradient) {
-               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.3);
+               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
                
                for (octave_idx_type i = 0; i < N; ++i) {
                     pFuncData->rv.xelem(i) += delta;
