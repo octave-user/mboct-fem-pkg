@@ -15,8 +15,6 @@
 
 #include "config.h"
 
-#define DEBUG 1
-
 #include <algorithm>
 #include <array>
 #include <cassert>
