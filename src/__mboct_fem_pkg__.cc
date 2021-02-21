@@ -15,6 +15,8 @@
 
 #include "config.h"
 
+#define DEBUG 1
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -2206,11 +2208,13 @@ protected:
                               dThetail += Ht.xelem(j) * dTheta.xelem(j, l);
                          }
                     }
+
+                    if (iNumPreLoads) {
+                         const double epsilonTherm = gamma * dThetail;
                     
-                    const double epsilonTherm = gamma * dThetail;
-                    
-                    for (octave_idx_type j = 0; j < iNumStrains; ++j) {
-                         epsilonik.xelem(j) = j < 3 ? epsilonTherm : 0.;
+                         for (octave_idx_type j = 0; j < iNumStrains; ++j) {
+                              epsilonik.xelem(j) = j < 3 ? epsilonTherm : 0.;
+                         }
                     }
 
                     if (epsilonRef.numel()) {
