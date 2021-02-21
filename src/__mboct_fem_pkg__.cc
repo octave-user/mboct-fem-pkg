@@ -7123,12 +7123,18 @@ private:
 
           if (gradient) {
                constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
+               constexpr octave_idx_type M = 4;
+               static constexpr double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
+               std::array<double, M> fi;
                
                for (octave_idx_type i = 0; i < N; ++i) {
-                    rv.xelem(i) += delta;
-                    const double fi = oSNCO.Objective(rv, F, Hf);
-                    gradient[i] = (fi - f0) / delta;
-                    rv.xelem(i) -= delta;
+                    for (octave_idx_type j = 0; j < M; ++j) {
+                         rv.xelem(i) = x[i] + dx[j];
+                         fi[j] = oSNCO.Objective(rv, F, Hf);
+                    }
+
+                    gradient[i] = (fi[0] - 8. * fi[1] + 8. * fi[2] - fi[3]) / (12. * delta);
+                    rv.xelem(i) = x[i];                                        
                }
           }
           
@@ -7138,24 +7144,32 @@ private:
      static double EqualityConstr(unsigned n, const double x[], double gradient[], void* pData) {
           auto pFuncData = static_cast<FuncData*>(pData);
 
-          const octave_idx_type N = pFuncData->rv.rows();
+          ColumnVector& rv = pFuncData->rv;
+          const SurfToNodeConstr& oSNCO = pFuncData->oSNCO;
+          const octave_idx_type N = rv.rows();
           
           FEM_ASSERT(n == N);
-
+          
           for (octave_idx_type i = 0; i < N; ++i) {
-               pFuncData->rv.xelem(i) = x[i];
+               rv.xelem(i) = x[i];
           }
 
-          const double f0 = pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
+          const double f0 = oSNCO.EqualityConstr(rv);
 
           if (gradient) {
                constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
+               constexpr octave_idx_type M = 4;
+               static constexpr double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
+               std::array<double, M> fi;
                
                for (octave_idx_type i = 0; i < N; ++i) {
-                    pFuncData->rv.xelem(i) += delta;
-                    const double fi = pFuncData->oSNCO.EqualityConstr(pFuncData->rv);
-                    gradient[i] = (fi - f0) / delta;
-                    pFuncData->rv.xelem(i) -= delta;                    
+                    for (octave_idx_type j = 0; j < M; ++j) {                         
+                         rv.xelem(i) = x[i] + dx[j];
+                         fi[j] = oSNCO.EqualityConstr(rv);
+                    }
+                    
+                    gradient[i] = (fi[0] - 8. * fi[1] + 8. * fi[2] - fi[3]) / (12. * delta);
+                    rv.xelem(i) = x[i];
                }
           }
           
@@ -9271,6 +9285,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          mapStressStrain.assign("epsilon", s_StressStrain);
                          mapStressStrain.assign("epsilonm", s_StressStrainm);
                          break;
+                    default:
+                         FEM_ASSERT(false);
                     }
 
                     retval.append(mapStressStrain);
