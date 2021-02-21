@@ -8710,6 +8710,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_STRESS_CAUCH:
                case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS:
+               case Element::MAT_THERMAL_COND:
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
                     rgElemUse[ElementTypes::ELEM_ISO20] = true;
                     rgElemUse[ElementTypes::ELEM_PENTA15] = true;
