@@ -7727,6 +7727,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
 
 // PKG_DEL: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct", "remove");
@@ -7758,6 +7760,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct", "remove");
 // PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct", "remove");
+// PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
+// PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
