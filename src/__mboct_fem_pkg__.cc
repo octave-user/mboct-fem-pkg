@@ -24,8 +24,6 @@
 #include <string>
 #include <vector>
 
-#define DEBUG 1
-
 using namespace std::string_literals;
 
 #if HAVE_NLOPT == 1
