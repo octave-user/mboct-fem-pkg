@@ -384,17 +384,79 @@ struct StrainField {
           for (octave_idx_type i = 0; i < rgRefStrain.numel(); ++i) {
                const octave_value ov_RefStrain = rgRefStrain.xelem(i);
 
-               if (!(ov_RefStrain.is_matrix_type() &&
-                     ov_RefStrain.OV_ISREAL() &&
-                     ov_RefStrain.rows() == nodes.rows() &&
-                     ov_RefStrain.columns() == 6)) {
-                    throw std::runtime_error("argument load_case.epsilon0 must be a real column vector with the same number of rows like mesh.nodes and six columns");
+               if (!(ov_RefStrain.isstruct() && ov_RefStrain.numel() == 1)) {
+                    throw std::runtime_error("argument load_case.epsilon0 must be a scalar struct");
                }
           }          
      }
 
      Cell rgTemperature;
      Cell rgRefStrain;
+};
+
+class ElementTypes {
+public:
+     enum TypeId {
+          ELEM_ISO8 = 0,
+          ELEM_ISO20,
+          ELEM_PENTA15,
+          ELEM_TET10H,
+          ELEM_TET10,
+          ELEM_BEAM2,
+          ELEM_RBE3,
+          ELEM_JOINT,
+          ELEM_SFNCON4,
+          ELEM_SFNCON6,
+          ELEM_SFNCON6H,
+          ELEM_SFNCON8,
+          ELEM_PRESSURE_ISO4,
+          ELEM_PRESSURE_QUAD8,
+          ELEM_PRESSURE_TRIA6,
+          ELEM_PRESSURE_TRIA6H,
+          ELEM_STRUCT_FORCE,
+          ELEM_TYPE_COUNT
+     };
+
+     struct TypeInfo {
+          TypeId type;
+          char name[9];
+          octave_idx_type min_nodes, max_nodes;
+          DofMap::ElementType dof_type;
+     };
+
+     static constexpr octave_idx_type iGetNumTypes() {
+          return ELEM_TYPE_COUNT;
+     }
+
+     static const TypeInfo& GetType(octave_idx_type i) {
+          FEM_ASSERT(i >= 0);
+          FEM_ASSERT(i < iGetNumTypes());
+
+          return rgElemTypes[i];
+     }
+
+private:
+     static const TypeInfo rgElemTypes[ELEM_TYPE_COUNT];
+};
+
+const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
+     {ElementTypes::ELEM_ISO8,             "iso8",     8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ISO20,            "iso20",   20, 20, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PENTA15,          "penta15", 15, 15, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10H,           "tet10h",  10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10,            "tet10",   10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_BEAM2,            "beam2",    2,  2, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_RBE3,             "rbe3",     2, -1, DofMap::ELEM_RBE3},
+     {ElementTypes::ELEM_JOINT,            "joints",   1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON4,          "sfncon4",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6,          "sfncon6",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6H,         "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON8,          "sfncon8",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_PRESSURE_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},     
+     {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF}
 };
 
 class Element
@@ -436,14 +498,14 @@ public:
           SCA_STRESS_VMIS = 0x2000u
      };
 
-     Element(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-          :id(id), X(X), material(material), nodes(nodes) {
+     Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :eltype(eltype), id(id), X(X), material(material), nodes(nodes) {
 
           FEM_ASSERT(X.columns() == nodes.numel());
      }
 
      Element(const Element& oElem)
-          :id(oElem.id), X(oElem.X), material(oElem.material), nodes(oElem.nodes) {
+          :eltype(oElem.eltype), id(oElem.id), X(oElem.X), material(oElem.material), nodes(oElem.nodes) {
      }
 
      virtual ~Element() {
@@ -468,6 +530,7 @@ public:
      }
 
 protected:
+     const ElementTypes::TypeId eltype;
      const octave_idx_type id;
      const Matrix X;
      const Material* material;
@@ -648,8 +711,8 @@ private:
 class ElemJoint: public Element
 {
 public:
-     ElemJoint(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U)
-          :Element(id, X, material, nodes), C(C), U(U) {
+     ElemJoint(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U)
+          :Element(eltype, id, X, material, nodes), C(C), U(U) {
           FEM_ASSERT(C.columns() == nodes.numel() * 6);
           FEM_ASSERT(C.rows() <= C.columns());
           FEM_ASSERT(C.rows() >= 1);
@@ -753,8 +816,8 @@ private:
 class ElemRBE3: public Element
 {
 public:
-     ElemRBE3(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& omega)
-          :Element(id, X, material, nodes),
+     ElemRBE3(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& omega)
+          :Element(eltype, id, X, material, nodes),
            omega(omega) {
 
           FEM_ASSERT(X.rows() == 6);
@@ -958,8 +1021,8 @@ struct BeamCrossSection {
 class ElemBeam2: public Element
 {
 public:
-     ElemBeam2(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const BeamCrossSection& oSect, const ColumnVector& e2)
-          :Element(id, X, material, nodes), R(3, 3) {
+     ElemBeam2(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const BeamCrossSection& oSect, const ColumnVector& e2)
+          :Element(eltype, id, X, material, nodes), R(3, 3) {
 
           FEM_ASSERT(X.rows() == 6);
           FEM_ASSERT(X.columns() == 2);
@@ -1187,8 +1250,8 @@ private:
 class Element3D: public Element
 {
 public:
-     Element3D(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element(id, X, material, nodes) {
+     Element3D(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element(eltype, id, X, material, nodes) {
 
           FEM_ASSERT(X.rows() == 3);
 
@@ -1215,16 +1278,27 @@ public:
           if (iNumLoadsStrain) {
                const octave_idx_type iNumStrains = material->LinearElasticity().rows();
                
-               epsilonRef.resize(dim_vector(iNumStrains, iNumNodes, iNumLoadsStrain));
+               epsilonRef.resize(dim_vector(iNumStrains, iNumNodes, iNumLoadsStrain), 0.);
 
                for (octave_idx_type k = 0; k < iNumLoadsStrain; ++k) {
-                    const NDArray epsilonRefk = oRefStrain.rgRefStrain.xelem(k).array_value();
+                    const octave_scalar_map maEpsilonRefk = oRefStrain.rgRefStrain.xelem(k).scalar_map_value();
+
+                    const std::string strElemName = ElementTypes::GetType(eltype).name;
+                    const auto iterEpsilonRefk = maEpsilonRefk.seek(strElemName);
+
+                    if (iterEpsilonRefk == maEpsilonRefk.end()) {
+                         continue;
+                    }
+
+                    const NDArray epsilonRefk = maEpsilonRefk.contents(iterEpsilonRefk).array_value();
                     
-                    FEM_ASSERT(epsilonRefk.dim2() == iNumStrains);
+                    if (epsilonRefk.ndims() != 3 || epsilonRefk.dim1() < id || epsilonRefk.dim2() != iNumNodes || epsilonRefk.dim3() != iNumStrains) {
+                         throw std::runtime_error("fem_ass_matrix: invalid number of dimensions for load_case.epsilon0."s + strElemName);
+                    }
                     
                     for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                          for (octave_idx_type i = 0; i < iNumStrains; ++i) {
-                              epsilonRef.xelem(i, j, k) = epsilonRefk.xelem(nodes.xelem(j).value() - 1, i);
+                              epsilonRef.xelem(i, j, k) = epsilonRefk.xelem(id - 1, j, i);
                          }
                     }
                }
@@ -2274,8 +2348,8 @@ private:
 class Iso8: public Element3D
 {
 public:
-     Iso8(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(id, X, material, nodes, oRefStrain) {
+     Iso8(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 8);
      }
 
@@ -2641,8 +2715,8 @@ private:
 class Iso20: public Element3D
 {
 public:
-     Iso20(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(id, X, material, nodes, oRefStrain) {
+     Iso20(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 20);
      }
 
@@ -3340,8 +3414,8 @@ private:
 class Penta15: public Element3D
 {
 public:
-     Penta15(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(id, X, material, nodes, oRefStrain) {
+     Penta15(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 15);
      }
 
@@ -3918,8 +3992,8 @@ private:
 class Tet10h: public Element3D
 {
 public:
-     Tet10h(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(id, X, material, nodes, oRefStrain) {
+     Tet10h(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 10);
      }
 
@@ -4441,8 +4515,8 @@ class Tet10: public Element3D
      static constexpr double gamma = 1. / 6.;
 
 public:
-     Tet10(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(id, X, material, nodes, oRefStrain) {
+     Tet10(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
           FEM_ASSERT(nodes.numel() == 10);
      }
 
@@ -6121,8 +6195,8 @@ public:
 
 class PressureLoad: public Element {
 public:
-     PressureLoad(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-          :Element(id, X, material, nodes), p(p), colidx(colidx) {
+     PressureLoad(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
+          :Element(eltype, id, X, material, nodes), p(p), colidx(colidx) {
 
           FEM_ASSERT(X.rows() == 3);
           FEM_ASSERT(X.columns() == p.columns());
@@ -6130,7 +6204,7 @@ public:
      }
 
      PressureLoad(const PressureLoad& oElem)
-          :Element(oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx) {
+          :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx) {
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
@@ -6262,8 +6336,8 @@ private:
 template <typename SHAPE_FUNC>
 class PressureLoadImp: public PressureLoad {
 public:
-     PressureLoadImp(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-          :PressureLoad(id, X, material, nodes, p, colidx) {
+     PressureLoadImp(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
+          :PressureLoad(eltype, id, X, material, nodes, p, colidx) {
           FEM_ASSERT(nodes.numel() == SHAPE_FUNC::iGetNumNodes());
      }
 
@@ -6296,8 +6370,8 @@ typedef PressureLoadImp<ShapeTria6H> PressureLoadTria6H;
 
 class StructForce: public Element {
 public:
-     StructForce(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, octave_idx_type colidx, const Matrix& loads)
-          :Element(id, X, material, nodes),
+     StructForce(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, octave_idx_type colidx, const Matrix& loads)
+          :Element(eltype, id, X, material, nodes),
            loads(loads),
            colidx(colidx) {
 
@@ -6307,9 +6381,8 @@ public:
      }
 
      StructForce(const StructForce& oElem)
-          :Element(oElem.id, oElem.X, oElem.material, oElem.nodes), loads(oElem.loads), colidx(oElem.colidx)
-          {
-          }
+          :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), loads(oElem.loads), colidx(oElem.colidx) {
+     }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
           switch (eMatType) {
@@ -6344,71 +6417,6 @@ private:
      const octave_idx_type colidx;
 };
 
-class ElementTypes {
-public:
-     enum TypeId {
-          ELEM_ISO8 = 0,
-          ELEM_ISO20,
-          ELEM_PENTA15,
-          ELEM_TET10H,
-          ELEM_TET10,
-          ELEM_BEAM2,
-          ELEM_RBE3,
-          ELEM_JOINT,
-          ELEM_SFNCON4,
-          ELEM_SFNCON6,
-          ELEM_SFNCON6H,
-          ELEM_SFNCON8,
-          ELEM_PRESSURE_ISO4,
-          ELEM_PRESSURE_QUAD8,
-          ELEM_PRESSURE_TRIA6,
-          ELEM_PRESSURE_TRIA6H,
-          ELEM_STRUCT_FORCE,
-          ELEM_TYPE_COUNT
-     };
-
-     struct TypeInfo {
-          TypeId type;
-          char name[9];
-          octave_idx_type min_nodes, max_nodes;
-          DofMap::ElementType dof_type;
-     };
-
-     static constexpr octave_idx_type iGetNumTypes() {
-          return ELEM_TYPE_COUNT;
-     }
-
-     static const TypeInfo& GetType(octave_idx_type i) {
-          FEM_ASSERT(i >= 0);
-          FEM_ASSERT(i < iGetNumTypes());
-
-          return rgElemTypes[i];
-     }
-
-private:
-     static const TypeInfo rgElemTypes[ELEM_TYPE_COUNT];
-};
-
-const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
-     {ElementTypes::ELEM_ISO8,             "iso8",     8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ISO20,            "iso20",   20, 20, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PENTA15,          "penta15", 15, 15, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10H,           "tet10h",  10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10,            "tet10",   10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_BEAM2,            "beam2",    2,  2, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_RBE3,             "rbe3",     2, -1, DofMap::ELEM_RBE3},
-     {ElementTypes::ELEM_JOINT,            "joints",   1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON4,          "sfncon4",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6,          "sfncon6",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6H,         "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON8,          "sfncon8",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_PRESSURE_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},     
-     {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF}
-};
-
 class ElementBlockBase {
 public:
      explicit ElementBlockBase(ElementTypes::TypeId eltype)
@@ -6431,7 +6439,7 @@ public:
      virtual void Extract(octave_idx_type& idx, octave_map& sElem) const=0;
      virtual octave_idx_type iGetNumElem() const=0;
 
-private:
+protected:
      const ElementTypes::TypeId eltype;
 };
 
@@ -6468,20 +6476,20 @@ public:
                     material = &rgMaterials[materials.xelem(i).value() - 1];
                }
 
-               rgElements.emplace_back(i + 1, X_e, material, nodes_e, args...);
+               rgElements.emplace_back(eltype, i + 1, X_e, material, nodes_e, args...);
           }
      }
 
      template <typename... Args>
      void Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args) {
-          rgElements.emplace_back(id, X, material, nodes, args...);
+          rgElements.emplace_back(eltype, id, X, material, nodes, args...);
      }
 
      octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const {
           octave_idx_type iWorkSpace = 0;
 
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               iWorkSpace += i->iGetWorkSpaceSize(eMatType);
+               iWorkSpace += i->ElementType::iGetWorkSpaceSize(eMatType);
           }
 
           return iWorkSpace;
@@ -6489,7 +6497,7 @@ public:
 
      void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::MatrixType eMatType) const {
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               i->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+               i->ElementType::Assemble(oMatAss, oMeshInfo, oDof, eMatType);
 
                OCTAVE_QUIT;
           }
@@ -6497,7 +6505,7 @@ public:
 
      void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const {
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               i->PostProcElem(mat, eMatType, U);
+               i->ElementType::PostProcElem(mat, eMatType, U);
 
                OCTAVE_QUIT;
           }
@@ -6507,7 +6515,7 @@ public:
           double dm = 0.;
 
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               dm += i->dGetMass();
+               dm += i->ElementType::dGetMass();
 
                OCTAVE_QUIT;
           }
@@ -6530,7 +6538,7 @@ public:
      virtual void Extract(octave_idx_type& idx, octave_map& sElem) const {
           for (const auto& oElem: rgElements) {
                FEM_ASSERT(sElem.numel() > idx);
-               oElem.Extract(idx, sElem);
+               oElem.ElementType::Extract(idx, sElem);
           }
      }
 private:

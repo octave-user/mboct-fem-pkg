@@ -9067,10 +9067,7 @@ endfunction
 %!                                         FEM_VEC_STRAIN_TOTAL], ...
 %!                                        load_case, ...
 %!                                        sol_stat);
-%!     load_case2.epsilon0 = zeros(rows(mesh.nodes), 6);
-%!     for i=1:columns(mesh.elements.tet10h)
-%!       load_case2.epsilon0(mesh.elements.tet10h(:, i), :) = sol_stat.strain.epsilonm.tet10h(:, i, :);
-%!     endfor
+%!     load_case2.epsilon0 = sol_stat.strain.epsilon;
 %!     [mat_ass2.K, ...
 %!      mat_ass2.R] = fem_ass_matrix(mesh, ...
 %!                                   dof_map, ...
@@ -9085,9 +9082,11 @@ endfunction
 %!                                          FEM_VEC_STRAIN_TOTAL], ...
 %!                                         load_case2, ...
 %!                                         sol_stat2);
-%!     tol_def = 2e-3;
-%!     tol_strain = 4e-2;
+%!     tol_def = 1e-5;
+%!     tol_strain = 1e-3;
+%!     tol_stress = 3e-3;
 %!     assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
+%!     assert(sol_stat2.stress.tau.tet10h, zeros(size(sol_stat.stress.tau.tet10h)), tol_stress * max(max(max(abs(sol_stat.stress.tau.tet10h)))));
 %!     assert(sol_stat2.strain.epsilonm.tet10h, sol_stat.strain.epsilonm.tet10h, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10h)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -9370,12 +9369,7 @@ endfunction
 %!                                      sol_stat);
 %!   load_case2 = struct("epsilon0", cell(1, numel(load_case)));
 %!   for k=1:numel(load_case)
-%!     load_case2(k).epsilon0 = zeros(rows(mesh.nodes), 6);
-%!     for i=1:columns(mesh.elements.tet10)
-%!       for j=1:6
-%!         load_case2(k).epsilon0(mesh.elements.tet10(:, i), j) = sol_stat.strain.epsilonm.tet10(:, i, j, k);
-%!       endfor
-%!     endfor
+%!     load_case2(k).epsilon0.tet10 = sol_stat.strain.epsilon.tet10(:, :, :, k);
 %!   endfor
 %!   [mat_ass2.K, ...
 %!    mat_ass2.R] = fem_ass_matrix(mesh, ...
@@ -9396,7 +9390,7 @@ endfunction
 %!   tol = 2e-2;
 %!   assert(Uy, Uy_ref, tol * abs(Uy_ref));
 %!   assert(Uy2, Uy_ref, tol * abs(Uy_ref));
-%!   assert(sol_stat2.def, sol_stat.def, 1e-3 * max(max(max(abs(sol_stat.def)))));
+%!   assert(sol_stat2.def, sol_stat.def, 1e-8 * max(max(max(abs(sol_stat.def)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
