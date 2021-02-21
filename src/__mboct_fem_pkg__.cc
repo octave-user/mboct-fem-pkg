@@ -9299,7 +9299,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_DAMPING_SYM_L:
                case Element::VEC_LOAD_CONSISTENT:
                case Element::VEC_LOAD_LUMPED:
-               case Element::MAT_ACCEL_LOAD: {
+               case Element::MAT_ACCEL_LOAD:
+               case Element::MAT_THERMAL_COND: {
                     oMatAss.Reset(eMatType, oMatInfo);
 
                     for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
