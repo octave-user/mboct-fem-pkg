@@ -9598,7 +9598,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                "@end deftypefn\n")                              \
                                                                 \
      {                                                          \
-          return octave_value(NAMESPACE::CONST);                \
+     return octave_value(octave_int32(NAMESPACE::CONST));       \
      }
 
 DEFINE_GLOBAL_CONSTANT(Element, MAT_ACCEL_LOAD, "acceleration load matrix (e.g. for gravity loads)")
