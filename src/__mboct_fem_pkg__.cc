@@ -291,7 +291,7 @@ public:
      }
 
      Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp)
-          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), C(6, 6, 0.), k(k) {
+          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), C(6, 6, 0.), k(k), cp(cp) {
 
           const double a = nu / (1 - nu);
           const double b = (1 - 2 * nu) / (2 * (1 - nu));
