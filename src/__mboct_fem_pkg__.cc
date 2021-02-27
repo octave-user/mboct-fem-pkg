@@ -2500,7 +2500,7 @@ protected:
 
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     for (octave_idx_type m = l; m < iNumDof; ++m) {
-                         Ce.xelem(l, m) = H.xelem(l) * H.xelem(m) * alpha * rhocp * detJ;
+                         Ce.xelem(l, m) += H.xelem(l) * H.xelem(m) * alpha * rhocp * detJ;
                     }
                }
           }
