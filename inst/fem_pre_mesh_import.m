@@ -6594,7 +6594,7 @@ endfunction
 %!                                     sol_eig);
 %!   tolt = eps^0.5;
 %!   assert(max(max(max(max(abs(sol_eig.stress.tau.penta15(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.penta15(:, :, :, 7:end)))))));
-%!   tolf = eps^0.4;
+%!   tolf = eps^0.3;
 %!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
