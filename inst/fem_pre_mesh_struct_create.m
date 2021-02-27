@@ -221,12 +221,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   endswitch
 
   mesh.elements.rbe3 = struct("nodes", [], "weight", [])([]);
-  mesh.material_data = struct("C", [], "rho", [])([]);
-
-  for i=1:numel(material)
-    mesh.material_data(i).C = fem_pre_mat_isotropic(material(i).E, material(i).nu);
-    mesh.material_data(i).rho = material(i).rho;
-  endfor
+  mesh.material_data = material;
 
   switch (options.elem_type)
     case "iso8"
