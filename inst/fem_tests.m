@@ -3739,7 +3739,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST49
+%! ## TEST46
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3813,7 +3813,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST50
+%! ## TEST 47
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3887,7 +3887,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST51
+%! ## TEST 48
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3961,7 +3961,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST52
+%! ## TEST 49
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4045,7 +4045,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST53
+%! ## TEST 50
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4132,7 +4132,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 54
+%! ## TEST 51
 %! if (~fem_sol_check_func("pastix"))
 %!   return;
 %! endif
@@ -4175,19 +4175,18 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 55
+%! ## TEST 52
 %! close all;
-%! scale_stat = 1;
-%! scale_eig = 250e-3;
+%! k = 50;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
 %! material.rho = 7850;
-%! material.k = diag([54, 54, 54]);
-%! Fy = 15000;
-%! h = 10e-3 / 2;
-%! geometry.l = 1000e-3;
-%! geometry.w = 10e-3;
-%! geometry.h = 50e-3;
+%! material.k = diag([k, k, k]);
+%! material.cp = 465;
+%! geometry.l = 10e-3;
+%! geometry.w = 0.02e-3;
+%! geometry.h = 0.02e-3;
+%! h = 0.02e-3;
 %! mesh_size.num_elem_l = ceil(geometry.l / h);
 %! mesh_size.num_elem_w = ceil(geometry.w / h);
 %! mesh_size.num_elem_h = ceil(geometry.h / h);
@@ -4196,10 +4195,58 @@
 %! load_case.locked_dof = false(rows(mesh.nodes), 1);
 %! load_case.domain = FEM_DO_THERMAL;
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
-%! [mat_ass.Kk] = fem_ass_matrix(mesh, ...
-%!                              dof_map, ...
-%!                              [FEM_MAT_THERMAL_COND], ...
-%!                              load_case);
+%! empty_cell = cell(1, 2);
+%! sol = struct("t", empty_cell, "theta", empty_cell);
+%! for j=1:2
+%!   switch (j)
+%!   case 1
+%!     R = eye(3);
+%!   case 2
+%!     e1 = [0.5; 0.2; 0.1];
+%!     e2 = [0; 1; 0];
+%!     e3 = cross(e1, e2);
+%!     e2 = cross(e3, e1);
+%!     R = [e1 / norm(e1), e2 / norm(e2), e3 / norm(e3)];
+%! endswitch
+%! mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
+%! [mat_ass.Kk, mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_THERMAL_COND, ...
+%!                                           FEM_MAT_HEAT_CAPACITY], ...
+%!                                          load_case);
+%! theta_x0 = 20;
+%! theta_xl = 100;
+%! theta0 = (R(:,1).' * mesh.nodes(:, 1:3).' - R(:, 1).' * mesh.nodes(1, 1:3).') / geometry.l * (theta_xl - theta_x0) + theta_x0;
+%! a = k / (material.rho * material.cp);
+%! dx = geometry.l / mesh_size.num_elem_l;
+%! dt = 1000*dx^2 / (2 * a);
+%! alpha = 1;
+%! sol(j).t = 0:dt:10;
+%! sol(j).theta = zeros(dof_map.totdof, numel(sol(j).t));
+%! sol(j).theta(:, 1) = theta0;
+%! A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
+%! opts.number_of_threads = int32(4);
+%! Afact = fem_sol_factor(A, opts);
+%! for i=2:numel(sol(j).t)
+%!   sol(j).theta(:, i) = Afact \ (mat_ass.C * sol(j).theta(:, i - 1) / dt - mat_ass.Kk * sol(j).theta(:, i - 1) * (1 - alpha));
+%! endfor
+%! tol = 1e-3;
+%! assert(sol(j).theta(:, end), repmat(0.5 * (theta_x0 + theta_xl), rows(sol(j).theta), 1), tol * abs(theta_xl));
+%! endfor
+%! assert(sol(2).theta, sol(1).theta, eps^0.6 * abs(theta_xl));
+%! figure("visible", "off");
+%! hold on;
+%! if (fem_tests_enable_plotting)
+%! for j=1:2
+%! plot(sol(j).t, max(sol(j).theta, [], 1), sprintf("-;max(theta%d);1", j));
+%! plot(sol(j).t, min(sol(j).theta, [], 1), sprintf("-;min(theta%d);3", j));
+%! xlabel("t [s]");
+%! ylabel("theta [degC]");
+%! grid on;
+%! grid minor on;
+%! title("transient thermal problem of a bar");
+%! endfor
+%! endif
 
 %!demo
 %! ## DEMO 1

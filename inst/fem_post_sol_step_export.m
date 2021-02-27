@@ -52,10 +52,21 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
     endif
 
     fputs(fd, "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n");
-    fprintf(fd, "$NodeData\n1\n\"nodal deformation\"\n1\n%e\n3\n%d\n3\n%d\n", t, idx_t - 1, size(sol.def, 1));
-    fprintf(fd, "%d %e %e %e\n", [1:size(sol.def, 1); scale * sol.def(:, 1:3, idx_sol).']);
-    fputs(fd, "$EndNodeData\n");
 
+    nodal_fields = struct("name", {"def", "theta"}, ...
+                          "title", {"nodal deformation", "nodal temperature"}, ...
+                          "dim", {3, 1}, ...
+                          "value", {@(x) x(:, 1:3, idx_sol), @(x) x(:, idx_sol)});
+
+    for i=1:numel(nodal_fields)
+      if (isfield(sol, nodal_fields(i).name))
+        x = nodal_fields(i).value(getfield(sol, nodal_fields(i).name));
+        fprintf(fd, "$NodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
+        fprintf(fd, "%d %e\n", [1:size(x, 1); x.']);
+        fputs(fd, "$EndNodeData\n");
+      endif
+    endfor
+    
     field_type = {"stress", "strain"};
 
     idxtens = int32([1, 4, 6, 4, 2, 5, 6, 5, 3]);
