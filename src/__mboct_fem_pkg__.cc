@@ -274,12 +274,12 @@ private:
 class Material
 {
 public:
-     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k)
+     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp)
           :rho(rho),
            alpha(alpha),
            beta(beta),
            gamma(gamma),
-           C(C), k(k) {
+           C(C), k(k), cp(cp) {
           FEM_ASSERT(C.rows() == 6);
           FEM_ASSERT(C.columns() == 6);
 
@@ -290,7 +290,7 @@ public:
           nu = (2 * b - 1) / (2 * b - 2);
      }
 
-     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k)
+     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp)
           :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), C(6, 6, 0.), k(k) {
 
           const double a = nu / (1 - nu);
@@ -307,7 +307,7 @@ public:
      }
 
      Material(const Material& oMat)
-          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), C(oMat.C), k(oMat.k) {
+          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), C(oMat.C), k(oMat.k), cp(oMat.cp) {
      }
 
      const Matrix& LinearElasticity() const {
@@ -316,6 +316,10 @@ public:
 
      const Matrix& ThermalConductivity() const {
           return k;
+     }
+
+     double HeatCapacity() const {
+          return cp;
      }
      
      double ThermalExpansion() const {
@@ -339,7 +343,7 @@ public:
      double BetaDamping() const { return beta; }
 
 private:
-     double E, nu, rho, alpha, beta, gamma;
+     double E, nu, rho, alpha, beta, gamma, cp;
      Matrix C, k;
 };
 
@@ -525,7 +529,8 @@ public:
           VEC_STRESS_CAUCH = 0xF00u,
           VEC_STRAIN_TOTAL = 0x1000u,
           SCA_STRESS_VMIS = 0x2000u,
-          MAT_THERMAL_COND = 0x4000u | DofMap::DO_THERMAL
+          MAT_THERMAL_COND = 0x4000u | DofMap::DO_THERMAL,
+          MAT_HEAT_CAPACITY = 0x8000u | DofMap::DO_THERMAL
      };
 
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -1382,6 +1387,11 @@ public:
                pFunc = &Element3D::ThermalConductivityMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
+
+          case MAT_HEAT_CAPACITY:
+               pFunc = &Element3D::HeatCapacityMatrix;
+               iNumRows = iNumCols = iNumDof;
+               break;
                
           default:
                return;
@@ -1393,7 +1403,7 @@ public:
 
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
-          const octave_idx_type inodemaxdof = dof.iGetNodeMaxDofIndex();
+          const octave_idx_type inodemaxdof = (eMatType & DofMap::DO_THERMAL) ? 1 : 3;
           
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < inodemaxdof; ++idof) {
@@ -1425,6 +1435,7 @@ public:
      octave_idx_type iGetNumDof(MatrixType eMatType) const {
           switch (eMatType) {
           case MAT_THERMAL_COND:
+          case MAT_HEAT_CAPACITY:
                return nodes.numel();
           default:
                return nodes.numel() * 3;
@@ -1436,7 +1447,8 @@ public:
           case MAT_MASS:
           case MAT_STIFFNESS:
           case MAT_DAMPING:
-          case MAT_THERMAL_COND: {
+          case MAT_THERMAL_COND:
+          case MAT_HEAT_CAPACITY: {
                const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
                return iNumDof * iNumDof;
@@ -1623,7 +1635,7 @@ protected:
           }
 #endif
      }
-
+     
      void MassMatrix(Matrix& Me, MeshInfo& info, MatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
@@ -2463,6 +2475,43 @@ protected:
           }
 #endif
      }
+
+     void HeatCapacityMatrix(Matrix& Ce, MeshInfo& info, MatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          ColumnVector rv(iNumDir);
+          const double rhocp = material->Density() * material->HeatCapacity();
+
+          Matrix J(iNumDir, iNumDir), H(1, iNumDof);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               const double detJ = Jacobian(rv, J);
+
+               AddMeshInfo(info, oIntegRule, detJ);
+
+               ScalarInterpMatrix(rv, H, 0);
+
+               for (octave_idx_type l = 0; l < iNumDof; ++l) {
+                    for (octave_idx_type m = l; m < iNumDof; ++m) {
+                         Ce.xelem(l, m) += H.xelem(l) * H.xelem(m) * alpha * rhocp * detJ;
+                    }
+               }
+          }
+
+          for (octave_idx_type i = 1; i < iNumDof; ++i) {
+               for (octave_idx_type j = 0; j < i; ++j) {
+                    Ce.xelem(i, j) = Ce.xelem(j, i);
+               }
+          }
+     }
+     
 private:
      octave_idx_type iNumPreLoads;
      Matrix dTheta;
@@ -7680,6 +7729,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_HEAT_CAPACITY", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
 
@@ -7713,6 +7763,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_CT_FIXED", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_HEAT_CAPACITY", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
 
@@ -8525,7 +8576,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const auto iterBeta = material_data.seek("beta");
           const auto iterGamma = material_data.seek("gamma");
           const auto iterk = material_data.seek("k");
-
+          const auto itercp = material_data.seek("cp");
+          
           if (iterC == material_data.end() && (iterE == material_data.end() || iternu == material_data.end())) {
                throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
           }
@@ -8542,6 +8594,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const Cell cellBeta = iterBeta != material_data.end() ? material_data.contents(iterBeta) : Cell();
           const Cell cellGamma = iterGamma != material_data.end() ? material_data.contents(iterGamma) : Cell();
           const Cell cellk = iterk != material_data.end() ? material_data.contents(iterk) : Cell();
+          const Cell cellcp = itercp != material_data.end() ? material_data.contents(itercp) : Cell();
           
           vector<Material> rgMaterials;
 
@@ -8611,10 +8664,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     throw std::runtime_error("mesh.material_data.k must be a real 3x3 matrix");
                }
 
+               const double cp = itercp != material_data.end() && !cellcp(i).isempty() ? cellcp(i).scalar_value() : 0.;
+
                if (buseC) {
-                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k);
+                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k, cp);
                } else {
-                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k);
+                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k, cp);
                }
           }
 
@@ -8664,6 +8719,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS:
                case Element::MAT_THERMAL_COND:
+               case Element::MAT_HEAT_CAPACITY:
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
                     rgElemUse[ElementTypes::ELEM_ISO20] = true;
                     rgElemUse[ElementTypes::ELEM_PENTA15] = true;
@@ -9254,7 +9310,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_LOAD_CONSISTENT:
                case Element::VEC_LOAD_LUMPED:
                case Element::MAT_ACCEL_LOAD:
-               case Element::MAT_THERMAL_COND: {
+               case Element::MAT_THERMAL_COND:
+               case Element::MAT_HEAT_CAPACITY: {
                     oMatAss.Reset(eMatType, oMatInfo);
 
                     for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
@@ -9571,5 +9628,6 @@ DEFINE_GLOBAL_CONSTANT(Element, VEC_STRAIN_TOTAL, "linear strain tensor")
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_FIXED, "build constraints in all three directions in space")
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_SLIDING, "build only one constraint normal to the surface")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_THERMAL_COND, "thermal conductivity matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_HEAT_CAPACITY, "heat capacity matrix")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
