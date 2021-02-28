@@ -6877,12 +6877,10 @@ public:
 
           for (octave_idx_type i = 1; i < iNumDof; ++i) {
                for (octave_idx_type j = 0; j < i; ++j) {
-                    KA.xelem(i, j) = KA.xelem(j, i);
+                    KA.xelem(j, i) = KA.xelem(i, j);
                }
           }
 
-          std::cout << "KA=\n" << KA << "\n";
-          
           for (octave_idx_type j = 0; j < iNumDof; ++j) {
                for (octave_idx_type i = 0; i < iNumDof; ++i) {
                     mat.Insert(KA.xelem(i, j), dofidx.xelem(i), dofidx.xelem(j));
