@@ -4232,6 +4232,7 @@ protected:
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
           const double t = rv.xelem(2);
+          const double t_2 = t * t;
           
           Bt.xelem(0,0) = invJ.xelem(0,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(0,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(0,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
           Bt.xelem(1,0) = invJ.xelem(1,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(1,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(1,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
@@ -4269,15 +4270,15 @@ protected:
           Bt.xelem(0,11) = invJ.xelem(0,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ.xelem(0,0)*s*(t+1)+2*invJ.xelem(0,2)*((-s)-r+1)*s;
           Bt.xelem(1,11) = invJ.xelem(1,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ.xelem(1,0)*s*(t+1)+2*invJ.xelem(1,2)*((-s)-r+1)*s;
           Bt.xelem(2,11) = invJ.xelem(2,1)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ.xelem(2,0)*s*(t+1)+2*invJ.xelem(2,2)*((-s)-r+1)*s;
-          Bt.xelem(0,12) = invJ.xelem(0,1)*(t**2-1)+invJ.xelem(0,0)*(t**2-1)-2*invJ.xelem(0,2)*((-s)-r+1)*t;
-          Bt.xelem(1,12) = invJ.xelem(1,1)*(t**2-1)+invJ.xelem(1,0)*(t**2-1)-2*invJ.xelem(1,2)*((-s)-r+1)*t;
-          Bt.xelem(2,12) = invJ.xelem(2,1)*(t**2-1)+invJ.xelem(2,0)*(t**2-1)-2*invJ.xelem(2,2)*((-s)-r+1)*t;
-          Bt.xelem(0,13) = invJ.xelem(0,0)*(1-t**2)-2*invJ.xelem(0,2)*r*t;
-          Bt.xelem(1,13) = invJ.xelem(1,0)*(1-t**2)-2*invJ.xelem(1,2)*r*t;
-          Bt.xelem(2,13) = invJ.xelem(2,0)*(1-t**2)-2*invJ.xelem(2,2)*r*t;
-          Bt.xelem(0,14) = invJ.xelem(0,1)*(1-t**2)-2*invJ.xelem(0,2)*s*t;
-          Bt.xelem(1,14) = invJ.xelem(1,1)*(1-t**2)-2*invJ.xelem(1,2)*s*t;
-          Bt.xelem(2,14) = invJ.xelem(2,1)*(1-t**2)-2*invJ.xelem(2,2)*s*t;
+          Bt.xelem(0,12) = invJ.xelem(0,1)*(t_2-1)+invJ.xelem(0,0)*(t_2-1)-2*invJ.xelem(0,2)*((-s)-r+1)*t;
+          Bt.xelem(1,12) = invJ.xelem(1,1)*(t_2-1)+invJ.xelem(1,0)*(t_2-1)-2*invJ.xelem(1,2)*((-s)-r+1)*t;
+          Bt.xelem(2,12) = invJ.xelem(2,1)*(t_2-1)+invJ.xelem(2,0)*(t_2-1)-2*invJ.xelem(2,2)*((-s)-r+1)*t;
+          Bt.xelem(0,13) = invJ.xelem(0,0)*(1-t_2)-2*invJ.xelem(0,2)*r*t;
+          Bt.xelem(1,13) = invJ.xelem(1,0)*(1-t_2)-2*invJ.xelem(1,2)*r*t;
+          Bt.xelem(2,13) = invJ.xelem(2,0)*(1-t_2)-2*invJ.xelem(2,2)*r*t;
+          Bt.xelem(0,14) = invJ.xelem(0,1)*(1-t_2)-2*invJ.xelem(0,2)*s*t;
+          Bt.xelem(1,14) = invJ.xelem(1,1)*(1-t_2)-2*invJ.xelem(1,2)*s*t;
+          Bt.xelem(2,14) = invJ.xelem(2,1)*(1-t_2)-2*invJ.xelem(2,2)*s*t;
      }
      
      virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
