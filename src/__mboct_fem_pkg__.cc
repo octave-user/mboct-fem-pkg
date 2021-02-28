@@ -4815,6 +4815,7 @@ public:
           case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case MAT_THERMAL_COND:
                if (!oIntegStiff.iGetNumEvalPoints()) {
                     constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
                     constexpr double beta = (5. - sqrt(5.)) / 20.;
@@ -4843,6 +4844,7 @@ public:
           case MAT_INERTIA_INV8:
           case MAT_INERTIA_INV9:
           case MAT_ACCEL_LOAD:
+          case MAT_HEAT_CAPACITY:
                if (!oIntegMass.iGetNumEvalPoints()) {
                     constexpr double g1 = 0.09273525031089122640232391373703060;
                     constexpr double g2 = 0.31088591926330060979734573376345783;
