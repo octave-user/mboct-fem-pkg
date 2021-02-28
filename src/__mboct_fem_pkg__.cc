@@ -496,10 +496,10 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PRESSURE_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},     
      {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_ISO4,  "thcvqu4",  4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_QUAD8, "thcvqu8",  8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6, "thcvtr6",  6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6H,"thcvtr6h", 6,  6, DofMap::ELEM_NODOF}
+     {ElementTypes::ELEM_THERM_CONV_ISO4,  "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_QUAD8, "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6, "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6H,"tria6h",   6,  6, DofMap::ELEM_NODOF}
 };
 
 class Element
