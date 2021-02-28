@@ -6958,9 +6958,12 @@ public:
 
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
-          case VEC_LOAD_CONSISTENT:
-          case VEC_LOAD_LUMPED:
+          case MAT_THERMAL_COND:
+               return iGetNumDof() * iGetNumDof();
+               
+          case VEC_LOAD_THERMAL:
                return iGetNumDof() * Thetae.rows();
+               
           default:
                return 0;
           }
