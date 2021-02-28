@@ -1551,9 +1551,7 @@ protected:
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
      virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
-          throw std::runtime_error("TemperatureGradientMatrix is not implemented for the selected element type");
-     }
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const=0;
      
      void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
           info.Add(MeshInfo::JACOBIAN_DET, detJ);
