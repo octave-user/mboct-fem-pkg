@@ -281,7 +281,8 @@ public:
            alpha(alpha),
            beta(beta),
            gamma(gamma),
-           C(C), k(k), cp(cp) {
+           cp(cp),
+           C(C), k(k) {
           FEM_ASSERT(C.rows() == 6);
           FEM_ASSERT(C.columns() == 6);
 
@@ -293,7 +294,7 @@ public:
      }
 
      Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp)
-          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), C(6, 6, 0.), k(k), cp(cp) {
+          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), cp(cp), C(6, 6, 0.), k(k) {
 
           const double a = nu / (1 - nu);
           const double b = (1 - 2 * nu) / (2 * (1 - nu));
@@ -309,7 +310,7 @@ public:
      }
 
      Material(const Material& oMat)
-          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), C(oMat.C), k(oMat.k), cp(oMat.cp) {
+          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), cp(oMat.cp), C(oMat.C), k(oMat.k) {
      }
 
      const Matrix& LinearElasticity() const {
@@ -6837,7 +6838,7 @@ public:
                dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
           }
 
-          RowVector HA(iNumNodes);
+          RowVector HA(iNumDof);
           ColumnVector n1(3), n2(3);
           Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), KA(iNumDof, iNumDof, 0.);
 
@@ -6869,7 +6870,7 @@ public:
                
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     for (octave_idx_type m = l; m < iNumDof; ++m) {
-                         KA.xelem(m, l) += h * HA.xelem(m) * HA.xelem(l);
+                         KA.xelem(m, l) += h * HA.xelem(m) * HA.xelem(l) * detJA * alpha;
                     }
                }
           }
@@ -6901,9 +6902,9 @@ public:
                dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
           }
 
-          RowVector HA(iNumNodes), HA_Thetae(iNumLoads);
+          RowVector HA(iNumDof), HA_Thetae(iNumLoads);
           ColumnVector n1(3), n2(3);
-          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), fA(iNumDof, iNumLoads, 0.);
+          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), QA(iNumDof, iNumLoads, 0.);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
@@ -6943,14 +6944,14 @@ public:
 
                for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
-                         fA.xelem(m, l) += h * HA.xelem(m) * HA_Thetae.xelem(l);
+                         QA.xelem(m, l) += h * HA.xelem(m) * HA_Thetae.xelem(l) * detJA * alpha;
                     }
                }
           }
 
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
                for (octave_idx_type i = 0; i < iNumDof; ++i) {
-                    mat.Insert(fA.xelem(i, j), dofidx.xelem(i), colidx + j);
+                    mat.Insert(QA.xelem(i, j), dofidx.xelem(i), colidx + j);
                }
           }
      }
@@ -10189,8 +10190,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           if (detJmin <= 0.) {
                warning_with_id("mboct-fem-pkg:invalid-mesh", "Jacobian of solid element is singular or negative det(J)=%g", detJmin);
           }
-
-          double detJAmin = oMeshInfo.dGet(MeshInfo::JACOBIAN_DET_A, MeshInfo::STAT_MIN);
      } catch (const std::exception& err) {
           error("%s", err.what());
           return retval;
