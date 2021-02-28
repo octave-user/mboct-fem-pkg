@@ -4348,6 +4348,7 @@ public:
           case MAT_STIFFNESS_SYM_L:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case MAT_THERMAL_COND:
                iIntegRule = R1;
                break;
 
@@ -4363,6 +4364,7 @@ public:
           case MAT_INERTIA_INV9:
           case MAT_ACCEL_LOAD:
           case SCA_TOT_MASS:
+          case MAT_HEAT_CAPACITY:
                iIntegRule = R2;
                break;
 
@@ -4774,6 +4776,47 @@ protected:
           Hs.xelem(irow,7) = 4*r*s;
           Hs.xelem(irow,8) = 4*r*t;
           Hs.xelem(irow,9) = 4*r*((-t)-s-r+1);
+     }
+
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+          FEM_ASSERT(Bt.rows() == 3);
+          FEM_ASSERT(Bt.columns() == 10);
+          FEM_ASSERT(rv.numel() == 3);
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          Bt.xelem(0,0) = invJ.xelem(0,1)*(4*s-1);
+          Bt.xelem(1,0) = invJ.xelem(1,1)*(4*s-1);
+          Bt.xelem(2,0) = invJ.xelem(2,1)*(4*s-1);
+          Bt.xelem(0,1) = invJ.xelem(0,2)*(4*t-1);
+          Bt.xelem(1,1) = invJ.xelem(1,2)*(4*t-1);
+          Bt.xelem(2,1) = invJ.xelem(2,2)*(4*t-1);
+          Bt.xelem(0,2) = invJ.xelem(0,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+          Bt.xelem(1,2) = invJ.xelem(1,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+          Bt.xelem(2,2) = invJ.xelem(2,2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2,0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
+          Bt.xelem(0,3) = invJ.xelem(0,0)*(4*r-1);
+          Bt.xelem(1,3) = invJ.xelem(1,0)*(4*r-1);
+          Bt.xelem(2,3) = invJ.xelem(2,0)*(4*r-1);
+          Bt.xelem(0,4) = 4*invJ.xelem(0,1)*t+4*invJ.xelem(0,2)*s;
+          Bt.xelem(1,4) = 4*invJ.xelem(1,1)*t+4*invJ.xelem(1,2)*s;
+          Bt.xelem(2,4) = 4*invJ.xelem(2,1)*t+4*invJ.xelem(2,2)*s;
+          Bt.xelem(0,5) = (-4*invJ.xelem(0,1)*t)-4*invJ.xelem(0,0)*t+invJ.xelem(0,2)*(4*((-t)-s-r+1)-4*t);
+          Bt.xelem(1,5) = (-4*invJ.xelem(1,1)*t)-4*invJ.xelem(1,0)*t+invJ.xelem(1,2)*(4*((-t)-s-r+1)-4*t);
+          Bt.xelem(2,5) = (-4*invJ.xelem(2,1)*t)-4*invJ.xelem(2,0)*t+invJ.xelem(2,2)*(4*((-t)-s-r+1)-4*t);
+          Bt.xelem(0,6) = invJ.xelem(0,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(0,2)*s-4*invJ.xelem(0,0)*s;
+          Bt.xelem(1,6) = invJ.xelem(1,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(1,2)*s-4*invJ.xelem(1,0)*s;
+          Bt.xelem(2,6) = invJ.xelem(2,1)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(2,2)*s-4*invJ.xelem(2,0)*s;
+          Bt.xelem(0,7) = 4*invJ.xelem(0,0)*s+4*invJ.xelem(0,1)*r;
+          Bt.xelem(1,7) = 4*invJ.xelem(1,0)*s+4*invJ.xelem(1,1)*r;
+          Bt.xelem(2,7) = 4*invJ.xelem(2,0)*s+4*invJ.xelem(2,1)*r;
+          Bt.xelem(0,8) = 4*invJ.xelem(0,0)*t+4*invJ.xelem(0,2)*r;
+          Bt.xelem(1,8) = 4*invJ.xelem(1,0)*t+4*invJ.xelem(1,2)*r;
+          Bt.xelem(2,8) = 4*invJ.xelem(2,0)*t+4*invJ.xelem(2,2)*r;
+          Bt.xelem(0,9) = invJ.xelem(0,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(0,2)*r-4*invJ.xelem(0,1)*r;
+          Bt.xelem(1,9) = invJ.xelem(1,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(1,2)*r-4*invJ.xelem(1,1)*r;
+          Bt.xelem(2,9) = invJ.xelem(2,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(2,2)*r-4*invJ.xelem(2,1)*r;
      }
      
 private:
