@@ -6840,7 +6840,7 @@ public:
 
           RowVector HA(iNumDof);
           ColumnVector n1(3), n2(3);
-          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), KA(iNumDof, iNumDof, 0.);
+          Matrix dHf_dr(3, 3 * iNumDof), dHf_ds(3, 3 * iNumDof), KA(iNumDof, iNumDof, 0.);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
@@ -6904,7 +6904,7 @@ public:
 
           RowVector HA(iNumDof), HA_Thetae(iNumLoads);
           ColumnVector n1(3), n2(3);
-          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), QA(iNumDof, iNumLoads, 0.);
+          Matrix dHf_dr(3, 3 * iNumDof), dHf_ds(3, 3 * iNumDof), QA(iNumDof, iNumLoads, 0.);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
