@@ -6817,7 +6817,9 @@ public:
                break;
 
           case MAT_THERMAL_COND:
-               ConvectionMatrix(mat, info, dof, eMatType);
+               if (colidx == 1) {
+                    ConvectionMatrix(mat, info, dof, eMatType);
+               }
                break;
                
           default:
