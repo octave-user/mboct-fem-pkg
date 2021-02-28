@@ -11143,6 +11143,94 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
+%!test
+%! ### TEST 61
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 10e-3;
+%!   w = 15e-3;
+%!   h = 12e-3;
+%!   dx = 2e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   K0 = 50;
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.cp = 465;
+%!   thetae = [100, 200];
+%!   he = 200;
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   load_case.convection.tria6h.elements = mesh.elements.tria6h([mesh.groups.tria6h.elements], :);
+%!   load_case.convection.tria6h.theta = [repmat(thetae(1), numel(mesh.groups.tria6h(1).elements), 6);
+%!                                        repmat(thetae(2), numel(mesh.groups.tria6h(2).elements), 6)];
+%!   load_case.convection.tria6h.h = repmat(he, rows(load_case.convection.tria6h.elements), 1);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Kk, ...
+%!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_THERMAL_COND, ...
+%!                                 FEM_VEC_LOAD_THERMAL], ...
+%!                                load_case);
+%!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
 %!demo
 %! ## DEMO 1
 %! ## K.J.Bathe 2002, page 328 4.20a
