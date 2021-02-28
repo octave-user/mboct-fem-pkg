@@ -6880,6 +6880,8 @@ public:
                     KA.xelem(i, j) = KA.xelem(j, i);
                }
           }
+
+          std::cout << "KA=\n" << KA << "\n";
           
           for (octave_idx_type j = 0; j < iNumDof; ++j) {
                for (octave_idx_type i = 0; i < iNumDof; ++i) {
