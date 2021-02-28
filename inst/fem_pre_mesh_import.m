@@ -10759,6 +10759,133 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
+%!test
+%! ### TEST 58
+%! ## The 1-D Heat Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 10e-3;
+%!   w = 0.25e-3;
+%!   h = 0.25e-3;
+%!   dx = 0.25e-3;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   K0 = 50;
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.cp = 465;
+%!   u0 = 100;
+%!   ub = 50;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Kk, ...
+%!    mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_THERMAL_COND, ...
+%!                                 FEM_MAT_HEAT_CAPACITY], ...
+%!                                load_case);
+%!     idx_b = [mesh.groups.tria6.nodes];
+%!     idx_i = true(rows(mesh.nodes), 1);
+%!     idx_i(idx_b) = false;
+%!     idx_i = find(idx_i);
+%!     x = mesh.nodes(:, 1);
+%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!     C11 = mat_ass.C(idx_i, idx_i);
+%!     theta_b = repmat(ub, numel(idx_b), 1);
+%!     theta0 = repmat(u0, dof_map.totdof, 1);
+%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     kappa = K0 / (mesh.material_data.rho * mesh.material_data.cp);
+%!     T_ = l^2 / kappa;
+%!     dt = dx^2 / (2 * kappa);
+%!     alpha = 0.8;
+%!     sol.t = 0:dt:0.1*T_;
+%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!     sol.theta(:, 1) = theta0;
+%!     A = (1 / dt) * C11 + alpha * Kk11;
+%!     opts.number_of_threads = int32(1);
+%!     opts.solver = "pastix";
+%!     Afact = fem_sol_factor(A, opts);
+%!     for i=2:numel(sol.t)
+%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!       sol.theta(idx_b, i) = theta_b;
+%!     endfor
+%!     u0_ = 1;
+%!     n = 1:10000;
+%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!     x_ = x / l;
+%!     u_ = zeros(numel(x), numel(sol.t));
+%!     for n=1:numel(Bn_)
+%!       t_ = sol.t / T_;
+%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!     endfor
+%!     sol.theta_ref = u_ * (u0 - ub) + ub;
+%!     [x, idx_theta] = sort(x);
+%!     tol = 1e-2;
+%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
 %!demo
 %! ## DEMO 1
 %! ## K.J.Bathe 2002, page 328 4.20a
