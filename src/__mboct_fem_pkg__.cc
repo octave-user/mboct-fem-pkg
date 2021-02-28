@@ -193,6 +193,7 @@ class MeshInfo {
 public:
      enum InfoType {
           JACOBIAN_DET = 0,
+          JACOBIAN_DET_A = 1,
           INFO_COUNT
      };
 
@@ -216,8 +217,9 @@ public:
                "mean"
           };
 
-          static const char szInfoName[INFO_COUNT][5] = {
-               "detJ"
+          static const char szInfoName[INFO_COUNT][6] = {
+               "detJ",
+               "detJA"
           };
 
           for (octave_idx_type i = 0; i < INFO_COUNT; ++i) {
@@ -447,6 +449,10 @@ public:
           ELEM_PRESSURE_TRIA6,
           ELEM_PRESSURE_TRIA6H,
           ELEM_STRUCT_FORCE,
+          ELEM_THERM_CONV_ISO4,
+          ELEM_THERM_CONV_QUAD8,
+          ELEM_THERM_CONV_TRIA6,
+          ELEM_THERM_CONV_TRIA6H,
           ELEM_TYPE_COUNT
      };
 
@@ -489,7 +495,11 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_PRESSURE_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PRESSURE_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},     
-     {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF}
+     {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_ISO4,  "thcvqu4",  4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_QUAD8, "thcvqu8",  8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6, "thcvtr6",  6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6H,"thcvtr6h", 6,  6, DofMap::ELEM_NODOF}
 };
 
 class Element
@@ -503,7 +513,7 @@ public:
           MAT_SYM_MASK = 0xFu
      };
 
-     enum MatrixType: unsigned {
+     enum FemMatrixType: unsigned {
           MAT_UNKNOWN = static_cast<unsigned>(-1),
           MAT_STIFFNESS = 0x100u,
           MAT_STIFFNESS_SYM = MAT_STIFFNESS | MAT_SYM_UPPER,
@@ -530,7 +540,8 @@ public:
           VEC_STRAIN_TOTAL = 0x1000u,
           SCA_STRESS_VMIS = 0x2000u,
           MAT_THERMAL_COND = 0x4000u | DofMap::DO_THERMAL,
-          MAT_HEAT_CAPACITY = 0x8000u | DofMap::DO_THERMAL
+          MAT_HEAT_CAPACITY = 0x8000u | DofMap::DO_THERMAL,
+          VEC_LOAD_THERMAL = 0x10000u | DofMap::DO_THERMAL
      };
 
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -546,18 +557,18 @@ public:
      virtual ~Element() {
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const=0;
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const=0;
 
-     virtual void PostProcElem(NDArray& mat, MatrixType eMatType, const NDArray& U) const {
+     virtual void PostProcElem(NDArray& mat, FemMatrixType eMatType, const NDArray& U) const {
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const=0;
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const=0;
 
      virtual double dGetMass() const {
           return 0.;
      }
 
-     virtual bool bNeedMatrixInfo(MatrixType eMatType) const {
+     virtual bool bNeedMatrixInfo(FemMatrixType eMatType) const {
           return false;
      }
 
@@ -680,7 +691,7 @@ public:
                               iNumCols);
      }
 
-     void Reset(Element::MatrixType eMatTypeCurr, const MatrixInfo& oMatInfo) {
+     void Reset(Element::FemMatrixType eMatTypeCurr, const MatrixInfo& oMatInfo) {
           eMatType = eMatTypeCurr;
           nnz = 0;
           info = oMatInfo;
@@ -736,7 +747,7 @@ private:
           ++nnz;
      }
 
-     Element::MatrixType eMatType;
+     Element::FemMatrixType eMatType;
      octave_idx_type nnz;
      int32NDArray ridx, cidx;
      ColumnVector data;
@@ -758,7 +769,7 @@ public:
           :Element(oElem), C(oElem.C), U(oElem.U) {
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const MatrixType eMatType) const {
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -808,7 +819,7 @@ public:
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
                return 2 * C.rows() * C.columns();
@@ -823,7 +834,7 @@ public:
           }
      }
 
-     virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
+     virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -860,7 +871,7 @@ public:
           FEM_ASSERT(omega.numel() == nodes.numel() - 1);
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const MatrixType eMatType) const {
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -1022,7 +1033,7 @@ public:
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
                return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
@@ -1034,7 +1045,7 @@ public:
           }
      }
 
-     virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
+     virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -1127,7 +1138,7 @@ public:
 
      virtual ~ElemBeam2()=default;
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
           void (ElemBeam2::*pfn)(Matrix&) const;
 
           switch (eMatType) {
@@ -1200,7 +1211,7 @@ public:
           mat.Insert(A, ndofidx, ndofidx);
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           return 12 * 12;
      }
 
@@ -1340,8 +1351,8 @@ public:
           }
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
-          void (Element3D::*pFunc)(Matrix&, MeshInfo&, MatrixType) const;
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
+          void (Element3D::*pFunc)(Matrix&, MeshInfo&, FemMatrixType) const;
 
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
@@ -1432,7 +1443,7 @@ public:
           }
      }
 
-     octave_idx_type iGetNumDof(MatrixType eMatType) const {
+     octave_idx_type iGetNumDof(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_THERMAL_COND:
           case MAT_HEAT_CAPACITY:
@@ -1442,7 +1453,7 @@ public:
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_MASS:
           case MAT_STIFFNESS:
@@ -1474,7 +1485,7 @@ public:
           }
      }
 
-     virtual void PostProcElem(NDArray& mat, MatrixType eMatType, const NDArray& U) const {
+     virtual void PostProcElem(NDArray& mat, FemMatrixType eMatType, const NDArray& U) const {
           switch (eMatType) {
           case VEC_INERTIA_M1:
                InertiaMoment1(mat, eMatType);
@@ -1545,11 +1556,11 @@ public:
      }
 
 protected:
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const=0;
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const=0;
      virtual double Jacobian(const ColumnVector& rv, Matrix& J) const=0;
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const=0;
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
-     virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taun) const=0;
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
      virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const=0;
      
@@ -1557,7 +1568,7 @@ protected:
           info.Add(MeshInfo::JACOBIAN_DET, detJ);
      }
 
-     void StiffnessMatrix(Matrix& Ke, MeshInfo& info, MatrixType eMatType) const {
+     void StiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1634,7 +1645,7 @@ protected:
 #endif
      }
      
-     void MassMatrix(Matrix& Me, MeshInfo& info, MatrixType eMatType) const {
+     void MassMatrix(Matrix& Me, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1686,11 +1697,11 @@ protected:
 #endif
      }
 
-     void DampingMatrix(Matrix& De, MeshInfo& info, MatrixType eMatType) const {
+     void DampingMatrix(Matrix& De, MeshInfo& info, FemMatrixType eMatType) const {
           const double alpha = material->AlphaDamping();
 
           if (alpha) {
-               MassMatrix(De, info, static_cast<MatrixType>(MAT_MASS | (eMatType & MAT_SYM_MASK)));
+               MassMatrix(De, info, static_cast<FemMatrixType>(MAT_MASS | (eMatType & MAT_SYM_MASK)));
 
                for (octave_idx_type j = 0; j < De.columns(); ++j) {
                     for (octave_idx_type i = 0; i < De.rows(); ++i) {
@@ -1704,7 +1715,7 @@ protected:
           if (beta) {
                Matrix Ke(De.rows(), De.columns(), 0.);
 
-               StiffnessMatrix(Ke, info, static_cast<MatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
+               StiffnessMatrix(Ke, info, static_cast<FemMatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
 
                for (octave_idx_type j = 0; j < De.columns(); ++j) {
                     for (octave_idx_type i = 0; i < De.rows(); ++i) {
@@ -1714,7 +1725,7 @@ protected:
           }
      }
 
-     void AccelerationLoad(Matrix& C1, MeshInfo& info, MatrixType eMatType) const {
+     void AccelerationLoad(Matrix& C1, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1750,7 +1761,7 @@ protected:
           }
      }
 
-     void InertiaMoment1(NDArray& S, MatrixType eMatType) const {
+     void InertiaMoment1(NDArray& S, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1791,7 +1802,7 @@ protected:
           }
      }
 
-     void InertiaMatrix(NDArray& Inv7, MatrixType eMatType) const {
+     void InertiaMatrix(NDArray& Inv7, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1840,7 +1851,7 @@ protected:
           }
      }
 
-     void InertiaInv3(NDArray& Inv3, MatrixType eMatType, const NDArray& U) const {
+     void InertiaInv3(NDArray& Inv3, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1887,7 +1898,7 @@ protected:
           }
      }
 
-     void InertiaInv4(NDArray& Inv4, MatrixType eMatType, const NDArray& U) const {
+     void InertiaInv4(NDArray& Inv4, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1939,7 +1950,7 @@ protected:
           }
      }
 
-     void InertiaInv5(NDArray& Inv5, MatrixType eMatType, const NDArray& U) const {
+     void InertiaInv5(NDArray& Inv5, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -1996,7 +2007,7 @@ protected:
           }
      }
 
-     void InertiaInv8(NDArray& Inv8, MatrixType eMatType, const NDArray& U) const {
+     void InertiaInv8(NDArray& Inv8, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2056,7 +2067,7 @@ protected:
           }
      }
 
-     void InertiaInv9(NDArray& Inv9, MatrixType eMatType, const NDArray& U) const {
+     void InertiaInv9(NDArray& Inv9, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2122,7 +2133,7 @@ protected:
           }
      }
 
-     void StrainNodalElem(NDArray& epsilonn, MatrixType eMatType, const NDArray& U) const {
+     void StrainNodalElem(NDArray& epsilonn, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
@@ -2191,7 +2202,7 @@ protected:
           }
      }
      
-     void StressNodalElem(NDArray& taun, MatrixType eMatType, const NDArray& U) const {
+     void StressNodalElem(NDArray& taun, FemMatrixType eMatType, const NDArray& U) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
@@ -2313,7 +2324,7 @@ protected:
           }
      }
 
-     void ThermalLoadVector(Matrix& R, MeshInfo& info, MatrixType eMatType) const {
+     void ThermalLoadVector(Matrix& R, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2397,7 +2408,7 @@ protected:
           }
      }
 
-     void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, MatrixType eMatType) const {
+     void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2474,7 +2485,7 @@ protected:
 #endif
      }
 
-     void HeatCapacityMatrix(Matrix& Ce, MeshInfo& info, MatrixType eMatType) const {
+     void HeatCapacityMatrix(Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2524,7 +2535,7 @@ public:
           FEM_ASSERT(nodes.numel() == 8);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
           static const octave_idx_type N = 2;
           static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
           static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
@@ -2878,7 +2889,7 @@ protected:
           Bt.xelem(2,7) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0E+0;
      }
      
-     virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2929,7 +2940,7 @@ public:
           FEM_ASSERT(nodes.numel() == 20);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
           constexpr octave_idx_type N = 3;
           static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
@@ -3563,7 +3574,7 @@ protected:
           B.xelem(5,59) = (invJ.xelem(0,0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(0,1)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(0,2)*(r+1)*(1-s)*t)/2.0E+0;
      }
 
-     virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -3701,7 +3712,7 @@ public:
           FEM_ASSERT(nodes.numel() == 15);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
           // r = 0 ... 1
           // s = 0 ... (1 - r)
           // t = -1 ... 1
@@ -4279,7 +4290,7 @@ protected:
           Bt.xelem(2,14) = invJ.xelem(2,1)*(1-t_2)-2*invJ.xelem(2,2)*s*t;
      }
      
-     virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -4337,7 +4348,7 @@ public:
           FEM_ASSERT(nodes.numel() == 10);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
 
           constexpr double a1 = 0.25;
           constexpr double b1 = 1. / 6.;
@@ -4771,7 +4782,7 @@ protected:
           B.xelem(5,29) = invJ.xelem(0,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(0,2)*r-4*invJ.xelem(0,1)*r;
      }
 
-     virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -4903,7 +4914,7 @@ public:
           FEM_ASSERT(nodes.numel() == 10);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
           static IntegrationRule oIntegStiff, oIntegMass, oIntegMassDiag;
 
           switch (eMatType) {
@@ -5392,7 +5403,7 @@ protected:
           B.xelem(5,29) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
      }
 
-     virtual Matrix InterpGaussToNodal(MatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -5721,7 +5732,7 @@ public:
           dHf_ds.xelem(2,17) = -4*Zeta1;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
           static IntegrationRule oIntegLumped, oIntegConsistent;
           constexpr double tria_area = 0.5; // Factor for triangular area
 
@@ -5758,7 +5769,8 @@ public:
 
                return oIntegLumped;
           } break;
-          case Element::VEC_LOAD_CONSISTENT: {
+          case Element::VEC_LOAD_CONSISTENT:
+          case Element::VEC_LOAD_THERMAL: {
                if (!oIntegConsistent.iGetNumEvalPoints()) {
                     constexpr double g1 = (6. - sqrt(15.)) / 21.;
                     constexpr double g2 = (6. + sqrt(15.)) / 21.;
@@ -5982,7 +5994,7 @@ public:
           dHf_ds.xelem(2,11) = -(r+1)/4.0;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
           static const octave_idx_type N = 2;
           static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
           static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
@@ -6315,7 +6327,7 @@ public:
           dHf_ds.xelem(2,23) = -(r+1)*s;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
           static constexpr octave_idx_type N = 3;
           static constexpr double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static constexpr double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
@@ -6586,7 +6598,7 @@ public:
           dHf_ds.xelem(2,17) = 4*((-zeta)-eta+1)-4*eta;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::MatrixType eMatType) {
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
           static array<IntegrationRule, 2> rgIntegRule;
 
           octave_idx_type iIntegRule;
@@ -6622,10 +6634,48 @@ public:
      }
 };
 
-class PressureLoad: public Element {
+class SurfaceElement: public Element {
+protected:
+     SurfaceElement(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :Element(eltype, id, X, material, nodes) {
+
+          FEM_ASSERT(X.rows() == 3);
+          FEM_ASSERT(X.columns() == nodes.numel());
+     }
+
+     SurfaceElement(const SurfaceElement& oElem)
+          :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes) {
+     }
+
+     void SurfaceNormalVector(const Matrix& dHf, ColumnVector& n) const {
+          FEM_ASSERT(n.rows() == 3);
+          FEM_ASSERT(dHf.rows() == 3);
+          FEM_ASSERT(dHf.columns() == nodes.numel() * 3);
+          
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               double ni = 0.;
+
+               for (octave_idx_type j = 0; j < nodes.numel(); ++j) {
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         ni += dHf.xelem(i, j * 3 + k) * X.xelem(k, j);
+                    }
+               }
+
+               n.xelem(i) = ni;
+          }
+     }
+     
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const=0;
+     virtual void ScalarInterpMatrix(const ColumnVector& r, RowVector& HA) const=0;
+     virtual void DisplacementInterpMatrix(const ColumnVector& r, Matrix& Hf) const=0;
+     virtual void DisplacementInterpMatrixDerR(const ColumnVector& r, Matrix& dHf_dr) const=0;
+     virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;     
+};
+
+class PressureLoad: public SurfaceElement {
 public:
      PressureLoad(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-          :Element(eltype, id, X, material, nodes), p(p), colidx(colidx) {
+          :SurfaceElement(eltype, id, X, material, nodes), p(p), colidx(colidx) {
 
           FEM_ASSERT(X.rows() == 3);
           FEM_ASSERT(X.columns() == p.columns());
@@ -6633,10 +6683,10 @@ public:
      }
 
      PressureLoad(const PressureLoad& oElem)
-          :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx) {
+          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx) {
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
@@ -6674,7 +6724,7 @@ public:
                DisplacementInterpMatrix(rv, Hf);
                DisplacementInterpMatrixDerR(rv, dHf_dr);
                DisplacementInterpMatrixDerS(rv, dHf_ds);
-               PressureInterpMatrix(rv, HA);
+               ScalarInterpMatrix(rv, HA);
 
                SurfaceNormalVector(dHf_dr, n1);
                SurfaceNormalVector(dHf_ds, n2);
@@ -6688,6 +6738,8 @@ public:
                for (octave_idx_type l = 0; l < 3; ++l) {
                     detJA_2 += n_detJA.xelem(l) * n_detJA.xelem(l);
                }
+
+               info.Add(MeshInfo::JACOBIAN_DET_A, sqrt(detJA_2));
 
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     double HfT_nl_detJA = 0.;
@@ -6723,7 +6775,7 @@ public:
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
@@ -6737,65 +6789,232 @@ public:
           return nodes.numel() * 3;
      }
 
-protected:
-     void SurfaceNormalVector(const Matrix& dHf, ColumnVector& n) const {
-          for (octave_idx_type i = 0; i < 3; ++i) {
-               double ni = 0.;
-
-               for (octave_idx_type j = 0; j < nodes.numel(); ++j) {
-                    for (octave_idx_type k = 0; k < 3; ++k) {
-                         ni += dHf.xelem(i, j * 3 + k) * X.xelem(k, j);
-                    }
-               }
-
-               n.xelem(i) = ni;
-          }
-     }
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const=0;
-     virtual void PressureInterpMatrix(const ColumnVector& r, RowVector& HA) const=0;
-     virtual void DisplacementInterpMatrix(const ColumnVector& r, Matrix& Hf) const=0;
-     virtual void DisplacementInterpMatrixDerR(const ColumnVector& r, Matrix& dHf_dr) const=0;
-     virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;
-
 private:
      const Matrix p;
      const octave_idx_type colidx;
 };
 
-template <typename SHAPE_FUNC>
-class PressureLoadImp: public PressureLoad {
+class ThermalConvection: public SurfaceElement {
 public:
-     PressureLoadImp(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-          :PressureLoad(eltype, id, X, material, nodes, p, colidx) {
+     ThermalConvection(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, double h, octave_idx_type colidx)
+          :SurfaceElement(eltype, id, X, material, nodes), Thetae(Thetae), h(h), colidx(colidx) {
+
+          FEM_ASSERT(X.rows() == 3);
+          FEM_ASSERT(X.columns() == Thetae.columns());
+          FEM_ASSERT(X.columns() == nodes.numel());
+     }
+
+     ThermalConvection(const ThermalConvection& oElem)
+          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), Thetae(oElem.Thetae), h(oElem.h), colidx(oElem.colidx) {
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+               ConvectionLoadVector(mat, info, dof, eMatType);
+               break;
+
+          case MAT_THERMAL_COND:
+               ConvectionMatrix(mat, info, dof, eMatType);
+               break;
+               
+          default:
+               ;
+          }          
+     }
+
+     void ConvectionMatrix(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+
+          ColumnVector rv(iNumDir);
+          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+
+          for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
+               dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
+          }
+
+          RowVector HA(iNumNodes);
+          ColumnVector n1(3), n2(3);
+          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), KA(iNumDof, iNumDof, 0.);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA);
+
+               SurfaceNormalVector(dHf_dr, n1);
+               SurfaceNormalVector(dHf_ds, n2);
+
+               double detJA = std::pow(n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1), 2)
+                    + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
+                    + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
+
+               if (detJA < 0.) {
+                    throw std::runtime_error("Jacobian of surface element is singular");
+               }
+
+               detJA = sqrt(detJA);
+               
+               info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
+               
+               for (octave_idx_type l = 0; l < iNumDof; ++l) {
+                    for (octave_idx_type m = l; m < iNumDof; ++m) {
+                         KA.xelem(m, l) += h * HA.xelem(m) * HA.xelem(l);
+                    }
+               }
+          }
+
+          for (octave_idx_type i = 1; i < iNumDof; ++i) {
+               for (octave_idx_type j = 0; j < i; ++j) {
+                    KA.xelem(i, j) = KA.xelem(j, i);
+               }
+          }
+          
+          for (octave_idx_type j = 0; j < iNumDof; ++j) {
+               for (octave_idx_type i = 0; i < iNumDof; ++i) {
+                    mat.Insert(KA.xelem(i, j), dofidx.xelem(i), dofidx.xelem(j));
+               }
+          }
+     }
+     
+     void ConvectionLoadVector(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumLoads = Thetae.rows();
+
+          ColumnVector rv(iNumDir);
+          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+
+          for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
+               dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
+          }
+
+          RowVector HA(iNumNodes), HA_Thetae(iNumLoads);
+          ColumnVector n1(3), n2(3);
+          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), fA(iNumDof, iNumLoads, 0.);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA);
+
+               SurfaceNormalVector(dHf_dr, n1);
+               SurfaceNormalVector(dHf_ds, n2);
+
+               double detJA = std::pow(n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1), 2)
+                    + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
+                    + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
+
+               if (detJA < 0.) {
+                    throw std::runtime_error("Jacobian of surface element is singular");
+               }
+
+               detJA = sqrt(detJA);
+               
+               info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
+               
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    double HA_Thetael = 0.;
+
+                    for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                         HA_Thetael += HA.xelem(m) * Thetae.xelem(l, m);
+                    }
+
+                    HA_Thetae.xelem(l) = HA_Thetael;
+               }
+
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    for (octave_idx_type m = 0; m < iNumDof; ++m) {
+                         fA.xelem(m, l) += h * HA.xelem(m) * HA_Thetae.xelem(l);
+                    }
+               }
+          }
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               for (octave_idx_type i = 0; i < iNumDof; ++i) {
+                    mat.Insert(fA.xelem(i, j), dofidx.xelem(i), colidx + j);
+               }
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+               return iGetNumDof() * Thetae.rows();
+          default:
+               return 0;
+          }
+     }
+
+     octave_idx_type iGetNumDof() const {
+          return nodes.numel();
+     }
+
+private:
+     const Matrix Thetae;
+     const double h;
+     const octave_idx_type colidx;
+};
+
+template <typename SHAPE_FUNC, typename BASE>
+class SurfaceElementImpl: public BASE {
+public:
+     template <typename ...Args>
+     SurfaceElementImpl(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args)
+          :BASE(eltype, id, X, material, nodes, args...) {
           FEM_ASSERT(nodes.numel() == SHAPE_FUNC::iGetNumNodes());
      }
 
 protected:
-     void PressureInterpMatrix(const ColumnVector& rv, RowVector& HA) const {
+     virtual void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) const override {
           SHAPE_FUNC::ScalarInterpMatrix(rv, HA);
      }
 
-     void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const {
+     virtual void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const override {
           SHAPE_FUNC::VectorInterpMatrix(rv, Hf);
      }
 
-     void DisplacementInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) const {
+     virtual void DisplacementInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) const override {
           SHAPE_FUNC::VectorInterpMatrixDerR(rv, dHf_dr);
      }
 
-     void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const {
+     virtual void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const override {
           SHAPE_FUNC::VectorInterpMatrixDerS(rv, dHf_ds);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(MatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) const override {
           return SHAPE_FUNC::GetIntegrationRule(eMatType);
      }
 };
 
-typedef PressureLoadImp<ShapeIso4> PressureLoadIso4;
-typedef PressureLoadImp<ShapeQuad8> PressureLoadQuad8;
-typedef PressureLoadImp<ShapeTria6> PressureLoadTria6;
-typedef PressureLoadImp<ShapeTria6H> PressureLoadTria6H;
+typedef SurfaceElementImpl<ShapeIso4, PressureLoad> PressureLoadIso4;
+typedef SurfaceElementImpl<ShapeQuad8, PressureLoad> PressureLoadQuad8;
+typedef SurfaceElementImpl<ShapeTria6, PressureLoad> PressureLoadTria6;
+typedef SurfaceElementImpl<ShapeTria6H, PressureLoad> PressureLoadTria6H;
+
+typedef SurfaceElementImpl<ShapeIso4, ThermalConvection> ThermalConvectionIso4;
+typedef SurfaceElementImpl<ShapeQuad8, ThermalConvection> ThermalConvectionQuad8;
+typedef SurfaceElementImpl<ShapeTria6, ThermalConvection> ThermalConvectionTria6;
+typedef SurfaceElementImpl<ShapeTria6H, ThermalConvection> ThermalConvectionTria6H;
 
 class StructForce: public Element {
 public:
@@ -6813,7 +7032,7 @@ public:
           :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), loads(oElem.loads), colidx(oElem.colidx) {
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, MatrixType eMatType) const {
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
@@ -6831,7 +7050,7 @@ public:
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(MatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
@@ -6855,11 +7074,11 @@ public:
      virtual ~ElementBlockBase() {
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const=0;
-     virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::MatrixType eMatType) const=0;
-     virtual void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const=0;
+     virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const=0;
+     virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::FemMatrixType eMatType) const=0;
+     virtual void PostProcElem(NDArray& mat, Element::FemMatrixType eMatType, const NDArray& U) const=0;
      virtual double dGetMass() const=0;
-     virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const=0;
+     virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const=0;
 
      template <typename ElementType, typename... Args>
      inline void Insert(octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Args&... args);
@@ -6914,7 +7133,7 @@ public:
           rgElements.emplace_back(eltype, id, X, material, nodes, args...);
      }
 
-     octave_idx_type iGetWorkSpaceSize(Element::MatrixType eMatType) const {
+     octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const {
           octave_idx_type iWorkSpace = 0;
 
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
@@ -6924,7 +7143,7 @@ public:
           return iWorkSpace;
      }
 
-     void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::MatrixType eMatType) const {
+     void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::FemMatrixType eMatType) const {
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
                i->ElementType::Assemble(oMatAss, oMeshInfo, oDof, eMatType);
 
@@ -6932,7 +7151,7 @@ public:
           }
      }
 
-     void PostProcElem(NDArray& mat, Element::MatrixType eMatType, const NDArray& U) const {
+     void PostProcElem(NDArray& mat, Element::FemMatrixType eMatType, const NDArray& U) const {
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
                i->ElementType::PostProcElem(mat, eMatType, U);
 
@@ -6952,7 +7171,7 @@ public:
           return dm;
      }
 
-     virtual bool bNeedMatrixInfo(Element::MatrixType eMatType) const {
+     virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const {
           return rgElements.empty() ? false : rgElements.front().bNeedMatrixInfo(eMatType);
      }
 
@@ -7040,7 +7259,7 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                          const int32NDArray elements = ov_elements.int32_array_value();
 
                          if (elements.columns() != iNumNodesElem) {
-                              throw std::runtime_error("pressure.elements number of columns does not match");
+                              throw std::runtime_error("pressure.elements number of columns do not match");
                          }
 
                          const octave_value ov_p = elem_type.contents(iter_p);
@@ -7097,6 +7316,148 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                if (iNumElements) {
                     if (j == 0) {
                          pElem.reset(new ElementBlock<PressureElemType>(eltype));
+                         pElem->Reserve(iNumElements);
+                    }
+               } else {
+                    break;
+               }
+          }
+
+          if (pElem) {
+               rgElemBlocks.emplace_back(std::move(pElem));
+          }
+     }
+}
+
+template <typename ConvectionElemType>
+void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_convection = load_case.seek("convection");
+
+     if (iter_convection != load_case.end()) {
+          const Cell cell_convection = load_case.contents(iter_convection);
+
+          FEM_ASSERT(cell_convection.numel() == load_case.numel());
+
+          std::unique_ptr<ElementBlock<ConvectionElemType> > pElem(nullptr);
+
+          for (octave_idx_type j = 0; j < 2; ++j) {
+               octave_idx_type iNumElements = 0;
+
+               for (octave_idx_type i = 0; i < cell_convection.numel(); ++i) {
+                    if (cell_convection(i).isstruct()) {
+                         if (!(cell_convection(i).numel() == 1)) {
+                              throw std::runtime_error("convection must be a scalar struct");
+                         }
+
+                         const octave_scalar_map convection = cell_convection.xelem(i).scalar_map_value();
+
+                         const auto iter_elem_type = convection.seek(pszElemName);
+
+                         if (iter_elem_type == convection.end()) {
+                              continue;
+                         }
+
+                         const octave_value ov_elem_type = convection.contents(iter_elem_type);
+
+                         if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+                              throw std::runtime_error("invalid entry in load_case.convection");
+                         }
+
+                         const octave_scalar_map elem_type = ov_elem_type.scalar_map_value();
+
+                         const auto iter_elements = elem_type.seek("elements");
+
+                         if (iter_elements == elem_type.end()) {
+                              throw std::runtime_error("field \"elements\" not found in struct convection");
+                         }
+
+                         const auto iter_theta = elem_type.seek("theta");
+
+                         if (iter_theta == elem_type.end()) {
+                              throw std::runtime_error("field \"theta\" not found in struct convection");
+                         }
+
+                         const auto iter_h = elem_type.seek("h");
+
+                         if (iter_h == elem_type.end()) {
+                              throw std::runtime_error("field \"h\" not found in struct convection");
+                         }
+
+                         const octave_value ov_elements = elem_type.contents(iter_elements);
+
+                         if (!(ov_elements.is_matrix_type() && ov_elements.OV_ISINTEGER())) {
+                              throw std::runtime_error("convection.elements must be an integer array");
+                         }
+
+                         const int32NDArray elements = ov_elements.int32_array_value();
+
+                         if (elements.columns() != iNumNodesElem) {
+                              throw std::runtime_error("convection.elements number of columns do not match");
+                         }
+
+                         const octave_value ov_theta = elem_type.contents(iter_theta);
+
+                         if (!(ov_theta.is_matrix_type() && ov_theta.OV_ISREAL())) {
+                              throw std::runtime_error("convection.theta must be a real matrix");
+                         }
+
+                         const Matrix theta = ov_theta.matrix_value();
+
+                         if (theta.columns() != elements.columns() || theta.rows() != elements.rows()) {
+                              throw std::runtime_error("convection.theta must have the same shape like convection.elements");
+                         }
+
+                         const octave_value ov_h = elem_type.contents(iter_h);
+
+                         if (!(ov_h.OV_ISREAL() && ov_h.is_scalar_type())) {
+                              throw std::runtime_error("convection.h must be a real scalar");
+                         }
+
+                         const double h = ov_h.scalar_value();
+
+                         switch (j) {
+                         case 0:
+                              iNumElements += elements.rows();
+                              break;
+
+                         case 1: {
+                              Matrix X(3, iNumNodesElem);
+
+                              for (octave_idx_type k = 0; k < elements.rows(); ++k) {
+                                   X.make_unique();
+
+                                   for (octave_idx_type l = 0; l < X.columns(); ++l) {
+                                        for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                                             octave_idx_type inode = elements.xelem(k, l).value() - 1;
+
+                                             if (inode < 0 || inode >= nodes.rows()) {
+                                                  throw std::runtime_error("node index out of range in convection.elements");
+                                             }
+
+                                             X.xelem(m, l) = nodes.xelem(inode, m);
+                                        }
+                                   }
+
+                                   pElem->Insert(++iNumElements,
+                                                 X,
+                                                 nullptr,
+                                                 elements.index(idx_vector::make_range(k, 1, 1),
+                                                                idx_vector::make_range(0, 1, elements.columns())),
+                                                 theta.row(k),
+                                                 h,
+                                                 i + 1);
+                              }
+                         } break;
+
+                         default:
+                              FEM_ASSERT(false);
+                         }
+                    }
+               }
+
+               if (iNumElements) {
+                    if (j == 0) {
+                         pElem.reset(new ElementBlock<ConvectionElemType>(eltype));
                          pElem->Reserve(iNumElements);
                     }
                } else {
@@ -7946,6 +8307,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_HEAT_CAPACITY", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
 
@@ -7982,6 +8344,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_MAT_HEAT_CAPACITY", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
@@ -8896,7 +9259,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           std::fill(std::begin(rgElemUse), std::end(rgElemUse), false);
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
-               const auto eMatType = static_cast<Element::MatrixType>(matrix_type(i).value());
+               const auto eMatType = static_cast<Element::FemMatrixType>(matrix_type(i).value());
 
                if ((eMatType & eDomain) != eDomain) {
                     throw std::runtime_error("matrix type is not valid for selected domain");
@@ -8935,6 +9298,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS:
                case Element::MAT_THERMAL_COND:
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
                case Element::MAT_HEAT_CAPACITY:
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
                     rgElemUse[ElementTypes::ELEM_ISO20] = true;
@@ -8963,6 +9330,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     rgElemUse[ElementTypes::ELEM_TET10] = true;                    
                     break;
 
+               case Element::VEC_LOAD_THERMAL:
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
+                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                    break;
+                    
                default:
                     throw std::runtime_error("invalid value for argument matrix_type");
                }
@@ -9477,6 +9851,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          }
                     }
                } break;
+               case ElementTypes::ELEM_THERM_CONV_ISO4:
+                    InsertThermalConvElem<ThermalConvectionIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_THERM_CONV_QUAD8:
+                    InsertThermalConvElem<ThermalConvectionQuad8>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_THERM_CONV_TRIA6:
+                    InsertThermalConvElem<ThermalConvectionTria6>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+                    InsertThermalConvElem<ThermalConvectionTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;                    
                default:
                     FEM_ASSERT(false);
                }
@@ -9494,7 +9880,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           octave_idx_type iMaxWorkSpaceSize = 0;
 
           for (octave_idx_type j = 0; j < matrix_type.numel(); ++j) {
-               const Element::MatrixType eMatType = static_cast<Element::MatrixType>(matrix_type(j).value());
+               const Element::FemMatrixType eMatType = static_cast<Element::FemMatrixType>(matrix_type(j).value());
                octave_idx_type iWorkSpaceSize = 0;
 
                for (auto i = rgElemBlocks.cbegin(); i != rgElemBlocks.cend(); ++i) {
@@ -9510,7 +9896,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           bool bMatInfo = false;
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
-               const Element::MatrixType eMatType = static_cast<Element::MatrixType>(matrix_type.xelem(i).value());
+               const Element::FemMatrixType eMatType = static_cast<Element::FemMatrixType>(matrix_type.xelem(i).value());
 
                switch (eMatType) {
                case Element::MAT_STIFFNESS:
@@ -9680,7 +10066,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
 
-                              const Element::MatrixType eMatTypeStressStrain = eMatType == Element::SCA_STRESS_VMIS ? Element::VEC_STRESS_CAUCH : eMatType;
+                              const Element::FemMatrixType eMatTypeStressStrain = eMatType == Element::SCA_STRESS_VMIS ? Element::VEC_STRESS_CAUCH : eMatType;
 
                               NDArray oElemStressStrain(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.);
 
@@ -9796,8 +10182,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           double detJmin = oMeshInfo.dGet(MeshInfo::JACOBIAN_DET, MeshInfo::STAT_MIN);
 
           if (detJmin <= 0.) {
-               warning_with_id("mboct-fem-pkg:invalid-mesh", "Jacobian is singular or negative det(J)=%g", detJmin);
+               warning_with_id("mboct-fem-pkg:invalid-mesh", "Jacobian of solid element is singular or negative det(J)=%g", detJmin);
           }
+
+          double detJAmin = oMeshInfo.dGet(MeshInfo::JACOBIAN_DET_A, MeshInfo::STAT_MIN);
      } catch (const std::exception& err) {
           error("%s", err.what());
           return retval;
@@ -9845,5 +10233,6 @@ DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_FIXED, "build constraints in all
 DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_SLIDING, "build only one constraint normal to the surface")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_THERMAL_COND, "thermal conductivity matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_HEAT_CAPACITY, "heat capacity matrix")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_THERMAL, "thermal load vector")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
