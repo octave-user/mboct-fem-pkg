@@ -6811,8 +6811,7 @@ public:
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
           switch (eMatType) {
-          case VEC_LOAD_CONSISTENT:
-          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL:
                ConvectionLoadVector(mat, info, dof, eMatType);
                break;
 
