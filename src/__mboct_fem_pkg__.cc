@@ -7409,11 +7409,15 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
 
                          const octave_value ov_h = elem_type.contents(iter_h);
 
-                         if (!(ov_h.OV_ISREAL() && ov_h.is_scalar_type())) {
+                         if (!(ov_h.OV_ISREAL() && ov_h.is_matrix_type())) {
                               throw std::runtime_error("convection.h must be a real scalar");
                          }
 
-                         const double h = ov_h.scalar_value();
+                         if (ov_h.rows() != elements.rows() || ov_h.columns() != 1) {
+                              throw std::runtime_error("convection.h must be a column vector with the same number of rows like convection.elements");
+                         }
+
+                         const ColumnVector h = ov_h.column_vector_value();
 
                          switch (j) {
                          case 0:
@@ -7444,7 +7448,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                                                  elements.index(idx_vector::make_range(k, 1, 1),
                                                                 idx_vector::make_range(0, 1, elements.columns())),
                                                  theta.row(k),
-                                                 h,
+                                                 h.xelem(k),
                                                  i + 1);
                               }
                          } break;
@@ -9913,7 +9917,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_LOAD_LUMPED:
                case Element::MAT_ACCEL_LOAD:
                case Element::MAT_THERMAL_COND:
-               case Element::MAT_HEAT_CAPACITY: {
+               case Element::MAT_HEAT_CAPACITY:
+               case Element::VEC_LOAD_THERMAL: {
                     oMatAss.Reset(eMatType, oMatInfo);
 
                     for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
