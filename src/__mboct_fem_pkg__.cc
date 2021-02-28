@@ -5055,6 +5055,48 @@ protected:
           H.xelem(2,29) = 4*Zeta3*Zeta4;
      }
 
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+          FEM_ASSERT(Bt.rows() == 3);
+          FEM_ASSERT(Bt.columns() == 10);
+          FEM_ASSERT(rv.numel() == 4);
+
+          const double Zeta1 = rv.xelem(0);
+          const double Zeta2 = rv.xelem(1);
+          const double Zeta3 = rv.xelem(2);
+          const double Zeta4 = rv.xelem(3);
+          
+          Bt.xelem(0,0) = invJ.xelem(0,1)*(4*Zeta1-1);
+          Bt.xelem(1,0) = invJ.xelem(0,2)*(4*Zeta1-1);
+          Bt.xelem(2,0) = invJ.xelem(0,3)*(4*Zeta1-1);
+          Bt.xelem(0,1) = invJ.xelem(1,1)*(4*Zeta2-1);
+          Bt.xelem(1,1) = invJ.xelem(1,2)*(4*Zeta2-1);
+          Bt.xelem(2,1) = invJ.xelem(1,3)*(4*Zeta2-1);
+          Bt.xelem(0,2) = invJ.xelem(2,1)*(4*Zeta3-1);
+          Bt.xelem(1,2) = invJ.xelem(2,2)*(4*Zeta3-1);
+          Bt.xelem(2,2) = invJ.xelem(2,3)*(4*Zeta3-1);
+          Bt.xelem(0,3) = invJ.xelem(3,1)*(4*Zeta4-1);
+          Bt.xelem(1,3) = invJ.xelem(3,2)*(4*Zeta4-1);
+          Bt.xelem(2,3) = invJ.xelem(3,3)*(4*Zeta4-1);
+          Bt.xelem(0,4) = 4*invJ.xelem(0,1)*Zeta2+4*invJ.xelem(1,1)*Zeta1;
+          Bt.xelem(1,4) = 4*invJ.xelem(0,2)*Zeta2+4*invJ.xelem(1,2)*Zeta1;
+          Bt.xelem(2,4) = 4*invJ.xelem(0,3)*Zeta2+4*invJ.xelem(1,3)*Zeta1;
+          Bt.xelem(0,5) = 4*invJ.xelem(1,1)*Zeta3+4*invJ.xelem(2,1)*Zeta2;
+          Bt.xelem(1,5) = 4*invJ.xelem(1,2)*Zeta3+4*invJ.xelem(2,2)*Zeta2;
+          Bt.xelem(2,5) = 4*invJ.xelem(1,3)*Zeta3+4*invJ.xelem(2,3)*Zeta2;
+          Bt.xelem(0,6) = 4*invJ.xelem(0,1)*Zeta3+4*invJ.xelem(2,1)*Zeta1;
+          Bt.xelem(1,6) = 4*invJ.xelem(0,2)*Zeta3+4*invJ.xelem(2,2)*Zeta1;
+          Bt.xelem(2,6) = 4*invJ.xelem(0,3)*Zeta3+4*invJ.xelem(2,3)*Zeta1;
+          Bt.xelem(0,7) = 4*invJ.xelem(0,1)*Zeta4+4*invJ.xelem(3,1)*Zeta1;
+          Bt.xelem(1,7) = 4*invJ.xelem(0,2)*Zeta4+4*invJ.xelem(3,2)*Zeta1;
+          Bt.xelem(2,7) = 4*invJ.xelem(0,3)*Zeta4+4*invJ.xelem(3,3)*Zeta1;
+          Bt.xelem(0,8) = 4*invJ.xelem(1,1)*Zeta4+4*invJ.xelem(3,1)*Zeta2;
+          Bt.xelem(1,8) = 4*invJ.xelem(1,2)*Zeta4+4*invJ.xelem(3,2)*Zeta2;
+          Bt.xelem(2,8) = 4*invJ.xelem(1,3)*Zeta4+4*invJ.xelem(3,3)*Zeta2;
+          Bt.xelem(0,9) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
+          Bt.xelem(1,9) = 4*invJ.xelem(2,2)*Zeta4+4*invJ.xelem(3,2)*Zeta3;
+          Bt.xelem(2,9) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
+     }
+     
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(invJ.rows() == 4);
           FEM_ASSERT(invJ.columns() == 4);
