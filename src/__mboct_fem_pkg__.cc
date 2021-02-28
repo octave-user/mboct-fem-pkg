@@ -669,6 +669,7 @@ public:
           switch (eMatType) {
           case Element::VEC_LOAD_CONSISTENT:
           case Element::VEC_LOAD_LUMPED:
+          case Element::VEC_LOAD_THERMAL:
                iNumCols = iNumLoads;
                break;
 
