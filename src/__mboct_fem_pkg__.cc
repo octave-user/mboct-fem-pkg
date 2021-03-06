@@ -7351,7 +7351,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      
      const auto iter_elem_type = m_convection.seek(pszElemName);
 
-     if (iter_elem_type == elements.end()) {
+     if (iter_elem_type == m_convection.end()) {
           return;
      }
 
