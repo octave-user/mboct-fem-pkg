@@ -11207,7 +11207,7 @@ endfunction
 %!   mesh.material_data.k = diag([K0, K0, K0]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = 20;
+%!   he = K0 / l;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.elements.convection.tria6h.nodes = mesh.elements.tria6h([mesh.groups.tria6h.elements], :);
@@ -11215,6 +11215,15 @@ endfunction
 %!   load_case.convection.tria6h.theta = [repmat(thetae(1), numel(mesh.groups.tria6h(1).elements), 6);
 %!                                        repmat(thetae(2), numel(mesh.groups.tria6h(2).elements), 6)];
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   e1 = [1; 0.6; -0.3];
+%!   e2 = [-0.5; -0.3; 0.8];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
 %!                                dof_map, ...
@@ -11222,6 +11231,9 @@ endfunction
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
+%!   x = mesh.nodes(:, 1:3) * R(:, 1);
+%!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
+%!   assert(sol.theta, theta_ref, eps^0.9 * max(abs(thetae)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
