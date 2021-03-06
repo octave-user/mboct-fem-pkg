@@ -6817,9 +6817,7 @@ public:
                break;
 
           case MAT_THERMAL_COND:
-               if (colidx == 1) {
-                    ConvectionMatrix(mat, info, dof, eMatType);
-               }
+               ConvectionMatrix(mat, info, dof, eMatType);
                break;
                
           default:
@@ -7336,149 +7334,152 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
 }
 
 template <typename ConvectionElemType>
-void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
-     const auto iter_convection = load_case.seek("convection");
+void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_convection = elements.seek("convection");
 
-     if (iter_convection != load_case.end()) {
-          const Cell cell_convection = load_case.contents(iter_convection);
+     if (iter_convection != elements.end()) {
+          return;
+     }
+     
+     const octave_value ov_convection = elements.contents(iter_convection);
 
-          FEM_ASSERT(cell_convection.numel() == load_case.numel());
+     if (!(ov_convection.isstruct() && ov_convection.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.convection must be a scalar struct");
+     }
 
-          std::unique_ptr<ElementBlock<ConvectionElemType> > pElem(nullptr);
+     const octave_scalar_map m_convection = ov_convection.scalar_map_value();
+     
+     const auto iter_elem_type = m_convection.seek(pszElemName);
 
-          for (octave_idx_type j = 0; j < 2; ++j) {
-               octave_idx_type iNumElements = 0;
+     if (iter_elem_type == elements.end()) {
+          return;
+     }
 
-               for (octave_idx_type i = 0; i < cell_convection.numel(); ++i) {
-                    if (cell_convection(i).isstruct()) {
-                         if (!(cell_convection(i).numel() == 1)) {
-                              throw std::runtime_error("convection must be a scalar struct");
-                         }
+     const octave_value ov_elem_type = m_convection.contents(iter_elem_type);
 
-                         const octave_scalar_map convection = cell_convection.xelem(i).scalar_map_value();
+     if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.convection."s + pszElemName + " must be a scalar struct");
+     }
 
-                         const auto iter_elem_type = convection.seek(pszElemName);
+     const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
 
-                         if (iter_elem_type == convection.end()) {
-                              continue;
-                         }
+     const auto iter_elnodes = m_elem_type.seek("nodes");
 
-                         const octave_value ov_elem_type = convection.contents(iter_elem_type);
+     if (iter_elnodes == m_elem_type.end()) {
+          throw std::runtime_error("missing field mesh.elements.convection."s + pszElemName + ".nodes");
+     }
 
-                         if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-                              throw std::runtime_error("invalid entry in load_case.convection");
-                         }
+     const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
-                         const octave_scalar_map elem_type = ov_elem_type.scalar_map_value();
+     if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
+          throw std::runtime_error("mesh.elements.convection."s + pszElemName + ".nodes must be an integer matrix");          
+     }
 
-                         const auto iter_elements = elem_type.seek("elements");
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
 
-                         if (iter_elements == elem_type.end()) {
-                              throw std::runtime_error("field \"elements\" not found in struct convection");
-                         }
+     const auto iter_h = m_elem_type.seek("h");
 
-                         const auto iter_theta = elem_type.seek("theta");
+     if (iter_h == m_elem_type.end()) {
+          throw std::runtime_error("missing field mesh.elements.convection."s + pszElemName + ".h");
+     }
 
-                         if (iter_theta == elem_type.end()) {
-                              throw std::runtime_error("field \"theta\" not found in struct convection");
-                         }
+     const octave_value ov_h = m_elem_type.contents(iter_h);
 
-                         const auto iter_h = elem_type.seek("h");
+     if (!(ov_h.is_matrix_type() && ov_h.isreal() && ov_h.rows() == elnodes.rows() && ov_h.columns() == 1)) {
+          throw std::runtime_error("mesh.elements.convection."s + pszElemName + ".h must be a real column vector");
+     }
 
-                         if (iter_h == elem_type.end()) {
-                              throw std::runtime_error("field \"h\" not found in struct convection");
-                         }
+     const ColumnVector h = ov_h.column_vector_value();
 
-                         const octave_value ov_elements = elem_type.contents(iter_elements);
+     NDArray theta(dim_vector(load_case.numel(), elnodes.columns(), elnodes.rows()), 0.);
 
-                         if (!(ov_elements.is_matrix_type() && ov_elements.OV_ISINTEGER())) {
-                              throw std::runtime_error("convection.elements must be an integer array");
-                         }
+     const auto iter_conv_load = load_case.seek("convection");
 
-                         const int32NDArray elements = ov_elements.int32_array_value();
+     if (iter_conv_load != load_case.end()) {
+          const Cell cell_conv_load = load_case.contents(iter_conv_load);
 
-                         if (elements.columns() != iNumNodesElem) {
-                              throw std::runtime_error("convection.elements number of columns do not match");
-                         }
-
-                         const octave_value ov_theta = elem_type.contents(iter_theta);
-
-                         if (!(ov_theta.is_matrix_type() && ov_theta.OV_ISREAL())) {
-                              throw std::runtime_error("convection.theta must be a real matrix");
-                         }
-
-                         const Matrix theta = ov_theta.matrix_value();
-
-                         if (theta.columns() != elements.columns() || theta.rows() != elements.rows()) {
-                              throw std::runtime_error("convection.theta must have the same shape like convection.elements");
-                         }
-
-                         const octave_value ov_h = elem_type.contents(iter_h);
-
-                         if (!(ov_h.OV_ISREAL() && ov_h.is_matrix_type())) {
-                              throw std::runtime_error("convection.h must be a real scalar");
-                         }
-
-                         if (ov_h.rows() != elements.rows() || ov_h.columns() != 1) {
-                              throw std::runtime_error("convection.h must be a column vector with the same number of rows like convection.elements");
-                         }
-
-                         const ColumnVector h = ov_h.column_vector_value();
-
-                         switch (j) {
-                         case 0:
-                              iNumElements += elements.rows();
-                              break;
-
-                         case 1: {
-                              Matrix X(3, iNumNodesElem);
-
-                              for (octave_idx_type k = 0; k < elements.rows(); ++k) {
-                                   X.make_unique();
-
-                                   for (octave_idx_type l = 0; l < X.columns(); ++l) {
-                                        for (octave_idx_type m = 0; m < X.rows(); ++m) {
-                                             octave_idx_type inode = elements.xelem(k, l).value() - 1;
-
-                                             if (inode < 0 || inode >= nodes.rows()) {
-                                                  throw std::runtime_error("node index out of range in convection.elements");
-                                             }
-
-                                             X.xelem(m, l) = nodes.xelem(inode, m);
-                                        }
-                                   }
-
-                                   pElem->Insert(++iNumElements,
-                                                 X,
-                                                 nullptr,
-                                                 elements.index(idx_vector::make_range(k, 1, 1),
-                                                                idx_vector::make_range(0, 1, elements.columns())),
-                                                 theta.row(k),
-                                                 h.xelem(k),
-                                                 i + 1);
-                              }
-                         } break;
-
-                         default:
-                              FEM_ASSERT(false);
-                         }
-                    }
+          FEM_ASSERT(cell_conv_load.numel() == theta.rows());
+          
+          for (octave_idx_type k = 0; k < theta.rows(); ++k) {
+               const octave_value ov_conv_load = cell_conv_load.xelem(k);
+               
+               if (!(ov_conv_load.isstruct() && ov_conv_load.numel() == 1)) {
+                    throw std::runtime_error("load_case.convection must be a scalar struct");
                }
 
-               if (iNumElements) {
-                    if (j == 0) {
-                         pElem.reset(new ElementBlock<ConvectionElemType>(eltype));
-                         pElem->Reserve(iNumElements);
-                    }
-               } else {
-                    break;
-               }
-          }
+               const octave_scalar_map m_conv_load = ov_conv_load.scalar_map_value();
 
-          if (pElem) {
-               rgElemBlocks.emplace_back(std::move(pElem));
+               const auto iter_conv_load_elem = m_conv_load.seek(pszElemName);
+
+               if (iter_conv_load_elem == m_conv_load.end()) {
+                    continue;
+               }
+
+               const octave_value ov_conv_load_elem = m_conv_load.contents(iter_conv_load_elem);
+
+               if (!(ov_conv_load_elem.isstruct() && ov_conv_load_elem.numel() == 1)) {
+                    throw std::runtime_error("load_case.convection."s + pszElemName + " must be a scalar struct");
+               }
+
+               const octave_scalar_map m_conv_load_elem = ov_conv_load_elem.scalar_map_value();
+
+               const auto iter_theta = m_conv_load_elem.seek("theta");
+
+               if (iter_theta == m_conv_load_elem.end()) {
+                    throw std::runtime_error("missing field load_case.convection."s + pszElemName + ".theta");
+               }
+
+               const octave_value ov_thetak = m_conv_load_elem.contents(iter_theta);
+
+               if (!(ov_thetak.is_matrix_type() && ov_thetak.isreal() && ov_thetak.rows() == elnodes.rows() && ov_thetak.columns() == elnodes.columns())) {
+                    throw std::runtime_error("load_case.convection."s + pszElemName + ".theta must be a real matrix with the same dimensions like mesh.elements.convection."s + pszElemName + ".nodes");
+               }
+
+               const Matrix thetak = ov_thetak.matrix_value();
+
+               for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
+                    for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
+                         theta.xelem(k, i, j) = thetak.xelem(j, i);
+                    }
+               }
           }
      }
+     
+     NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));     
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
+               octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
+
+               if (inode < 0 || inode >= nodes.rows()) {
+                    throw std::runtime_error("node index out of range in mesh.elements.convection."s + pszElemName + ".nodes");
+               }
+               
+               for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                    X.xelem(m, l, k) = nodes.xelem(inode, m);
+               }
+          }
+     }
+     
+     std::unique_ptr<ElementBlock<ConvectionElemType> > pElem{new ElementBlock<ConvectionElemType>(eltype)};
+
+     pElem->Reserve(elnodes.rows());
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
+          const Matrix thetak = theta.linear_slice(theta.rows() * theta.columns() * k, theta.rows() * theta.columns() * (k + 1)).reshape(dim_vector(theta.rows(), theta.columns()));
+          
+          pElem->Insert(k,
+                        Xk,
+                        nullptr,
+                        elnodes.index(idx_vector::make_range(k, 1, 1),
+                                      idx_vector::make_range(0, 1, elnodes.columns())),
+                        thetak,
+                        h.xelem(k),
+                        1);
+     }
+     
+     rgElemBlocks.emplace_back(std::move(pElem));
 }
 
 namespace shape_func_util {
@@ -9862,16 +9863,16 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
                } break;
                case ElementTypes::ELEM_THERM_CONV_ISO4:
-                    InsertThermalConvElem<ThermalConvectionIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionIso4>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
-                    InsertThermalConvElem<ThermalConvectionQuad8>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionQuad8>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
-                    InsertThermalConvElem<ThermalConvectionTria6>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionTria6>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
-                    InsertThermalConvElem<ThermalConvectionTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;                    
                default:
                     FEM_ASSERT(false);
