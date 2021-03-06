@@ -13,9 +13,9 @@
    don't. */
 #undef HAVE_DECL_NLOPT_FAILURE
 
-/* Define to 1 if you have the declaration of `NLOPT_LN_COBYLA', and to 0 if
+/* Define to 1 if you have the declaration of `NLOPT_LD_SLSQP', and to 0 if
    you don't. */
-#undef HAVE_DECL_NLOPT_LN_COBYLA
+#undef HAVE_DECL_NLOPT_LD_SLSQP
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
