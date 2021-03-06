@@ -7337,7 +7337,7 @@ template <typename ConvectionElemType>
 void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
      const auto iter_convection = elements.seek("convection");
 
-     if (iter_convection != elements.end()) {
+     if (iter_convection == elements.end()) {
           return;
      }
      
