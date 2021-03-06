@@ -11207,13 +11207,13 @@ endfunction
 %!   mesh.material_data.k = diag([K0, K0, K0]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = 200;
+%!   he = 20;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   load_case.convection.tria6h.elements = mesh.elements.tria6h([mesh.groups.tria6h.elements], :);
+%!   mesh.elements.convection.tria6h.nodes = mesh.elements.tria6h([mesh.groups.tria6h.elements], :);
+%!   mesh.elements.convection.tria6h.h = repmat(he, rows(mesh.elements.convection.tria6h.nodes), 1);
 %!   load_case.convection.tria6h.theta = [repmat(thetae(1), numel(mesh.groups.tria6h(1).elements), 6);
 %!                                        repmat(thetae(2), numel(mesh.groups.tria6h(2).elements), 6)];
-%!   load_case.convection.tria6h.h = repmat(he, rows(load_case.convection.tria6h.elements), 1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
