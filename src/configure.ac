@@ -110,9 +110,9 @@ if test "${ac_cv_header_nlopt_h}" = "yes"; then
       AC_CHECK_DECLS([NLOPT_FAILURE],[],[],[[#include <nlopt.h>]])
 
       if test "${ac_cv_have_decl_NLOPT_FAILURE}" = "yes"; then
-            AC_CHECK_DECLS([NLOPT_LN_COBYLA],[],[],[[#include <nlopt.h>]])
+            AC_CHECK_DECLS([NLOPT_LD_SLSQP],[],[],[[#include <nlopt.h>]])
 
-            if test "${ac_cv_have_decl_NLOPT_LN_COBYLA}" = "yes"; then
+            if test "${ac_cv_have_decl_NLOPT_LD_SLSQP}" = "yes"; then
                AC_CHECK_FUNCS([nlopt_create \
                                nlopt_destroy \
                                nlopt_set_lower_bounds \
