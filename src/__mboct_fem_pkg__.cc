@@ -6798,7 +6798,7 @@ private:
 
 class ThermalConvection: public SurfaceElement {
 public:
-     ThermalConvection(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, double h, octave_idx_type colidx)
+     ThermalConvection(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h, octave_idx_type colidx)
           :SurfaceElement(eltype, id, X, material, nodes), Thetae(Thetae), h(h), colidx(colidx) {
 
           FEM_ASSERT(X.rows() == 3);
@@ -6867,10 +6867,16 @@ public:
                detJA = sqrt(detJA);
                
                info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
+
+               double hi = 0.;
+
+               for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                    hi += h.xelem(j) * HA.xelem(j);
+               }               
                
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     for (octave_idx_type m = l; m < iNumDof; ++m) {
-                         KA.xelem(m, l) += h * HA.xelem(m) * HA.xelem(l) * detJA * alpha;
+                         KA.xelem(m, l) += hi * HA.xelem(m) * HA.xelem(l) * detJA * alpha;
                     }
                }
           }
@@ -6931,6 +6937,12 @@ public:
                detJA = sqrt(detJA);
                
                info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
+
+               double hi = 0.;
+
+               for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                    hi += h.xelem(j) * HA.xelem(j);
+               }
                
                for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     double HA_Thetael = 0.;
@@ -6944,7 +6956,7 @@ public:
 
                for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
-                         QA.xelem(m, l) += h * HA.xelem(m) * HA_Thetae.xelem(l) * detJA * alpha;
+                         QA.xelem(m, l) += hi * HA.xelem(m) * HA_Thetae.xelem(l) * detJA * alpha;
                     }
                }
           }
@@ -6975,7 +6987,7 @@ public:
 
 private:
      const Matrix Thetae;
-     const double h;
+     const RowVector h;
      const octave_idx_type colidx;
 };
 
@@ -7385,11 +7397,13 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
 
      const octave_value ov_h = m_elem_type.contents(iter_h);
 
-     if (!(ov_h.is_matrix_type() && ov_h.isreal() && ov_h.rows() == elnodes.rows() && ov_h.columns() == 1)) {
-          throw std::runtime_error("mesh.elements.convection."s + pszElemName + ".h must be a real column vector");
+     if (!(ov_h.is_matrix_type() && ov_h.isreal() && ov_h.rows() == elnodes.rows() && ov_h.columns() == elnodes.columns())) {
+          throw std::runtime_error("mesh.elements.convection."s + pszElemName
+                                   + ".h must be a real matrix with the same size like mesh.elements.convection."
+                                   + pszElemName + ".nodes");
      }
 
-     const ColumnVector h = ov_h.column_vector_value();
+     const Matrix h = ov_h.matrix_value();
 
      NDArray theta(dim_vector(load_case.numel(), elnodes.columns(), elnodes.rows()), 0.);
 
@@ -7475,7 +7489,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
                         thetak,
-                        h.xelem(k),
+                        h.row(k),
                         1);
      }
      
