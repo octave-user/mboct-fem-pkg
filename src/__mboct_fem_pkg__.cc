@@ -8511,6 +8511,71 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     }
                }
           } break;
+          case ElementTypes::ELEM_THERM_CONV_ISO4:
+          case ElementTypes::ELEM_THERM_CONV_QUAD8:
+          case ElementTypes::ELEM_THERM_CONV_TRIA6:
+          case ElementTypes::ELEM_THERM_CONV_TRIA6H: {
+               const auto iter_convection = m_elements.seek("convection");
+
+               if (iter_convection == m_elements.end()) {
+                    break;
+               }
+     
+               const octave_value ov_convection = m_elements.contents(iter_convection);
+
+               if (!(ov_convection.isstruct() && ov_convection.numel() == 1)) {
+                    throw std::runtime_error("mesh.elements.convection must be a scalar struct");
+               }
+
+               const octave_scalar_map m_convection = ov_convection.scalar_map_value();
+     
+               const auto iter_elem_type = m_convection.seek(oElemType.name);
+
+               if (iter_elem_type == m_convection.end()) {
+                    break;
+               }
+
+               const octave_value ov_elem_type = m_convection.contents(iter_elem_type);
+
+               if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+                    throw std::runtime_error("mesh.elements.convection."s + oElemType.name + " must be a scalar struct");
+               }
+
+               const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
+
+               const auto iter_elnodes = m_elem_type.seek("nodes");
+
+               if (iter_elnodes == m_elem_type.end()) {
+                    throw std::runtime_error("missing field mesh.elements.convection."s + oElemType.name + ".nodes");
+               }
+
+               const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
+
+               if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == oElemType.max_nodes)) {
+                    throw std::runtime_error("mesh.elements.convection."s + oElemType.name + ".nodes must be an integer matrix");          
+               }
+
+               const int32NDArray elnodes = ov_elnodes.int32_array_value();
+
+               for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
+                    for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
+                         const octave_idx_type idxnode = elnodes.xelem(j, k).value();
+
+                         if (idxnode < 1 || idxnode > nodes.rows()) {
+                              error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
+                                    static_cast<long long>(idxnode),
+                                    oElemType.name,
+                                    static_cast<long long>(j),
+                                    static_cast<long long>(k),
+                                    1LL,
+                                    static_cast<long long>(nodes.rows()));
+                              return retval;
+                         }
+
+                         dof_in_use.xelem(idxnode - 1, 0) = true;
+                    }
+               }
+          } break;
           case ElementTypes::ELEM_BEAM2: {
                const octave_map m_beam2 = m_elements.contents(iter_elem_type).map_value();
 
@@ -9328,6 +9393,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
                     rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
                     rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                    [[fallthrough]];
                case Element::MAT_HEAT_CAPACITY:
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
                     rgElemUse[ElementTypes::ELEM_ISO20] = true;
