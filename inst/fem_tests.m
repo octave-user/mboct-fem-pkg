@@ -2753,7 +2753,11 @@
 %! material1.E = 210000e6;
 %! material1.nu = 0.3;
 %! material1.rho = 7850;
-%! contour_plot = do_plot = fem_tests_enable_plotting();
+%! if (exist("fem_tests_enable_plotting"))
+%!   contour_plot = do_plot = fem_tests_enable_plotting();
+%! else
+%!   contour_plot = do_plot = false;
+%! endif
 %! h1 = 5e-3;
 %! geometry1.l = 20e-3;
 %! geometry1.w = 30e-3;
