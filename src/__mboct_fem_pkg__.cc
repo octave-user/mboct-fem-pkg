@@ -9010,7 +9010,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 #if HAVE_NLOPT == 1
      const octave_idx_type nargin = args.length();
 
-     if (nargin >= 2 && nargin <= 3) {
+     if (!(nargin >= 2 && nargin <= 3)) {
           print_usage();
           return retval;
      }
