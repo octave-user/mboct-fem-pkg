@@ -7946,7 +7946,7 @@ private:
            Xs(Xs) {
 
           FEM_ASSERT(Xm.rows() == iNumNodesElem * Xs.rows());
-          FEM_ASSERT(Xs.rows() == iNumDofNode);
+          FEM_ASSERT(Xs.rows() == iNumDimNode);
      }
 
      static double Objective(unsigned n, const double x[], double gradient[], void* pData) {
@@ -8022,7 +8022,7 @@ private:
      }
 
      double Objective(const ColumnVector& rv, ColumnVector& f, Matrix& Hf) const {
-          FEM_ASSERT(f.rows() == iNumDofNode);
+          FEM_ASSERT(f.rows() == iNumDimNode);
           FEM_ASSERT(f.rows() == Xs.rows());
 
           Position(rv, f, Hf);
@@ -8056,8 +8056,8 @@ private:
 
      void Position(const ColumnVector& rv, ColumnVector& Xi, Matrix& Hf) const {
           FEM_ASSERT(rv.rows() == iNumDir);
-          FEM_ASSERT(Xi.rows() == iNumDofNode);
-          FEM_ASSERT(Hf.rows() == iNumDofNode);
+          FEM_ASSERT(Xi.rows() == iNumDimNode);
+          FEM_ASSERT(Hf.rows() == iNumDimNode);
           FEM_ASSERT(Hf.columns() == Xi.rows() * iNumNodesElem);
           FEM_ASSERT(Xm.rows() == Hf.columns());
 
