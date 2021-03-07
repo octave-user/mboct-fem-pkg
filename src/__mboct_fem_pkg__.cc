@@ -9427,92 +9427,114 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                if ((eMatType & eDomain) != eDomain) {
                     throw std::runtime_error("matrix type is not valid for selected domain");
                }
-               
-               switch (eMatType) {
-               case Element::MAT_STIFFNESS:
-               case Element::MAT_STIFFNESS_SYM:
-               case Element::MAT_STIFFNESS_SYM_L:
-                    rgElemUse[ElementTypes::ELEM_RBE3] = true;
-                    rgElemUse[ElementTypes::ELEM_JOINT] = true;
-                    rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
-                    rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
-                    rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
-                    rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
-                    [[fallthrough]];
-               case Element::MAT_MASS:
-               case Element::MAT_MASS_SYM:
-               case Element::MAT_MASS_SYM_L:
-               case Element::MAT_MASS_LUMPED:
-               case Element::MAT_DAMPING:
-               case Element::MAT_DAMPING_SYM:
-               case Element::MAT_DAMPING_SYM_L:
-               case Element::SCA_TOT_MASS:
-               case Element::VEC_INERTIA_M1:
-               case Element::MAT_INERTIA_J:
-               case Element::MAT_INERTIA_INV3:
-               case Element::MAT_INERTIA_INV4:
-               case Element::MAT_INERTIA_INV5:
-               case Element::MAT_INERTIA_INV8:
-               case Element::MAT_INERTIA_INV9:
-               case Element::MAT_ACCEL_LOAD:
-                    rgElemUse[ElementTypes::ELEM_BEAM2] = true;
-                    [[fallthrough]];
-               case Element::VEC_STRESS_CAUCH:
-               case Element::VEC_STRAIN_TOTAL:
-               case Element::SCA_STRESS_VMIS:
-               case Element::MAT_THERMAL_COND:
-                    if (oDof.GetDomain() == DofMap::DO_THERMAL) {
-                         rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
-                         rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
-                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
-                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
-                         rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
-                    }
-                    [[fallthrough]];
-               case Element::MAT_HEAT_CAPACITY:
-                    rgElemUse[ElementTypes::ELEM_ISO8] = true;
-                    rgElemUse[ElementTypes::ELEM_ISO20] = true;
-                    rgElemUse[ElementTypes::ELEM_PENTA15] = true;
-                    rgElemUse[ElementTypes::ELEM_TET10H] = true;
-                    rgElemUse[ElementTypes::ELEM_TET10] = true;
-                    break;
 
-               case Element::VEC_LOAD_CONSISTENT:
-               case Element::VEC_LOAD_LUMPED:
-                    if (load_case.numel() == 0) {
-                         throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
-                    }
+               switch (oDof.GetDomain()) {
+               case DofMap::DO_STRUCTURAL:
+                    switch (eMatType) {
+                    case Element::MAT_STIFFNESS:
+                    case Element::MAT_STIFFNESS_SYM:
+                    case Element::MAT_STIFFNESS_SYM_L:
+                         rgElemUse[ElementTypes::ELEM_RBE3] = true;
+                         rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         [[fallthrough]];
+                  
+                    case Element::MAT_MASS:
+                    case Element::MAT_MASS_SYM:
+                    case Element::MAT_MASS_SYM_L:
+                    case Element::MAT_MASS_LUMPED:
+                    case Element::MAT_DAMPING:
+                    case Element::MAT_DAMPING_SYM:
+                    case Element::MAT_DAMPING_SYM_L:
+                    case Element::SCA_TOT_MASS:
+                    case Element::VEC_INERTIA_M1:
+                    case Element::MAT_INERTIA_J:
+                    case Element::MAT_INERTIA_INV3:
+                    case Element::MAT_INERTIA_INV4:
+                    case Element::MAT_INERTIA_INV5:
+                    case Element::MAT_INERTIA_INV8:
+                    case Element::MAT_INERTIA_INV9:
+                    case Element::MAT_ACCEL_LOAD:
+                         rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+                         [[fallthrough]];
+                  
+                    case Element::VEC_STRESS_CAUCH:
+                    case Element::VEC_STRAIN_TOTAL:
+                    case Element::SCA_STRESS_VMIS:
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         break;
 
-                    if (oDof.GetDomain() == DofMap::DO_STRUCTURAL) {
+                    case Element::VEC_LOAD_CONSISTENT:
+                    case Element::VEC_LOAD_LUMPED:
+                         if (load_case.numel() == 0) {
+                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
+                         }
+
                          rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
-                    }
                     
-                    rgElemUse[ElementTypes::ELEM_JOINT] = true;
-                    // Needed for thermal stress only
-                    rgElemUse[ElementTypes::ELEM_ISO8] = true;
-                    rgElemUse[ElementTypes::ELEM_ISO20] = true;
-                    rgElemUse[ElementTypes::ELEM_PENTA15] = true;
-                    rgElemUse[ElementTypes::ELEM_TET10H] = true;
-                    rgElemUse[ElementTypes::ELEM_TET10] = true;                    
+                         rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         // Needed for thermal stress only
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;                    
+                         break;
+                  
+                    default:
+                         throw std::runtime_error("invalid value for argument matrix_type");
+                    }             
                     break;
+             
+               case DofMap::DO_THERMAL:
+                    switch (eMatType) {
+                    case Element::MAT_THERMAL_COND:
+                         rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         [[fallthrough]];
+                  
+                    case Element::MAT_HEAT_CAPACITY:
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         break;
 
-               case Element::VEC_LOAD_THERMAL:
-                    if (oDof.GetDomain() == DofMap::DO_THERMAL) {
+                    case Element::VEC_LOAD_THERMAL:
+                         if (load_case.numel() == 0) {
+                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_THERMAL");
+                         }
+
+                         rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
-                         rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
+                         break;
+                  
+                    default:
+                         throw std::runtime_error("invalid value for argument matrix_type");
                     }
                     break;
-                    
+             
                default:
-                    throw std::runtime_error("invalid value for argument matrix_type");
-               }
+                    throw std::runtime_error("invalid value for domain");
+               }              
           }
 
           vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
