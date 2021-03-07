@@ -9671,7 +9671,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     Cell ov_C;
 
-                    if (oElemType.type == ElementTypes::ELEM_JOINT) {
+                    if (oElemType.type == ElementTypes::ELEM_JOINT || oElemType.type == ElementTypes::ELEM_THERM_CONSTR) {
                          const auto iter_C = s_elem.seek("C");
 
                          if (iter_C == s_elem.end()) {
@@ -9873,7 +9873,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          } break;
                          case ElementTypes::ELEM_JOINT:
                          case ElementTypes::ELEM_THERM_CONSTR: {
-                              const Matrix C(ov_C(i).matrix_value());
+                              const Matrix C(ov_C.xelem(i).matrix_value());
 
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.joints.C must be a real matrix in argument mesh");
