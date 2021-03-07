@@ -454,6 +454,7 @@ public:
           ELEM_THERM_CONV_QUAD8,
           ELEM_THERM_CONV_TRIA6,
           ELEM_THERM_CONV_TRIA6H,
+          ELEM_THERM_CONSTR,
           ELEM_TYPE_COUNT
      };
 
@@ -480,27 +481,28 @@ private:
 };
 
 const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
-     {ElementTypes::ELEM_ISO8,             "iso8",     8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ISO20,            "iso20",   20, 20, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PENTA15,          "penta15", 15, 15, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10H,           "tet10h",  10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10,            "tet10",   10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_BEAM2,            "beam2",    2,  2, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_RBE3,             "rbe3",     2, -1, DofMap::ELEM_RBE3},
-     {ElementTypes::ELEM_JOINT,            "joints",   1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON4,          "sfncon4",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6,          "sfncon6",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6H,         "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON8,          "sfncon8",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_PRESSURE_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},     
-     {ElementTypes::ELEM_STRUCT_FORCE,     "force",    1, -1, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_ISO4,  "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_QUAD8, "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6, "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6H,"tria6h",   6,  6, DofMap::ELEM_NODOF}
+     {ElementTypes::ELEM_ISO8,              "iso8",     8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ISO20,             "iso20",   20, 20, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PENTA15,           "penta15", 15, 15, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10H,            "tet10h",  10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10,             "tet10",   10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_BEAM2,             "beam2",    2,  2, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_RBE3,              "rbe3",     2, -1, DofMap::ELEM_RBE3},
+     {ElementTypes::ELEM_JOINT,             "joints",   1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON4,           "sfncon4",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6,           "sfncon6",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6H,          "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON8,           "sfncon8",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_PRESSURE_ISO4,     "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_QUAD8,    "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6,    "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6H,   "tria6h",   6,  6, DofMap::ELEM_NODOF},     
+     {ElementTypes::ELEM_STRUCT_FORCE,      "force",    1, -1, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONSTR,      "thconstr", 1, -1, DofMap::ELEM_JOINT}
 };
 
 class Element
@@ -759,28 +761,34 @@ private:
 class ElemJoint: public Element
 {
 public:
-     ElemJoint(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U)
-          :Element(eltype, id, X, material, nodes), C(C), U(U) {
-          FEM_ASSERT(C.columns() == nodes.numel() * 6);
+     ElemJoint(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U, DofMap::DomainType eDomain)
+          :Element(eltype, id, X, material, nodes), C(C), U(U), iNumNodeDof(eDomain == DofMap::DO_STRUCTURAL ? 6 : 1) {
+          FEM_ASSERT(C.columns() == nodes.numel() * iNumNodeDof);
           FEM_ASSERT(C.rows() <= C.columns());
           FEM_ASSERT(C.rows() >= 1);
           FEM_ASSERT(U.rows() == C.rows());
+          FEM_ASSERT(X.rows() == 6);
      }
 
      ElemJoint(const ElemJoint& oElem)
-          :Element(oElem), C(oElem.C), U(oElem.U) {
+          :Element(oElem), C(oElem.C), U(oElem.U), iNumNodeDof(oElem.iNumNodeDof) {
+          FEM_ASSERT(C.columns() == nodes.numel() * iNumNodeDof);
+          FEM_ASSERT(C.rows() <= C.columns());
+          FEM_ASSERT(C.rows() >= 1);
+          FEM_ASSERT(U.rows() == C.rows());          
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L: {
-               int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_THERMAL_COND: {
+               int32NDArray ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
-                    for (octave_idx_type idof = 0; idof < 6; ++idof) {
-                         ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
+                    for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
+                         ndofidx.xelem(inode * iNumNodeDof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, idof);
                     }
                }
 
@@ -801,7 +809,8 @@ public:
                }
           } break;
           case VEC_LOAD_CONSISTENT:
-          case VEC_LOAD_LUMPED: {
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL: {
                int32NDArray edofidx(dim_vector(C.rows(), 1));
 
                for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
@@ -824,12 +833,14 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_THERMAL_COND:
                return 2 * C.rows() * C.columns();
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
                return C.rows() * C.columns();
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL:
                return U.rows() * U.columns();
           default:
                return 0;
@@ -841,6 +852,7 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_THERMAL_COND:
                return true;
           default:
                return false;
@@ -857,8 +869,13 @@ public:
           ovNodes(idx) = nodes.transpose();
           ++idx;
      }
+
+     static octave_idx_type iGetNumDofNodeMax(DofMap::DomainType eDomain) {
+          return eDomain == DofMap::DO_STRUCTURAL ? 6 : 1;
+     }
 private:
      const Matrix C, U;
+     const octave_idx_type iNumNodeDof;
 };
 
 class ElemRBE3: public Element
@@ -5523,8 +5540,9 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
           FEM_ASSERT(rv.rows() == 3);
+          FEM_ASSERT(HA.rows() == 1);
           FEM_ASSERT(HA.columns() == 6);
 
           const double Zeta1 = rv.xelem(0);
@@ -5850,8 +5868,10 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
           FEM_ASSERT(rv.rows() == 2);
+          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.columns() == 4);
 
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
@@ -6068,9 +6088,11 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
           FEM_ASSERT(rv.rows() == 2);
-
+          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.columns() == 8);
+          
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
           const double r2 = r * r;
@@ -6401,9 +6423,11 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
           FEM_ASSERT(rv.rows() == 2);
-
+          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.columns() == 6);
+          
           const double zeta = rv.xelem(0);
           const double eta = rv.xelem(1);
 
@@ -6669,7 +6693,7 @@ protected:
      }
      
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const=0;
-     virtual void ScalarInterpMatrix(const ColumnVector& r, RowVector& HA) const=0;
+     virtual void ScalarInterpMatrix(const ColumnVector& r, Matrix& HA) const=0;
      virtual void DisplacementInterpMatrix(const ColumnVector& r, Matrix& Hf) const=0;
      virtual void DisplacementInterpMatrixDerR(const ColumnVector& r, Matrix& dHf_dr) const=0;
      virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;     
@@ -6713,7 +6737,7 @@ public:
                }
           }
 
-          RowVector HA(iNumNodes), HA_p(iNumLoads);
+          Matrix HA(1, iNumNodes), HA_p(1, iNumLoads);
           ColumnVector n1(3), n2(3), n_detJA(3), HfT_n_dA(iNumDof);
           Matrix Hf(3, iNumDof), dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), fA(iNumDof, iNumLoads, 0.);
 
@@ -6839,7 +6863,7 @@ public:
                dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
           }
 
-          RowVector HA(iNumDof);
+          Matrix HA(1, iNumDof);
           ColumnVector n1(3), n2(3);
           Matrix dHf_dr(3, 3 * iNumDof), dHf_ds(3, 3 * iNumDof), KA(iNumDof, iNumDof, 0.);
 
@@ -6909,7 +6933,7 @@ public:
                dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
           }
 
-          RowVector HA(iNumDof), HA_Thetae(iNumLoads);
+          Matrix HA(1, iNumDof), HA_Thetae(1, iNumLoads);
           ColumnVector n1(3), n2(3);
           Matrix dHf_dr(3, 3 * iNumDof), dHf_ds(3, 3 * iNumDof), QA(iNumDof, iNumLoads, 0.);
 
@@ -7002,7 +7026,7 @@ public:
      }
 
 protected:
-     virtual void ScalarInterpMatrix(const ColumnVector& rv, RowVector& HA) const override {
+     virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) const override {
           SHAPE_FUNC::ScalarInterpMatrix(rv, HA);
      }
 
@@ -7563,12 +7587,12 @@ public:
           return GetConstraintType(constr);
      }
 
-     static octave_idx_type iGetNumDof(ConstraintType eType) {
-          return eType == CT_FIXED ? 3 : 1;
+     static octave_idx_type iGetNumDof(ConstraintType eType, DofMap::DomainType eDomain) {
+          return (eDomain == DofMap::DO_STRUCTURAL && eType == CT_FIXED) ? 3 : 1;
      }
 
-     static octave_idx_type iGetNumDof(const Cell& ov, octave_idx_type j) {
-          return iGetNumDof(GetConstraintType(ov, j));
+     static octave_idx_type iGetNumDof(const Cell& ov, octave_idx_type j, DofMap::DomainType eDomain) {
+          return iGetNumDof(GetConstraintType(ov, j), eDomain);
      }
 
      static void BuildJoints(const Matrix& nodes,
@@ -7577,7 +7601,8 @@ public:
                              array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
                              const ElementTypes::TypeInfo& oElemType,
                              const unsigned uConstraintFlags,
-                             vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks);
+                             vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                             DofMap::DomainType eDomain);
 #else
      static const char szErrCompileWithNlopt[90];
 #endif
@@ -7598,15 +7623,16 @@ public:
                  const int32NDArray& nidxslave,
                  const ColumnVector& maxdist,
                  const ConstraintType eType,
-                 const unsigned uConstraintFlags) {
-          ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(ElementTypes::ELEM_JOINT, nidxslave.numel()));
+                 const unsigned uConstraintFlags,
+                 const DofMap::DomainType eDomain) {
+          ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(eDomain == DofMap::DO_STRUCTURAL ? ElementTypes::ELEM_JOINT : ElementTypes::ELEM_THERM_CONSTR, nidxslave.numel()));
 
-          FEM_ASSERT(X.columns() >= iNumDofNode);
+          FEM_ASSERT(X.columns() >= iNumDimNode);
           FEM_ASSERT(X.columns() == 6);
           FEM_ASSERT(nidxmaster.columns() == iNumNodesElem);
           FEM_ASSERT(nidxslave.rows() == maxdist.rows());
 
-          ColumnVector Xs(iNumDofNode);
+          ColumnVector Xs(iNumDimNode);
 
           vector<ElemIndexVector> eidxmaster(nidxslave.numel());
 
@@ -7633,18 +7659,19 @@ public:
 
                OCTAVE_QUIT;
           }
-
-          ColumnVector Xm(iNumDofNode * iNumNodesElem);
+          
+          const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(eDomain);
+          const octave_idx_type iNumDofNodeConstr = eDomain == DofMap::DO_STRUCTURAL ? 3 : 1;
+          ColumnVector Xm(iNumDimNode * iNumNodesElem);
           Matrix Xe(6, nidxmaster.columns() + 1);
           ColumnVector rv(iNumDir), rvopt(iNumDir, 0.);
-          ColumnVector Xi(iNumDofNode), Xiopt(iNumDofNode, 0);
-          Matrix Hf(iNumDofNode, iNumDofNode * iNumNodesElem);
-          Matrix dHf_dr(iNumDofNode, iNumDofNode * iNumNodesElem);
-          Matrix dHf_ds(iNumDofNode, iNumDofNode * iNumNodesElem);
-          ColumnVector n1(3), n2(3);
-          RowVector n(3);
-
-          Matrix C(iNumDofNode, 6 * (nidxmaster.columns() + 1));
+          ColumnVector Xi(iNumDimNode), Xiopt(iNumDimNode, 0.);
+          Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
+          Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+          Matrix dHf_ds(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+          ColumnVector n1(iNumDimNode), n2(iNumDimNode);
+          RowVector n(iNumDimNode);
+          Matrix C(iNumDofNodeConstr, iNumDofNodeMax * (nidxmaster.columns() + 1));
           Matrix U(C.rows(), 0);
           RowVector nC(C.columns());
           Matrix nU(1, 0);
@@ -7662,8 +7689,8 @@ public:
 
                for (octave_idx_type l = 0; l < eidxmaster[i].size(); ++l) {
                     for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                         for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
-                              Xm.xelem(j * iNumDofNode + k) = X.xelem(nidxmaster.xelem(eidxmaster[i][l].eidx, j).value() - 1, k);
+                         for (octave_idx_type k = 0; k < iNumDimNode; ++k) {
+                              Xm.xelem(j * iNumDimNode + k) = X.xelem(nidxmaster.xelem(eidxmaster[i][l].eidx, j).value() - 1, k);
                          }
                     }
 
@@ -7717,7 +7744,7 @@ public:
 
                     os << "Xs=";
 
-                    for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
+                    for (octave_idx_type k = 0; k < iNumDimNode; ++k) {
                          os << X.xelem(nidxslave.xelem(i).value() - 1, k) << ' ';
                     }
 
@@ -7728,7 +7755,7 @@ public:
 
                     if (eidx >= 0) {
                          for (octave_idx_type k = 0; k < iNumNodesElem; ++k) {
-                              for (octave_idx_type j = 0; j < iNumDofNode; ++j) {
+                              for (octave_idx_type j = 0; j < iNumDimNode; ++j) {
                                    os << X.xelem(nidxmaster.xelem(eidx, k).value() - 1, j) << " ";
                               }
                               os << std::endl;
@@ -7744,21 +7771,25 @@ public:
 
                FEM_TRACE("nlopt: i=" << i << " l=" << lopt << " rc=" << rcopt << " f=" << fopt << " maxdist=" << maxdist(i) << std::endl);
 
-               SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
-
+               if (eDomain == DofMap::DO_STRUCTURAL) {
+                    SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
+               } else {
+                    SHAPE_FUNC::ScalarInterpMatrix(rvopt, Hf);
+               }
+               
                C.make_unique();
                C.fill(0.);
 
-               for (octave_idx_type j = 0; j < 6; ++j) {
+               for (octave_idx_type j = 0; j < iNumDofNodeConstr; ++j) {
                     for (octave_idx_type k = 0; k < C.rows(); ++k) {
                          C.xelem(k, j) = (k == j);
                     }
                }
 
                for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                    for (octave_idx_type k = 0; k < iNumDofNode; ++k) {
+                    for (octave_idx_type k = 0; k < iNumDofNodeConstr; ++k) {
                          for (octave_idx_type l = 0; l < C.rows(); ++l) {
-                              C.xelem(l, (j + 1) * 6 + k) = -Hf.xelem(l, j * iNumDofNode + k);
+                              C.xelem(l, (j + 1) * iNumDofNodeMax + k) = -Hf.xelem(l, j * iNumDofNodeConstr + k);
                          }
                     }
                }
@@ -7780,10 +7811,10 @@ public:
                     }
                }
 
-               switch (eType) {
-               case CT_SLIDING: {
+               if (eType == CT_SLIDING && eDomain == DofMap::DO_STRUCTURAL) {                    
                     SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
                     SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
+                    
                     SurfaceNormalVector(Xe, dHf_dr, n1);
                     SurfaceNormalVector(Xe, dHf_ds, n2);
 
@@ -7827,11 +7858,9 @@ public:
                     FEM_TRACE("C=" << C << std::endl);
                     FEM_TRACE("n.'*C=" << nC << std::endl);
 
-                    pElemBlock->Insert(++id, Xe, nullptr, enodes, nC, nU);
-               } break;
-               default:
-                    pElemBlock->Insert(++id, Xe, nullptr, enodes, C, U);
-                    break;
+                    pElemBlock->Insert(++id, Xe, nullptr, enodes, nC, nU, eDomain);
+               } else {
+                    pElemBlock->Insert(++id, Xe, nullptr, enodes, C, U, eDomain);
                }
           }
 
@@ -7870,21 +7899,21 @@ private:
                nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX);
           }
 
-          Matrix dX(iNumDofNode, 2);
+          Matrix dX(iNumDimNode, 2);
 
-          for (octave_idx_type i = 0; i < iNumDofNode; ++i) {
+          for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
                dX.xelem(i, 0) = std::numeric_limits<double>::max();
                dX.xelem(i, 1) = -dX.xelem(i, 0);
 
                for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
-                    dX.xelem(i, 0) = std::min(dX.xelem(i, 0), Xm.xelem(j * iNumDofNode + i));
-                    dX.xelem(i, 1) = std::max(dX.xelem(i, 1), Xm.xelem(j * iNumDofNode + i));
+                    dX.xelem(i, 0) = std::min(dX.xelem(i, 0), Xm.xelem(j * iNumDimNode + i));
+                    dX.xelem(i, 1) = std::max(dX.xelem(i, 1), Xm.xelem(j * iNumDimNode + i));
                }
           }
 
           double dTolF = 0;
 
-          for (octave_idx_type i = 0; i < iNumDofNode; ++i) {
+          for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
                dTolF = std::max(dTolF, dTolX * (dX.xelem(i, 1) - dX.xelem(i, 0)));
           }
 
@@ -7908,7 +7937,7 @@ private:
           return rc;
      }
 
-     static constexpr octave_idx_type iNumDofNode = SHAPE_FUNC::iGetNumDofNode();
+     static constexpr octave_idx_type iNumDimNode = SHAPE_FUNC::iGetNumDofNode();
      static constexpr octave_idx_type iNumDir = SHAPE_FUNC::iGetNumDirections();
      static constexpr octave_idx_type iNumNodesElem = SHAPE_FUNC::iGetNumNodes();
 
@@ -8052,9 +8081,9 @@ private:
           FuncData(const ColumnVector& Xm, const ColumnVector& Xs)
                :oSNCO(Xm, Xs),
                 opt(nlopt_create(NLOPT_LD_SLSQP, iNumDir)),
-                Hf(iNumDofNode, iNumNodesElem * iNumDofNode),
+                Hf(iNumDimNode, iNumNodesElem * iNumDimNode),
                 rv(iNumDir, 0.),
-                f(iNumDofNode) {
+                f(iNumDimNode) {
           }
 
           ~FuncData() {
@@ -8126,7 +8155,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                        array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
                                        const ElementTypes::TypeInfo& oElemType,
                                        const unsigned uConstraintFlags,
-                                       vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+                                       vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                                       const DofMap::DomainType eDomain) {
      const auto iter_elem = elements.seek(oElemType.name);
 
      if (iter_elem == elements.end()) {
@@ -8258,7 +8288,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                                 nidxslave,
                                                                 maxdist,
                                                                 eConstrType,
-                                                                uConstraintFlags);
+                                                                uConstraintFlags,
+                                                                eDomain);
                break;
           case ElementTypes::ELEM_SFNCON6:
                pElem = SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -8267,7 +8298,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                                  nidxslave,
                                                                  maxdist,
                                                                  eConstrType,
-                                                                 uConstraintFlags);
+                                                                 uConstraintFlags,
+                                                                 eDomain);
                break;
           case ElementTypes::ELEM_SFNCON6H:
                pElem = SurfToNodeConstr<ShapeTria6H>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -8276,7 +8308,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                                   nidxslave,
                                                                   maxdist,
                                                                   eConstrType,
-                                                                  uConstraintFlags);
+                                                                  uConstraintFlags,
+                                                                  eDomain);
                break;               
           case ElementTypes::ELEM_SFNCON8:
                pElem = SurfToNodeConstr<ShapeQuad8>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -8285,7 +8318,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                                  nidxslave,
                                                                  maxdist,
                                                                  eConstrType,
-                                                                 uConstraintFlags);
+                                                                 uConstraintFlags,
+                                                                 eDomain);
                break;
           default:
                FEM_ASSERT(false);
@@ -8384,553 +8418,578 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 {
      octave_value_list retval;
 
-     if (args.length() != 2) {
-          print_usage();
-          return retval;
-     }
-
-     const octave_scalar_map m_mesh = args(0).scalar_map_value();
-
-     if (error_state) {
-          return retval;
-     }
-
-     const auto it_nodes = m_mesh.seek("nodes");
-
-     if (it_nodes == m_mesh.end()) {
-          error("field mesh.nodes not found");
-          return retval;
-     }
-
-     const Matrix nodes = m_mesh.contents(it_nodes).matrix_value();
-
-     if (error_state) {
-          return retval;
-     }
-
-     if (nodes.ndims() != 2 || nodes.columns() != 6) {
-          error("mesh.nodes must be a Nx6 matrix");
-          return retval;
-     }
-
-     const octave_scalar_map m_load_case = args(1).scalar_map_value();
-
-     if (error_state) {
-          return retval;
-     }
-
-     const auto it_locked_dof = m_load_case.seek("locked_dof");
-
-     if (it_locked_dof == m_load_case.end()) {
-          error("field load_case.locked_dof not found");
-          return retval;
-     }
-
-     const boolNDArray locked_dof = m_load_case.contents(it_locked_dof).bool_array_value();
-
-     if (error_state) {
-          return retval;
-     }
-
-     const auto it_domain = m_load_case.seek("domain");
-
-     DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
-     
-     if (it_domain != m_load_case.end()) {
-          eDomain = static_cast<DofMap::DomainType>(m_load_case.contents(it_domain).int_value());
-     }
-
-     const octave_idx_type iNodeMaxDofIndex = DofMap::iGetNodeMaxDofIndex(eDomain);
-
-     if (iNodeMaxDofIndex <= 0) {
-          error("invalid value for load_case.domain=%d", static_cast<int>(eDomain));
-          return retval;
-     }
-     
-     if (locked_dof.ndims() != 2 ||
-         locked_dof.columns() != iNodeMaxDofIndex ||
-         locked_dof.rows() != nodes.rows()) {
-          error("size of load_case.locked_dof is not valid");
-          return retval;
-     }
-
-     const auto iter_elements = m_mesh.seek("elements");
-
-     if (iter_elements == m_mesh.end()) {
-          error("field mesh.elements not found");
-          return retval;
-     }
-
-     const octave_scalar_map m_elements = m_mesh.contents(iter_elements).scalar_map_value();
-
-     if (error_state) {
-          return retval;
-     }
-
-     boolNDArray dof_in_use(dim_vector(nodes.rows(), nodes.columns()), false);
-
-     for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
-          const auto& oElemType = ElementTypes::GetType(i);
-
-          const auto iter_elem_type = m_elements.seek(oElemType.name);
-
-          if (iter_elem_type == m_elements.end()) {
-               continue;
+     try {
+          if (args.length() != 2) {
+               print_usage();
+               return retval;
           }
 
-          switch (oElemType.type) {
-          case ElementTypes::ELEM_ISO8:
-          case ElementTypes::ELEM_ISO20:
-          case ElementTypes::ELEM_PENTA15:
-          case ElementTypes::ELEM_TET10H:
-          case ElementTypes::ELEM_TET10: {
-               const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
+          const octave_scalar_map m_mesh = args(0).scalar_map_value();
 
-               if (error_state) {
-                    return retval;
-               }
-
-               for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
-                    for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
-                         const octave_idx_type idxnode = elnodes.xelem(j, k).value();
-
-                         if (idxnode < 1 || idxnode > nodes.rows()) {
-                              error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
-                                    static_cast<long long>(idxnode),
-                                    oElemType.name,
-                                    static_cast<long long>(j),
-                                    static_cast<long long>(k),
-                                    1LL,
-                                    static_cast<long long>(nodes.rows()));
-                              return retval;
-                         }
-
-                         for (octave_idx_type l = 0; l < 3; ++l) {
-                              dof_in_use.xelem(idxnode - 1, l) = true;
-                         }
-                    }
-               }
-          } break;
-          case ElementTypes::ELEM_THERM_CONV_ISO4:
-          case ElementTypes::ELEM_THERM_CONV_QUAD8:
-          case ElementTypes::ELEM_THERM_CONV_TRIA6:
-          case ElementTypes::ELEM_THERM_CONV_TRIA6H: {
-               const auto iter_convection = m_elements.seek("convection");
-
-               if (iter_convection == m_elements.end()) {
-                    break;
-               }
-     
-               const octave_value ov_convection = m_elements.contents(iter_convection);
-
-               if (!(ov_convection.isstruct() && ov_convection.numel() == 1)) {
-                    throw std::runtime_error("mesh.elements.convection must be a scalar struct");
-               }
-
-               const octave_scalar_map m_convection = ov_convection.scalar_map_value();
-     
-               const auto iter_elem_type = m_convection.seek(oElemType.name);
-
-               if (iter_elem_type == m_convection.end()) {
-                    break;
-               }
-
-               const octave_value ov_elem_type = m_convection.contents(iter_elem_type);
-
-               if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-                    throw std::runtime_error("mesh.elements.convection."s + oElemType.name + " must be a scalar struct");
-               }
-
-               const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
-
-               const auto iter_elnodes = m_elem_type.seek("nodes");
-
-               if (iter_elnodes == m_elem_type.end()) {
-                    throw std::runtime_error("missing field mesh.elements.convection."s + oElemType.name + ".nodes");
-               }
-
-               const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
-
-               if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == oElemType.max_nodes)) {
-                    throw std::runtime_error("mesh.elements.convection."s + oElemType.name + ".nodes must be an integer matrix");          
-               }
-
-               const int32NDArray elnodes = ov_elnodes.int32_array_value();
-
-               for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
-                    for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
-                         const octave_idx_type idxnode = elnodes.xelem(j, k).value();
-
-                         if (idxnode < 1 || idxnode > nodes.rows()) {
-                              error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
-                                    static_cast<long long>(idxnode),
-                                    oElemType.name,
-                                    static_cast<long long>(j),
-                                    static_cast<long long>(k),
-                                    1LL,
-                                    static_cast<long long>(nodes.rows()));
-                              return retval;
-                         }
-
-                         dof_in_use.xelem(idxnode - 1, 0) = true;
-                    }
-               }
-          } break;
-          case ElementTypes::ELEM_BEAM2: {
-               const octave_map m_beam2 = m_elements.contents(iter_elem_type).map_value();
-
-               if (error_state) {
-                    return retval;
-               }
-
-               const auto iter_nodes = m_beam2.seek("nodes");
-
-               if (iter_nodes == m_beam2.end()) {
-                    error("missing field mesh.elements.beam2.nodes");
-                    return retval;
-               }
-
-               const Cell& ov_nodes = m_beam2.contents(iter_nodes);
-
-               if (error_state) {
-                    return retval;
-               }
-
-               for (octave_idx_type j = 0; j < ov_nodes.numel(); ++j) {
-                    const int32NDArray elnodes = ov_nodes(j).int32_array_value();
-
-                    if (error_state) {
-                         return retval;
-                    }
-
-                    for (octave_idx_type l = 0; l < elnodes.numel(); ++l) {
-                         const octave_idx_type idxnode = elnodes(l).value();
-
-                         if (idxnode < 1 || idxnode > nodes.rows()) {
-                              error("invalid node index for mesh.elements.%s(%Ld).nodes(%Ld)=%Ld",
-                                    oElemType.name,
-                                    static_cast<long long>(j),
-                                    static_cast<long long>(l),
-                                    static_cast<long long>(idxnode));
-                              return retval;
-                         }
-
-                         for (octave_idx_type k = 0; k < 6; ++k) {
-                              dof_in_use(idxnode - 1, k) = true;
-                         }
-                    }
-               }
-          } break;
-          case ElementTypes::ELEM_RBE3: {
-               const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
-
-               if (error_state) {
-                    return retval;
-               }
-
-               const auto iter_nodesr = m_rbe3.seek("nodes");
-
-               if (iter_nodesr == m_rbe3.end()) {
-                    error("missing field mesh.elements.rbe3.nodes");
-                    return retval;
-               }
-
-               const Cell& ov_nodesr = m_rbe3.contents(iter_nodesr);
-
-               for (octave_idx_type j = 0; j < ov_nodesr.numel(); ++j) {
-                    const int32NDArray elnodes = ov_nodesr(j).int32_array_value();
-
-                    if (error_state) {
-                         return retval;
-                    }
-
-                    if (!elnodes.numel()) {
-                         error("invalid number of nodes for mesh.elements.%s(%Ld).nodes", oElemType.name, static_cast<long long>(j));
-                         return retval;
-                    }
-
-                    const octave_idx_type idxnode = elnodes(0).value();
-
-                    if (idxnode < 1 || idxnode > nodes.rows()) {
-                         error("invalid node index for mesh.elements.%s(%Ld).nodes(1)=%Ld",
-                               oElemType.name,
-                               static_cast<long long>(j),
-                               static_cast<long long>(idxnode));
-                         return retval;
-                    }
-
-                    for (octave_idx_type k = 0; k < 6; ++k) {
-                         dof_in_use(idxnode - 1, k) = true;
-                    }
-               }
-          } break;
-
-          default:
-               continue;
+          if (error_state) {
+               return retval;
           }
-     }
 
-     octave_idx_type icurrdof = 0;
+          const auto it_nodes = m_mesh.seek("nodes");
+
+          if (it_nodes == m_mesh.end()) {
+               error("field mesh.nodes not found");
+               return retval;
+          }
+
+          const Matrix nodes = m_mesh.contents(it_nodes).matrix_value();
+
+          if (error_state) {
+               return retval;
+          }
+
+          if (nodes.ndims() != 2 || nodes.columns() != 6) {
+               error("mesh.nodes must be a Nx6 matrix");
+               return retval;
+          }
+
+          const octave_scalar_map m_load_case = args(1).scalar_map_value();
+
+          if (error_state) {
+               return retval;
+          }
+
+          const auto it_locked_dof = m_load_case.seek("locked_dof");
+
+          if (it_locked_dof == m_load_case.end()) {
+               error("field load_case.locked_dof not found");
+               return retval;
+          }
+
+          const boolNDArray locked_dof = m_load_case.contents(it_locked_dof).bool_array_value();
+
+          if (error_state) {
+               return retval;
+          }
+
+          const auto it_domain = m_load_case.seek("domain");
+
+          DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
      
-     int32NDArray ndof(dim_vector(nodes.rows(), iNodeMaxDofIndex), -1);
-
-     for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
-          for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
-               if (dof_in_use.xelem(i, j)) {
-                    ndof.xelem(i, j) = locked_dof.xelem(i, j) ? 0 : ++icurrdof;
-               }
+          if (it_domain != m_load_case.end()) {
+               eDomain = static_cast<DofMap::DomainType>(m_load_case.contents(it_domain).int_value());
           }
-     }
 
-     octave_map dof_map;
+          const octave_idx_type iNodeMaxDofIndex = DofMap::iGetNodeMaxDofIndex(eDomain);
 
-     dof_map.assign("ndof", octave_value(ndof));
-     dof_map.assign("domain", octave_value(eDomain));
-
-     int32NDArray idx_node(dim_vector(icurrdof, 1), -1);
-     octave_idx_type icurrndof = 0;
-
-     for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
-          for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
-               if (ndof.xelem(i, j).value() > 0) {
-                    idx_node.xelem(icurrndof++) = ndof.xelem(i, j);
-               }
+          if (iNodeMaxDofIndex <= 0) {
+               error("invalid value for load_case.domain=%d", static_cast<int>(eDomain));
+               return retval;
           }
-     }
+     
+          if (locked_dof.ndims() != 2 ||
+              locked_dof.columns() != iNodeMaxDofIndex ||
+              locked_dof.rows() != nodes.rows()) {
+               error("size of load_case.locked_dof is not valid");
+               return retval;
+          }
 
-     FEM_ASSERT(icurrndof == icurrdof);
+          const auto iter_elements = m_mesh.seek("elements");
 
-     dof_map.assign("idx_node", octave_value(idx_node));
+          if (iter_elements == m_mesh.end()) {
+               error("field mesh.elements not found");
+               return retval;
+          }
 
-     octave_scalar_map m_edof;
+          const octave_scalar_map m_elements = m_mesh.contents(iter_elements).scalar_map_value();
 
-     enum {
-          CS_JOINT = 0,
-          CS_RBE3,
-          CS_COUNT
-     };
+          if (error_state) {
+               return retval;
+          }
 
-     struct ElemDof {
-          int32NDArray dof;
-          octave_idx_type elem_count = 0;
-          octave_idx_type elem_idx = 0;
-          octave_idx_type maxdof = 0;
-     };
+          boolNDArray dof_in_use(dim_vector(nodes.rows(), nodes.columns()), false);
 
-     array<ElemDof, CS_COUNT> edof;
-     octave_idx_type inumlambda = 0;
-
-     enum {
-          STAGE_RESERVE = 0,
-          STAGE_FILL
-     };
-
-     for (octave_idx_type s = STAGE_RESERVE; s <= STAGE_FILL; ++s) {
           for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
                const auto& oElemType = ElementTypes::GetType(i);
 
-               switch (oElemType.type) {
-               case ElementTypes::ELEM_RBE3:
-               case ElementTypes::ELEM_JOINT:
-               case ElementTypes::ELEM_SFNCON4:
-               case ElementTypes::ELEM_SFNCON6:
-               case ElementTypes::ELEM_SFNCON6H:
-               case ElementTypes::ELEM_SFNCON8:
-                    break;
+               const auto iter_elem_type = m_elements.seek(oElemType.name);
 
-               default:
-                    continue;
-               }
-
-               const auto iter_etype = m_elements.seek(oElemType.name);
-
-               if (iter_etype == m_elements.end()) {
-                    continue;
-               }
-
-               const octave_map m_etype = m_elements.contents(iter_etype).map_value();
-
-               if (error_state) {
-                    return retval;
-               }
-
-               if (!m_etype.numel()) {
+               if (iter_elem_type == m_elements.end()) {
                     continue;
                }
 
                switch (oElemType.type) {
-               case ElementTypes::ELEM_JOINT:
-               case ElementTypes::ELEM_SFNCON4:
-               case ElementTypes::ELEM_SFNCON6:
-               case ElementTypes::ELEM_SFNCON6H:
-               case ElementTypes::ELEM_SFNCON8: {
-                    const char* const fn = oElemType.type == ElementTypes::ELEM_JOINT
-                         ? "C"
-                         : "slave";
+               case ElementTypes::ELEM_ISO8:
+               case ElementTypes::ELEM_ISO20:
+               case ElementTypes::ELEM_PENTA15:
+               case ElementTypes::ELEM_TET10H:
+               case ElementTypes::ELEM_TET10: {
+                    const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
 
-                    const auto iter_fn = m_etype.seek(fn);
-
-                    if (iter_fn == m_etype.end()) {
-                         error("missing field mesh.elements.%s.%s", oElemType.name, fn);
+                    if (error_state) {
                          return retval;
                     }
 
-                    const Cell ov_fn = m_etype.contents(iter_fn);
+                    for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
+                         for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
+                              const octave_idx_type idxnode = elnodes.xelem(j, k).value();
 
-                    Cell ov_constr;
-
-                    switch (oElemType.type) {
-                    case ElementTypes::ELEM_SFNCON4:
-                    case ElementTypes::ELEM_SFNCON6:
-                    case ElementTypes::ELEM_SFNCON6H:
-                    case ElementTypes::ELEM_SFNCON8: {
-                         const auto iter_constr = m_etype.seek("constraint");
-
-                         if (iter_constr != m_etype.end()) {
-                              ov_constr = m_etype.contents(iter_constr);
-                         }
-                    } break;
-                    default:
-                         break;
-                    };
-
-                    switch (s) {
-                    case STAGE_RESERVE:
-                         for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
-                              octave_idx_type icurrconstr = 0;
-
-                              switch (oElemType.type) {
-                              case ElementTypes::ELEM_JOINT:
-                                   icurrconstr = ov_fn(j).rows();
-                                   edof[CS_JOINT].elem_count++;
-                                   break;
-                              case ElementTypes::ELEM_SFNCON4:
-                              case ElementTypes::ELEM_SFNCON6:
-                              case ElementTypes::ELEM_SFNCON6H:
-                              case ElementTypes::ELEM_SFNCON8:
-#if HAVE_NLOPT == 1
-                                   icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
-                                   edof[CS_JOINT].elem_count += ov_fn(j).numel();
-#else
-                                   error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+                              if (idxnode < 1 || idxnode > nodes.rows()) {
+                                   error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
+                                         static_cast<long long>(idxnode),
+                                         oElemType.name,
+                                         static_cast<long long>(j),
+                                         static_cast<long long>(k),
+                                         1LL,
+                                         static_cast<long long>(nodes.rows()));
                                    return retval;
-#endif
+                              }
+
+                              octave_idx_type iNodeDof;
+
+                              switch (eDomain) {
+                              case DofMap::DO_STRUCTURAL:
+                                   iNodeDof = 3;
+                                   break;
+                              case DofMap::DO_THERMAL:
+                                   iNodeDof = 1;
                                    break;
                               default:
-                                   FEM_ASSERT(false);
+                                   throw std::runtime_error("unknown value for domain");
                               }
-
-                              edof[CS_JOINT].maxdof = std::max(edof[CS_JOINT].maxdof, icurrconstr);
-                         }
-                         break;
-                    case STAGE_FILL:
-                         FEM_ASSERT(edof[CS_JOINT].dof.rows() == edof[CS_JOINT].elem_count ||
-                                    edof[CS_JOINT].dof.rows() == 0);
-
-                         edof[CS_JOINT].dof.resize(dim_vector(edof[CS_JOINT].elem_count,
-                                                              edof[CS_JOINT].maxdof),
-                                                   0);
-
-                         for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
-                              octave_idx_type icurrconstr = 0, icurrjoints = 0;
-
-                              switch (oElemType.type) {
-                              case ElementTypes::ELEM_JOINT:
-                                   icurrconstr = ov_fn(j).rows();
-                                   icurrjoints = 1;
-                                   break;
-                              case ElementTypes::ELEM_SFNCON4:
-                              case ElementTypes::ELEM_SFNCON6:
-                              case ElementTypes::ELEM_SFNCON6H:
-                              case ElementTypes::ELEM_SFNCON8:
-#if HAVE_NLOPT == 1
-                                   icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j);
-                                   icurrjoints += ov_fn(j).numel();
-#else
-                                   error(SurfToNodeConstrBase::szErrCompileWithNlopt);
-                                   return retval;
-#endif
-                                   break;
-                              default:
-                                   FEM_ASSERT(false);
-                              }
-
-                              for (octave_idx_type k = 0; k < icurrjoints; ++k) {
-                                   for (octave_idx_type l = 0; l < icurrconstr; ++l) {
-                                        edof[CS_JOINT].dof.xelem(edof[CS_JOINT].elem_idx, l) = ++icurrdof;
-                                        ++inumlambda;
-                                   }
-                                   edof[CS_JOINT].elem_idx++;
+                         
+                              for (octave_idx_type l = 0; l < iNodeDof; ++l) {
+                                   dof_in_use.xelem(idxnode - 1, l) = true;
                               }
                          }
-
-                         m_edof.assign("joints", edof[CS_JOINT].dof);
                     }
                } break;
-               case ElementTypes::ELEM_RBE3:
-                    switch (s) {
-                    case STAGE_RESERVE:
-                         break;
-                    case STAGE_FILL:
-                         edof[CS_RBE3].elem_count = m_etype.numel();
-                         edof[CS_RBE3].maxdof = 6;
+               case ElementTypes::ELEM_THERM_CONV_ISO4:
+               case ElementTypes::ELEM_THERM_CONV_QUAD8:
+               case ElementTypes::ELEM_THERM_CONV_TRIA6:
+               case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+                    if (eDomain == DofMap::DO_THERMAL) {
+                         const auto iter_convection = m_elements.seek("convection");
 
-                         edof[CS_RBE3].dof.resize(dim_vector(edof[CS_RBE3].elem_count,
-                                                             edof[CS_RBE3].maxdof),
-                                                  0);
+                         if (iter_convection == m_elements.end()) {
+                              break;
+                         }
+     
+                         const octave_value ov_convection = m_elements.contents(iter_convection);
 
-                         for (octave_idx_type j = 0; j < edof[CS_RBE3].elem_count; ++j) {
-                              for (octave_idx_type l = 0; l < edof[CS_RBE3].maxdof; ++l) {
-                                   edof[CS_RBE3].dof.xelem(j, l) = ++icurrdof;
-                                   ++inumlambda;
-                              }
+                         if (!(ov_convection.isstruct() && ov_convection.numel() == 1)) {
+                              throw std::runtime_error("mesh.elements.convection must be a scalar struct");
                          }
 
-                         m_edof.assign("rbe3", edof[CS_RBE3].dof);
+                         const octave_scalar_map m_convection = ov_convection.scalar_map_value();
+     
+                         const auto iter_elem_type = m_convection.seek(oElemType.name);
+
+                         if (iter_elem_type == m_convection.end()) {
+                              break;
+                         }
+
+                         const octave_value ov_elem_type = m_convection.contents(iter_elem_type);
+
+                         if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+                              throw std::runtime_error("mesh.elements.convection."s + oElemType.name + " must be a scalar struct");
+                         }
+
+                         const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
+
+                         const auto iter_elnodes = m_elem_type.seek("nodes");
+
+                         if (iter_elnodes == m_elem_type.end()) {
+                              throw std::runtime_error("missing field mesh.elements.convection."s + oElemType.name + ".nodes");
+                         }
+
+                         const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
+
+                         if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == oElemType.max_nodes)) {
+                              throw std::runtime_error("mesh.elements.convection."s + oElemType.name + ".nodes must be an integer matrix");          
+                         }
+
+                         const int32NDArray elnodes = ov_elnodes.int32_array_value();
+
+                         for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
+                              for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
+                                   const octave_idx_type idxnode = elnodes.xelem(j, k).value();
+
+                                   if (idxnode < 1 || idxnode > nodes.rows()) {
+                                        error("node index %Ld of element mesh.elements.%s(%Ld, %Ld) out of range %Ld:%Ld",
+                                              static_cast<long long>(idxnode),
+                                              oElemType.name,
+                                              static_cast<long long>(j),
+                                              static_cast<long long>(k),
+                                              1LL,
+                                              static_cast<long long>(nodes.rows()));
+                                        return retval;
+                                   }
+
+                                   dof_in_use.xelem(idxnode - 1, 0) = true;
+                              }
+                         }
+                    } break;
+               case ElementTypes::ELEM_BEAM2:
+                    if (eDomain == DofMap::DO_STRUCTURAL) {
+                         const octave_map m_beam2 = m_elements.contents(iter_elem_type).map_value();
+
+                         if (error_state) {
+                              return retval;
+                         }
+
+                         const auto iter_nodes = m_beam2.seek("nodes");
+
+                         if (iter_nodes == m_beam2.end()) {
+                              error("missing field mesh.elements.beam2.nodes");
+                              return retval;
+                         }
+
+                         const Cell& ov_nodes = m_beam2.contents(iter_nodes);
+
+                         if (error_state) {
+                              return retval;
+                         }
+
+                         for (octave_idx_type j = 0; j < ov_nodes.numel(); ++j) {
+                              const int32NDArray elnodes = ov_nodes(j).int32_array_value();
+
+                              if (error_state) {
+                                   return retval;
+                              }
+
+                              for (octave_idx_type l = 0; l < elnodes.numel(); ++l) {
+                                   const octave_idx_type idxnode = elnodes(l).value();
+
+                                   if (idxnode < 1 || idxnode > nodes.rows()) {
+                                        error("invalid node index for mesh.elements.%s(%Ld).nodes(%Ld)=%Ld",
+                                              oElemType.name,
+                                              static_cast<long long>(j),
+                                              static_cast<long long>(l),
+                                              static_cast<long long>(idxnode));
+                                        return retval;
+                                   }
+
+                                   for (octave_idx_type k = 0; k < 6; ++k) {
+                                        dof_in_use(idxnode - 1, k) = true;
+                                   }
+                              }
+                         }
+                    } break;
+               case ElementTypes::ELEM_RBE3:
+                    if (eDomain == DofMap::DO_STRUCTURAL) {
+                         const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
+
+                         if (error_state) {
+                              return retval;
+                         }
+
+                         const auto iter_nodesr = m_rbe3.seek("nodes");
+
+                         if (iter_nodesr == m_rbe3.end()) {
+                              error("missing field mesh.elements.rbe3.nodes");
+                              return retval;
+                         }
+
+                         const Cell& ov_nodesr = m_rbe3.contents(iter_nodesr);
+
+                         for (octave_idx_type j = 0; j < ov_nodesr.numel(); ++j) {
+                              const int32NDArray elnodes = ov_nodesr(j).int32_array_value();
+
+                              if (error_state) {
+                                   return retval;
+                              }
+
+                              if (!elnodes.numel()) {
+                                   error("invalid number of nodes for mesh.elements.%s(%Ld).nodes", oElemType.name, static_cast<long long>(j));
+                                   return retval;
+                              }
+
+                              const octave_idx_type idxnode = elnodes(0).value();
+
+                              if (idxnode < 1 || idxnode > nodes.rows()) {
+                                   error("invalid node index for mesh.elements.%s(%Ld).nodes(1)=%Ld",
+                                         oElemType.name,
+                                         static_cast<long long>(j),
+                                         static_cast<long long>(idxnode));
+                                   return retval;
+                              }
+
+                              for (octave_idx_type k = 0; k < 6; ++k) {
+                                   dof_in_use(idxnode - 1, k) = true;
+                              }
+                         }
                     } break;
                default:
                     continue;
                }
           }
-     }
 
-     int32NDArray idx_lambda(dim_vector(inumlambda, 1), -1);
-     octave_idx_type icurrlambda = 0;
+          octave_idx_type icurrdof = 0;
+     
+          int32NDArray ndof(dim_vector(nodes.rows(), iNodeMaxDofIndex), -1);
 
-     for (octave_idx_type k = 0; k < CS_COUNT; ++k) {
-          for (octave_idx_type i = 0; i < edof[k].dof.rows(); ++i) {
-               for (octave_idx_type j = 0; j < edof[k].dof.columns(); ++j) {
-                    const octave_idx_type idxedof = edof[k].dof.xelem(i, j).value();
-
-                    if (idxedof > 0) {
-                         idx_lambda(icurrlambda++) = idxedof;
+          for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
+               for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
+                    if (dof_in_use.xelem(i, j)) {
+                         ndof.xelem(i, j) = locked_dof.xelem(i, j) ? 0 : ++icurrdof;
                     }
                }
           }
+
+          octave_map dof_map;
+
+          dof_map.assign("ndof", octave_value(ndof));
+          dof_map.assign("domain", octave_value(eDomain));
+
+          int32NDArray idx_node(dim_vector(icurrdof, 1), -1);
+          octave_idx_type icurrndof = 0;
+
+          for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
+               for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
+                    if (ndof.xelem(i, j).value() > 0) {
+                         idx_node.xelem(icurrndof++) = ndof.xelem(i, j);
+                    }
+               }
+          }
+
+          FEM_ASSERT(icurrndof == icurrdof);
+
+          dof_map.assign("idx_node", octave_value(idx_node));
+
+          octave_scalar_map m_edof;
+
+          enum {
+               CS_JOINT = 0,
+               CS_RBE3,
+               CS_COUNT
+          };
+
+          struct ElemDof {
+               int32NDArray dof;
+               octave_idx_type elem_count = 0;
+               octave_idx_type elem_idx = 0;
+               octave_idx_type maxdof = 0;
+          };
+
+          array<ElemDof, CS_COUNT> edof;
+          octave_idx_type inumlambda = 0;
+
+          enum {
+               STAGE_RESERVE = 0,
+               STAGE_FILL
+          };
+
+          for (octave_idx_type s = STAGE_RESERVE; s <= STAGE_FILL; ++s) {
+               for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
+                    const auto& oElemType = ElementTypes::GetType(i);
+
+                    switch (oElemType.type) {
+                    case ElementTypes::ELEM_RBE3:
+                    case ElementTypes::ELEM_JOINT:
+                    case ElementTypes::ELEM_SFNCON4:
+                    case ElementTypes::ELEM_SFNCON6:
+                    case ElementTypes::ELEM_SFNCON6H:
+                    case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_THERM_CONSTR:
+                         break;
+
+                    default:
+                         continue;
+                    }
+
+                    const auto iter_etype = m_elements.seek(oElemType.name);
+
+                    if (iter_etype == m_elements.end()) {
+                         continue;
+                    }
+
+                    const octave_map m_etype = m_elements.contents(iter_etype).map_value();
+
+                    if (error_state) {
+                         return retval;
+                    }
+
+                    if (!m_etype.numel()) {
+                         continue;
+                    }
+
+                    switch (oElemType.type) {
+                    case ElementTypes::ELEM_JOINT:
+                    case ElementTypes::ELEM_SFNCON4:
+                    case ElementTypes::ELEM_SFNCON6:
+                    case ElementTypes::ELEM_SFNCON6H:
+                    case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_THERM_CONSTR: {
+                         const char* const fn = (oElemType.type == ElementTypes::ELEM_JOINT ||
+                                                 oElemType.type == ElementTypes::ELEM_THERM_CONSTR)
+                              ? "C"
+                              : "slave";
+
+                         const auto iter_fn = m_etype.seek(fn);
+
+                         if (iter_fn == m_etype.end()) {
+                              error("missing field mesh.elements.%s.%s", oElemType.name, fn);
+                              return retval;
+                         }
+
+                         const Cell ov_fn = m_etype.contents(iter_fn);
+
+                         Cell ov_constr;
+
+                         switch (oElemType.type) {
+                         case ElementTypes::ELEM_SFNCON4:
+                         case ElementTypes::ELEM_SFNCON6:
+                         case ElementTypes::ELEM_SFNCON6H:
+                         case ElementTypes::ELEM_SFNCON8: {
+                              const auto iter_constr = m_etype.seek("constraint");
+
+                              if (iter_constr != m_etype.end()) {
+                                   ov_constr = m_etype.contents(iter_constr);
+                              }
+                         } break;
+                         default:
+                              break;
+                         };
+
+                         switch (s) {
+                         case STAGE_RESERVE:
+                              for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
+                                   octave_idx_type icurrconstr = 0;
+
+                                   switch (oElemType.type) {
+                                   case ElementTypes::ELEM_JOINT:
+                                   case ElementTypes::ELEM_THERM_CONSTR:
+                                        icurrconstr = ov_fn(j).rows();
+                                        edof[CS_JOINT].elem_count++;
+                                        break;
+                                   case ElementTypes::ELEM_SFNCON4:
+                                   case ElementTypes::ELEM_SFNCON6:
+                                   case ElementTypes::ELEM_SFNCON6H:
+                                   case ElementTypes::ELEM_SFNCON8:
+#if HAVE_NLOPT == 1
+                                        icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
+                                        edof[CS_JOINT].elem_count += ov_fn(j).numel();
+#else
+                                        error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+                                        return retval;
+#endif
+                                        break;
+                                   default:
+                                        FEM_ASSERT(false);
+                                   }
+
+                                   edof[CS_JOINT].maxdof = std::max(edof[CS_JOINT].maxdof, icurrconstr);
+                              }
+                              break;
+                         case STAGE_FILL:
+                              FEM_ASSERT(edof[CS_JOINT].dof.rows() == edof[CS_JOINT].elem_count ||
+                                         edof[CS_JOINT].dof.rows() == 0);
+
+                              edof[CS_JOINT].dof.resize(dim_vector(edof[CS_JOINT].elem_count,
+                                                                   edof[CS_JOINT].maxdof),
+                                                        0);
+
+                              for (octave_idx_type j = 0; j < ov_fn.numel(); ++j) {
+                                   octave_idx_type icurrconstr = 0, icurrjoints = 0;
+
+                                   switch (oElemType.type) {
+                                   case ElementTypes::ELEM_JOINT:
+                                   case ElementTypes::ELEM_THERM_CONSTR:
+                                        icurrconstr = ov_fn(j).rows();
+                                        icurrjoints = 1;
+                                        break;
+                                   case ElementTypes::ELEM_SFNCON4:
+                                   case ElementTypes::ELEM_SFNCON6:
+                                   case ElementTypes::ELEM_SFNCON6H:
+                                   case ElementTypes::ELEM_SFNCON8:
+#if HAVE_NLOPT == 1
+                                        icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
+                                        icurrjoints += ov_fn(j).numel();
+#else
+                                        error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+                                        return retval;
+#endif
+                                        break;
+                                   default:
+                                        FEM_ASSERT(false);
+                                   }
+
+                                   for (octave_idx_type k = 0; k < icurrjoints; ++k) {
+                                        for (octave_idx_type l = 0; l < icurrconstr; ++l) {
+                                             edof[CS_JOINT].dof.xelem(edof[CS_JOINT].elem_idx, l) = ++icurrdof;
+                                             ++inumlambda;
+                                        }
+                                        edof[CS_JOINT].elem_idx++;
+                                   }
+                              }
+
+                              m_edof.assign("joints", edof[CS_JOINT].dof);
+                         }
+                    } break;
+                    case ElementTypes::ELEM_RBE3:
+                         switch (s) {
+                         case STAGE_RESERVE:
+                              break;
+                         case STAGE_FILL:
+                              edof[CS_RBE3].elem_count = m_etype.numel();
+                              edof[CS_RBE3].maxdof = 6;
+
+                              edof[CS_RBE3].dof.resize(dim_vector(edof[CS_RBE3].elem_count,
+                                                                  edof[CS_RBE3].maxdof),
+                                                       0);
+
+                              for (octave_idx_type j = 0; j < edof[CS_RBE3].elem_count; ++j) {
+                                   for (octave_idx_type l = 0; l < edof[CS_RBE3].maxdof; ++l) {
+                                        edof[CS_RBE3].dof.xelem(j, l) = ++icurrdof;
+                                        ++inumlambda;
+                                   }
+                              }
+
+                              m_edof.assign("rbe3", edof[CS_RBE3].dof);
+                         } break;
+                    default:
+                         continue;
+                    }
+               }
+          }
+
+          int32NDArray idx_lambda(dim_vector(inumlambda, 1), -1);
+          octave_idx_type icurrlambda = 0;
+
+          for (octave_idx_type k = 0; k < CS_COUNT; ++k) {
+               for (octave_idx_type i = 0; i < edof[k].dof.rows(); ++i) {
+                    for (octave_idx_type j = 0; j < edof[k].dof.columns(); ++j) {
+                         const octave_idx_type idxedof = edof[k].dof.xelem(i, j).value();
+
+                         if (idxedof > 0) {
+                              idx_lambda(icurrlambda++) = idxedof;
+                         }
+                    }
+               }
+          }
+
+          idx_lambda.sort();
+
+          FEM_ASSERT(icurrlambda == inumlambda);
+
+          if (m_edof.nfields()) {
+               dof_map.assign("edof", octave_value(m_edof));
+          }
+
+          if (inumlambda) {
+               dof_map.assign("idx_lambda", octave_value(idx_lambda));
+          }
+
+          dof_map.assign("totdof", octave_value(icurrdof));
+
+          retval.append(dof_map);
+
+     } catch (const std::exception& err) {
+          error("%s", err.what());
      }
-
-     idx_lambda.sort();
-
-     FEM_ASSERT(icurrlambda == inumlambda);
-
-     if (m_edof.nfields()) {
-          dof_map.assign("edof", octave_value(m_edof));
-     }
-
-     if (inumlambda) {
-          dof_map.assign("idx_lambda", octave_value(idx_lambda));
-     }
-
-     dof_map.assign("totdof", octave_value(icurrdof));
-
-     retval.append(dof_map);
-
+     
      return retval;
 }
 
 DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
           "-*- texinfo -*-\n"
-          "@deftypefn {} @var{joints} = fem_pre_mesh_constr_surf_to_node(@var{nodes}, @var{elements})\n"
+          "@deftypefn {} @var{joints} = fem_pre_mesh_constr_surf_to_node(@var{nodes}, @var{elements}, @var{domain})\n"
           "Convert elements of type sfncon4 or sfncon6 to joints.\n"
           "Slave nodes outside @var{elements}.sfncon4.maxdist or @var{elements}.sfncon6.maxdist are ignored.\n\n"
           "@var{nodes} @dots{} The node position matrix of the unconstrained finite element mesh.\n\n"
@@ -8951,7 +9010,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 #if HAVE_NLOPT == 1
      const octave_idx_type nargin = args.length();
 
-     if (nargin != 2) {
+     if (nargin >= 2 && nargin <= 3) {
           print_usage();
           return retval;
      }
@@ -8968,6 +9027,19 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
           return retval;
      }
 
+     DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
+
+     if (nargin > 2) {
+          eDomain = static_cast<DofMap::DomainType>(args(2).int_value());
+     }
+
+     const octave_idx_type iNodeMaxDofIndex = DofMap::iGetNodeMaxDofIndex(eDomain);
+
+     if (iNodeMaxDofIndex <= 0) {
+          error("invalid value for domain=%d", static_cast<int>(eDomain));
+          return retval;
+     }
+     
      try {
           if (nodes.columns() != 6) {
                throw std::runtime_error("invalid number of columns for matrix nodes");
@@ -8986,7 +9058,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
                FEM_ASSERT(oElemType.type == k);
 
-               SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks);
+               SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, eDomain);
           }
 
           octave_idx_type iNumElem = 0;
@@ -9366,7 +9438,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                     rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                     rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
-                    // fall through
+                    [[fallthrough]];
                case Element::MAT_MASS:
                case Element::MAT_MASS_SYM:
                case Element::MAT_MASS_SYM_L:
@@ -9384,15 +9456,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_INERTIA_INV9:
                case Element::MAT_ACCEL_LOAD:
                     rgElemUse[ElementTypes::ELEM_BEAM2] = true;
-                    // fall through
+                    [[fallthrough]];
                case Element::VEC_STRESS_CAUCH:
                case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS:
                case Element::MAT_THERMAL_COND:
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                    if (oDof.GetDomain() == DofMap::DO_THERMAL) {
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
+                    }
                     [[fallthrough]];
                case Element::MAT_HEAT_CAPACITY:
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
@@ -9408,11 +9483,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
                     }
 
-                    rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
-                    rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
-                    rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
-                    rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
-                    rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
+                    if (oDof.GetDomain() == DofMap::DO_STRUCTURAL) {
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
+                    }
+                    
                     rgElemUse[ElementTypes::ELEM_JOINT] = true;
                     // Needed for thermal stress only
                     rgElemUse[ElementTypes::ELEM_ISO8] = true;
@@ -9423,10 +9501,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
 
                case Element::VEC_LOAD_THERMAL:
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
-                    rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                    if (oDof.GetDomain() == DofMap::DO_THERMAL) {
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
+                    }
                     break;
                     
                default:
@@ -9530,7 +9611,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                } break;
                case ElementTypes::ELEM_BEAM2:
                case ElementTypes::ELEM_RBE3:
-               case ElementTypes::ELEM_JOINT: {
+               case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_THERM_CONSTR: {
                     const auto iter_elem = elements.seek(oElemType.name);
 
                     if (iter_elem == elements.end()) {
@@ -9788,14 +9870,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               pElem->Insert<ElemRBE3>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, weight);
                          } break;
-                         case ElementTypes::ELEM_JOINT: {
+                         case ElementTypes::ELEM_JOINT:
+                         case ElementTypes::ELEM_THERM_CONSTR: {
                               const Matrix C(ov_C(i).matrix_value());
 
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.joints.C must be a real matrix in argument mesh");
                               }
 
-                              if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != 6 * elem_nodes.columns() || C.rows() > C.columns()) {
+                              const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oDof.GetDomain());
+                              
+                              if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != iNumDofNodeMax * elem_nodes.columns() || C.rows() > C.columns()) {
                                    throw std::runtime_error("invalid size for field elements.joints.C");
                               }
 
@@ -9841,7 +9926,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                    }
                               }
 
-                              pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U);
+                              pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U, oDof.GetDomain());
                          } break;
                          default:
                               FEM_ASSERT(false);
@@ -9860,7 +9945,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON8: {
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
-                    SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks);
+                    SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
 #else
                     throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
 #endif
