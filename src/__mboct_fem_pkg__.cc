@@ -9887,7 +9887,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               Matrix U(C.rows(), load_case.numel(), 0.); // By default displacement is set to zero
 
-                              const auto iter_joints = load_case.seek("joints");
+                              const auto iter_joints = load_case.seek(oElemType.name);
 
                               if (iter_joints != load_case.end()) {
                                    const Cell ov_joints = load_case.contents(iter_joints);
