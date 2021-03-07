@@ -455,6 +455,10 @@ public:
           ELEM_THERM_CONV_TRIA6,
           ELEM_THERM_CONV_TRIA6H,
           ELEM_THERM_CONSTR,
+          ELEM_HEAT_SOURCE_ISO4,
+          ELEM_HEAT_SOURCE_QUAD8,
+          ELEM_HEAT_SOURCE_TRIA6,
+          ELEM_HEAT_SOURCE_TRIA6H,
           ELEM_TYPE_COUNT
      };
 
@@ -481,28 +485,32 @@ private:
 };
 
 const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
-     {ElementTypes::ELEM_ISO8,              "iso8",     8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ISO20,             "iso20",   20, 20, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PENTA15,           "penta15", 15, 15, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10H,            "tet10h",  10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10,             "tet10",   10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_BEAM2,             "beam2",    2,  2, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_RBE3,              "rbe3",     2, -1, DofMap::ELEM_RBE3},
-     {ElementTypes::ELEM_JOINT,             "joints",   1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON4,           "sfncon4",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6,           "sfncon6",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6H,          "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON8,           "sfncon8",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_PRESSURE_ISO4,     "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_QUAD8,    "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6,    "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6H,   "tria6h",   6,  6, DofMap::ELEM_NODOF},     
-     {ElementTypes::ELEM_STRUCT_FORCE,      "force",    1, -1, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONSTR,      "thconstr", 1, -1, DofMap::ELEM_JOINT}
+     {ElementTypes::ELEM_ISO8,               "iso8",     8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ISO20,              "iso20",   20, 20, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PENTA15,            "penta15", 15, 15, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10H,             "tet10h",  10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10,              "tet10",   10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_BEAM2,              "beam2",    2,  2, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_RBE3,               "rbe3",     2, -1, DofMap::ELEM_RBE3},
+     {ElementTypes::ELEM_JOINT,              "joints",   1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON4,            "sfncon4",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6,            "sfncon6",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6H,           "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON8,            "sfncon8",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_PRESSURE_ISO4,      "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_QUAD8,     "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6,     "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6H,    "tria6h",   6,  6, DofMap::ELEM_NODOF},     
+     {ElementTypes::ELEM_STRUCT_FORCE,       "force",    1, -1, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONSTR,       "thconstr", 1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_HEAT_SOURCE_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF}
 };
 
 class Element
@@ -6691,6 +6699,18 @@ protected:
                n.xelem(i) = ni;
           }
      }
+
+     static double JacobianDet(const ColumnVector& n1, const ColumnVector& n2) {
+          double detJA = std::pow(n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1), 2)
+               + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
+               + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
+
+          if (detJA < 0.) {
+               throw std::runtime_error("Jacobian of surface element is singular");
+          }
+
+          return sqrt(detJA);               
+     }
      
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& r, Matrix& HA) const=0;
@@ -6823,8 +6843,8 @@ private:
 
 class ThermalConvection: public SurfaceElement {
 public:
-     ThermalConvection(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h, octave_idx_type colidx)
-          :SurfaceElement(eltype, id, X, material, nodes), Thetae(Thetae), h(h), colidx(colidx) {
+     ThermalConvection(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h)
+          :SurfaceElement(eltype, id, X, material, nodes), Thetae(Thetae), h(h) {
 
           FEM_ASSERT(X.rows() == 3);
           FEM_ASSERT(X.columns() == Thetae.columns());
@@ -6832,7 +6852,7 @@ public:
      }
 
      ThermalConvection(const ThermalConvection& oElem)
-          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), Thetae(oElem.Thetae), h(oElem.h), colidx(oElem.colidx) {
+          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), Thetae(oElem.Thetae), h(oElem.h) {
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
@@ -6881,15 +6901,7 @@ public:
                SurfaceNormalVector(dHf_dr, n1);
                SurfaceNormalVector(dHf_ds, n2);
 
-               double detJA = std::pow(n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1), 2)
-                    + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
-                    + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
-
-               if (detJA < 0.) {
-                    throw std::runtime_error("Jacobian of surface element is singular");
-               }
-
-               detJA = sqrt(detJA);
+               const double detJA = JacobianDet(n1, n2);
                
                info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
 
@@ -6898,10 +6910,12 @@ public:
                for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                     hi += h.xelem(j) * HA.xelem(j);
                }               
+
+               hi *= detJA * alpha;
                
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     for (octave_idx_type m = l; m < iNumDof; ++m) {
-                         KA.xelem(m, l) += hi * HA.xelem(m) * HA.xelem(l) * detJA * alpha;
+                         KA.xelem(m, l) += hi * HA.xelem(m) * HA.xelem(l);
                     }
                }
           }
@@ -6951,15 +6965,7 @@ public:
                SurfaceNormalVector(dHf_dr, n1);
                SurfaceNormalVector(dHf_ds, n2);
 
-               double detJA = std::pow(n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1), 2)
-                    + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
-                    + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
-
-               if (detJA < 0.) {
-                    throw std::runtime_error("Jacobian of surface element is singular");
-               }
-
-               detJA = sqrt(detJA);
+               const double detJA = JacobianDet(n1, n2);
                
                info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
 
@@ -6979,16 +6985,18 @@ public:
                     HA_Thetae.xelem(l) = HA_Thetael;
                }
 
+               hi *= detJA * alpha;
+               
                for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
-                         QA.xelem(m, l) += hi * HA.xelem(m) * HA_Thetae.xelem(l) * detJA * alpha;
+                         QA.xelem(m, l) += hi * HA.xelem(m) * HA_Thetae.xelem(l);
                     }
                }
           }
 
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
                for (octave_idx_type i = 0; i < iNumDof; ++i) {
-                    mat.Insert(QA.xelem(i, j), dofidx.xelem(i), colidx + j);
+                    mat.Insert(QA.xelem(i, j), dofidx.xelem(i), j + 1);
                }
           }
      }
@@ -7013,6 +7021,109 @@ public:
 private:
      const Matrix Thetae;
      const RowVector h;
+};
+
+class HeatSource: public SurfaceElement {
+public:
+     HeatSource(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& qe, octave_idx_type colidx)
+          :SurfaceElement(eltype, id, X, material, nodes), qe(qe), colidx(colidx) {
+
+          FEM_ASSERT(X.rows() == 3);
+          FEM_ASSERT(X.columns() == qe.columns());
+          FEM_ASSERT(X.columns() == nodes.numel());
+     }
+
+     HeatSource(const HeatSource& oElem)
+          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), qe(oElem.qe), colidx(oElem.colidx) {
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case VEC_LOAD_THERMAL:
+               ThermalLoadVector(mat, info, dof, eMatType);
+               break;
+               
+          default:
+               ;
+          }          
+     }
+
+     void ThermalLoadVector(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumLoads = qe.rows();
+
+          ColumnVector rv(iNumDir);
+          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+
+          for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
+               dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, 0);
+          }
+
+          Matrix HA(1, iNumDof), HA_qe(1, iNumLoads);
+          ColumnVector n1(3), n2(3);
+          Matrix dHf_dr(3, 3 * iNumDof), dHf_ds(3, 3 * iNumDof), QA(iNumDof, iNumLoads, 0.);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA);
+
+               SurfaceNormalVector(dHf_dr, n1);
+               SurfaceNormalVector(dHf_ds, n2);
+
+               const double detJA = JacobianDet(n1, n2);
+               
+               info.Add(MeshInfo::JACOBIAN_DET_A, detJA);
+               
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    double HA_qel = 0.;
+
+                    for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                         HA_qel += HA.xelem(m) * qe.xelem(l, m);
+                    }
+
+                    HA_qe.xelem(l) = HA_qel * detJA * alpha;
+               }
+
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    for (octave_idx_type m = 0; m < iNumDof; ++m) {
+                         QA.xelem(m, l) += HA.xelem(m) * HA_qe.xelem(l);
+                    }
+               }
+          }
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               for (octave_idx_type i = 0; i < iNumDof; ++i) {
+                    mat.Insert(QA.xelem(i, j), dofidx.xelem(i), j + colidx);
+               }
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+          switch (eMatType) {               
+          case VEC_LOAD_THERMAL:
+               return iGetNumDof() * qe.rows();
+               
+          default:
+               return 0;
+          }
+     }
+
+     octave_idx_type iGetNumDof() const {
+          return nodes.numel();
+     }
+
+private:
+     const Matrix qe;
      const octave_idx_type colidx;
 };
 
@@ -7056,6 +7167,11 @@ typedef SurfaceElementImpl<ShapeIso4, ThermalConvection> ThermalConvectionIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ThermalConvection> ThermalConvectionQuad8;
 typedef SurfaceElementImpl<ShapeTria6, ThermalConvection> ThermalConvectionTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ThermalConvection> ThermalConvectionTria6H;
+
+typedef SurfaceElementImpl<ShapeIso4, HeatSource> HeatSourceIso4;
+typedef SurfaceElementImpl<ShapeQuad8, HeatSource> HeatSourceQuad8;
+typedef SurfaceElementImpl<ShapeTria6, HeatSource> HeatSourceTria6;
+typedef SurfaceElementImpl<ShapeTria6H, HeatSource> HeatSourceTria6H;
 
 class StructForce: public Element {
 public:
@@ -7514,10 +7630,119 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
                         thetak,
-                        h.row(k),
-                        1);
+                        h.row(k));
      }
      
+     rgElemBlocks.emplace_back(std::move(pElem));
+}
+
+template <typename SourceElemType>
+void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_heat_source = load_case.seek("heat_source");
+
+     if (iter_heat_source == load_case.end()) {
+          return;
+     }
+     
+     const Cell cell_heat_source = load_case.contents(iter_heat_source);
+
+     std::unique_ptr<ElementBlock<SourceElemType> > pElem;
+
+     octave_idx_type iNumElem = 0;
+
+     for (octave_idx_type i = 0; i < 2; ++i) {
+          for (octave_idx_type j = 0; j < cell_heat_source.numel(); ++j) {
+               const octave_value ov_heat_source = cell_heat_source.xelem(j);
+               
+               if (!(ov_heat_source.isstruct() && ov_heat_source.numel() == 1)) {
+                    throw std::runtime_error("load_case.heat_source must be a scalar struct");
+               }
+
+               const octave_scalar_map m_heat_source = ov_heat_source.scalar_map_value();
+
+               const auto iter_heat_source_elem = m_heat_source.seek(pszElemName);
+
+               if (iter_heat_source_elem == m_heat_source.end()) {
+                    continue;
+               }
+
+               const octave_value ov_heat_source_elem = m_heat_source.contents(iter_heat_source_elem);
+
+               if (!(ov_heat_source_elem.isstruct() && ov_heat_source_elem.numel() == 1)) {
+                    throw std::runtime_error("load_case.heat_source."s + pszElemName + " must be a scalar struct");
+               }
+
+               const octave_scalar_map m_heat_source_elem = ov_heat_source_elem.scalar_map_value();
+
+               const auto iter_elnodes = m_heat_source_elem.seek("nodes");
+
+               if (iter_elnodes == m_heat_source_elem.end()) {
+                    throw std::runtime_error("missing field load_case.heat_source."s + pszElemName + ".nodes");
+               }
+
+               const octave_value ov_elnodes = m_heat_source_elem.contents(iter_elnodes);
+
+               if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
+                    throw std::runtime_error("load_case.heat_source."s + pszElemName + ".nodes must be an integer matrix");
+               }
+
+               const int32NDArray elnodes = ov_elnodes.int32_array_value();
+
+               if (i == 0) {
+                    iNumElem += elnodes.rows();
+                    continue;
+               }
+          
+               const auto iter_q = m_heat_source_elem.seek("q");
+
+               if (iter_q == m_heat_source_elem.end()) {
+                    throw std::runtime_error("missing field load_case.heat_source."s + pszElemName + ".q");
+               }
+
+               const octave_value ov_q = m_heat_source_elem.contents(iter_q);
+
+               if (!(ov_q.is_matrix_type() && ov_q.isreal() && ov_q.rows() == elnodes.rows() && ov_q.columns() == elnodes.columns())) {
+                    throw std::runtime_error("load_case.heat_source."s + pszElemName + ".q must be a real matrix with the same dimensions like load_case.heat_source."s + pszElemName + ".nodes");
+               }
+
+               const Matrix q = ov_q.matrix_value();
+
+               NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));     
+
+               for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+                    for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
+                         octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
+
+                         if (inode < 0 || inode >= nodes.rows()) {
+                              throw std::runtime_error("node index out of range in load_case.heat_source."s + pszElemName + ".nodes");
+                         }
+               
+                         for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                              X.xelem(m, l, k) = nodes.xelem(inode, m);
+                         }
+                    }
+               }
+
+               for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+                    const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
+                    const Matrix qk = q.linear_slice(q.rows() * q.columns() * k, q.rows() * q.columns() * (k + 1)).reshape(dim_vector(q.rows(), q.columns()));
+          
+                    pElem->Insert(k,
+                                  Xk,
+                                  nullptr,
+                                  elnodes.index(idx_vector::make_range(k, 1, 1),
+                                                idx_vector::make_range(0, 1, elnodes.columns())),
+                                  qk,
+                                  j + 1);
+               }               
+          }
+
+          if (i == 0) {
+               pElem.reset(new ElementBlock<SourceElemType>(eltype));
+               pElem->Reserve(iNumElem);
+          }
+     }
+          
      rgElemBlocks.emplace_back(std::move(pElem));
 }
 
@@ -9525,6 +9750,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                         
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6H] = true;                         
                          break;
                   
                     default:
@@ -10062,6 +10292,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
                     InsertThermalConvElem<ThermalConvectionTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_ISO4:
+                    InsertHeatSourceElem<HeatSourceIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_QUAD8:
+                    InsertHeatSourceElem<HeatSourceQuad8>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_TRIA6:
+                    InsertHeatSourceElem<HeatSourceTria6>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_TRIA6H:
+                    InsertHeatSourceElem<HeatSourceTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;                    
                default:
                     FEM_ASSERT(false);
