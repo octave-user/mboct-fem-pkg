@@ -9705,6 +9705,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          pElem.reset(new ElementBlock<ElemRBE3>(oElemType.type, s_elem.numel()));
                          break;
                     case ElementTypes::ELEM_JOINT:
+                    case ElementTypes::ELEM_THERMAL_CONSTR:
                          pElem.reset(new ElementBlock<ElemJoint>(oElemType.type, s_elem.numel()));
                          break;
                     default:
