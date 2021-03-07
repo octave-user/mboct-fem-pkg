@@ -14002,6 +14002,147 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
+%!test
+%! ### TEST 86
+%! ### Code_Aster TLL100 V4.21.100 12/12/2011
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   dx = 1e-3;
+%!   L = 100e-3;
+%!   W = dx;
+%!   H = dx;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "L=%g;\n", L);
+%!   fprintf(fd, "W=%g;\n", W);
+%!   fprintf(fd, "H=%g;\n", H);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {-L,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {-L,W,0,dx};\n");
+%!   fputs(fd, "Point(3) = {-L,W,H,dx};\n");
+%!   fputs(fd, "Point(4) = {-L,0,H,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   lambda = 1;
+%!   rho = 1000;
+%!   cp = 1;
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
+%!   thetae = 100;
+%!   theta0 = 100;
+%!   h = 100;
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([mesh.groups.quad8.elements], :);
+%!   mesh.elements.convection.quad8.h = repmat(h, size(mesh.elements.convection.quad8.nodes));
+%!   load_case.convection.quad8.theta = repmat(thetae, size(mesh.elements.convection.quad8.nodes));
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   e1 = [1; 0.5; 0.3];
+%!   e2 = [0.1; 1; 0.2];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   [x, idx_x] = sort(mesh.nodes(:, 1));
+%!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
+%!   [mat_ass.C, ...
+%!    mat_ass.Kk, ...
+%!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_HEAT_CAPACITY, ...
+%!                                  FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%!                                 load_case);
+%!   dt = 1e-3;
+%!   alpha = 0.5;
+%!   sol.t = 0:dt:5;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
+%!   opts.number_of_threads = int32(4);
+%!   Afact = fem_sol_factor(A, opts);
+%!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
+%!   for i=2:numel(sol.t)
+%!     Qci = mat_ass.Qc * (f(i) * alpha + f(i - 1) * (1 - alpha));
+%!     sol.theta(:, i) = Afact \ (mat_ass.C * (sol.theta(:, i - 1)) / dt - mat_ass.Kk * (sol.theta(:, i - 1) * (1 - alpha)) + Qci);
+%!   endfor
+%!   zeta = linspace(0, 100, 10000000);
+%!   function [f, jac] = residual(zeta, h)
+%!     f = zeta .* tan(zeta) - h;
+%!     jac = tan(zeta) + zeta .* sec(zeta).^2;
+%!   endfunction
+%!   r = residual(zeta, h * L / lambda);
+%!   idx = find(sign(r(2:end)) ~= sign(r(1:end - 1)));
+%!   zetai = 0.5 * (zeta(idx + 1) + zeta(idx));
+%!   zetai = [1.42887001121407697986449725,4.30580141311922331593630740, 7.22810977162724895188865963, 13.2141856838429195252742363, 16.2593612255041549489051874];
+%!   Ai = 4 * sin(zetai) ./ (2 * zetai + sin(2 * zetai));
+%!   theta_ref = zeros(numel(x), numel(sol.t));
+%!   for i=1:numel(zetai)
+%!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
+%!   endfor
+%!   theta_ref = theta0 * theta_ref;
+%!   for i=1:100:numel(sol.t)
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(x, theta_ref(:, i), "-;reference;0");
+%!     plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!     xlabel("x [m]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%gs", sol.t(i)));
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
 %!demo
 %! ## DEMO 1
 %! ## K.J.Bathe 2002, page 328 4.20a
