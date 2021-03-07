@@ -9675,7 +9675,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_C = s_elem.seek("C");
 
                          if (iter_C == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements.joints.C in argument mesh");
+                              throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".C in argument mesh");
                          }
 
                          ov_C = s_elem.contents(iter_C);
@@ -9876,13 +9876,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               const Matrix C(ov_C.xelem(i).matrix_value());
 
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.joints.C must be a real matrix in argument mesh");
+                                   throw std::runtime_error("mesh.elements."s + oElemType.name + ".C must be a real matrix in argument mesh");
                               }
 
                               const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oDof.GetDomain());
                               
                               if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != iNumDofNodeMax * elem_nodes.columns() || C.rows() > C.columns()) {
-                                   throw std::runtime_error("invalid size for field elements.joints.C");
+                                   throw std::runtime_error("invalid size for field elements."s + oElemType.name + ".C");
                               }
 
                               Matrix U(C.rows(), load_case.numel(), 0.); // By default displacement is set to zero
@@ -9900,25 +9900,25 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                         const octave_map s_joints(ov_joints(k).map_value());
 
                                         if (error_state) {
-                                             throw std::runtime_error("load_case.joints must be an struct array in argument load_case");
+                                             throw std::runtime_error("load_case."s + oElemType.name + " must be an struct array in argument load_case");
                                         }
 
                                         const auto iter_U = s_joints.seek("U");
 
                                         if (iter_U == s_elem.end()) {
-                                             throw std::runtime_error("missing field load_case.joints.U in argument load case");
+                                             throw std::runtime_error("missing field load_case."s + oElemType.name + ".U in argument load case");
                                         }
 
                                         const Cell ov_U(s_joints.contents(iter_U));
 
                                         if (ov_U.numel() != s_elem.numel()) {
-                                             throw std::runtime_error("load_case.joints must have the same size like mesh.elements.joints in argument load case");
+                                             throw std::runtime_error("load_case."s + oElemType.name + " must have the same size like mesh.elements." + oElemType.name + " in argument load case");
                                         }
 
                                         const ColumnVector Uk(ov_U(i).column_vector_value());
 
                                         if (error_state || Uk.rows() != C.rows()) {
-                                             throw std::runtime_error("load_case.joints.U must be a real column vector of the same number of rows like mesh.elements.joints.C in argument load_case");
+                                             throw std::runtime_error("load_case."s + oElemType.name + ".U must be a real column vector of the same number of rows like mesh.elements." + oElemType.name + ".C in argument load_case");
                                         }
 
                                         for (octave_idx_type l = 0; l < C.rows(); ++l) {
