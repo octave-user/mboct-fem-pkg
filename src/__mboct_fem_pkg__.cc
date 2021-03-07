@@ -7725,14 +7725,13 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
 
                for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
                     const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
-                    const Matrix qk = q.linear_slice(q.rows() * q.columns() * k, q.rows() * q.columns() * (k + 1)).reshape(dim_vector(q.rows(), q.columns()));
           
                     pElem->Insert(k,
                                   Xk,
                                   nullptr,
                                   elnodes.index(idx_vector::make_range(k, 1, 1),
                                                 idx_vector::make_range(0, 1, elnodes.columns())),
-                                  qk,
+                                  q.row(k),
                                   j + 1);
                }               
           }
