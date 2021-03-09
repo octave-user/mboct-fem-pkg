@@ -8304,7 +8304,8 @@ private:
      struct FuncData {
           FuncData(const ColumnVector& Xm, const ColumnVector& Xs)
                :oSNCO(Xm, Xs),
-                opt(nlopt_create(NLOPT_LD_SLSQP, iNumDir)),
+                //opt(nlopt_create(NLOPT_LD_SLSQP, iNumDir)),
+                opt(nlopt_create(NLOPT_LN_COBYLA, iNumDir)),
                 Hf(iNumDimNode, iNumNodesElem * iNumDimNode),
                 rv(iNumDir, 0.),
                 f(iNumDimNode) {
