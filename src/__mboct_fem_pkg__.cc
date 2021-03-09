@@ -8262,9 +8262,9 @@ private:
           }
 
           OCTAVE_QUIT;
-
+#if DEBUG > 2
           FEM_TRACE("f=" << sqrt(ftot) << std::endl);
-
+#endif
           return ftot;
      }
 
