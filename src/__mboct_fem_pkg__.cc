@@ -5531,8 +5531,16 @@ public:
           return 1;
      }
 
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 0;
+     }
+  
      static double EqualityConstr(const ColumnVector& rv) {
           return rv.xelem(0) + rv.xelem(1) + rv.xelem(2) - 1;
+     }
+
+     static double InequalityConstr(const ColumnVector& rv) {
+          return 0.;
      }
 
      static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
@@ -5859,8 +5867,16 @@ public:
           return 0;
      }
 
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 0;
+     }
+  
      static constexpr double EqualityConstr(const ColumnVector&) {
           return 0;
+     }
+
+     static double InequalityConstr(const ColumnVector& rv) {
+          return 0.;
      }
 
      static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
@@ -6079,10 +6095,18 @@ public:
           return 0;
      }
 
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 0;
+     }
+  
      static constexpr double EqualityConstr(const ColumnVector&) {
           return 0;
      }
-
+  
+     static double InequalityConstr(const ColumnVector& rv) {
+          return 0.;
+     }
+  
      static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
           FEM_ASSERT(rmin.rows() == iGetNumDirections());
           FEM_ASSERT(rmax.rows() == rmin.rows());
@@ -6414,8 +6438,16 @@ public:
           return 0;
      }
 
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 1;
+     }
+  
      static constexpr double EqualityConstr(const ColumnVector&) {
           return 0;
+     }
+
+     static double InequalityConstr(const ColumnVector& rv) {
+       return rv.xelem(0) + rv.xelem(1) - 1.;
      }
 
      static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
@@ -8120,8 +8152,16 @@ private:
           nlopt_set_min_objective(oFuncData.opt, &SurfToNodeConstr::Objective, &oFuncData);
 
           if (SHAPE_FUNC::iGetNumEqualityConstr()) {
-               nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX);
+              if (nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX) < 0) {
+                  throw std::runtime_error("nlopt_add_equality_constraint failed");
+              }
           }
+
+	  if (SHAPE_FUNC::iGetNumInequalityConstr()) {
+              if (nlopt_add_inequality_constraint(oFuncData.opt, &SurfToNodeConstr::InequalityConstr, &oFuncData, dTolX) < 0) {
+                  throw std::runtime_error("nlopt_add_inequality_constraint failed");
+              }
+	  }
 
           Matrix dX(iNumDimNode, 2);
 
@@ -8245,6 +8285,41 @@ private:
           return f0;
      }
 
+     static double InequalityConstr(unsigned n, const double x[], double gradient[], void* pData) {
+          auto pFuncData = static_cast<FuncData*>(pData);
+
+          ColumnVector& rv = pFuncData->rv;
+          const SurfToNodeConstr& oSNCO = pFuncData->oSNCO;
+          const octave_idx_type N = rv.rows();
+          
+          FEM_ASSERT(n == N);
+          
+          for (octave_idx_type i = 0; i < N; ++i) {
+               rv.xelem(i) = x[i];
+          }
+
+          const double f0 = oSNCO.InequalityConstr(rv);
+
+          if (gradient) {
+               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
+               constexpr octave_idx_type M = 4;
+               static constexpr double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
+               std::array<double, M> fi;
+               
+               for (octave_idx_type i = 0; i < N; ++i) {
+                    for (octave_idx_type j = 0; j < M; ++j) {                         
+                         rv.xelem(i) = x[i] + dx[j];
+                         fi[j] = oSNCO.InequalityConstr(rv);
+                    }
+                    
+                    gradient[i] = (fi[0] - 8. * fi[1] + 8. * fi[2] - fi[3]) / (12. * delta);
+                    rv.xelem(i) = x[i];
+               }
+          }
+          
+          return f0;
+     }
+  
      double Objective(const ColumnVector& rv, ColumnVector& f, Matrix& Hf) const {
           FEM_ASSERT(f.rows() == iNumDimNode);
           FEM_ASSERT(f.rows() == Xs.rows());
@@ -8278,6 +8353,16 @@ private:
           return f;
      }
 
+     static double InequalityConstr(const ColumnVector& rv) {
+          FEM_ASSERT(SHAPE_FUNC::iGetNumInequalityConstr());
+
+          double f = SHAPE_FUNC::InequalityConstr(rv);
+
+          OCTAVE_QUIT;
+
+          return f;
+     }
+  
      void Position(const ColumnVector& rv, ColumnVector& Xi, Matrix& Hf) const {
           FEM_ASSERT(rv.rows() == iNumDir);
           FEM_ASSERT(Xi.rows() == iNumDimNode);
