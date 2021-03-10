@@ -13441,6 +13441,8 @@ endfunction
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
 %!   x = mesh.nodes(:, 1);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   group_idx_theta = find([[mesh.groups.tria6h].id] == 1);
 %!   group_idx_master = find([[mesh.groups.tria6h].id] == 2);
@@ -13457,8 +13459,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_THERMAL;                                     
+%!   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13480,7 +13481,7 @@ endfunction
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
-%!   assert(sol.theta, theta_s, eps^0.17 * max(abs(thetae)));
+%!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
