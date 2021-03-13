@@ -71,7 +71,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
 
     idxtens = int32([1, 4, 6, 4, 2, 5, 6, 5, 3]);
     stress_type = {"discontinuous stress tensor", "continuous stress tensor", "van Mises stress", "discontinuous strain", "continuous strain"};
-    stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm"};      
+    stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm"};
     stress_comp = int32([9, 9, 1, 9, 9]);
     
     for n=1:numel(field_type)
