@@ -18140,12 +18140,8 @@ endfunction
 %!   theta_max = max(sol.theta,[], 1);
 %!   idx_1_2_theta_max = find(theta_max(2:end) < 0.5 * max(theta_max(2:end)) & theta_max(2:end) < theta_max(1:end - 1))(1);
 %!   mesh2 = mesh;
-%!   for i=1:numel(mesh2.elements.sfncon6h)
-%!     mesh2.elements.sfncon6h(i).constraint = FEM_CT_SLIDING;
-%!   endfor
 %!   load_case2.domain = FEM_DO_STRUCTURAL;
-%!   mesh2.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, mesh2.elements, load_case2.domain);
-%!   mesh2.elements = rmfield(mesh2.elements, "sfncon6h");
+%!   mesh2.elements.sfncon6h = mesh2.elements.sfncon6h(2:3);
 %!   load_case2.locked_dof = false(size(mesh2.nodes));
 %!   load_case2.dTheta = sol.theta(:, idx_1_2_theta_max);
 %!   dof_map2 = fem_ass_dof_map(mesh2, load_case2);
@@ -18170,7 +18166,12 @@ endfunction
 %!   for i=1:numel(mesh3.elements.sfncon6h)
 %!     mesh3.elements.sfncon6h(i).constraint = FEM_CT_FIXED;
 %!   endfor
+%!   mesh3dummy.elements.sfncon6 = mesh3.elements.sfncon6h;
+%!   for i=1:numel(mesh3dummy.elements.sfncon6)
+%!     mesh3dummy.elements.sfncon6(i).constraint = FEM_CT_SLIDING;
+%!   endfor
 %!   mesh3.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh3.nodes, mesh3.elements, load_case3.domain);
+%!   mesh3dummy.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh3.nodes, mesh3dummy.elements, load_case3.domain);
 %!   mesh3.elements = rmfield(mesh3.elements, "sfncon6h");
 %!   load_case3.joints = struct("U", mat2cell(zeros(3, numel(mesh3.elements.joints)), ...
 %!                                            3, ones(1, numel(mesh3.elements.joints))));
@@ -18182,7 +18183,11 @@ endfunction
 %!         dU((j - 1) * 6 + k) = sol2.def(mesh3.elements.joints(i).nodes(j), k);
 %!       endfor
 %!     endfor
-%!     load_case3.joints(i).U = mesh3.elements.joints(i).C * dU;
+%!     C1 = mesh3.elements.joints(i).C;
+%!     n1TC1 = mesh3dummy.elements.joints(i).C;
+%!     n1 = ((n1TC1 * C1.') / (C1 * C1.')).';
+%!     n1 /= norm(n1);
+%!     load_case3.joints(i).U = (eye(3) - n1 * n1.') * (C1 * dU);
 %!   endfor
 %!   [mat_ass3.K, ...
 %!    mat_ass3.R, ...
