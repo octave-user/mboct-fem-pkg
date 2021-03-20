@@ -10784,6 +10784,9 @@ endfunction
 %!   w = 0.25e-3;
 %!   h = 0.25e-3;
 %!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -10822,13 +10825,12 @@ endfunction
 %!   unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   K0 = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
-%!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
-%!   mesh.material_data.cp = 465;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
 %!   u0 = 100;
 %!   ub = 50;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -10850,11 +10852,10 @@ endfunction
 %!     theta0 = repmat(u0, dof_map.totdof, 1);
 %!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
 %!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     kappa = K0 / (mesh.material_data.rho * mesh.material_data.cp);
-%!     T_ = l^2 / kappa;
-%!     dt = dx^2 / (2 * kappa);
-%!     alpha = 0.8;
-%!     sol.t = 0:dt:0.1*T_;
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
 %!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!     sol.theta(:, 1) = theta0;
 %!     A = (1 / dt) * C11 + alpha * Kk11;
@@ -10866,16 +10867,38 @@ endfunction
 %!       sol.theta(idx_b, i) = theta_b;
 %!     endfor
 %!     u0_ = 1;
-%!     n = 1:10000;
+%!     n = 1:1000;
 %!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
 %!     x_ = x / l;
 %!     u_ = zeros(numel(x), numel(sol.t));
 %!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
+%!       t_ = sol.t /   T_;
 %!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
 %!     endfor
 %!     sol.theta_ref = u_ * (u0 - ub) + ub;
 %!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
 %!     tol = 1e-2;
 %!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
@@ -10911,6 +10934,9 @@ endfunction
 %!   w = 0.25e-3;
 %!   h = 0.25e-3;
 %!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -10950,13 +10976,12 @@ endfunction
 %!   unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   K0 = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
-%!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
-%!   mesh.material_data.cp = 465;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
 %!   u0 = 100;
 %!   ub = 50;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -10978,11 +11003,10 @@ endfunction
 %!     theta0 = repmat(u0, dof_map.totdof, 1);
 %!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
 %!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     kappa = K0 / (mesh.material_data.rho * mesh.material_data.cp);
-%!     T_ = l^2 / kappa;
-%!     dt = dx^2 / (2 * kappa);
-%!     alpha = 0.8;
-%!     sol.t = 0:dt:0.1*T_;
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
 %!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!     sol.theta(:, 1) = theta0;
 %!     A = (1 / dt) * C11 + alpha * Kk11;
@@ -11004,6 +11028,28 @@ endfunction
 %!     endfor
 %!     sol.theta_ref = u_ * (u0 - ub) + ub;
 %!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
 %!     tol = 1e-2;
 %!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
@@ -11039,6 +11085,9 @@ endfunction
 %!   w = 0.25e-3;
 %!   h = 0.25e-3;
 %!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -11079,13 +11128,12 @@ endfunction
 %!   unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   K0 = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
-%!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
-%!   mesh.material_data.cp = 465;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
 %!   u0 = 100;
 %!   ub = 50;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -11107,11 +11155,10 @@ endfunction
 %!     theta0 = repmat(u0, dof_map.totdof, 1);
 %!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
 %!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     kappa = K0 / (mesh.material_data.rho * mesh.material_data.cp);
-%!     T_ = l^2 / kappa;
-%!     dt = dx^2 / (2 * kappa);
-%!     alpha = 0.8;
-%!     sol.t = 0:dt:0.1*T_;
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
 %!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!     sol.theta(:, 1) = theta0;
 %!     A = (1 / dt) * C11 + alpha * Kk11;
@@ -11133,6 +11180,28 @@ endfunction
 %!     endfor
 %!     sol.theta_ref = u_ * (u0 - ub) + ub;
 %!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
 %!     tol = 1e-2;
 %!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
@@ -11200,15 +11269,15 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.elements.convection.tria6h.nodes = mesh.elements.tria6h([mesh.groups.tria6h.elements], :);
@@ -11300,15 +11369,15 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.elements.convection.tria6.nodes = mesh.elements.tria6([mesh.groups.tria6.elements], :);
@@ -11401,15 +11470,15 @@ endfunction
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.elements.convection.tria6h.nodes = mesh.elements.tria6h([mesh.groups.tria6h.elements], :);
@@ -11503,15 +11572,15 @@ endfunction
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([mesh.groups.quad8.elements], :);
@@ -11603,15 +11672,15 @@ endfunction
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.elements.convection.iso4.nodes = mesh.elements.iso4([mesh.groups.iso4.elements], :);
@@ -11702,12 +11771,12 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -11806,13 +11875,13 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -11910,12 +11979,12 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12012,12 +12081,12 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12115,12 +12184,12 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12218,12 +12287,12 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12319,12 +12388,12 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12420,12 +12489,12 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12522,13 +12591,13 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12624,12 +12693,12 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = [100, 200];
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -12687,7 +12756,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -12732,7 +12801,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -12779,7 +12848,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -12850,7 +12919,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -12897,7 +12966,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -12946,7 +13015,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -13017,7 +13086,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -13063,7 +13132,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -13111,7 +13180,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -13182,7 +13251,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -13226,7 +13295,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -13272,7 +13341,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -13343,7 +13412,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -13388,7 +13457,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -13435,7 +13504,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -13547,15 +13616,15 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = 100;
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   q = 1000000;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -13580,7 +13649,7 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
-%!   thetas = thetae + 3 * l * q / K0;
+%!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetas - thetae) + thetae;
@@ -13650,15 +13719,15 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = 100;
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   q = 1000000;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -13683,7 +13752,7 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
-%!   thetas = thetae + 3 * l * q / K0;
+%!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetas - thetae) + thetae;
@@ -13753,15 +13822,15 @@ endfunction
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = 100;
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   q = 1000000;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -13786,7 +13855,7 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
-%!   thetas = thetae + 3 * l * q / K0;
+%!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetas - thetae) + thetae;
@@ -13855,15 +13924,15 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = 100;
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   q = 1000000;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -13888,7 +13957,7 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
-%!   thetas = thetae + 3 * l * q / K0;
+%!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetas - thetae) + thetae;
@@ -13957,15 +14026,15 @@ endfunction
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!   K0 = 50;
+%!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh.material_data.cp = 465;
 %!   thetae = 100;
-%!   he = K0 / l;
+%!   he = lambda / l;
 %!   q = 1000000;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -13990,7 +14059,7 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
-%!   thetas = thetae + 3 * l * q / K0;
+%!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetas - thetae) + thetae;
@@ -14154,7 +14223,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -14201,7 +14270,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -14250,7 +14319,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -14324,7 +14393,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -14369,7 +14438,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -14416,7 +14485,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -14490,7 +14559,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -14535,7 +14604,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -14582,7 +14651,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -14656,7 +14725,7 @@ endfunction
 %!   c = 10e-3;
 %!   d = 0.25e-3;
 %!   dx = 0.25e-3;
-%!   K0 = 50;
+%!   lambda = 50;
 %!   unwind_protect
 %!   [fd, msg] = fopen([filename, ".geo"], "wt");
 %!   if (fd == -1)
@@ -14701,7 +14770,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
-%!   mesh_data(1).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -14748,7 +14817,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
-%!   mesh_data(2).mesh.material_data.k = diag([K0, K0, K0]);
+%!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
@@ -16204,7 +16273,7 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 1e-3;
+%!   dt = rho * cp * dx^2 / lambda;
 %!   alpha = 0.5;
 %!   sol.t = 0:dt:5;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
@@ -16339,7 +16408,7 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 1e-3;
+%!   dt = rho * cp * dx^2 / lambda;
 %!   alpha = 0.5;
 %!   sol.t = 0:dt:5;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
@@ -16473,7 +16542,7 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 1e-3;
+%!   dt = rho * cp * dx^2 / lambda;
 %!   alpha = 0.5;
 %!   sol.t = 0:dt:5;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
@@ -16607,7 +16676,7 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 1e-3;
+%!   dt = rho * cp * dx^2 / lambda;
 %!   alpha = 0.5;
 %!   sol.t = 0:dt:5;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
@@ -16742,8 +16811,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -16801,8 +16870,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -16904,8 +16973,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -16963,8 +17032,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17066,8 +17135,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -17125,8 +17194,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17237,8 +17306,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -17296,8 +17365,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17406,8 +17475,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -17465,8 +17534,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17570,8 +17639,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -17629,8 +17698,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17734,8 +17803,8 @@ endfunction
 %!                                  FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %!                                 load_case);
-%!   dt = 12.5;
-%!   alpha = 0.8;
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.5;
 %!   sol.t = 0:dt:2400;
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
@@ -17793,8 +17862,8 @@ endfunction
 %!  grid minor on;
 %!  title("temperature at the surface");
 %!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref), theta_ref_center, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -18137,13 +18206,20 @@ endfunction
 %!     U(:, i) = Afact \ (mat_ass.C * (U(:, i - 1)) / dt - mat_ass.Kk * (U(:, i - 1) * (1 - alpha)) + Qci);
 %!   endfor
 %!   sol.theta = U(dof_map.idx_node, :);
-%!   theta_max = max(sol.theta,[], 1);
-%!   idx_1_2_theta_max = find(theta_max(2:end) < 0.5 * max(theta_max(2:end)) & theta_max(2:end) < theta_max(1:end - 1))(1);
+%!   node_id_source = unique([[mesh.groups.tria6h(grp_idx_heat_source)].nodes]);
+%!   theta_mean = mean(sol.theta(dof_map.ndof(node_id_source), :), 1);
+%!   theta_max = max(sol.theta(dof_map.ndof(node_id_source), :), [], 1);
+%!   theta_min = min(sol.theta(dof_map.ndof(node_id_source), :), [], 1);
+%!   theta_ref = 900;
+%!   idx_theta_ref = find(theta_mean(2:end) < theta_ref & theta_mean(1:end - 1) >= theta_ref)(1);
 %!   mesh2 = mesh;
 %!   load_case2.domain = FEM_DO_STRUCTURAL;
-%!   mesh2.elements.sfncon6h = mesh2.elements.sfncon6h(2:3);
+%!   constr = [FEM_CT_SLIDING, FEM_CT_FIXED, FEM_CT_FIXED, FEM_CT_SLIDING];
+%!   for j=1:numel(mesh.elements.sfncon6h)
+%!     mesh2.elements.sfncon6h(j).constraint = constr(j);
+%!   endfor
 %!   load_case2.locked_dof = false(size(mesh2.nodes));
-%!   load_case2.dTheta = sol.theta(:, idx_1_2_theta_max);
+%!   load_case2.dTheta = sol.theta(:, idx_theta_ref);
 %!   dof_map2 = fem_ass_dof_map(mesh2, load_case2);
 %!   [mat_ass2.K, ...
 %!    mat_ass2.R, ...
@@ -18183,11 +18259,7 @@ endfunction
 %!         dU((j - 1) * 6 + k) = sol2.def(mesh3.elements.joints(i).nodes(j), k);
 %!       endfor
 %!     endfor
-%!     C1 = mesh3.elements.joints(i).C;
-%!     n1TC1 = mesh3dummy.elements.joints(i).C;
-%!     n1 = ((n1TC1 * C1.') / (C1 * C1.')).';
-%!     n1 /= norm(n1);
-%!     load_case3.joints(i).U = (eye(3) - n1 * n1.') * (C1 * dU);
+%!     load_case3.joints(i).U = mesh3.elements.joints(i).C * dU;
 %!   endfor
 %!   [mat_ass3.K, ...
 %!    mat_ass3.R, ...
@@ -19668,6 +19740,611 @@ endfunction
 %!   grid on;
 %!   grid minor on;
 %!   title("temperature versus time");
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 117
+%! ## The 1-D Heat Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 10e-3;
+%!   w = 0.25e-3;
+%!   h = 0.25e-3;
+%!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface{6,tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso20", "quad8"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
+%!   u0 = 100;
+%!   ub = 50;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Kk, ...
+%!    mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_THERMAL_COND, ...
+%!                                 FEM_MAT_HEAT_CAPACITY], ...
+%!                                load_case);
+%!     idx_b = [mesh.groups.quad8.nodes];
+%!     idx_i = true(rows(mesh.nodes), 1);
+%!     idx_i(idx_b) = false;
+%!     idx_i = find(idx_i);
+%!     x = mesh.nodes(:, 1);
+%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!     C11 = mat_ass.C(idx_i, idx_i);
+%!     theta_b = repmat(ub, numel(idx_b), 1);
+%!     theta0 = repmat(u0, dof_map.totdof, 1);
+%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
+%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!     sol.theta(:, 1) = theta0;
+%!     A = (1 / dt) * C11 + alpha * Kk11;
+%!     opts.number_of_threads = int32(1);
+%!     opts.solver = "pastix";
+%!     Afact = fem_sol_factor(A, opts);
+%!     for i=2:numel(sol.t)
+%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!       sol.theta(idx_b, i) = theta_b;
+%!     endfor
+%!     u0_ = 1;
+%!     n = 1:10000;
+%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!     x_ = x / l;
+%!     u_ = zeros(numel(x), numel(sol.t));
+%!     for n=1:numel(Bn_)
+%!       t_ = sol.t / T_;
+%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!     endfor
+%!     sol.theta_ref = u_ * (u0 - ub) + ub;
+%!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
+%!     tol = 1e-2;
+%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 118
+%! ## The 1-D Heat Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 10e-3;
+%!   w = 0.25e-3;
+%!   h = 0.25e-3;
+%!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface{6,tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso8", "iso4"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
+%!   u0 = 100;
+%!   ub = 50;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Kk, ...
+%!    mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_THERMAL_COND, ...
+%!                                 FEM_MAT_HEAT_CAPACITY], ...
+%!                                load_case);
+%!     idx_b = [mesh.groups.iso4.nodes];
+%!     idx_i = true(rows(mesh.nodes), 1);
+%!     idx_i(idx_b) = false;
+%!     idx_i = find(idx_i);
+%!     x = mesh.nodes(:, 1);
+%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!     C11 = mat_ass.C(idx_i, idx_i);
+%!     theta_b = repmat(ub, numel(idx_b), 1);
+%!     theta0 = repmat(u0, dof_map.totdof, 1);
+%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
+%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!     sol.theta(:, 1) = theta0;
+%!     A = (1 / dt) * C11 + alpha * Kk11;
+%!     opts.number_of_threads = int32(1);
+%!     opts.solver = "pastix";
+%!     Afact = fem_sol_factor(A, opts);
+%!     for i=2:numel(sol.t)
+%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!       sol.theta(idx_b, i) = theta_b;
+%!     endfor
+%!     u0_ = 1;
+%!     n = 1:10000;
+%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!     x_ = x / l;
+%!     u_ = zeros(numel(x), numel(sol.t));
+%!     for n=1:numel(Bn_)
+%!       t_ = sol.t / T_;
+%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!     endfor
+%!     sol.theta_ref = u_ * (u0 - ub) + ub;
+%!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
+%!     tol = 1e-2;
+%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 119
+%! ## The 1-D Heat Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 10e-3;
+%!   w = 0.25e-3;
+%!   h = 0.25e-3;
+%!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
+%!   u0 = 100;
+%!   ub = 50;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Kk, ...
+%!    mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_THERMAL_COND, ...
+%!                                 FEM_MAT_HEAT_CAPACITY], ...
+%!                                load_case);
+%!     idx_b = [mesh.groups.iso4.nodes];
+%!     idx_i = true(rows(mesh.nodes), 1);
+%!     idx_i(idx_b) = false;
+%!     idx_i = find(idx_i);
+%!     x = mesh.nodes(:, 1);
+%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!     C11 = mat_ass.C(idx_i, idx_i);
+%!     theta_b = repmat(ub, numel(idx_b), 1);
+%!     theta0 = repmat(u0, dof_map.totdof, 1);
+%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
+%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!     sol.theta(:, 1) = theta0;
+%!     A = (1 / dt) * C11 + alpha * Kk11;
+%!     opts.number_of_threads = int32(1);
+%!     opts.solver = "pastix";
+%!     Afact = fem_sol_factor(A, opts);
+%!     for i=2:numel(sol.t)
+%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!       sol.theta(idx_b, i) = theta_b;
+%!     endfor
+%!     u0_ = 1;
+%!     n = 1:10000;
+%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!     x_ = x / l;
+%!     u_ = zeros(numel(x), numel(sol.t));
+%!     for n=1:numel(Bn_)
+%!       t_ = sol.t / T_;
+%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!     endfor
+%!     sol.theta_ref = u_ * (u0 - ub) + ub;
+%!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
+%!     tol = 1e-2;
+%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 120
+%! ## The 1-D Heat Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "wt");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 10e-3;
+%!   w = 0.25e-3;
+%!   h = 0.25e-3;
+%!   dx = 0.25e-3;
+%!   lambda = 50;
+%!   rho = 7850;
+%!   cp = 465;
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.E = 210000e6;
+%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.k = diag([lambda, lambda, lambda]);
+%!   mesh.material_data.cp = cp;
+%!   u0 = 100;
+%!   ub = 50;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Kk, ...
+%!    mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_THERMAL_COND, ...
+%!                                 FEM_MAT_HEAT_CAPACITY], ...
+%!                                load_case);
+%!     idx_b = [mesh.groups.iso4.nodes];
+%!     idx_i = true(rows(mesh.nodes), 1);
+%!     idx_i(idx_b) = false;
+%!     idx_i = find(idx_i);
+%!     x = mesh.nodes(:, 1);
+%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!     C11 = mat_ass.C(idx_i, idx_i);
+%!     theta_b = repmat(ub, numel(idx_b), 1);
+%!     theta0 = repmat(u0, dof_map.totdof, 1);
+%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     dt = rho * cp * dx^2 / lambda;
+%!     alpha = 0.6;
+%!     T_ = l^2 / lambda * rho * cp;
+%!     sol.t = 0:dt:T_;
+%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!     sol.theta(:, 1) = theta0;
+%!     A = (1 / dt) * C11 + alpha * Kk11;
+%!     opts.number_of_threads = int32(1);
+%!     opts.solver = "pastix";
+%!     Afact = fem_sol_factor(A, opts);
+%!     for i=2:numel(sol.t)
+%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!       sol.theta(idx_b, i) = theta_b;
+%!     endfor
+%!     u0_ = 1;
+%!     n = 1:10000;
+%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!     x_ = x / l;
+%!     u_ = zeros(numel(x), numel(sol.t));
+%!     for n=1:numel(Bn_)
+%!       t_ = sol.t / T_;
+%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!     endfor
+%!     sol.theta_ref = u_ * (u0 - ub) + ub;
+%!     [x, idx_theta] = sort(x);
+%!     figure("visible", "off");
+%!     hold("on");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!     for i=[1,2:5,6:400:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       xlabel("t [s]");
+%!       ylabel("theta [degC]");
+%!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));
+%!       grid on;
+%!       grid minor on;
+%!     endfor
+%!     tol = 1e-2;
+%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
