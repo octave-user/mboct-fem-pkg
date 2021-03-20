@@ -476,7 +476,7 @@ endfunction
 %!   filename(filename == "\\") = "/";
 %! endif
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif

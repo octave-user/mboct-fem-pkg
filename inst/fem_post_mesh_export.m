@@ -68,7 +68,7 @@ function fem_post_mesh_export(filename, mesh, options, load_case, dof_map)
   fd = -1;
 
   unwind_protect
-    [fd] = fopen(filename, "wt");
+    [fd] = fopen(filename, "w");
 
     if (fd == -1)
       error("failed to open file \"%s\"", filename);
@@ -457,7 +457,7 @@ endfunction
 %! endif
 %! fd = -1;
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif

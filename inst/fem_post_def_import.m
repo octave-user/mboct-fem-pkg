@@ -36,7 +36,7 @@ function sol = fem_post_def_import(filename, mesh, num_load_case)
   fd = -1;
   
   unwind_protect
-    [fd] = fopen(filename, "rt");
+    [fd] = fopen(filename, "r");
 
     if (fd == -1)
       error("failed to open file \"%s\"", filename);

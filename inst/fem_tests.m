@@ -4568,7 +4568,7 @@
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif
@@ -4778,7 +4778,7 @@
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif

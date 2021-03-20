@@ -473,7 +473,7 @@ endfunction
 %!	clear load_case load_case_bearing mat_ass mat_ass_press mat_info mesh mesh_info mesh_size
 %!	clear opt_modes sol_eig sol_eig_cms sol_stat;
 %!	unwind_protect
-%!	  [fd, msg] = fopen([filename, ".geo"], "wt");
+%!	  [fd, msg] = fopen([filename, ".geo"], "w");
 %!	  if (fd == -1)
 %!	    error("failed to open file \"%s.geo\"", filename);
 %!	  endif
@@ -655,7 +655,7 @@ endfunction
 %!       clear load_case_post mat_ass_post mat_ass_press mesh mesh_comb mesh_data mesh_post mesh_size
 %!       clear opt_modes p1 p1red p2 p2red pid qred sol_comb sol_eig sol_eig_cms sol_post sol_red tol_red
 %!       unwind_protect
-%!	[fd, msg] = fopen([filename, ".geo"], "wt");
+%!	[fd, msg] = fopen([filename, ".geo"], "w");
 %!	if (fd == -1)
 %!	  error("failed to open file \"%s.geo\"", filename);
 %!	endif
@@ -863,7 +863,7 @@ endfunction
 %!     filename(filename == "\\") = "/";
 %!   endif
 %!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "wt");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
@@ -1175,7 +1175,7 @@ endfunction
 %!     filename(filename == "\\") = "/";
 %!   endif
 %!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "wt");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
@@ -1443,7 +1443,7 @@ endfunction
 %!     filename(filename == "\\") = "/";
 %!   endif
 %!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "wt");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif

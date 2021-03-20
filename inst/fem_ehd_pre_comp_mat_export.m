@@ -59,7 +59,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
       fd = stdout;
     elseif (ischar(varargin{1}))
       owns_fd = true;
-      [fd, msg] = fopen(varargin{1}, "wt");
+      [fd, msg] = fopen(varargin{1}, "w");
       if (fd == -1)
         error("failed to open file \"%s\": %s", varargin{1}, msg);
       endif
@@ -393,7 +393,7 @@ endfunction
 %!   group_defs(end).bearing = "elem_id_bearing";
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen([output_file, ".geo"], "wt");
+%!     fd = fopen([output_file, ".geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", [output_file, ".geo"]);
 %!     endif
@@ -630,7 +630,7 @@ endfunction
 %!   unwind_protect
 %!     fd = -1;
 
-%!     [fd, msg] = fopen([output_file, "_shell.set"], "wt");
+%!     [fd, msg] = fopen([output_file, "_shell.set"], "w");
 
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\": %s", [output_file, "_shell.set"], msg);
@@ -653,7 +653,7 @@ endfunction
 %!   options_mbdyn.f_run_mbdyn2easyanim = false;
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen([output_file, "_mbd.mbdyn"], "wt");
+%!     fd = fopen([output_file, "_mbd.mbdyn"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", [output_file, "_mbd.mbdyn"]);
 %!     endif

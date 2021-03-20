@@ -170,7 +170,7 @@ endfunction
 %!   fd = -1;
 %!   unwind_protect
 %!     geometry_file = [filename, ".geo"];
-%!     [fd, msg] = fopen(geometry_file, "wt");
+%!     [fd, msg] = fopen(geometry_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", geometry_file);
 %!     endif
@@ -297,7 +297,7 @@ endfunction
 %!   fd = -1;
 
 %!   unwind_protect
-%!     [fd, msg] = fopen(eig_post_pro_file, "wt");
+%!     [fd, msg] = fopen(eig_post_pro_file, "w");
 
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", eig_post_pro_file);
@@ -339,7 +339,7 @@ endfunction
 %!   fd = -1;
 
 %!   unwind_protect
-%!     fd = fopen(mbdyn_filename, "wt");
+%!     fd = fopen(mbdyn_filename, "w");
 
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", mbdyn_filename);

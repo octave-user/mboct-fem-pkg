@@ -153,7 +153,7 @@ endfunction
 %!   filename(filename == "\\") = "/";
 %! endif
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif
@@ -264,7 +264,7 @@ endfunction
 %!   fem_post_sol_step_export(deformation_file, sol_stat, idx_group(j) + i, i + 1, i + 1, 1);
 %!   fd = -1;
 %!   unwind_protect
-%!     [fd, msg] = fopen(post_pro_file, "wt");
+%!     [fd, msg] = fopen(post_pro_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\": %s", post_pro_file, msg);
 %!     endif

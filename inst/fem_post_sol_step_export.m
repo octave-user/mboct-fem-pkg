@@ -45,7 +45,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
   fd = -1;
   
   unwind_protect
-    [fd, msg] = fopen(filename, "wt");
+    [fd, msg] = fopen(filename, "w");
 
     if (fd == -1)
       error("failed to open file \"%s\"", filename);
@@ -172,7 +172,7 @@ endfunction
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif
@@ -258,7 +258,7 @@ endfunction
 %!   fn = dir([filename, "_post_pro_*.msh"]);
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen([filename, "_post_pro.geo"], "wt");
+%!     fd = fopen([filename, "_post_pro.geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", [filename, "_post_pro.geo"]);
 %!     endif

@@ -34,7 +34,7 @@ function fem_pre_geo_export(param_file, geo_file, param_val)
   fd = -1;
   
   unwind_protect
-    [fd, msg] = fopen(param_file, "wt");
+    [fd, msg] = fopen(param_file, "w");
 
     if (fd == -1)
       error("failed to open file \"%s\": %s", param_file, msg);
