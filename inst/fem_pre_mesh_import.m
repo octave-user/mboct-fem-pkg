@@ -10585,8 +10585,8 @@ endfunction
 %!            84324.4;
 %!            92665.1;
 %!            94563];
-%!   for i=1:length(sol_eig)
-%!     fprintf(stderr, "mode %d f=%.0f\n", i, sol_eig(i).f);
+%!   for i=1:length(sol_eig.f)
+%!     fprintf(stderr, "mode %d f=%.0f\n", i, sol_eig.f(i));
 %!   endfor
 %!   assert(sol_eig.f(:), f_ref, tol * max(f_ref));
 %!   figure_list();
