@@ -5348,7 +5348,7 @@ protected:
           const double Zeta3 = rv.xelem(2);
           const double Zeta4 = rv.xelem(3);
 
-          Inverse4x4(J, detJ, invJ);
+          Inverse4x4(J, detJ / gamma, invJ);
           
           B.xelem(0,0) = invJ.xelem(0,1)*(4*Zeta1-1);
           B.xelem(1,0) = 0;
