@@ -1585,11 +1585,11 @@ public:
 protected:
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const=0;
      virtual double Jacobian(const ColumnVector& rv, Matrix& J) const=0;
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const=0;
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& B) const=0;
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const=0;
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& Bt) const=0;
      
      void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
           info.Add(MeshInfo::JACOBIAN_DET, detJ);
@@ -1605,7 +1605,7 @@ protected:
 
           FEM_ASSERT(C.rows() == C.columns());
 
-          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
@@ -1618,7 +1618,7 @@ protected:
 
                AddMeshInfo(info, oIntegRule, detJ);
 
-               StrainMatrix(rv, J.inverse(), B);
+               StrainMatrix(rv, J, detJ, invJ, B);
 
                for (octave_idx_type l = 0; l < iNumStrains; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
@@ -2181,7 +2181,7 @@ protected:
           FEM_ASSERT(U.dim2() >= 3);
           FEM_ASSERT(iNumDof == 3 * X.columns());
 
-          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof);
           ColumnVector Ue(iNumDof);
           Matrix epsilong(iNumGauss, iNumStrains * iNumLoads);
 
@@ -2190,9 +2190,9 @@ protected:
                     rv.xelem(j) = oIntegRule.dGetPosition(i, j);
                }
 
-               Jacobian(rv, J);
+               const double detJ = Jacobian(rv, J);
 
-               StrainMatrix(rv, J.inverse(), B);
+               StrainMatrix(rv, J, detJ, invJ, B);
 
                for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     for (octave_idx_type j = 0; j < iNumNodes; ++j) {
@@ -2253,7 +2253,7 @@ protected:
           FEM_ASSERT(U.dim2() >= 3);
           FEM_ASSERT(iNumDof == 3 * X.columns());
 
-          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht;
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht;
           ColumnVector Ue(iNumDof), epsilonik(iNumPreLoads ? iNumStrains : 0);
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
 
@@ -2266,9 +2266,9 @@ protected:
                     rv.xelem(j) = oIntegRule.dGetPosition(i, j);
                }
 
-               Jacobian(rv, J);
+               const double detJ = Jacobian(rv, J);
 
-               StrainMatrix(rv, J.inverse(), B);
+               StrainMatrix(rv, J, detJ, invJ, B);
 
                if (iNumPreLoads) {
                     ScalarInterpMatrix(rv, Ht, 0);
@@ -2364,7 +2364,7 @@ protected:
           Matrix Ht(1, iNumNodes);
           ColumnVector rv(iNumDir);
 
-          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof);
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof);
           Matrix epsilon(iNumStrains, iNumPreLoads);
           Matrix Cepsilon(iNumStrains, iNumPreLoads);
           
@@ -2418,9 +2418,9 @@ protected:
                const double detJ = Jacobian(rv, J);
 
                AddMeshInfo(info, oIntegRule, detJ);
-
-               StrainMatrix(rv, J.inverse(), B);
-
+               
+               StrainMatrix(rv, J, detJ, invJ, B);
+               
                for (octave_idx_type j = 0; j < iNumPreLoads; ++j) {
                     for (octave_idx_type k = 0; k < iNumDof; ++k) {
                          double Rkj = 0.;
@@ -2445,7 +2445,7 @@ protected:
 
           FEM_ASSERT(k.rows() == k.columns());
 
-          Matrix J(iNumDir, iNumDir), B(iNumStrains, iNumDof), kB(iNumStrains, iNumDof);
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof), kB(iNumStrains, iNumDof);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
@@ -2458,7 +2458,7 @@ protected:
 
                AddMeshInfo(info, oIntegRule, detJ);
 
-               TemperatureGradientMatrix(rv, J.inverse(), B);
+               TemperatureGradientMatrix(rv, J, detJ, invJ, B);
 
                for (octave_idx_type l = 0; l < iNumStrains; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
@@ -2547,6 +2547,71 @@ protected:
                }
           }
      }
+
+     static double Determinant3x3(const Matrix& J) {
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+
+          return J.xelem(0,0)*(J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))-J.xelem(0,1)*(J.xelem(1,0)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,0))+J.xelem(0,2)*(J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0));
+     }
+     
+     static void Inverse3x3(const Matrix& J, const double detJ, Matrix& invJ) {
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(invJ.rows() == 3);
+          FEM_ASSERT(invJ.columns() == 3);
+
+          invJ.xelem(1,1) = (J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))/detJ;
+          invJ.xelem(1,2) = -(J.xelem(0,1)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,1))/detJ;
+          invJ.xelem(1,3) = (J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))/detJ;
+          invJ.xelem(2,1) = -(J.xelem(1,0)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,0))/detJ;
+          invJ.xelem(2,2) = (J.xelem(0,0)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,0))/detJ;
+          invJ.xelem(2,3) = -(J.xelem(0,0)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,0))/detJ;
+          invJ.xelem(3,1) = (J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0))/detJ;
+          invJ.xelem(3,2) = -(J.xelem(0,0)*J.xelem(2,1)-J.xelem(0,1)*J.xelem(2,0))/detJ;
+          invJ.xelem(3,3) = (J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))/detJ;
+
+          invJ.xelem(0,0) = (J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))/detJ;
+          invJ.xelem(1,0) = -(J.xelem(1,0)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,0))/detJ;
+          invJ.xelem(2,0) = (J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0))/detJ;
+          invJ.xelem(0,1) = -(J.xelem(0,1)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,1))/detJ;
+          invJ.xelem(1,1) = (J.xelem(0,0)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,0))/detJ;
+          invJ.xelem(2,1) = -(J.xelem(0,0)*J.xelem(2,1)-J.xelem(0,1)*J.xelem(2,0))/detJ;
+          invJ.xelem(0,2) = (J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))/detJ;
+          invJ.xelem(1,2) = -(J.xelem(0,0)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,0))/detJ;
+          invJ.xelem(2,2) = (J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))/detJ;
+     }
+
+     static double Determinant4x4(const Matrix& J) {
+          FEM_ASSERT(J.rows() == 4);
+          FEM_ASSERT(J.columns() == 4);
+
+          return J.xelem(0,0)*(J.xelem(1,1)*(J.xelem(2,2)*J.xelem(3,3)-J.xelem(2,3)*J.xelem(3,2))-J.xelem(1,2)*(J.xelem(2,1)*J.xelem(3,3)-J.xelem(2,3)*J.xelem(3,1))+J.xelem(1,3)*(J.xelem(2,1)*J.xelem(3,2)-J.xelem(2,2)*J.xelem(3,1)))-J.xelem(0,1)*(J.xelem(1,0)*(J.xelem(2,2)*J.xelem(3,3)-J.xelem(2,3)*J.xelem(3,2))-J.xelem(1,2)*(J.xelem(2,0)*J.xelem(3,3)-J.xelem(2,3)*J.xelem(3,0))+J.xelem(1,3)*(J.xelem(2,0)*J.xelem(3,2)-J.xelem(2,2)*J.xelem(3,0)))+J.xelem(0,2)*(J.xelem(1,0)*(J.xelem(2,1)*J.xelem(3,3)-J.xelem(2,3)*J.xelem(3,1))-J.xelem(1,1)*(J.xelem(2,0)*J.xelem(3,3)-J.xelem(2,3)*J.xelem(3,0))+J.xelem(1,3)*(J.xelem(2,0)*J.xelem(3,1)-J.xelem(2,1)*J.xelem(3,0)))-J.xelem(0,3)*(J.xelem(1,0)*(J.xelem(2,1)*J.xelem(3,2)-J.xelem(2,2)*J.xelem(3,1))-J.xelem(1,1)*(J.xelem(2,0)*J.xelem(3,2)-J.xelem(2,2)*J.xelem(3,0))+J.xelem(1,2)*(J.xelem(2,0)*J.xelem(3,1)-J.xelem(2,1)*J.xelem(3,0)));
+     }
+     
+     static void Inverse4x4(const Matrix& J, const double detJ, Matrix& invJ) {
+          FEM_ASSERT(J.rows() == 4);
+          FEM_ASSERT(J.columns() == 4);
+          FEM_ASSERT(invJ.rows() == 4);
+          FEM_ASSERT(invJ.columns() == 4);
+
+          invJ.xelem(0,0) = ((J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))*J.xelem(3,3)+(J.xelem(1,3)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,3))*J.xelem(3,2)+(J.xelem(1,2)*J.xelem(2,3)-J.xelem(1,3)*J.xelem(2,2))*J.xelem(3,1))/detJ;
+          invJ.xelem(1,0) = -((J.xelem(1,0)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,0))*J.xelem(3,3)+(J.xelem(1,3)*J.xelem(2,0)-J.xelem(1,0)*J.xelem(2,3))*J.xelem(3,2)+(J.xelem(1,2)*J.xelem(2,3)-J.xelem(1,3)*J.xelem(2,2))*J.xelem(3,0))/detJ;
+          invJ.xelem(2,0) = ((J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0))*J.xelem(3,3)+(J.xelem(1,3)*J.xelem(2,0)-J.xelem(1,0)*J.xelem(2,3))*J.xelem(3,1)+(J.xelem(1,1)*J.xelem(2,3)-J.xelem(1,3)*J.xelem(2,1))*J.xelem(3,0))/detJ;
+          invJ.xelem(3,0) = -((J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0))*J.xelem(3,2)+(J.xelem(1,2)*J.xelem(2,0)-J.xelem(1,0)*J.xelem(2,2))*J.xelem(3,1)+(J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))*J.xelem(3,0))/detJ;
+          invJ.xelem(0,1) = -((J.xelem(0,1)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,1))*J.xelem(3,3)+(J.xelem(0,3)*J.xelem(2,1)-J.xelem(0,1)*J.xelem(2,3))*J.xelem(3,2)+(J.xelem(0,2)*J.xelem(2,3)-J.xelem(0,3)*J.xelem(2,2))*J.xelem(3,1))/detJ;
+          invJ.xelem(1,1) = ((J.xelem(0,0)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,0))*J.xelem(3,3)+(J.xelem(0,3)*J.xelem(2,0)-J.xelem(0,0)*J.xelem(2,3))*J.xelem(3,2)+(J.xelem(0,2)*J.xelem(2,3)-J.xelem(0,3)*J.xelem(2,2))*J.xelem(3,0))/detJ;
+          invJ.xelem(2,1) = -((J.xelem(0,0)*J.xelem(2,1)-J.xelem(0,1)*J.xelem(2,0))*J.xelem(3,3)+(J.xelem(0,3)*J.xelem(2,0)-J.xelem(0,0)*J.xelem(2,3))*J.xelem(3,1)+(J.xelem(0,1)*J.xelem(2,3)-J.xelem(0,3)*J.xelem(2,1))*J.xelem(3,0))/detJ;
+          invJ.xelem(3,1) = ((J.xelem(0,0)*J.xelem(2,1)-J.xelem(0,1)*J.xelem(2,0))*J.xelem(3,2)+(J.xelem(0,2)*J.xelem(2,0)-J.xelem(0,0)*J.xelem(2,2))*J.xelem(3,1)+(J.xelem(0,1)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,1))*J.xelem(3,0))/detJ;
+          invJ.xelem(0,2) = ((J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))*J.xelem(3,3)+(J.xelem(0,3)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,3))*J.xelem(3,2)+(J.xelem(0,2)*J.xelem(1,3)-J.xelem(0,3)*J.xelem(1,2))*J.xelem(3,1))/detJ;
+          invJ.xelem(1,2) = -((J.xelem(0,0)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,0))*J.xelem(3,3)+(J.xelem(0,3)*J.xelem(1,0)-J.xelem(0,0)*J.xelem(1,3))*J.xelem(3,2)+(J.xelem(0,2)*J.xelem(1,3)-J.xelem(0,3)*J.xelem(1,2))*J.xelem(3,0))/detJ;
+          invJ.xelem(2,2) = ((J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))*J.xelem(3,3)+(J.xelem(0,3)*J.xelem(1,0)-J.xelem(0,0)*J.xelem(1,3))*J.xelem(3,1)+(J.xelem(0,1)*J.xelem(1,3)-J.xelem(0,3)*J.xelem(1,1))*J.xelem(3,0))/detJ;
+          invJ.xelem(3,2) = -((J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))*J.xelem(3,2)+(J.xelem(0,2)*J.xelem(1,0)-J.xelem(0,0)*J.xelem(1,2))*J.xelem(3,1)+(J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))*J.xelem(3,0))/detJ;
+          invJ.xelem(0,3) = -((J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))*J.xelem(2,3)+(J.xelem(0,3)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,3))*J.xelem(2,2)+(J.xelem(0,2)*J.xelem(1,3)-J.xelem(0,3)*J.xelem(1,2))*J.xelem(2,1))/detJ;
+          invJ.xelem(1,3) = ((J.xelem(0,0)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,0))*J.xelem(2,3)+(J.xelem(0,3)*J.xelem(1,0)-J.xelem(0,0)*J.xelem(1,3))*J.xelem(2,2)+(J.xelem(0,2)*J.xelem(1,3)-J.xelem(0,3)*J.xelem(1,2))*J.xelem(2,0))/detJ;
+          invJ.xelem(2,3) = -((J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))*J.xelem(2,3)+(J.xelem(0,3)*J.xelem(1,0)-J.xelem(0,0)*J.xelem(1,3))*J.xelem(2,1)+(J.xelem(0,1)*J.xelem(1,3)-J.xelem(0,3)*J.xelem(1,1))*J.xelem(2,0))/detJ;
+          invJ.xelem(3,3) = ((J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))*J.xelem(2,2)+(J.xelem(0,2)*J.xelem(1,0)-J.xelem(0,0)*J.xelem(1,2))*J.xelem(2,1)+(J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))*J.xelem(2,0))/detJ;
+     }
      
 private:
      octave_idx_type iNumPreLoads;
@@ -2627,7 +2692,7 @@ protected:
                }
           }
 #endif
-          return J.determinant();
+          return Determinant3x3(J);
      }
 
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
@@ -2713,17 +2778,19 @@ protected:
           H.xelem(2,23) = ((r+1)*(1-s)*(1-t))/8.0;
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
           FEM_ASSERT(B.rows() == 6);
           FEM_ASSERT(B.columns() == 24);
-
+          
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
           const double t = rv.xelem(2);
 
+          Inverse3x3(J, detJ, invJ);
+          
           B.xelem(0,0) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0;
           B.xelem(1,0) = 0;
           B.xelem(2,0) = 0;
@@ -2878,7 +2945,7 @@ protected:
 #endif
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
@@ -2888,6 +2955,8 @@ protected:
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
           const double t = rv.xelem(2);
+
+          Inverse3x3(J, detJ, invJ);
           
           // temperature gradient matrix Bt
           Bt.xelem(0,0) = (invJ.xelem(0,0)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(0,1)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(0,2)*(r+1)*(s+1))/8.0E+0;
@@ -3028,7 +3097,7 @@ protected:
           J.xelem(1,2) = (-(X.xelem(2,19)*(r+1)*(1-t2))/4.0E+0)+(X.xelem(2,16)*(r+1)*(1-t2))/4.0E+0-(X.xelem(2,18)*(1-r)*(1-t2))/4.0E+0+(X.xelem(2,17)*(1-r)*(1-t2))/4.0E+0+X.xelem(2,0)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+X.xelem(2,4)*(((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+X.xelem(2,3)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0)+X.xelem(2,7)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0)+X.xelem(2,1)*(((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+X.xelem(2,5)*(((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+X.xelem(2,2)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0)+X.xelem(2,6)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0)-(X.xelem(2,11)*(r+1)*s*(t+1))/2.0E+0-(X.xelem(2,9)*(1-r)*s*(t+1))/2.0E+0-(X.xelem(2,10)*(1-r2)*(t+1))/4.0E+0+(X.xelem(2,8)*(1-r2)*(t+1))/4.0E+0-(X.xelem(2,15)*(r+1)*s*(1-t))/2.0E+0-(X.xelem(2,13)*(1-r)*s*(1-t))/2.0E+0-(X.xelem(2,14)*(1-r2)*(1-t))/4.0E+0+(X.xelem(2,12)*(1-r2)*(1-t))/4.0E+0;
           J.xelem(2,2) = X.xelem(2,0)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0)+X.xelem(2,4)*((-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0)+X.xelem(2,1)*(((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0)+X.xelem(2,5)*((-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0)+X.xelem(2,3)*(((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0)+X.xelem(2,7)*((-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0)+X.xelem(2,2)*(((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0)+X.xelem(2,6)*((-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0)-(X.xelem(2,16)*(r+1)*(s+1)*t)/2.0E+0-(X.xelem(2,17)*(1-r)*(s+1)*t)/2.0E+0-(X.xelem(2,19)*(r+1)*(1-s)*t)/2.0E+0-(X.xelem(2,18)*(1-r)*(1-s)*t)/2.0E+0-(X.xelem(2,15)*(r+1)*(1-s2))/4.0E+0+(X.xelem(2,11)*(r+1)*(1-s2))/4.0E+0-(X.xelem(2,13)*(1-r)*(1-s2))/4.0E+0+(X.xelem(2,9)*(1-r)*(1-s2))/4.0E+0-(X.xelem(2,12)*(1-r2)*(s+1))/4.0E+0+(X.xelem(2,8)*(1-r2)*(s+1))/4.0E+0-(X.xelem(2,14)*(1-r2)*(1-s))/4.0E+0+(X.xelem(2,10)*(1-r2)*(1-s))/4.0E+0;
 
-          return J.determinant();
+          return Determinant3x3(J);
      }
 
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
@@ -3225,7 +3294,7 @@ protected:
           H.xelem(2,59) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
@@ -3238,6 +3307,8 @@ protected:
           const double r2 = r * r;
           const double s2 = s * s;
           const double t2 = t * t;
+
+          Inverse3x3(J, detJ, invJ);
 
           B.xelem(0,0) = invJ.xelem(0,0)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(0,1)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(0,2)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
           B.xelem(1,0) = 0;
@@ -3657,7 +3728,7 @@ private:
           Hs.xelem(irow, 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 20);
           
@@ -3667,6 +3738,8 @@ private:
           const double r_2 = r * r;
           const double s_2 = s * s;
           const double t_2 = t * t;
+
+          Inverse3x3(J, detJ, invJ);
           
           Bt.xelem(0,0) = invJ.xelem(0,0)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t_2))/4.0E+0+((1-s_2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(0,1)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t_2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r_2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(0,2)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s_2))/4.0E+0+((1-r_2)*(s+1))/4.0E+0)/2.0E+0);
           Bt.xelem(1,0) = invJ.xelem(1,0)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t_2))/4.0E+0+((1-s_2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(1,1)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t_2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r_2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(1,2)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s_2))/4.0E+0+((1-r_2)*(s+1))/4.0E+0)/2.0E+0);
@@ -3825,7 +3898,7 @@ protected:
           J.xelem(1,2) = X.xelem(2,14)*(1-t2)-X.xelem(2,12)*(1-t2)+(X.xelem(2,5)*(t+1)*(t+2*s-2))/2.0E+0-(X.xelem(2,3)*(t+1)*(t-2*s-2*r))/2.0E+0-2*X.xelem(2,11)*s*(t+1)+X.xelem(2,5)*s*(t+1)+2*X.xelem(2,11)*((-s)-r+1)*(t+1)-X.xelem(2,3)*((-s)-r+1)*(t+1)+2*X.xelem(2,10)*r*(t+1)-2*X.xelem(2,9)*r*(t+1)+(X.xelem(2,2)*(1-t)*((-t)+2*s-2))/2.0E+0-(X.xelem(2,0)*(1-t)*((-t)-2*s-2*r))/2.0E+0-2*X.xelem(2,8)*s*(1-t)+X.xelem(2,2)*s*(1-t)+2*X.xelem(2,8)*((-s)-r+1)*(1-t)-X.xelem(2,0)*((-s)-r+1)*(1-t)+2*X.xelem(2,7)*r*(1-t)-2*X.xelem(2,6)*r*(1-t);
           J.xelem(2,2) = (X.xelem(2,5)*s*(t+2*s-2))/2.0E+0+(X.xelem(2,3)*((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(X.xelem(2,4)*r*(t+2*r-2))/2.0E+0+(X.xelem(2,5)*s*(t+1))/2.0E+0+(X.xelem(2,3)*((-s)-r+1)*(t+1))/2.0E+0+(X.xelem(2,4)*r*(t+1))/2.0E+0-2*X.xelem(2,14)*s*t-2*X.xelem(2,12)*((-s)-r+1)*t-2*X.xelem(2,13)*r*t-(X.xelem(2,2)*s*((-t)+2*s-2))/2.0E+0-(X.xelem(2,0)*((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0-(X.xelem(2,1)*r*((-t)+2*r-2))/2.0E+0-(X.xelem(2,2)*s*(1-t))/2.0E+0-(X.xelem(2,0)*((-s)-r+1)*(1-t))/2.0E+0-(X.xelem(2,1)*r*(1-t))/2.0E+0+2*X.xelem(2,11)*((-s)-r+1)*s-2*X.xelem(2,8)*((-s)-r+1)*s+2*X.xelem(2,10)*r*s-2*X.xelem(2,7)*r*s+2*X.xelem(2,9)*r*((-s)-r+1)-2*X.xelem(2,6)*r*((-s)-r+1);
 
-          return J.determinant();
+          return Determinant3x3(J);
      }
 
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
@@ -3975,7 +4048,7 @@ protected:
           H.xelem(2,44) = s*(1-t2);
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
@@ -3987,6 +4060,8 @@ protected:
           const double t = rv.xelem(2);
           const double t2 = t * t;
 
+          Inverse3x3(J, detJ, invJ);
+          
           B.xelem(0,0) = invJ(0,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ(0,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
           B.xelem(1,0) = 0;
           B.xelem(2,0) = 0;
@@ -4259,7 +4334,7 @@ protected:
           B.xelem(5,44) = invJ(0,1)*(1-t2)-2*invJ(0,2)*s*t;
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 15);
           FEM_ASSERT(invJ.rows() == 3);
@@ -4269,6 +4344,8 @@ protected:
           const double s = rv.xelem(1);
           const double t = rv.xelem(2);
           const double t_2 = t * t;
+
+          Inverse3x3(J, detJ, invJ);
           
           Bt.xelem(0,0) = invJ.xelem(0,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(0,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(0,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
           Bt.xelem(1,0) = invJ.xelem(1,1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(1,0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(1,2)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
@@ -4512,7 +4589,7 @@ protected:
           J.xelem(1,2) = (-4*X.xelem(2,5)*t)+4*X.xelem(2,4)*t+4*X.xelem(2,6)*((-t)-s-r+1)-2*X.xelem(2,2)*((-t)-s-r+1)-X.xelem(2,2)*((-2*t)-2*s-2*r+1)+X.xelem(2,0)*(2*s-1)-4*X.xelem(2,6)*s+2*X.xelem(2,0)*s-4*X.xelem(2,9)*r+4*X.xelem(2,7)*r;
           J.xelem(2,2) = X.xelem(2,1)*(2*t-1)-4*X.xelem(2,5)*t+2*X.xelem(2,1)*t+4*X.xelem(2,5)*((-t)-s-r+1)-2*X.xelem(2,2)*((-t)-s-r+1)-X.xelem(2,2)*((-2*t)-2*s-2*r+1)-4*X.xelem(2,6)*s+4*X.xelem(2,4)*s-4*X.xelem(2,9)*r+4*X.xelem(2,8)*r;
 
-          return J.determinant();
+          return Determinant3x3(J);
      }
 
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
@@ -4616,7 +4693,7 @@ protected:
           H.xelem(2,29) = 4*r*((-t)-s-r+1);
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
@@ -4626,6 +4703,8 @@ protected:
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
           const double t = rv.xelem(2);
+
+          Inverse3x3(J, detJ, invJ);
 
           B.xelem(0,0) = invJ.xelem(0,1)*(4*s-1);
           B.xelem(1,0) = 0;
@@ -4872,7 +4951,7 @@ protected:
           Hs.xelem(irow,9) = 4*r*((-t)-s-r+1);
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(rv.numel() == 3);
@@ -4880,6 +4959,8 @@ protected:
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
           const double t = rv.xelem(2);
+
+          Inverse3x3(J, detJ, invJ);
 
           Bt.xelem(0,0) = invJ.xelem(0,1)*(4*s-1);
           Bt.xelem(1,0) = invJ.xelem(1,1)*(4*s-1);
@@ -5089,7 +5170,7 @@ protected:
           J.xelem(2,3) = X.xelem(1,3)*(4*Zeta4-1)+4*X.xelem(1,9)*Zeta3+4*X.xelem(1,8)*Zeta2+4*X.xelem(1,7)*Zeta1;
           J.xelem(3,3) = X.xelem(2,3)*(4*Zeta4-1)+4*X.xelem(2,9)*Zeta3+4*X.xelem(2,8)*Zeta2+4*X.xelem(2,7)*Zeta1;
 
-          return J.determinant() * gamma;
+          return Determinant4x4(J) * gamma;
      }
 
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
@@ -5194,15 +5275,19 @@ protected:
           H.xelem(2,29) = 4*Zeta3*Zeta4;
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& Bt) const {
+     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(rv.numel() == 4);
-
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          
           const double Zeta1 = rv.xelem(0);
           const double Zeta2 = rv.xelem(1);
           const double Zeta3 = rv.xelem(2);
           const double Zeta4 = rv.xelem(3);
+
+          Inverse4x4(J, detJ, invJ);
           
           Bt.xelem(0,0) = invJ.xelem(0,1)*(4*Zeta1-1);
           Bt.xelem(1,0) = invJ.xelem(0,2)*(4*Zeta1-1);
@@ -5236,7 +5321,7 @@ protected:
           Bt.xelem(2,9) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
      }
      
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(invJ.rows() == 4);
           FEM_ASSERT(invJ.columns() == 4);
           FEM_ASSERT(B.rows() == 6);
@@ -5248,6 +5333,8 @@ protected:
           const double Zeta3 = rv.xelem(2);
           const double Zeta4 = rv.xelem(3);
 
+          Inverse4x4(J, detJ, invJ);
+          
           B.xelem(0,0) = invJ.xelem(0,1)*(4*Zeta1-1);
           B.xelem(1,0) = 0;
           B.xelem(2,0) = 0;
