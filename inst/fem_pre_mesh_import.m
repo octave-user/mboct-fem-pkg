@@ -9391,7 +9391,7 @@ endfunction
 %!   tol = 2e-2;
 %!   assert(Uy, Uy_ref, tol * abs(Uy_ref));
 %!   assert(Uy2, Uy_ref, tol * abs(Uy_ref));
-%!   assert(sol_stat2.def, sol_stat.def, 1e-8 * max(max(max(abs(sol_stat.def)))));
+%!   assert(sol_stat2.def, sol_stat.def, 1e-7 * max(max(max(abs(sol_stat.def)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -16293,7 +16293,7 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:100:numel(sol.t)]
+%!   for i=[1:10,11:1000:numel(sol.t)]
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(x, theta_ref(:, i), "-;reference;0");
@@ -16428,7 +16428,7 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:100:numel(sol.t)]
+%!   for i=[1:10,11:1000:numel(sol.t)]
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(x, theta_ref(:, i), "-;reference;0");
@@ -16562,7 +16562,7 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:100:numel(sol.t)]
+%!   for i=[1:10,11:1000:numel(sol.t)]
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(x, theta_ref(:, i), "-;reference;0");
@@ -16696,7 +16696,7 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:100:numel(sol.t)]
+%!   for i=[1:10,11:1000:numel(sol.t)]
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(x, theta_ref(:, i), "-;reference;0");
