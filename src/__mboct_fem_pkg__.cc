@@ -2561,16 +2561,6 @@ protected:
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
 
-          invJ.xelem(1,1) = (J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))/detJ;
-          invJ.xelem(1,2) = -(J.xelem(0,1)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,1))/detJ;
-          invJ.xelem(1,3) = (J.xelem(0,1)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,1))/detJ;
-          invJ.xelem(2,1) = -(J.xelem(1,0)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,0))/detJ;
-          invJ.xelem(2,2) = (J.xelem(0,0)*J.xelem(2,2)-J.xelem(0,2)*J.xelem(2,0))/detJ;
-          invJ.xelem(2,3) = -(J.xelem(0,0)*J.xelem(1,2)-J.xelem(0,2)*J.xelem(1,0))/detJ;
-          invJ.xelem(3,1) = (J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0))/detJ;
-          invJ.xelem(3,2) = -(J.xelem(0,0)*J.xelem(2,1)-J.xelem(0,1)*J.xelem(2,0))/detJ;
-          invJ.xelem(3,3) = (J.xelem(0,0)*J.xelem(1,1)-J.xelem(0,1)*J.xelem(1,0))/detJ;
-
           invJ.xelem(0,0) = (J.xelem(1,1)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,1))/detJ;
           invJ.xelem(1,0) = -(J.xelem(1,0)*J.xelem(2,2)-J.xelem(1,2)*J.xelem(2,0))/detJ;
           invJ.xelem(2,0) = (J.xelem(1,0)*J.xelem(2,1)-J.xelem(1,1)*J.xelem(2,0))/detJ;
@@ -2780,6 +2770,8 @@ protected:
 
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
           FEM_ASSERT(B.rows() == 6);
@@ -2947,6 +2939,8 @@ protected:
 
      virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
           FEM_ASSERT(Bt.rows() == 3);
@@ -3296,6 +3290,8 @@ protected:
 
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
           FEM_ASSERT(B.rows() == 6);
@@ -3731,6 +3727,10 @@ private:
      virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 20);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(invJ.rows() == 3);
+          FEM_ASSERT(invJ.columns() == 3);
           
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
@@ -4050,6 +4050,8 @@ protected:
 
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
           FEM_ASSERT(B.rows() == 6);
@@ -4337,6 +4339,8 @@ protected:
      virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 15);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
 
@@ -4695,6 +4699,8 @@ protected:
 
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
           FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
           FEM_ASSERT(invJ.columns() == 3);
           FEM_ASSERT(B.rows() == 6);
@@ -4954,6 +4960,11 @@ protected:
      virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(invJ.rows() == 3);
+          FEM_ASSERT(invJ.columns() == 3);
+          
           FEM_ASSERT(rv.numel() == 3);
 
           const double r = rv.xelem(0);
@@ -5279,8 +5290,10 @@ protected:
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(rv.numel() == 4);
-          FEM_ASSERT(J.rows() == 3);
-          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(J.rows() == 4);
+          FEM_ASSERT(J.columns() == 4);
+          FEM_ASSERT(invJ.rows() == 4);
+          FEM_ASSERT(invJ.columns() == 4);
           
           const double Zeta1 = rv.xelem(0);
           const double Zeta2 = rv.xelem(1);
@@ -5322,6 +5335,8 @@ protected:
      }
      
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
+          FEM_ASSERT(J.rows() == 4);
+          FEM_ASSERT(J.columns() == 4);
           FEM_ASSERT(invJ.rows() == 4);
           FEM_ASSERT(invJ.columns() == 4);
           FEM_ASSERT(B.rows() == 6);
