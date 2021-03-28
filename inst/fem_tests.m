@@ -1558,9 +1558,10 @@
 %!   R1 = euler123_to_rotation_matrix([Phi1(i); Phi2(i); Phi3(i)]);
 %!   data(i).mesh.nodes = [(R1 * X).', zeros(columns(X), 3)];
 %!   data(i).mesh.elements.tet10 = int32(1:10);
+%!   data(i).mesh.elements.joints = struct("C", cell(1,0), "nodes", cell(1,0));
 %!   for j=[1,2,4,5,8,9]
-%!     data(i).mesh.elements.joints.nodes = j;
-%!     data(i).mesh.elements.joints.C = [eye(3), zeros(3, 3)];
+%!     data(i).mesh.elements.joints(end + 1).nodes = j;
+%!     data(i).mesh.elements.joints(end).C = [eye(3), zeros(3, 3)];
 %!   endfor
 %!   data(i).mesh.materials.tet10 = int32(1);
 %!   E = 210000e6;
