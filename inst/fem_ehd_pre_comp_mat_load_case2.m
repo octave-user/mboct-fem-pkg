@@ -453,7 +453,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   endif
 endfunction
 
-%!test
+%!xtest
 %! ## TEST1
 %! close all;
 %! fd = -1;
@@ -852,7 +852,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!test
+%!xtest
 %! ## TEST 3
 %! close all;
 %! fd = -1;
