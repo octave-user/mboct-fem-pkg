@@ -1220,7 +1220,11 @@
 
 %!test
 %! ## TEST 15
+%! if (exist("fem_tests_enable_plotting"))
 %! do_plot = fem_tests_enable_plotting();
+%! else
+%! do_plot = false;
+%! endif
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -1276,9 +1280,11 @@
 %!    data(ialg).mat_ass_cms, ...
 %!    data(ialg).dof_map_cms, ...
 %!    data(ialg).sol_eig_cms] = fem_cms_create(data(ialg).mesh, data(ialg).load_case, data(ialg).cms_opt);
-%!   data(ialg).mesh.elements.joints(end + 1).nodes = data(ialg).cms_opt.nodes.modal.number;
-%!   data(ialg).mesh.elements.joints(end).C = eye(6);
-%!   data(ialg).load_case.joints(end + 1).U = zeros(6, 1);
+%!   data(ialg).mesh.elements.joints = struct("nodes", cell(1, 1), "C", cell(1,1));
+%!   data(ialg).load_case.joints = struct("U", cell(1, 1));
+%!   data(ialg).mesh.elements.joints(1).nodes = data(ialg).cms_opt.nodes.modal.number;
+%!   data(ialg).mesh.elements.joints(1).C = eye(6);
+%!   data(ialg).load_case.joints(1).U = zeros(6, 1);
 %!   data(ialg).load_case.loaded_nodes = [data(ialg).cms_opt.nodes.interfaces.number];
 %!   data(ialg).load_case.loads = [0, 0, -1, 0, 0, 0] / SI_unit_N;
 %!   data(ialg).dof_map = fem_ass_dof_map(data(ialg).mesh, data(ialg).load_case);
@@ -1525,7 +1531,11 @@
 %! b = 0.3;
 %! c = 0.7;
 %! p = 2.5e9;
-%! do_plot = fem_tests_enable_plotting();
+%! if (exist("fem_tests_enable_plotting"))
+%!   do_plot = fem_tests_enable_plotting();
+%! else
+%!   do_plot = false;
+%! endif
 %! scale = -0.5 * a;
 
 %! X = [      0,       0,       0;
@@ -1549,8 +1559,8 @@
 %!   data(i).mesh.nodes = [(R1 * X).', zeros(columns(X), 3)];
 %!   data(i).mesh.elements.tet10 = int32(1:10);
 %!   for j=[1,2,4,5,8,9]
-%!     data(i).mesh.elements.joints(end+1).nodes = j;
-%!     data(i).mesh.elements.joints(end).C = [eye(3), zeros(3, 3)];
+%!     data(i).mesh.elements.joints.nodes = j;
+%!     data(i).mesh.elements.joints.C = [eye(3), zeros(3, 3)];
 %!   endfor
 %!   data(i).mesh.materials.tet10 = int32(1);
 %!   E = 210000e6;

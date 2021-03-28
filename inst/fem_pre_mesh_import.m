@@ -586,6 +586,31 @@ function [mesh, load_case] = fem_load_mesh_eossp(filename, format)
 
             elem_nodes = [elem1(5:8).', elem2.'];
 
+	    if (~isfield(mesh, "elements"))
+	      mesh.elements = struct();
+	    endif
+
+	    if (~isfield(mesh, "materials"))
+	      mesh.materials = struct();
+	    endif
+
+	    switch (elem1(3))
+	      case 8
+		if (~isfield(mesh.materials, "iso4"))
+		  mesh.materials.iso4 = [];
+		endif
+		if (~isfield(mesh.elements, "iso4"))
+		  mesh.elements.iso4 = [];
+		endif
+	      case {11, 12}
+		if (~isfield(mesh.materials, "iso8"))
+		  mesh.materials.iso8 = [];
+		endif
+		if (~isfield(mesh.elements, "iso8"))
+		  mesh.elements.iso8 = [];
+		endif
+	    endswitch
+	    
             switch (elem1(3))
               case 8
                 mesh.materials.iso4(end + 1, 1) = material_id(elem1(4));
@@ -9085,7 +9110,7 @@ endfunction
 %!                                         sol_stat2);
 %!     tol_def = 1e-5;
 %!     tol_strain = 1e-3;
-%!     tol_stress = 3e-3;
+%!     tol_stress = 5e-3;
 %!     assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
 %!     assert(sol_stat2.stress.tau.tet10h, zeros(size(sol_stat.stress.tau.tet10h)), tol_stress * max(max(max(abs(sol_stat.stress.tau.tet10h)))));
 %!     assert(sol_stat2.strain.epsilonm.tet10h, sol_stat.strain.epsilonm.tet10h, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10h)))));
