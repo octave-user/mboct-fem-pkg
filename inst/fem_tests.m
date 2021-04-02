@@ -50,8 +50,11 @@
 %! mesh_size.num_elem_h = ceil(geometry.h / h);
 %! number_of_modes = 10;
 %! number_of_modes_disp = 3;
-%! plot_def = fem_tests_enable_plotting();
-
+%! if (exist("fem_tests_enable_plotting"))
+%!   plot_def = fem_tests_enable_plotting();
+%! else
+%!   plot_def = false;
+%! endif
 %! f = [ 0; Fy; 0 ];
 %! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
@@ -63,7 +66,9 @@
 %!                               FEM_MAT_STIFFNESS, ...
 %!                               FEM_VEC_LOAD_CONSISTENT], ...
 %!                              load_case);
+%!
 %! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!
 %! sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                  dof_map, ...
 %!                                  [FEM_VEC_STRESS_CAUCH], ...
@@ -73,6 +78,8 @@
 %! rho = 100;
 %! tol = 1e-6;
 %! err = zeros(number_of_modes, numel(alg));
+%! empty_cell = cell(1, numel(alg));
+%! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell);
 %! for a=1:numel(alg)
 %!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
 %! endfor
