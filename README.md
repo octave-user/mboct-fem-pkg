@@ -23,6 +23,7 @@ Copyright<sup>&copy;</sup> 2019-2020
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
+  For an example how mboct-fem-pkg can be installed on a Linux system see https://github.com/octave-user/mboct-mbdyn-pkg/tree/master/.github/workflows/simple.yml
 
 ## GNU Octave installation
   - Follow the instructions on (http://www.gnu.org/software/octave/) to install GNU Octave.  
