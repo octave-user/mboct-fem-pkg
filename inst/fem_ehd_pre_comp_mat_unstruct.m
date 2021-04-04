@@ -53,6 +53,14 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
     print_usage();
   endif
 
+  if (~isfield(cms_opt, "refine_max_iter"))
+    cms_opt.refine_max_iter = int32(3);
+  endif
+
+  if (~isfield(cms_opt, "number_of_threads"))
+    cms_opt.number_of_threads = int32(1);
+  endif
+  
   warning("error", "Octave:singular-matrix", "local");
   warning("error", "Octave:nearly-singular-matrix", "local");
 
