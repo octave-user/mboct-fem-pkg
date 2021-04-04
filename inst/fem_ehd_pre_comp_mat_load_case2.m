@@ -453,11 +453,12 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   endif
 endfunction
 
-%!xtest
+%!test
 %! ## TEST1
 %! close all;
 %! fd = -1;
 %! filename = "";
+%! debug_on_error(true);
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -530,6 +531,7 @@ endfunction
 %!	mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!	fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!	cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
+%!      cms_opt.solver = "umfpack";
 %!	switch (interfaces{j})
 %!	  case "flexible"
 %!	    cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 2;
@@ -579,6 +581,7 @@ endfunction
 %!	cms_opt.inveriants = true;
 %!	cms_opt.modes.number = num_modes(l);
 %!	cms_opt.static_modes = false;
+%!      cms_opt.modal_node_constraint = false;
 %!	cms_opt.load_cases = "index";
 %!	cms_opt.refine_max_iter = int32(10);
 %!	load_case(1).locked_dof = false(rows(mesh.nodes), 6);
@@ -601,6 +604,7 @@ endfunction
 %!	endif
 %!	opt_modes.refine_max_iter = int32(10);
 %!	opt_modes.verbose = int32(0);
+%!      opt_modes.solver = cms_opt.solver;
 %!	opt_modes.rigid_body_modes = interfaces{j};
 %!	[mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!	dof_map = fem_ass_dof_map(mesh, load_case);
@@ -614,13 +618,13 @@ endfunction
 %!				      FEM_MAT_MASS, ...
 %!				      FEM_VEC_LOAD_CONSISTENT], ...
 %!				     load_case_bearing);
-%!	sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!	[mesh, ...
-%!	 mat_ass, ...
-%!	 dof_map, ...
-%!	 sol_eig_cms, ...
-%!	 cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
-%!	comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
+%!	   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!	   [mesh, ...
+%!	    mat_ass, ...
+%!	    dof_map, ...
+%!	    sol_eig_cms, ...
+%!	    cms_optp] = fem_cms_create(mesh, load_case_bearing, cms_opt);
+%!	   comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_optp, bearing_surf);
 %!       endfor
 %!     endfor
 %!   endfor
@@ -637,7 +641,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 2
+%! ## TEST2
 %! close all;
 %! fd = -1;
 %! filename = "";
@@ -783,6 +787,8 @@ endfunction
 %!       opt_modes.refine_max_iter = int32(10);
 %!       opt_modes.verbose = int32(0);
 %!       opt_modes.rigid_body_modes = interfaces{j};
+%!       opt_modes.solver = "umfpack";
+%!       cms_opt.solver = opt_modes.solver;
 %!       [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!       [mesh, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
 %!       comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
@@ -820,7 +826,7 @@ endfunction
 %!       mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
 %!       dof_map_post = fem_ass_dof_map(mesh_post, load_case_post(1));
 %!       [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
-%!       sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!       sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, opt_modes);
 %!       mesh_data(1).mesh = mesh;
 %!       mesh_data(1).dof_map = dof_map;
 %!       mesh_data(2).mesh = mesh_post;
@@ -852,7 +858,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!xtest
+%!test
 %! ## TEST 3
 %! close all;
 %! fd = -1;
@@ -979,7 +985,7 @@ endfunction
 %!   cms_opt.static_modes = false;
 %!   cms_opt.modal_node_constraint = false;
 %!   cms_opt.load_cases = "index";
-%!   cms_opt.solver = "pastix";
+%!   cms_opt.solver = "umfpack";
 %!   cms_opt.refine_max_iter = int32(10);
 %!   load_case(1).locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -989,7 +995,7 @@ endfunction
 %!   opt_modes.shift_A = 1e-6;
 %!   opt_modes.refine_max_iter = int32(10);
 %!   opt_modes.verbose = int32(0);
-%!   opt_modes.solver = "pastix";
+%!   opt_modes.solver = cms_opt.solver;
 %!   num_modes = [intmax];
 %!   interfaces = {"rigid", "flexible"};
 %!   num_modes_cms = int32([0, 50]);
@@ -1086,7 +1092,7 @@ endfunction
 %!                                           dof_map_post, ...
 %!                                           [FEM_MAT_MASS, FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
 %!                                           load_case_post);
-%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
 %!         node_idx1 = mesh_l.groups.tria6(bearing_surf(1).group_idx).nodes;
 %!         w1post = zeros(numel(node_idx1), size(sol_post.def, 3));
 %!         for i=1:numel(node_idx1)
@@ -1116,7 +1122,7 @@ endfunction
 %!             ylabel("w [um]");
 %!           endfor
 %!         endfor
-%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred));
+%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred), 0, sqrt(eps), "shift-invert", cms_opt.solver);
 %!         for i=1:size(sol_eig_post.def, 3)
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
@@ -1263,7 +1269,7 @@ endfunction
 %!   cms_opt.static_modes = false;
 %!   cms_opt.modal_node_constraint = false;
 %!   cms_opt.load_cases = "index";
-%!   cms_opt.solver = "pastix";
+%!   cms_opt.solver = "umfpack";
 %!   cms_opt.refine_max_iter = int32(10);
 %!   load_case(1).locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -1273,7 +1279,7 @@ endfunction
 %!   opt_modes.shift_A = 0;
 %!   opt_modes.refine_max_iter = int32(10);
 %!   opt_modes.verbose = int32(0);
-%!   opt_modes.solver = "pastix";
+%!   opt_modes.solver = cms_opt.solver;
 %!   opt_modes.active_joint_idx_eig = 1:numel(mesh.elements.joints);
 %!   num_modes = [intmax];
 %!   interfaces = {"rigid", "flexible"};
@@ -1354,7 +1360,7 @@ endfunction
 %!                                           dof_map_post, ...
 %!                                           [FEM_MAT_MASS, FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
 %!                                           load_case_post);
-%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
 %!         node_idx1 = mesh_l.groups.tria6(bearing_surf(1).group_idx).nodes;
 %!         w1post = zeros(numel(node_idx1), size(sol_post.def, 3));
 %!         for i=1:numel(node_idx1)
@@ -1384,7 +1390,7 @@ endfunction
 %!             ylabel("w [um]");
 %!           endfor
 %!         endfor
-%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred));
+%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred), 0, sqrt(eps), "shift-invert", cms_opt.solver);
 %!         for i=1:size(sol_eig_post.def, 3)
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
@@ -1546,7 +1552,7 @@ endfunction
 %!   cms_opt.static_modes = false;
 %!   cms_opt.modal_node_constraint = false;
 %!   cms_opt.load_cases = "index";
-%!   cms_opt.solver = "pastix";
+%!   cms_opt.solver = "umfpack";
 %!   cms_opt.refine_max_iter = int32(10);
 %!   cms_opt.verbose = int32(0);
 %!   load_case = fem_pre_load_case_create_empty(6);
@@ -1645,7 +1651,7 @@ endfunction
 %!                                           dof_map_post, ...
 %!                                           [FEM_MAT_MASS, FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
 %!                                           load_case_post);
-%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!         sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
 %!         node_idx1 = mesh_l.groups.tria6(bearing_surf(1).group_idx).nodes;
 %!         w1post = zeros(numel(node_idx1), size(sol_post.def, 3));
 %!         for i=1:numel(node_idx1)
@@ -1675,7 +1681,7 @@ endfunction
 %!             ylabel("w [um]");
 %!           endfor
 %!         endfor
-%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred));
+%!         sol_eig_post = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, columns(mat_ass.Kred), 0, sqrt(eps), "shift-invert", cms_opt.solver);
 %!         for i=1:size(sol_eig_post.def, 3)
 %!           sol_eig_post.def(:, :, i) *= 10e-3 / max(max(abs(sol_eig_post.def(:, 1:3, i))));
 %!         endfor
