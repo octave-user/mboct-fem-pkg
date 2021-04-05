@@ -24,7 +24,7 @@
 ##
 ## @var{options}.solver @dots{} Character string name of the linear solver to use.
 ##
-## Use one of @{"pastix" | "pardiso" | "strumpack" | "mumps" | "umfpack" | "lu" | "chol" | "mldivide"@}.
+## Use one of @{"pastix" | "pardiso" | "mumps" | "umfpack" | "lu" | "chol" | "mldivide"@}.
 ##
 ## @var{options}.refine_max_iter @dots{} Maximum number of refinement iterations.
 ##
@@ -107,28 +107,6 @@ function Afact = fem_sol_factor(A, options)
       endif
       
       linear_solver = @fem_fact_pardiso;
-    case "strumpack"
-      if (~isfield(options, "symmetric"))
-        options.symmetric = true;
-      endif
-
-      if (~isfield(options, "compression"))
-        options.compression = STRUMPACK_COMPRESS_NONE;
-      endif
-      
-      if (~isfield(options, "relative_tol"))
-        options.relative_tol = 0;
-      endif
-
-      if (~isfield(options, "absolute_tol"))
-        options.absolute_tol = eps;
-      endif
-
-      if (~isfield(options, "restart"))
-        options.restart = int32(100);
-      endif
-      
-      linear_solver = @fem_fact_strumpack;
     case "mumps"
       if (blambda)
         options.matrix_type = MUMPS_MAT_SYM;
@@ -165,7 +143,7 @@ endfunction
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
-%!   solvers = {"pastix", "pardiso", "strumpack", "mumps", "umfpack", "lu", "chol", "mldivide"};
+%!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "lu", "chol", "mldivide"};
 %!   M = 20;
 %!   options.refine_max_iter = 10;
 %!   options.number_of_threads = int32(4);

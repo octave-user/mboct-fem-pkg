@@ -49,7 +49,7 @@ endfunction
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
-%!   solvers = {"pastix", "pardiso", "strumpack", "mumps", "umfpack", "chol", "lu"};
+%!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
 %!   tol = sqrt(eps);
 %!   max_f = 0;
 %!   for N=[2,10,100,200,300]
@@ -79,7 +79,7 @@ endfunction
 %!   for N=[2,10,100,200,300]
 %!     K = gallery("Poisson", N);
 %!     R = rand(columns(K), 10);
-%!     solvers = {"pastix", "pardiso", "strumpack", "mumps", "umfpack", "chol", "lu"};
+%!     solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
 %!     tol = sqrt(eps);
 %!     for i=1:numel(solvers)
 %!       options.solver = solvers{i};
