@@ -111,6 +111,22 @@ function Afact = fem_sol_factor(A, options)
       if (~isfield(options, "symmetric"))
         options.symmetric = true;
       endif
+
+      if (~isfield(options, "compression"))
+        options.compression = STRUMPACK_COMPRESS_NONE;
+      endif
+      
+      if (~isfield(options, "relative_tol"))
+        options.relative_tol = 0;
+      endif
+
+      if (~isfield(options, "absolute_tol"))
+        options.absolute_tol = eps;
+      endif
+
+      if (~isfield(options, "restart"))
+        options.restart = int32(100);
+      endif
       
       linear_solver = @fem_fact_strumpack;
     case "mumps"

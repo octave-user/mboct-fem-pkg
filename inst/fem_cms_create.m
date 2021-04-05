@@ -584,14 +584,14 @@ endfunction
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
-%! sol = {"pastix", "pardiso", "strumpack", "mumps", "umfpack", "chol", "lu", "mldivide"};
+%! sol = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
-%! tol = 1e-7;
+%! tol = 1e-6;
 %! for stat_modes=use_static_modes
 %!   cms_opt.static_modes = stat_modes;
-%!   for iter=[0,10];
+%!   for iter=[10];
 %!     for modes=int32([0, 4, 8, 10])
 %!       lambda_ref = [];
 %!       Phi_ref = [];
@@ -601,14 +601,14 @@ endfunction
 %! 	  cms_opt.solver = sol{isol};
 %! 	  for ialg=1:numel(alg)
 %! 	    for invariants=[true, false]
-%! 	      for verbose=[false]
+%! 	      for verbose=[true]
 %! 		for threads=int32([1, 4])
 %! 		  cms_opt.verbose = verbose;
 %! 		  cms_opt.modes.number = modes;
 %! 		  cms_opt.number_of_threads = threads;
 %! 		  cms_opt.algorithm = alg{ialg};
 %! 		  cms_opt.invariants = invariants;
-%! 		  cms_opt.max_iter_refine = iter;
+%! 		  cms_opt.refine_max_iter = iter;
 %! 		  [mesh_cms, ...
 %! 		   mat_ass_cms, ...
 %! 		   dof_map_cms, ...
