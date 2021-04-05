@@ -23,7 +23,40 @@ Copyright<sup>&copy;</sup> 2019-2020
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
+ The following code is an example how mboct-fem-pkg can be installed on an Ubuntu system:
+ 
+   `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev`
 
+  `git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git`
+
+  `pushd mbdyn`
+
+  `./bootstrap.sh`
+
+  `./configure --with-static-modules --enable-octave --enable-sparse_autodiff --enable-autodiff --disable-Werror CPPFLAGS=-I/usr/include/suitesparse --with-arpack --with-umfpack --without-metis`
+
+  `make`
+
+  `sudo make install`
+
+  `popd`
+
+  `git clone -b master https://github.com/octave-user/mboct-octave-pkg.git`
+
+  `make -C mboct-octave-pkg install_local`
+
+  `git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git`
+
+  `make -C mboct-numerical-pkg install_local`
+
+  `git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git`
+
+  `make -C mboct-mbdyn-pkg install_local`
+
+  `git clone -b master https://github.com/octave-user/mboct-fem-pkg.git`
+
+  `make -C mboct-fem-pkg install_local`
+    
 ## GNU Octave installation
   - Follow the instructions on (http://www.gnu.org/software/octave/) to install GNU Octave.  
   - Make sure, that `mkoctfile` is installed.  
@@ -46,6 +79,9 @@ Copyright<sup>&copy;</sup> 2019-2020
     `for pkg in octave numerical mbdyn fem; do`    
         `git clone https://github.com/octave-user/mboct-${pkg}-pkg.git && make -C mboct-${pkg}-pkg install_local`	  
     `done`
+
+## NLOpt installation:
+  - Follow the instructions on https://nlopt.readthedocs.io to install nlopt.
 
 ## Gmsh installation:
   - Follow the instructions on (http://www.gmsh.info/) to install Gmsh.  
