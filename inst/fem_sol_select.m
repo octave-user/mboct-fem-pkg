@@ -27,7 +27,7 @@ function solver = fem_sol_select(blambda, solver)
   endif
 
   if (nargin < 2 || ~fem_sol_check_func(solver))
-    solvers = {"pastix", "mumps", "umfpack", "chol", "lu"};
+    solvers = {"pastix", "pardiso", "strumpack", "mumps", "umfpack", "chol", "lu"};
     
     for i=1:numel(solvers)
       if (fem_sol_check_func(solvers{i}))

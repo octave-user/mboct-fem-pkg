@@ -178,7 +178,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   cms_opt.symmetric = true;
   
   switch (cms_opt.solver)
-    case {"umfpack", "lu", "mldivide"}
+    case {"umfpack", "lu", "mldivide", "strumpack"}
       mat_type_stiffness = FEM_MAT_STIFFNESS;
       cms_opt.symmetric = false;
   endswitch
@@ -584,7 +584,7 @@ endfunction
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
-%! sol = {"pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
+%! sol = {"pastix", "pardiso", "strumpack", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];

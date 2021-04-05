@@ -2077,8 +2077,8 @@
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
-%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps"};
-%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_pastix_ref, @fem_fact_mumps};
+%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps", "pardiso", "strumpack"};
+%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_pastix_ref, @fem_fact_mumps, @fem_fact_pardiso, @fem_fact_strumpack};
 %!   warnfunc = false(size(func));
 %!   options.refine_max_iter = int32(100);
 %!   options.verbose = int32(0);

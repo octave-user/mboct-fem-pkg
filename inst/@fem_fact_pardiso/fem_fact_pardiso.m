@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,17 +14,17 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {} @var{fact} = fem_fact_pastix(@var{A}, @var{opts})
-## Create a factor object which uses PaStiX to solve @var{A} * x = b via @var{x} = @var{Afact} \ @var{b}
+## @deftypefn {} @var{fact} = fem_fact_pardiso(@var{A}, @var{opts})
+## Create a factor object which uses Intel MKL Pardiso to solve @var{A} * x = b via @var{x} = @var{Afact} \ @var{b}
 ## @seealso{pastix}
 ## @end deftypefn
 
-function fact = fem_fact_pastix(A, opts)
+function fact = fem_fact_pardiso(A, opts)
   if (~(nargin == 2 && ismatrix(A) && issquare(A) && isstruct(opts)))
     print_usage();
   endif
     
-  fact.pasobj = pastix(A, opts);
+  fact.parobj = pardiso(A, opts);
 
-  fact = class(fact, "fem_fact_pastix");
+  fact = class(fact, "fem_fact_pardiso");
 endfunction
