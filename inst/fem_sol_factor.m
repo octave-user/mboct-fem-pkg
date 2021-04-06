@@ -105,6 +105,14 @@ function Afact = fem_sol_factor(A, options)
       if (~isfield(options, "verbose"))
         options.verbose = false;
       endif
+
+      if (~isfield(options, "scaling"))
+        options.scaling = blambda;
+      endif
+
+      if (~isfield(options, "weighted_matching"))
+        options.weighted_matching = blambda;
+      endif
       
       linear_solver = @fem_fact_pardiso;
     case "mumps"
