@@ -27,7 +27,7 @@ Copyright<sup>&copy;</sup> 2019-2021
 # Installation
  The following code is an example how mboct-fem-pkg can be installed on an Ubuntu system:
  
-   `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev`
+   `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev coreutils`
 
   `git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git`
 

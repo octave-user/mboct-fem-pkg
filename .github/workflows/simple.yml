@@ -30,7 +30,8 @@ jobs:
         run: |
            sudo apt-get install octave liboctave-dev \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
-           libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev
+           libmetis-dev octave-nurbs gmsh libnlopt-dev \
+           libmkl-full-dev coreutils
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
@@ -67,5 +68,6 @@ jobs:
         run: make -C $GITHUB_WORKSPACE install_local
         
       - name: Run all tests
-        run: make -C $GITHUB_WORKSPACE check_installed && \
+        run: |
+             make -C $GITHUB_WORKSPACE check_installed
              cat ${GITHUB_WORKSPACE}/fntest.log
