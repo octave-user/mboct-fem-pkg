@@ -28,6 +28,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install GNU/Octave
         run: |
+           /usr/bin/cat /proc/cpuinfo
            sudo apt-get install octave liboctave-dev \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
            libmetis-dev octave-nurbs gmsh libnlopt-dev \
