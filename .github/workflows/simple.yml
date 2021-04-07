@@ -28,11 +28,12 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install GNU/Octave
         run: |
-           /usr/bin/cat /proc/cpuinfo
            sudo apt-get install octave liboctave-dev \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
            libmetis-dev octave-nurbs gmsh libnlopt-dev \
            libmkl-full-dev coreutils
+           /usr/bin/cat /proc/cpuinfo
+
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
@@ -71,4 +72,4 @@ jobs:
       - name: Run all tests
         run: |
              make -C $GITHUB_WORKSPACE check_installed
-             cat ${GITHUB_WORKSPACE}/fntest.log
+             /usr/bin/cat ${GITHUB_WORKSPACE}/fntest.log
