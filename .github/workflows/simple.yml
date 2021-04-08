@@ -72,4 +72,4 @@ jobs:
       - name: Run all tests
         run: |
              make -C $GITHUB_WORKSPACE check_installed
-             /usr/bin/cat ${GITHUB_WORKSPACE}/fntest.log
+             /usr/bin/cat ${GITHUB_WORKSPACE}/fntests.log
