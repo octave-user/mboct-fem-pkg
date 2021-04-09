@@ -32,7 +32,6 @@ jobs:
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
            libmetis-dev octave-nurbs gmsh libnlopt-dev \
            libmkl-full-dev coreutils
-           /usr/bin/cat /proc/cpuinfo
 
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
@@ -44,7 +43,7 @@ jobs:
           --enable-octave --enable-sparse_autodiff --enable-autodiff \
           --disable-Werror CPPFLAGS=-I/usr/include/suitesparse \
           --with-arpack --with-umfpack --without-metis && \
-          make && sudo make install && popd
+          make -j4 && sudo make install && popd
       - name: Install mboct-octave-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-octave-pkg.git && \
@@ -72,4 +71,4 @@ jobs:
       - name: Run all tests
         run: |
              make -C $GITHUB_WORKSPACE check_installed
-             /usr/bin/cat ${GITHUB_WORKSPACE}/fntest.log
+             cat ${GITHUB_WORKSPACE}/fntest.log
