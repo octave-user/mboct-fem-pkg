@@ -1878,7 +1878,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ### TEST7
+%! ### TEST 7
 %! close all;
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
@@ -2008,7 +2008,7 @@ endfunction
 %!     grp_idx_master = mesh.groups.tria6(find([[mesh.groups.tria6].id] == i * 100 + 1)).elements;
 %!     mesh.elements.sfncon6(i).slave = mesh.groups.tria6(grp_idx_slave).nodes(:);
 %!     mesh.elements.sfncon6(i).master = mesh.elements.tria6(grp_idx_master, :);
-%!     mesh.elements.sfncon6(i).maxdist = sqrt(eps) * max(abs([a,b,c]));
+%!     mesh.elements.sfncon6(i).maxdist = 1e-6;
 %!   endfor
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 1)).nodes, :) = true;
@@ -11901,8 +11901,12 @@ endfunction
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
 %!   lambda = 50;
-%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
-%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   if (isfield(mesh.elements, "iso20"))
+%!     mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   endif
+%!   if (isfield(mesh.elements, "penta15"))
+%!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   endif
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
@@ -12617,8 +12621,12 @@ endfunction
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
 %!   lambda = 50;
-%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
-%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   if (isfield(mesh.elements, "iso20"))
+%!     mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   endif
+%!   if (isfield(mesh.elements, "penta15"))
+%!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   endif
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 7850;
@@ -12986,8 +12994,12 @@ endfunction
 %!   endif
 %!   unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
-%!   mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
+%!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
+%!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
+%!   endif
+%!   if (isfield(mesh_data(1).mesh.elements, "iso20"))
+%!     mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
+%!   endif
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
@@ -13035,8 +13047,12 @@ endfunction
 %!   endif
 %!   unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
-%!   mesh_data(2).mesh.materials.iso20 = ones(rows(mesh_data(2).mesh.elements.iso20), 1, "int32");
+%!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
+%!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
+%!   endif
+%!   if (isfield(mesh_data(2).mesh.elements, "iso20"))
+%!     mesh_data(2).mesh.materials.iso20 = ones(rows(mesh_data(2).mesh.elements.iso20), 1, "int32");
+%!   endif
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
@@ -14290,8 +14306,12 @@ endfunction
 %!   endif
 %!   unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
-%!   mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
+%!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
+%!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
+%!   endif
+%!   if (isfield(mesh_data(1).mesh.elements, "iso20"))
+%!     mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
+%!   endif
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
@@ -14339,8 +14359,12 @@ endfunction
 %!   endif
 %!   unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
-%!   mesh_data(2).mesh.materials.iso20 = ones(rows(mesh_data(2).mesh.elements.iso20), 1, "int32");
+%!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
+%!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
+%!   endif
+%!   if (isfield(mesh_data(2).mesh.elements, "iso20"))
+%!     mesh_data(2).mesh.materials.iso20 = ones(rows(mesh_data(2).mesh.elements.iso20), 1, "int32");
+%!   endif
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
