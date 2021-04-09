@@ -641,7 +641,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST2
+%! ## TEST 2
 %! close all;
 %! fd = -1;
 %! filename = "";
@@ -673,7 +673,7 @@ endfunction
 %!	p1 = 0;
 %!	p2 = 1;
 %!	scale_def = 5e-3;
-%!	mesh_size = 7e-3;
+%!	mesh_size = 4e-3;
 %!	num_modes = 100;
 %!	fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!	fprintf(fd, "d = %g;\n", d);
@@ -883,7 +883,7 @@ endfunction
 %!     grp_id_p1 = 2;
 %!     grp_id_p2 = 3;
 %!     scale_def = 5e-3;
-%!     mesh_size = 3.5e-3;
+%!     mesh_size = 2.5e-3;
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "d1 = %g;\n", d1);
 %!     fprintf(fd, "D1 = %g;\n", D1);
