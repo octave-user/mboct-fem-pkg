@@ -7937,10 +7937,12 @@ public:
           }
 
           const int constr = ov.xelem(j).int_value();
-
+          
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("elements.sfncon{4|6|8}.constraint must be a scalar value");
           }
+#endif
 
           return GetConstraintType(constr);
      }
@@ -8576,9 +8578,11 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
      const octave_map s_elem(elements.contents(iter_elem).map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
      if (error_state) {
           throw std::runtime_error("elements.sfncon{4|6|8} must be a struct array");
      }
+#endif
 
      const auto iter_nidxmaster = s_elem.seek("master");
 
@@ -8620,22 +8624,28 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
      for (octave_idx_type l = 0; l < s_elem.numel(); ++l) {
           const int32NDArray nidxmaster = ov_nidxmaster(l).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("elements.sfncon{4|6|8}.master must be an integer array");
           }
-
+#endif
+          
           const int32NDArray nidxslave = ov_nidxslave(l).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("elements.sfncon{4|6|8}.slave must be an integer array");
           }
-
+#endif
+          
           ColumnVector maxdist = ov_maxdist(l).column_vector_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("elements.sfncon{4|6|8}.maxdist must be a column vector");
           }
-
+#endif
+          
           const auto eConstrType = SurfToNodeConstrBase::GetConstraintType(ov_constr, l);
 
           octave_idx_type iNumNodesElem = -1;
@@ -8837,10 +8847,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const octave_scalar_map m_mesh = args(0).scalar_map_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                return retval;
           }
-
+#endif
+          
           const auto it_nodes = m_mesh.seek("nodes");
 
           if (it_nodes == m_mesh.end()) {
@@ -8850,10 +8862,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const Matrix nodes = m_mesh.contents(it_nodes).matrix_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                return retval;
           }
-
+#endif
+          
           if (nodes.ndims() != 2 || nodes.columns() != 6) {
                error("mesh.nodes must be a Nx6 matrix");
                return retval;
@@ -8861,10 +8875,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const octave_scalar_map m_load_case = args(1).scalar_map_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                return retval;
           }
-
+#endif
+          
           const auto it_locked_dof = m_load_case.seek("locked_dof");
 
           if (it_locked_dof == m_load_case.end()) {
@@ -8874,10 +8890,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const boolNDArray locked_dof = m_load_case.contents(it_locked_dof).bool_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                return retval;
           }
-
+#endif
+          
           const auto it_domain = m_load_case.seek("domain");
 
           DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
@@ -8909,9 +8927,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const octave_scalar_map m_elements = m_mesh.contents(iter_elements).scalar_map_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                return retval;
           }
+#endif
 
           boolNDArray dof_in_use(dim_vector(nodes.rows(), nodes.columns()), false);
 
@@ -8932,9 +8952,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_TET10: {
                     const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
                          return retval;
                     }
+#endif
 
                     for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
                          for (octave_idx_type k = 0; k < elnodes.columns(); ++k) {
@@ -9040,9 +9062,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     if (eDomain == DofMap::DO_STRUCTURAL) {
                          const octave_map m_beam2 = m_elements.contents(iter_elem_type).map_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
                               return retval;
                          }
+#endif
 
                          const auto iter_nodes = m_beam2.seek("nodes");
 
@@ -9053,16 +9077,20 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          const Cell& ov_nodes = m_beam2.contents(iter_nodes);
 
+#if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
                               return retval;
                          }
+#endif
 
                          for (octave_idx_type j = 0; j < ov_nodes.numel(); ++j) {
                               const int32NDArray elnodes = ov_nodes(j).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    return retval;
                               }
+#endif
 
                               for (octave_idx_type l = 0; l < elnodes.numel(); ++l) {
                                    const octave_idx_type idxnode = elnodes(l).value();
@@ -9086,9 +9114,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     if (eDomain == DofMap::DO_STRUCTURAL) {
                          const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
                               return retval;
                          }
+#endif
 
                          const auto iter_nodesr = m_rbe3.seek("nodes");
 
@@ -9102,9 +9132,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          for (octave_idx_type j = 0; j < ov_nodesr.numel(); ++j) {
                               const int32NDArray elnodes = ov_nodesr(j).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    return retval;
                               }
+#endif
 
                               if (!elnodes.numel()) {
                                    error("invalid number of nodes for mesh.elements.%s(%Ld).nodes", oElemType.name, static_cast<long long>(j));
@@ -9212,9 +9244,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                     const octave_map m_etype = m_elements.contents(iter_etype).map_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
                          return retval;
                     }
+#endif
 
                     if (!m_etype.numel()) {
                          continue;
@@ -9428,15 +9462,19 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
      const Matrix nodes(args(0).matrix_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
      if (error_state) {
           return retval;
      }
+#endif
 
      const octave_scalar_map elements(args(1).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
      if (error_state) {
           return retval;
      }
+#endif
 
      DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
 
@@ -9532,9 +9570,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
      try {
           const octave_scalar_map mesh(args(0).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("argument mesh must be a scalar struct");
           }
+#endif
 
           const auto it_nodes = mesh.seek("nodes");
 
@@ -9544,9 +9584,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const Matrix nodes(mesh.contents(it_nodes).matrix_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("mesh.nodes must be a real matrix in argument mesh");
           }
+#endif
 
           const auto it_elements = mesh.seek("elements");
 
@@ -9556,9 +9598,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const octave_scalar_map elements(mesh.contents(it_elements).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("mesh.elements must be a scalar struct in argument mesh");
           }
+#endif
 
           const auto it_materials = mesh.seek("materials");
 
@@ -9568,9 +9612,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const octave_scalar_map materials(mesh.contents(it_materials).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("mesh.materials must be a scalar struct in argument mesh");
           }
+#endif
 
           const auto it_material_data = mesh.seek("material_data");
 
@@ -9580,35 +9626,45 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const octave_map material_data(mesh.contents(it_material_data).map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("mesh.material_data must be a struct array in argument mesh");
           }
+#endif
 
           const octave_scalar_map dof_map(args(1).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("argument dof_map must be a scalar struct");
           }
+#endif
 
           const int32NDArray matrix_type(args(2).int32_array_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("argument matrix_type must be an array of integers");
           }
+#endif
 
           const octave_map load_case(nargin > 3 ? args(3).map_value() : octave_map());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("argument load case must be a struct array");
           }
+#endif
 
           const StrainField oRefStrain(load_case, nodes);
 
           const octave_scalar_map sol(nargin > 4 ? args(4).scalar_map_value() : octave_scalar_map());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("argument sol must be scalar struct");
           }
+#endif
 
           if (nodes.columns() != 6) {
                throw std::runtime_error("invalid number of columns for matrix mesh.nodes in argument mesh");
@@ -9630,9 +9686,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const int32NDArray ndof(dof_map.contents(iter_ndof).int32_array_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("field dof_map.ndof must be an integer array in argument dof_map");
           }
+#endif
 
           const auto iter_totdof = dof_map.seek("totdof");
 
@@ -9642,9 +9700,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const octave_idx_type inumdof = dof_map.contents(iter_totdof).int32_scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("field dof_map.totdof must be an scalar integer in argument dof_map");
           }
+#endif
 
           if (ndof.rows() != nodes.rows() || ndof.columns() != DofMap::iGetNodeMaxDofIndex(eDomain)) {
                throw std::runtime_error("shape of dof_map.ndof is not valid");
@@ -9663,9 +9723,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const NDArray sol_U = (iter_U != sol.end()) ? sol.contents(iter_U).array_value() : NDArray();
 
+#if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("field sol.def must be an array in argument sol");
           }
+#endif
 
           const auto iter_edof = dof_map.seek("edof");
 
@@ -9675,9 +9737,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           if (iter_edof != dof_map.end()) {
                const octave_scalar_map s_edof(dof_map.contents(iter_edof).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
                     throw std::runtime_error("dof_map.edof must be a scalar struct in argument dof_map");
                }
+#endif
 
                static const struct DofEntries {
                     DofMap::ElementType type;
@@ -9694,11 +9758,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     if (iter_dof != s_edof.end()) {
                          const int32NDArray a_edof(s_edof.contents(iter_dof).int32_array_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
                               std::ostringstream os;
                               os << "dof_map.edof." << k->name << " must be an integer array in argument dof_map";
                               throw std::runtime_error(os.str());
                          }
+#endif
 
                          if (a_edof.columns() < k->col_min || (k->col_max > 0 && a_edof.columns() > k->col_max)) {
                               std::ostringstream os;
@@ -9762,7 +9828,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                if (buseC) {
                     C = cellC(i).matrix_value();
 
-                    if (error_state || C.rows() != 6 || C.columns() != 6) {
+#if OCTAVE_MAJOR_VERSION < 6
+                    if (error_state) {
+                         throw std::runtime_error("mesh.material_data.C must be matrix");
+                    }
+#endif                    
+                    if (C.rows() != 6 || C.columns() != 6) {
                          throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
                     }
 
@@ -9776,15 +9847,19 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     E = cellE(i).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
                          throw std::runtime_error("field \"E\" in mesh.material_data must be a real scalar");
                     }
+#endif
 
                     nu = cellnu(i).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
                          throw std::runtime_error("field \"nu\" in mesh.material_data must be a real scalar");
                     }
+#endif
 
                     if (iterC != material_data.end() && !cellC(i).isempty()) {
                          throw std::runtime_error("redundant material properties in field material_data in argument mesh");
@@ -9793,21 +9868,27 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                const double rho = cellRho(i).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
                     throw std::runtime_error("mesh.material_data.rho is not a valid scalar in argument mesh");
                }
+#endif
 
                const double alpha = iterAlpha != material_data.end() && !cellAlpha(i).isempty() ? cellAlpha(i).scalar_value() : 0.;
 
+#if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
                     throw std::runtime_error("mesh.material_data.alpha is not a valid scalar in argument mesh");
                }
+#endif
 
                const double beta = iterBeta != material_data.end() && !cellBeta(i).isempty() ? cellBeta(i).scalar_value() : 0.;
 
+#if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
                     throw std::runtime_error("mesh.material_data.beta is not a valid scalar in argument mesh");
                }
+#endif
 
                const double gamma = iterGamma != material_data.end() && !cellGamma(i).isempty() ? cellGamma(i).scalar_value() : 0.;
 
@@ -9978,10 +10059,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
                          throw std::runtime_error(std::string("mesh.elements.") + oElemType.name
                                                   + " must be an array of integers in argument mesh");
                     }
+#endif
 
                     if (elem_nodes.columns() < oElemType.min_nodes) {
                          throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
@@ -10059,9 +10142,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     const octave_map s_elem(elements.contents(iter_elem).map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
                          throw std::runtime_error("mesh.elements."s + oElemType.name + " must be an struct array in argument mesh");
                     }
+#endif
 
                     const auto iter_nodes = s_elem.seek("nodes");
 
@@ -10153,9 +10238,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     for (octave_idx_type i = 0; i < s_elem.numel(); ++i) {
                          const int32NDArray elem_nodes(ov_nodes(i).int32_array_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
                               throw std::runtime_error("mesh.elements"s + oElemType.name + ".nodes must be an array of integers in argument mesh");
                          }
+#endif
 
                          if (elem_nodes.columns() < oElemType.min_nodes) {
                               throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
@@ -10189,9 +10276,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_BEAM2: {
                               const octave_idx_type imaterial(ov_material(i).int_value() - 1);
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.material must be a scalar integer");
                               }
+#endif
 
                               if (imaterial < 0 || static_cast<size_t>(imaterial) >= rgMaterials.size()) {
                                    throw std::runtime_error("mesh.elements.beam2.material out of range");
@@ -10201,9 +10290,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const octave_scalar_map m_section(ov_section(i).scalar_map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section must be a scalar struct");
                               }
+#endif
 
                               auto iterA = m_section.seek("A");
 
@@ -10245,44 +10336,59 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               section.A = m_section.contents(iterA).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section.A must be a real scalar");
                               }
+#endif
 
                               section.Ay = m_section.contents(iterAy).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section.Ay must be a real scalar");
                               }
+#endif
+                              
                               section.Az = m_section.contents(iterAz).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section.Az must be a real scalar");
                               }
+#endif
 
                               section.It = m_section.contents(iterIt).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section.It must be a real scalar");
                               }
+#endif
 
                               section.Iy = m_section.contents(iterIy).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section.Iy must be a real scalar");
                               }
+#endif
 
                               section.Iz = m_section.contents(iterIz).scalar_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.section.Iz must be a real scalar");
                               }
+#endif
 
                               const ColumnVector e2(ov_e2(i).column_vector_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements.beam2.e2 must be a column vector");
                               }
+#endif
 
                               if (e2.rows() != 3) {
                                    throw std::runtime_error("mesh.elements.beam2.e2 must be 3x1 matrix");
@@ -10296,9 +10402,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               if (ov_weight.numel() > i) {
                                    weight = ov_weight(i).row_vector_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                                    if (error_state) {
                                         throw std::runtime_error("mesh.elements.rbe3.weight must be a row vector in argument mesh");
                                    }
+#endif
                               } else {
                                    weight.resize(elem_nodes.numel(), 1.);
                               }
@@ -10313,9 +10421,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_THERM_CONSTR: {
                               const Matrix C(ov_C.xelem(i).matrix_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
                                    throw std::runtime_error("mesh.elements."s + oElemType.name + ".C must be a real matrix in argument mesh");
                               }
+#endif
 
                               const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oDof.GetDomain());
                               
@@ -10337,9 +10447,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                                         const octave_map s_joints(ov_joints(k).map_value());
 
+#if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
                                              throw std::runtime_error("load_case."s + oElemType.name + " must be an struct array in argument load_case");
                                         }
+#endif
 
                                         const auto iter_U = s_joints.seek("U");
 
@@ -10355,7 +10467,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                                         const ColumnVector Uk(ov_U(i).column_vector_value());
 
-                                        if (error_state || Uk.rows() != C.rows()) {
+#if OCTAVE_MAJOR_VERSION < 6
+                                        if (error_state) {
+                                             throw std::runtime_error("load_case."s + oElemType.name + ".U must be a real column vector");
+                                        }
+#endif
+                                        
+                                        if (Uk.rows() != C.rows()) {
                                              throw std::runtime_error("load_case."s + oElemType.name + ".U must be a real column vector of the same number of rows like mesh.elements." + oElemType.name + ".C in argument load_case");
                                         }
 
@@ -10426,10 +10544,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               for (octave_idx_type i = 0; i < cell_loads.numel(); ++i) {
                                    if (cell_loads(i).numel()) {
                                         const Matrix loads = cell_loads(i).matrix_value();
-
+#if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
                                              throw std::runtime_error("field load_case.loads must be a real matrix in argument load_case");
                                         }
+#endif
 
                                         if (loads.columns() != 3 && loads.columns() != 6) {
                                              throw std::runtime_error("load_case.loads must be a n x 3 or n x 6 matrix in argument load_case");
@@ -10437,9 +10556,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                                         const int32NDArray loaded_nodes = cell_loaded_nodes(i).int32_array_value();
 
+#if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
                                              throw std::runtime_error("field load_case.loaded_nodes must be an integer matrix in argument load_case");
                                         }
+#endif
 
                                         if (loaded_nodes.columns() != 1 || loaded_nodes.rows() != loads.rows()) {
                                              throw std::runtime_error("load_case.loaded_nodes must be a column vector with the same number of rows like load_case.loads");
