@@ -70,9 +70,12 @@ Copyright<sup>&copy;</sup> 2019-2021
   - Compile and install MBDyn.  
     `cd mbdyn`  
     `./bootstrap.sh`  
-    `./configure CXXFLAGS="-O3 -march=native" --enable-octave --enable-autodiff --with-static-modules --with-umfpack`  
+    `./configure --with-static-modules --enable-octave --enable-sparse_autodiff --enable-autodiff --disable-Werror CXXFLAGS="-O3 -march=native" CPPFLAGS=-I/usr/include/suitesparse --with-arpack --with-umfpack --without-metis`  
     `make`  
     `make install`
+
+## NLOpt installation:
+  - Follow the instructions on https://nlopt.readthedocs.io to install nlopt.
 
 ## GNU Octave package installation:
   - Make sure that the GNU Octave nurbs package is installed.  
@@ -81,9 +84,6 @@ Copyright<sup>&copy;</sup> 2019-2021
     `for pkg in octave numerical mbdyn fem; do`    
         `git clone https://github.com/octave-user/mboct-${pkg}-pkg.git && make -C mboct-${pkg}-pkg install_local`	  
     `done`
-
-## NLOpt installation:
-  - Follow the instructions on https://nlopt.readthedocs.io to install nlopt.
 
 ## Gmsh installation:
   - Follow the instructions on (http://www.gmsh.info/) to install Gmsh.  
