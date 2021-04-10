@@ -1484,6 +1484,8 @@ public:
           switch (eMatType) {
           case MAT_THERMAL_COND:
           case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS:
+          case MAT_STIFFNESS_ACOUSTICS:
                return nodes.numel();
           default:
                return nodes.numel() * 3;
@@ -1496,7 +1498,9 @@ public:
           case MAT_STIFFNESS:
           case MAT_DAMPING:
           case MAT_THERMAL_COND:
-          case MAT_HEAT_CAPACITY: {
+          case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS:
+          case MAT_STIFFNESS_ACOUSTICS: {
                const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
                return iNumDof * iNumDof;
@@ -4538,6 +4542,7 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case MAT_THERMAL_COND:
+          case MAT_STIFFNESS_ACOUSTICS:
                iIntegRule = R1;
                break;
 
@@ -4554,6 +4559,7 @@ public:
           case MAT_ACCEL_LOAD:
           case SCA_TOT_MASS:
           case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS:
                iIntegRule = R2;
                break;
 
@@ -5059,6 +5065,7 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case MAT_THERMAL_COND:
+          case MAT_STIFFNESS_ACOUSTICS:
                if (!oIntegStiff.iGetNumEvalPoints()) {
                     constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
                     constexpr double beta = (5. - sqrt(5.)) / 20.;
@@ -5088,6 +5095,7 @@ public:
           case MAT_INERTIA_INV9:
           case MAT_ACCEL_LOAD:
           case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS:
                if (!oIntegMass.iGetNumEvalPoints()) {
                     constexpr double g1 = 0.09273525031089122640232391373703060;
                     constexpr double g2 = 0.31088591926330060979734573376345783;
@@ -5923,7 +5931,8 @@ public:
           } break;
           case Element::VEC_LOAD_CONSISTENT:
           case Element::VEC_LOAD_THERMAL:
-          case Element::MAT_THERMAL_COND: {
+          case Element::MAT_THERMAL_COND:
+          case Element::MAT_STIFFNESS_ACOUSTICS: {
                if (!oIntegConsistent.iGetNumEvalPoints()) {
                     constexpr double g1 = (6. - sqrt(15.)) / 21.;
                     constexpr double g2 = (6. + sqrt(15.)) / 21.;
