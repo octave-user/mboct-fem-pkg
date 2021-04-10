@@ -130,6 +130,7 @@ public:
      enum DomainType: unsigned {
           DO_STRUCTURAL = 0x00000000u,
           DO_THERMAL    = 0x01000000u,
+          DO_ACOUSTICS  = 0x02000000u
      };
 
      enum ElementType {
@@ -169,6 +170,7 @@ public:
                return 6;
                
           case DO_THERMAL:
+          case DO_ACOUSTICS:
                return 1;
                
           default:
@@ -276,36 +278,38 @@ private:
 class Material
 {
 public:
-     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp)
+     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c)
           :rho(rho),
            alpha(alpha),
            beta(beta),
            gamma(gamma),
            cp(cp),
-           C(C), k(k) {
+           c(c),
+           C(C),
+           k(k) {
           FEM_ASSERT(C.rows() == 6);
           FEM_ASSERT(C.columns() == 6);
 
-          const double c = C.xelem(0, 0);
-          const double b = C.xelem(5, 5) / c;
+          const double a = C.xelem(0, 0);
+          const double b = C.xelem(5, 5) / a;
 
-          E = ((4 * b * b - 3 * b) * c) / (b - 1);
+          E = ((4 * b * b - 3 * b) * a) / (b - 1);
           nu = (2 * b - 1) / (2 * b - 2);
      }
 
-     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp)
-          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), cp(cp), C(6, 6, 0.), k(k) {
+     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c)
+          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), cp(cp), c(c), C(6, 6, 0.), k(k) {
 
           const double a = nu / (1 - nu);
           const double b = (1 - 2 * nu) / (2 * (1 - nu));
-          const double c = E * (1 - nu) / ((1 + nu) * (1 - 2 * nu));
+          const double d = E * (1 - nu) / ((1 + nu) * (1 - 2 * nu));
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
-                    C.xelem(i, j) = (i == j) ? c : a * c;
+                    C.xelem(i, j) = (i == j) ? d : a * d;
                }
 
-               C.xelem(j + 3, j + 3) = b * c;
+               C.xelem(j + 3, j + 3) = b * d;
           }
      }
 
@@ -344,9 +348,10 @@ public:
      double Density() const { return rho; }
      double AlphaDamping() const { return alpha; }
      double BetaDamping() const { return beta; }
-
+     double SpeedOfSound() const { return c; }
+     
 private:
-     double E, nu, rho, alpha, beta, gamma, cp;
+     double E, nu, rho, alpha, beta, gamma, cp, c;
      Matrix C, k;
 };
 
@@ -552,7 +557,9 @@ public:
           SCA_STRESS_VMIS = 0x2000u,
           MAT_THERMAL_COND = 0x4000u | DofMap::DO_THERMAL,
           MAT_HEAT_CAPACITY = 0x8000u | DofMap::DO_THERMAL,
-          VEC_LOAD_THERMAL = 0x10000u | DofMap::DO_THERMAL
+          VEC_LOAD_THERMAL = 0x10000u | DofMap::DO_THERMAL,
+          MAT_MASS_ACOUSTICS = 0x20000u | DofMap::DO_ACOUSTICS,
+          MAT_STIFFNESS_ACOUSTICS = 0x40000u | DofMap::DO_ACOUSTICS
      };
 
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -1422,12 +1429,14 @@ public:
                break;
                
           case MAT_THERMAL_COND:
-               pFunc = &Element3D::ThermalConductivityMatrix;
+          case MAT_STIFFNESS_ACOUSTICS:
+               pFunc = &Element3D::ScalarFieldStiffnessMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
 
           case MAT_HEAT_CAPACITY:
-               pFunc = &Element3D::HeatCapacityMatrix;
+          case MAT_MASS_ACOUSTICS:
+               pFunc = &Element3D::ScalarFieldMassMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
                
@@ -1441,7 +1450,8 @@ public:
 
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
-          const octave_idx_type inodemaxdof = (eMatType & DofMap::DO_THERMAL) ? 1 : 3;
+          constexpr unsigned uScalarFieldMask = DofMap::DO_THERMAL | DofMap::DO_ACOUSTICS;
+          const octave_idx_type inodemaxdof = (eMatType & uScalarFieldMask) ? 1 : 3;
           
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < inodemaxdof; ++idof) {
@@ -1589,7 +1599,7 @@ protected:
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& Bt) const=0;
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& Bt) const=0;
      
      void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
           info.Add(MeshInfo::JACOBIAN_DET, detJ);
@@ -2435,12 +2445,14 @@ protected:
           }
      }
 
-     void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+     void ScalarFieldStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
-          const Matrix& k = material->ThermalConductivity();
+          const Matrix k = eMatType == MAT_THERMAL_COND
+               ? material->ThermalConductivity()
+               : Matrix{DiagMatrix{3, 3, 1.}}; // Linear acoustics
           const octave_idx_type iNumStrains = k.rows();
 
           FEM_ASSERT(k.rows() == k.columns());
@@ -2458,7 +2470,7 @@ protected:
 
                AddMeshInfo(info, oIntegRule, detJ);
 
-               TemperatureGradientMatrix(rv, J, detJ, invJ, B);
+               ScalarGradientMatrix(rv, J, detJ, invJ, B);
 
                for (octave_idx_type l = 0; l < iNumStrains; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
@@ -2512,12 +2524,14 @@ protected:
 #endif
      }
 
-     void HeatCapacityMatrix(Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
+     void ScalarFieldMassMatrix(Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
-          const double rhocp = material->Density() * material->HeatCapacity();
+          const double coef = eMatType == MAT_HEAT_CAPACITY
+               ? material->Density() * material->HeatCapacity()
+               : 1. / std::pow(material->SpeedOfSound(), 2); // Linear acoustics
 
           Matrix J(iNumDir, iNumDir), H(1, iNumDof);
 
@@ -2536,7 +2550,7 @@ protected:
 
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     for (octave_idx_type m = l; m < iNumDof; ++m) {
-                         Ce.xelem(l, m) += H.xelem(l) * H.xelem(m) * alpha * rhocp * detJ;
+                         Ce.xelem(l, m) += H.xelem(l) * H.xelem(m) * alpha * coef * detJ;
                     }
                }
           }
@@ -2937,7 +2951,7 @@ protected:
 #endif
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
@@ -3724,7 +3738,7 @@ private:
           Hs.xelem(irow, 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 20);
           FEM_ASSERT(J.rows() == 3);
@@ -4336,7 +4350,7 @@ protected:
           B.xelem(5,44) = invJ(0,1)*(1-t2)-2*invJ(0,2)*s*t;
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 15);
           FEM_ASSERT(J.rows() == 3);
@@ -4957,7 +4971,7 @@ protected:
           Hs.xelem(irow,9) = 4*r*((-t)-s-r+1);
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(J.rows() == 3);
@@ -5286,7 +5300,7 @@ protected:
           H.xelem(2,29) = 4*Zeta3*Zeta4;
      }
 
-     virtual void TemperatureGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(rv.numel() == 4);
@@ -8789,8 +8803,12 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_HEAT_CAPACITY", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_MASS_ACOUSTICS", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_STIFFNESS_ACOUSTICS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct");
+
 
 // PKG_DEL: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct", "remove");
@@ -8823,9 +8841,12 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_CT_SLIDING", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_THERMAL_COND", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_HEAT_CAPACITY", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_MASS_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_STIFFNESS_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
-// PKG_DEL: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
@@ -8980,6 +9001,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    iNodeDof = 3;
                                    break;
                               case DofMap::DO_THERMAL:
+                              case DofMap::DO_ACOUSTICS:
                                    iNodeDof = 1;
                                    break;
                               default:
@@ -9796,6 +9818,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const auto iterGamma = material_data.seek("gamma");
           const auto iterk = material_data.seek("k");
           const auto itercp = material_data.seek("cp");
+          const auto iterc = material_data.seek("c");
           
           if (iterC == material_data.end() && (iterE == material_data.end() || iternu == material_data.end())) {
                throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
@@ -9814,6 +9837,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const Cell cellGamma = iterGamma != material_data.end() ? material_data.contents(iterGamma) : Cell();
           const Cell cellk = iterk != material_data.end() ? material_data.contents(iterk) : Cell();
           const Cell cellcp = itercp != material_data.end() ? material_data.contents(itercp) : Cell();
+          const Cell cellc = iterc != material_data.end() ? material_data.contents(iterc) : Cell();
           
           vector<Material> rgMaterials;
 
@@ -9900,10 +9924,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                const double cp = itercp != material_data.end() && !cellcp(i).isempty() ? cellcp(i).scalar_value() : 0.;
 
+               const double c = iterc != material_data.end() && !cellc(i).isempty() ? cellc(i).scalar_value() : 0.;
+               
                if (buseC) {
-                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k, cp);
+                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k, cp, c);
                } else {
-                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k, cp);
+                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k, cp, c);
                }
           }
 
@@ -10028,7 +10054,21 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("invalid value for argument matrix_type");
                     }
                     break;
-             
+                    
+               case DofMap::DO_ACOUSTICS:
+                    switch (eMatType) {
+                    case Element::MAT_MASS_ACOUSTICS:                  
+                    case Element::MAT_STIFFNESS_ACOUSTICS:
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         break;
+                         
+                    default:
+                         break;
+                    }
                default:
                     throw std::runtime_error("invalid value for domain");
                }              
@@ -10982,5 +11022,8 @@ DEFINE_GLOBAL_CONSTANT(SurfToNodeConstrBase, CT_SLIDING, "build only one constra
 DEFINE_GLOBAL_CONSTANT(Element, MAT_THERMAL_COND, "thermal conductivity matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_HEAT_CAPACITY, "heat capacity matrix")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_THERMAL, "thermal load vector")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_ACOUSTICS, "acoustic stiffness matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_ACOUSTICS, "acoustic mass matrix")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
+DEFINE_GLOBAL_CONSTANT(DofMap, DO_ACOUSTICS, "acoustic domain")
