@@ -10069,6 +10069,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     default:
                          break;
                     }
+                    break;
                default:
                     throw std::runtime_error("invalid value for domain");
                }              
