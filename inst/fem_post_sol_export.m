@@ -68,6 +68,8 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
     num_steps = size(sol.def, 3);
   elseif (isfield(sol, "theta"))
     num_steps = size(sol.theta, 2);
+  elseif (isfield(sol, "p"))
+    num_steps = size(sol.p, 2);
   else
     error("there are no nodal fields in argument sol");
   endif
