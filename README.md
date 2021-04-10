@@ -25,9 +25,9 @@ Copyright<sup>&copy;</sup> 2019-2021
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
- The following code is an example how mboct-fem-pkg can be installed on an Ubuntu system:
+  The following code is an example how mboct-fem-pkg can be installed on an Ubuntu system:
  
-   `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev coreutils`
+  `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev coreutils`
 
   `git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git`
 
@@ -35,7 +35,7 @@ Copyright<sup>&copy;</sup> 2019-2021
 
   `./bootstrap.sh`
 
-  `./configure --with-static-modules --enable-octave --enable-sparse_autodiff --enable-autodiff --disable-Werror CPPFLAGS=-I/usr/include/suitesparse --with-arpack --with-umfpack --without-metis`
+  `./configure --with-static-modules --enable-octave --enable-sparse_autodiff --enable-autodiff --disable-Werror CXXFLAGS="-O3 -march=native" CPPFLAGS=-I/usr/include/suitesparse --with-arpack --with-umfpack --without-metis`
 
   `make`
 
@@ -70,7 +70,7 @@ Copyright<sup>&copy;</sup> 2019-2021
   - Compile and install MBDyn.  
     `cd mbdyn`  
     `./bootstrap.sh`  
-    `./configure CXXFLAGS=-O3 --enable-octave --enable-autodiff --with-static-modules --with-umfpack`  
+    `./configure CXXFLAGS="-O3 -march=native" --enable-octave --enable-autodiff --with-static-modules --with-umfpack`  
     `make`  
     `make install`
 

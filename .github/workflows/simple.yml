@@ -41,7 +41,7 @@ jobs:
           ./bootstrap.sh && \
           ./configure --with-static-modules \
           --enable-octave --enable-sparse_autodiff --enable-autodiff \
-          --disable-Werror CPPFLAGS=-I/usr/include/suitesparse \
+          --disable-Werror CXXFLAGS="-O3 -Wall -march=native" CPPFLAGS=-I/usr/include/suitesparse \
           --with-arpack --with-umfpack --without-metis && \
           make -j4 && sudo make install && popd
       - name: Install mboct-octave-pkg
