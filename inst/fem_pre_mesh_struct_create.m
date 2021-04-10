@@ -1787,7 +1787,7 @@ endfunction
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.5 * geo.a / max(max(max(abs(sol_eig.def))));
-%!   opts.print_and_exit = false;
+%!   opts.print_and_exit = true;
 %!   opts.print_to_file = "";
 %!   opts.skin_only = true;
 %!   opts.show_element = true;
