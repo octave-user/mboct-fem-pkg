@@ -313,9 +313,7 @@ public:
           }
      }
 
-     Material(const Material& oMat)
-          :rho(oMat.rho), alpha(oMat.alpha), beta(oMat.beta), gamma(oMat.gamma), cp(oMat.cp), C(oMat.C), k(oMat.k) {
-     }
+     Material(const Material& oMat)=default;
 
      const Matrix& LinearElasticity() const {
           return C;
@@ -8066,7 +8064,9 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
           const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
           const Matrix pressk = press.linear_slice(press.rows() * press.columns() * k, press.rows() * press.columns() * (k + 1)).reshape(dim_vector(press.rows(), press.columns()));
 
-          const Material* const materialk = &rgMaterials[elem_mat.xelem(k)];
+          FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k) - 1) < rgMaterials.size());
+          
+          const Material* const materialk = &rgMaterials[elem_mat.xelem(k) - 1];
           const RowVector minus_rho(elnodes.columns(), -materialk->Density());
           
           pElem->Insert(k,
