@@ -20484,7 +20484,7 @@ endfunction
 %!   sol.p = -rho * Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
 %!   fref = [0, c ./ (2 * [l, w, h])];
-%!   tol = 1e-5;
+%!   tol = 1e-4;
 %!   assert(sol.f([1, 2, 3, 5]), sort(fref), tol * max(fref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -20577,7 +20577,7 @@ endfunction
 %!   sol.p = -rho * Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
 %!   fref = [0, c ./ (2 * [l, w, h])];
-%!   tol = 1e-5;
+%!   tol = 1e-4;
 %!   assert(sol.f([1, 2, 3, 5]), sort(fref), tol * max(fref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -20676,7 +20676,7 @@ endfunction
 %!   sol.p = -rho * Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
 %!   fref = [0, c ./ (2 * [l, w, h])];
-%!   tol = 1e-5;
+%!   tol = 1e-4;
 %!   assert(sol.f([1, 2, 3, 5]), sort(fref), tol * max(fref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -20863,7 +20863,7 @@ endfunction
 %!   sol.p = -rho * Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
 %!   fref = [0, c ./ (2 * [l, w, h])];
-%!   tol = 1e-5;
+%!   tol = 1e-4;
 %!   assert(sol.f([1, 2, 3, 5]), sort(fref), tol * max(fref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
