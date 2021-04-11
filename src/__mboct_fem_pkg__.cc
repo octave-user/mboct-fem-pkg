@@ -7955,6 +7955,52 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
+     
+     NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));     
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
+               octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
+
+               if (inode < 0 || inode >= nodes.rows()) {
+                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_pressure."s + pszElemName + ".nodes");
+               }
+               
+               for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                    X.xelem(m, l, k) = nodes.xelem(inode, m);
+               }
+          }
+     }
+
+     const auto iter_press_mat = materials.seek("acoustic_pressure");
+
+     if (iter_press_mat == materials.end()) {
+          throw std::runtime_error("mesh.materials.acoustic_pressure is not defined");
+     }
+
+     const octave_scalar_map m_press_mat = materials.contents(iter_press_mat).scalar_map_value();
+
+     const auto iter_elem_type_mat = m_press_mat.seek(pszElemName);
+
+     if (iter_elem_type_mat == m_press_mat.end()) {
+          throw std::runtime_error("mesh.materials.acoustic_pressure."s + pszElemName + " is not defined");
+     }
+     
+     const int32NDArray elem_mat = m_press_mat.contents(iter_elem_type_mat).int32_array_value();
+
+     if (elem_mat.numel() != elnodes.rows()) {
+          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_pressure."s + pszElemName + " in argument mesh");
+     }
+     
+     const octave_idx_type inum_materials = rgMaterials.size();
+     
+     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
+          const octave_idx_type imaterial = elem_mat.xelem(i);
+          
+          if (imaterial <= 0 || imaterial > inum_materials) {
+               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_pressure."s + pszElemName + " in argument mesh");
+          }
+     }
 
      NDArray press(dim_vector(load_case.numel(), elnodes.columns(), elnodes.rows()), 0.);
 
@@ -8003,56 +8049,12 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
                const Matrix pk = ov_pk.matrix_value();
 
                for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
+                    const double rho = rgMaterials[elem_mat.xelem(j).value() - 1].Density();
+                    
                     for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
-                         press.xelem(k, i, j) = pk.xelem(j, i);
+                         press.xelem(k, i, j) = pk.xelem(j, i) / -rho;
                     }
                }
-          }
-     }
-     
-     NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));     
-
-     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
-          for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
-               octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
-
-               if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_pressure."s + pszElemName + ".nodes");
-               }
-               
-               for (octave_idx_type m = 0; m < X.rows(); ++m) {
-                    X.xelem(m, l, k) = nodes.xelem(inode, m);
-               }
-          }
-     }
-
-     const auto iter_press_mat = materials.seek("acoustic_pressure");
-
-     if (iter_press_mat == materials.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_pressure is not defined");
-     }
-
-     const octave_scalar_map m_press_mat = materials.contents(iter_press_mat).scalar_map_value();
-
-     const auto iter_elem_type_mat = m_press_mat.seek(pszElemName);
-
-     if (iter_elem_type_mat == m_press_mat.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_pressure."s + pszElemName + " is not defined");
-     }
-     
-     const int32NDArray elem_mat = m_press_mat.contents(iter_elem_type_mat).int32_array_value();
-
-     if (elem_mat.numel() != elnodes.rows()) {
-          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_pressure."s + pszElemName + " in argument mesh");
-     }
-     
-     const octave_idx_type inum_materials = rgMaterials.size();
-     
-     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
-          const octave_idx_type imaterial = elem_mat.xelem(i);
-          
-          if (imaterial <= 0 || imaterial > inum_materials) {
-               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_pressure."s + pszElemName + " in argument mesh");
           }
      }
      
