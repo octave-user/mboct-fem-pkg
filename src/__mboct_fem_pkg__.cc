@@ -8064,9 +8064,9 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
           const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
           const Matrix pressk = press.linear_slice(press.rows() * press.columns() * k, press.rows() * press.columns() * (k + 1)).reshape(dim_vector(press.rows(), press.columns()));
 
-          FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k) - 1) < rgMaterials.size());
+          FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
           
-          const Material* const materialk = &rgMaterials[elem_mat.xelem(k) - 1];
+          const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
           const RowVector minus_rho(elnodes.columns(), -materialk->Density());
           
           pElem->Insert(k,
