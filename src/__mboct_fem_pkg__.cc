@@ -7936,10 +7936,24 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
           return;
      }
 
-     const octave_value ov_elnodes = m_pressure.contents(iter_elem_type);
+     const octave_value ov_elem_type = m_pressure.contents(iter_elem_type);
+
+     if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.acoustic_pressure."s + pszElemName + " must be a scalar struct");
+     }
+
+     const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
+
+     const auto iter_elnodes = m_elem_type.seek("nodes");
+
+     if (iter_elnodes == m_elem_type.end()) {
+          throw std::runtime_error("missing field mesh.elements.acoustic_pressure."s + pszElemName + ".nodes");
+     }
+
+     const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.acoustic_pressure."s + pszElemName + " must be an integer matrix");          
+          throw std::runtime_error("mesh.elements.acoustic_pressure."s + pszElemName + ".nodes must be an integer matrix");          
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
