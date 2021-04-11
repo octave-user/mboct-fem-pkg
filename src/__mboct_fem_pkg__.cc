@@ -696,6 +696,7 @@ public:
           case Element::VEC_LOAD_CONSISTENT:
           case Element::VEC_LOAD_LUMPED:
           case Element::VEC_LOAD_THERMAL:
+          case Element::VEC_LOAD_ACOUSTICS:
                iNumCols = iNumLoads;
                break;
 
