@@ -665,11 +665,15 @@ endfunction
 
 %!test
 %! ### TEST1
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
 %! do_rotate = false;
+%! do_plot = false;
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -678,41 +682,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   p = 25e6;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     p = 25e6;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -860,56 +864,57 @@ endfunction
 %!   endfor
 %!   assert(all(f_lumped <= f));
 %!   assert(f, f_ref, tol * max(f_ref));
-
-%!   figure("visible","off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title('undeformed mesh');
-%!   opts_plot.elem_types = {"tria6", "tet10"};
-%!   opts_plot.elem_groups.tria6 = [mesh.groups.tria6.id];
-%!   opts_plot.elem_groups.tet10 = [mesh.groups.tet10.id];
-%!   for i=1:min(number_of_modes, length(sol_eig.f))
-%!     figure("visible", "off");
+%!   if (do_plot)
+%!     figure("visible","off");
 %!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, :, i), "rows")), i, opts_plot);
+%!     fem_post_sol_plot(mesh);
 %!     view(30,30);
 %!     xlabel('x [m]');
 %!     ylabel('y [m]');
 %!     zlabel('z [m]');
 %!     grid on;
 %!     grid minor on;
-%!     title(sprintf("%d. eigenmode: %gHz",i,sol_eig.f(i)));
-%!   endfor
+%!     title('undeformed mesh');
+%!     opts_plot.elem_types = {"tria6", "tet10"};
+%!     opts_plot.elem_groups.tria6 = [mesh.groups.tria6.id];
+%!     opts_plot.elem_groups.tet10 = [mesh.groups.tet10.id];
+%!     for i=1:min(number_of_modes, length(sol_eig.f))
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, :, i), "rows")), i, opts_plot);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("%d. eigenmode: %gHz",i,sol_eig.f(i)));
+%!     endfor
 
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat, scale_eig/max(norm(sol_stat.def, "rows")), 1, opts_plot);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh consistent load vector");
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat, scale_eig/max(norm(sol_stat.def, "rows")), 1, opts_plot);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh consistent load vector");
 
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_eig/max(norm(sol_stat_lumped.def, "rows")), 1, opts_plot);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh lumped load vector");
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_eig/max(norm(sol_stat_lumped.def, "rows")), 1, opts_plot);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh lumped load vector");
 
-%!   figure_list();
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -921,7 +926,10 @@ endfunction
 
 %!test
 %! ## TEST2
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -930,49 +938,49 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 5e-3;
-%!   mesh_size = 3e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 5e-3;
+%!     mesh_size = 3e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1022,23 +1030,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -1111,7 +1120,9 @@ endfunction
 %!   assert(Ftot3_lumped, F3_an, eps^0.2* norm(F3_an));
 %!   assert(Mtot3_con, M3_an, eps^0.2 * norm(M3_an));
 %!   assert(Mtot3_lumped, M3_an, eps^0.2 * norm(M3_an));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -1123,11 +1134,13 @@ endfunction
 
 %!test
 %! ## TEST3
-%! close all;
 %! number_of_modes = 3;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
-%! plot_modes = true;
+%! plot_modes = false;
+%! if (plot_modes)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -1136,40 +1149,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
 
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   d = -5e-3;
-%!   e = 35e-3;
-%!   h = 4e-3;
-%!   alpha = 1e-6;
-%!   beta = 1e-4;
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"modal\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"interfaces\",2) = {tmp[2]};\n");
-%!   fputs(fd, "SetFactory(\"Built-in\");\n");
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     d = -5e-3;
+%!     e = 35e-3;
+%!     h = 4e-3;
+%!     alpha = 1e-6;
+%!     beta = 1e-4;
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"modal\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"interfaces\",2) = {tmp[2]};\n");
+%!     fputs(fd, "SetFactory(\"Built-in\");\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1205,7 +1218,7 @@ endfunction
 %!   endfor
 %!   [mesh, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
 %!   mat_ass_cms.Dred = alpha * mat_ass_cms.Mred + beta * mat_ass_cms.Kred;
-%!   
+  
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -1244,7 +1257,10 @@ endfunction
 
 %!test
 %! ## TEST4
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -1253,50 +1269,50 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 5e-3;
-%!   mesh_size = 1e-3;
-%!   enable_linear_dist = false;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 5e-3;
+%!     mesh_size = 1e-3;
+%!     enable_linear_dist = false;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1358,23 +1374,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -1473,7 +1490,10 @@ endfunction
 
 %!test
 %! ## TEST5
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -1482,49 +1502,49 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 100;
-%!   mesh_size = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 100;
+%!     mesh_size = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1583,23 +1603,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def);
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def);
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def);
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def);
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -1694,7 +1715,10 @@ endfunction
 
 %!test
 %! ### TEST6
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -1707,40 +1731,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 15e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 15e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1839,20 +1863,20 @@ endfunction
 %!                                     [FEM_SCA_STRESS_VMIS], ...
 %!                                     load_case, ...
 %!                                     sol_eig);
-
-%!   for i=1:numel(sol_eig.f)
-%!     figure("visible", "off");
-%!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%!     view(30,30);
-%!     xlabel('x [m]');
-%!     ylabel('y [m]');
-%!     zlabel('z [m]');
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
-%!   endfor
-
+%!   if (do_plot)
+%!     for i=1:numel(sol_eig.f)
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!     endfor
+%!   endif
 %!   f_ref = [8768.74;
 %!            14636.1;
 %!            21145.7;
@@ -1867,7 +1891,9 @@ endfunction
 %!     fprintf(stderr, "mode %d f=%.0f\n", i, sol_eig.f(i));
 %!   endfor
 %!   assert(sol_eig.f(:), f_ref, tol * max(f_ref));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -1879,7 +1905,10 @@ endfunction
 
 %!test
 %! ### TEST 7
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -1892,40 +1921,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -2028,18 +2057,20 @@ endfunction
 %!                                   [FEM_VEC_STRESS_CAUCH], ...
 %!                                   load_case, ...
 %!                                   sol_eig);
-%!   for i=1:numel(sol_eig.f)
-%!     figure("visible", "off");
-%!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3,i), "rows")), i);
-%!     view(30,30);
-%!     xlabel('x [m]');
-%!     ylabel('y [m]');
-%!     zlabel('z [m]');
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=1:numel(sol_eig.f)
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3,i), "rows")), i);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!     endfor
+%!   endif
 %!   f_ref = [8768.74;
 %!            14636.1;
 %!            21145.7;
@@ -2054,7 +2085,9 @@ endfunction
 %!     fprintf(stderr, "mode %d f=%.0f\n", i, sol_eig.f(i));
 %!   endfor
 %!   assert(sol_eig.f(:), f_ref, tol * max(f_ref));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -2066,7 +2099,10 @@ endfunction
 
 %!test
 %! ### TEST8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -2079,40 +2115,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -2210,19 +2246,20 @@ endfunction
 %!                           load_case);
 %!   assert(mtot, a * b * c * sum([mesh.material_data.rho]), sqrt(eps) * a * b * c * sum([mesh.material_data.rho]));
 %!   [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes);
-
-%!   for i=1:numel(sol_eig.f)
-%!     figure("visible", "off");
-%!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%!     view(30,30);
-%!     xlabel('x [m]');
-%!     ylabel('y [m]');
-%!     zlabel('z [m]');
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=1:numel(sol_eig.f)
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!     endfor
+%!   endif
 %!   f_ref = [8768.74;
 %!            14636.1;
 %!            21145.7;
@@ -2237,7 +2274,9 @@ endfunction
 %!     fprintf(stderr, "mode %d f=%.0f\n", i, sol_eig.f(i));
 %!   endfor
 %!   assert(sol_eig.f(:), f_ref, tol * max(f_ref));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -2249,7 +2288,10 @@ endfunction
 
 %!test
 %! ### TEST9
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 1e-3;
 %! tol = 1e-2;
@@ -2262,40 +2304,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 15e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 15e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -2389,20 +2431,21 @@ endfunction
 %!                           load_case);
 %!   assert(mtot, a * b * c * sum([mesh.material_data.rho]), sqrt(eps) * a * b * c * sum([mesh.material_data.rho]));
 %!   [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes);
-
-%!   for i=1:numel(sol_eig.f)
-%!     figure("visible", "off");
-%!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%!     view(30,30);
-%!     xlabel('x [m]');
-%!     ylabel('y [m]');
-%!     zlabel('z [m]');
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
-%!   endfor
-%!   figure_list();
+%!   if (do_plot)
+%!     for i=1:numel(sol_eig.f)
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!     endfor
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -2415,7 +2458,10 @@ endfunction
 
 %!test
 %! ## TEST10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -2445,32 +2491,32 @@ endfunction
 %!     for i=1:numel(ri)
 %!       fd = -1;
 %!       unwind_protect
-%!       [fd, msg] = fopen([filename, ".geo"], "w");
-%!       if (fd == -1)
-%!         error("failed to open file \"%s.geo\"", filename);
-%!       endif
-%!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!       fprintf(fd, "ri = %g;\n", ri(i));
-%!       fprintf(fd, "ro = %g;\n", ro(i));
-%!       fprintf(fd, "h = %g;\n", h);
-%!       fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!       fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!       fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!       fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!       fputs(fd, "Line(1) = {1,2};\n");
-%!       fputs(fd, "Line(4) = {2,5};\n");
-%!       fputs(fd, "Line(5) = {5,6};\n");
-%!       fputs(fd, "Line(8) = {6,1};\n");
-%!       fputs(fd, "Line Loop(5) = {1,4,5,8};\n");
-%!       fputs(fd, "Plane Surface(6) = {5};\n");
-%!       fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!       fprintf(fd, "Physical Volume(\"volume\",%d) = {tmp[1]};\n", (i - 1) * 100 + 1);
-%!       fprintf(fd, "Physical Surface(\"bottom\",%d) = {tmp[2]};\n", (i - 1) * 100 + 1);
-%!       fprintf(fd, "Physical Surface(\"outside\",%d) = {tmp[3]};\n", (i - 1) * 100 + 2);
-%!       fprintf(fd, "Physical Surface(\"inside\",%d) = {tmp[5]};\n", (i - 1) * 100 + 3);
-%!       fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[4]};\n", (i - 1) * 100 + 4);
-%!       fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[0]};\n", (i - 1) * 100 + 5); ##x
-%!       fprintf(fd, "Physical Surface(\"right\",%d) = {6};\n", (i - 1) * 100 + 6);  ##y
+%! 	[fd, msg] = fopen([filename, ".geo"], "w");
+%! 	if (fd == -1)
+%!           error("failed to open file \"%s.geo\"", filename);
+%! 	endif
+%! 	fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%! 	fprintf(fd, "ri = %g;\n", ri(i));
+%! 	fprintf(fd, "ro = %g;\n", ro(i));
+%! 	fprintf(fd, "h = %g;\n", h);
+%! 	fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%! 	fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%! 	fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%! 	fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%! 	fputs(fd, "Line(1) = {1,2};\n");
+%! 	fputs(fd, "Line(4) = {2,5};\n");
+%! 	fputs(fd, "Line(5) = {5,6};\n");
+%! 	fputs(fd, "Line(8) = {6,1};\n");
+%! 	fputs(fd, "Line Loop(5) = {1,4,5,8};\n");
+%! 	fputs(fd, "Plane Surface(6) = {5};\n");
+%! 	fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%! 	fprintf(fd, "Physical Volume(\"volume\",%d) = {tmp[1]};\n", (i - 1) * 100 + 1);
+%! 	fprintf(fd, "Physical Surface(\"bottom\",%d) = {tmp[2]};\n", (i - 1) * 100 + 1);
+%! 	fprintf(fd, "Physical Surface(\"outside\",%d) = {tmp[3]};\n", (i - 1) * 100 + 2);
+%! 	fprintf(fd, "Physical Surface(\"inside\",%d) = {tmp[5]};\n", (i - 1) * 100 + 3);
+%! 	fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[4]};\n", (i - 1) * 100 + 4);
+%! 	fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[0]};\n", (i - 1) * 100 + 5); ##x
+%! 	fprintf(fd, "Physical Surface(\"right\",%d) = {6};\n", (i - 1) * 100 + 6);  ##y
 %!       unwind_protect_cleanup
 %!         if (fd ~= -1)
 %!           fclose(fd);
@@ -2528,17 +2574,18 @@ endfunction
 %!                                     load_case);
 %!     sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes, shift);
 %!     f(m, :) = sol_eig.f;
-%!     figure("visible", "off");
-%!     for i=1:numel(data)
-%!       fem_post_sol_plot(data(i).mesh);
-%!     endfor
-%!     xlabel("x [m]");
-%!     ylabel("y [m]");
-%!     zlabel("z [m]");
-%!     grid on;
-%!     grid minor on;
-%!     title("undeformed mesh");
-
+%!     if (do_plot)
+%!       figure("visible", "off");
+%!       for i=1:numel(data)
+%! 	fem_post_sol_plot(data(i).mesh);
+%!       endfor
+%!       xlabel("x [m]");
+%!       ylabel("y [m]");
+%!       zlabel("z [m]");
+%!       grid on;
+%!       grid minor on;
+%!       title("undeformed mesh");
+%!     endif
 %!     fref = [52248
 %!             65901
 %!             105250
@@ -2546,31 +2593,34 @@ endfunction
 %!             132630
 %!             201780];
 %!     assert(sol_eig.f(:), fref, 0.1e-2 * max(fref));
-
-%!     for i=1:numel(sol_eig.f)
-%!       figure("visible", "off");
-%!       hold on;
-%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%!       view(30,30);
-%!       xlabel('x [m]');
-%!       ylabel('y [m]');
-%!       zlabel('z [m]');
-%!       grid on;
-%!       grid minor on;
-%!       title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!     if (do_plot)
+%!       for i=1:numel(sol_eig.f)
+%! 	figure("visible", "off");
+%! 	hold on;
+%! 	fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%! 	view(30,30);
+%! 	xlabel('x [m]');
+%! 	ylabel('y [m]');
+%! 	zlabel('z [m]');
+%! 	grid on;
+%! 	grid minor on;
+%! 	title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!       endfor
+%!     endif
+%!   endfor
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     for i=1:columns(f)
+%!       plot(num_nodes.', f(:, i), sprintf("-;mode %d;%d", i, i));
 %!     endfor
-%!   endfor
-%!   figure("visible", "off");
-%!   hold on;
-%!   for i=1:columns(f)
-%!     plot(num_nodes.', f(:, i), sprintf("-;mode %d;%d", i, i));
-%!   endfor
-%!   xlabel("nodes [1]");
-%!   ylabel("f [Hz]");
-%!   grid on;
-%!   grid minor on;
-%!   title("natural frequencies versus mesh size");
-%!   figure_list();
+%!     xlabel("nodes [1]");
+%!     ylabel("f [Hz]");
+%!     grid on;
+%!     grid minor on;
+%!     title("natural frequencies versus mesh size");
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -2582,7 +2632,10 @@ endfunction
 
 %!test
 %! ## TEST11
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -2620,41 +2673,41 @@ endfunction
 %!         for i=1:numel(ri)
 %!           fd = -1;
 %!           unwind_protect
-%!           [fd, msg] = fopen([filename, ".geo"], "w");
-%!           if fd == -1
-%!             error("failed to open file \"%s.geo\"", filename);
-%!           endif
-%!           fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!           fprintf(fd, "ri = %g;\n", ri(i));
-%!           fprintf(fd, "ro = %g;\n", ro(i));
-%!           fprintf(fd, "h = %g;\n", h);
-%!           fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!           fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!           fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!           fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!           fputs(fd, "Line(1) = {1,2};\n");
-%!           fputs(fd, "Line(4) = {2,5};\n");
-%!           fputs(fd, "Line(5) = {5,6};\n");
-%!           fputs(fd, "Line(8) = {6,1};\n");
-%!           fputs(fd, "Line Loop(5) = {1,4,5,8};\n");
-%!           fputs(fd, "Plane Surface(6) = {5};\n");
-%!           if (orange(o) == 1 || i == 1)
-%!             if (rrange(r) || i == 1)
-%!               fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d}; Recombine; };\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
-%!               fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
-%!             else
-%!               fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d};};\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
+%!             [fd, msg] = fopen([filename, ".geo"], "w");
+%!             if fd == -1
+%!               error("failed to open file \"%s.geo\"", filename);
 %!             endif
-%!           else
-%!             fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6};};\n");
-%!           endif
-%!           fprintf(fd, "Physical Volume(\"volume\",%d) = {tmp[1]};\n", (i - 1) * 100 + 1);
-%!           fprintf(fd, "Physical Surface(\"bottom\",%d) = {tmp[2]};\n", (i - 1) * 100 + 1);
-%!           fprintf(fd, "Physical Surface(\"outside\",%d) = {tmp[3]};\n", (i - 1) * 100 + 2);
-%!           fprintf(fd, "Physical Surface(\"inside\",%d) = {tmp[5]};\n", (i - 1) * 100 + 3);
-%!           fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[4]};\n", (i - 1) * 100 + 4);
-%!           fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[0]};\n", (i - 1) * 100 + 5); ##x
-%!           fprintf(fd, "Physical Surface(\"right\",%d) = {6};\n", (i - 1) * 100 + 6);  ##y
+%!             fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!             fprintf(fd, "ri = %g;\n", ri(i));
+%!             fprintf(fd, "ro = %g;\n", ro(i));
+%!             fprintf(fd, "h = %g;\n", h);
+%!             fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!             fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!             fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!             fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!             fputs(fd, "Line(1) = {1,2};\n");
+%!             fputs(fd, "Line(4) = {2,5};\n");
+%!             fputs(fd, "Line(5) = {5,6};\n");
+%!             fputs(fd, "Line(8) = {6,1};\n");
+%!             fputs(fd, "Line Loop(5) = {1,4,5,8};\n");
+%!             fputs(fd, "Plane Surface(6) = {5};\n");
+%!             if (orange(o) == 1 || i == 1)
+%!               if (rrange(r) || i == 1)
+%! 		fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d}; Recombine; };\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
+%! 		fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
+%!               else
+%! 		fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d};};\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
+%!               endif
+%!             else
+%!               fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6};};\n");
+%!             endif
+%!             fprintf(fd, "Physical Volume(\"volume\",%d) = {tmp[1]};\n", (i - 1) * 100 + 1);
+%!             fprintf(fd, "Physical Surface(\"bottom\",%d) = {tmp[2]};\n", (i - 1) * 100 + 1);
+%!             fprintf(fd, "Physical Surface(\"outside\",%d) = {tmp[3]};\n", (i - 1) * 100 + 2);
+%!             fprintf(fd, "Physical Surface(\"inside\",%d) = {tmp[5]};\n", (i - 1) * 100 + 3);
+%!             fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[4]};\n", (i - 1) * 100 + 4);
+%!             fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[0]};\n", (i - 1) * 100 + 5); ##x
+%!             fprintf(fd, "Physical Surface(\"right\",%d) = {6};\n", (i - 1) * 100 + 6);  ##y
 %!           unwind_protect_cleanup
 %!             if (fd ~= -1)
 %!               fclose(fd);
@@ -2734,40 +2787,44 @@ endfunction
 %!         sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes, shift);
 %!         fem_post_mesh_export([filename, ".msh"], mesh);
 %!         f(m, :, r, o) = sol_eig.f;
-%!         figure("visible", "off");
-%!         for i=1:numel(data)
-%!           fem_post_sol_plot(data(i).mesh);
-%!         endfor
-%!         xlabel("x [m]");
-%!         ylabel("y [m]");
-%!         zlabel("z [m]");
-%!         grid on;
-%!         grid minor on;
-%!         title("undeformed mesh");
-
-%!         for i=1:numel(sol_eig.f)
+%!         if (do_plot)
 %!           figure("visible", "off");
-%!           hold on;
-%!           fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%!           view(30,30);
-%!           xlabel('x [m]');
-%!           ylabel('y [m]');
-%!           zlabel('z [m]');
+%!           for i=1:numel(data)
+%!             fem_post_sol_plot(data(i).mesh);
+%!           endfor
+%!           xlabel("x [m]");
+%!           ylabel("y [m]");
+%!           zlabel("z [m]");
 %!           grid on;
 %!           grid minor on;
-%!           title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
-%!         endfor
+%!           title("undeformed mesh");
+
+%!           for i=1:numel(sol_eig.f)
+%!             figure("visible", "off");
+%!             hold on;
+%!             fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%!             view(30,30);
+%!             xlabel('x [m]');
+%!             ylabel('y [m]');
+%!             zlabel('z [m]');
+%!             grid on;
+%!             grid minor on;
+%!             title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!           endfor
+%!         endif
 %!       endfor
-%!       figure("visible", "off");
-%!       hold on;
-%!       for i=1:columns(f)
-%!         plot(num_nodes.', f(:, i, r, o), sprintf("-;mode %d;%d", i, i));
-%!       endfor
-%!       xlabel("nodes [1]");
-%!       ylabel("f [Hz]");
-%!       grid on;
-%!       grid minor on;
-%!       title("natural frequencies versus mesh size");
+%!       if (do_plot)
+%! 	figure("visible", "off");
+%! 	hold on;
+%! 	for i=1:columns(f)
+%!           plot(num_nodes.', f(:, i, r, o), sprintf("-;mode %d;%d", i, i));
+%! 	endfor
+%! 	xlabel("nodes [1]");
+%! 	ylabel("f [Hz]");
+%! 	grid on;
+%! 	grid minor on;
+%! 	title("natural frequencies versus mesh size");
+%!       endif
 %!     endfor
 %!   endfor
 %!   fref = [26023  59514  91469  1.0372e+05  1.1294e+05  1.154e+05];
@@ -2792,7 +2849,10 @@ endfunction
 
 %!test
 %! ## TEST12
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! a = 10e-3;
 %! b = 20e-3;
 %! c = 10e-3;
@@ -2987,24 +3047,26 @@ endfunction
 %!   endif
 %!   sol_stat.F = fem_post_def_nodal(mesh, dof_map, mat_ass.R);
 %!   Ftot = sum(sol_stat.F, 1);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh);
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("undeformed mesh");
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat, scale/max(norm(sol_stat.def, "rows")), 1);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh");
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh);
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("undeformed mesh");
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat, scale/max(norm(sol_stat.def, "rows")), 1);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh");
+%!   endif
 %!   sigma_a = [-px; -py; -pz; zeros(3, 1)];
 %!   epsilon_a = mesh.material_data(1).C \ sigma_a;
 %!   U_a = zeros(rows(mesh.nodes), 3);
@@ -3016,7 +3078,9 @@ endfunction
 %!   fprintf(stderr, "mean(err)=%g\n", mean(mean(abs(sol_stat.def(:, 1:3) - U_a))) / max(max(abs(U_a))));
 %!   assert(sol_stat.def(:, 1:3), U_a, tolstat * max(max(abs(U_a))));
 %!   assert(Ftot, Ftot_a, sqrt(eps) * norm(Ftot_a));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -3028,7 +3092,10 @@ endfunction
 
 %!test
 %! ### TEST13
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -3037,41 +3104,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 60e-3;
-%!   c = 10e-3;
-%!   d = 0e-3;
-%!   h = 2e-3;
-%!   b = h;
-%!   Fx = 0;
-%!   Fz = -1000;
-%!   My = 0;
-%!   num_iso = 10;
-%!   do_post_pro = false;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0, -0.5 * b, -0.5 * c, h};\n");
-%!   fputs(fd, "Point(2) = {  a, -0.5 * b, -0.5 * c, h};\n");
-%!   fputs(fd, "Point(3) = {  a,  0.5 * b, -0.5 * c, h};\n");
-%!   fputs(fd, "Point(4) = {0.0,  0.5 * b, -0.5 * c, h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 60e-3;
+%!     c = 10e-3;
+%!     d = 0e-3;
+%!     h = 2e-3;
+%!     b = h;
+%!     Fx = 0;
+%!     Fz = -1000;
+%!     My = 0;
+%!     num_iso = 10;
+%!     do_post_pro = false;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0, -0.5 * b, -0.5 * c, h};\n");
+%!     fputs(fd, "Point(2) = {  a, -0.5 * b, -0.5 * c, h};\n");
+%!     fputs(fd, "Point(3) = {  a,  0.5 * b, -0.5 * c, h};\n");
+%!     fputs(fd, "Point(4) = {0.0,  0.5 * b, -0.5 * c, h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -3126,51 +3193,52 @@ endfunction
 %!   tauxx_a = -Fz / Iy * (a - xx) .* zz + Fx / (b * c) + My / Iy * zz;
 %!   tauxz_a = 3 / 2 * Fz / (b * c) * (1 - (zz / (0.5 * c)).^2);
 %!   scale_tauxx = linspace(min(min(tauxx_a)), max(max(tauxx_a)), num_iso + 1);
-%!   figure("visible", "off");
-%!   subplot(2, 1, 1);
-%!   contourf(xx, zz, tauxx_a, scale_tauxx);
-%!   daspect([1,1,1]);
-%!   colormap jet;
-%!   colorbar;
-%!   xlabel("x [m]");
-%!   ylabel("z [m]");
-%!   title("stress component tauxx [Pa]");
-%!   grid on;
-%!   grid minor on;
-%!   subplot(2, 1, 2);
-%!   contourf(xx, zz, tauxx, scale_tauxx);
-%!   daspect([1,1,1]);
-%!   colormap jet;
-%!   colorbar;
-%!   xlabel("x [m]");
-%!   ylabel("z [m]");
-%!   title("stress component tauxx [Pa]");
-%!   grid on;
-%!   grid minor on;
-%!   scale_tauxz = linspace(min(min(tauxz_a)), max(max(tauxz_a)), num_iso + 1);
-%!   figure("visible", "off");
-%!   subplot(2, 1, 1);
-%!   contourf(xx, zz, tauxz_a, scale_tauxz);
-%!   daspect([1,1,1]);
-%!   colormap jet;
-%!   colorbar;
-%!   xlabel("x [m]");
-%!   ylabel("z [m]");
-%!   title("stress component tauxz [Pa]");
-%!   grid on;
-%!   grid minor on;
-%!   subplot(2, 1, 2);
-%!   contourf(xx, zz, tauxz, scale_tauxz);
-%!   daspect([1,1,1]);
-%!   colormap jet;
-%!   colorbar;
-%!   xlabel("x [m]");
-%!   ylabel("z [m]");
-%!   title("stress component tauxz [Pa]");
-%!   grid on;
-%!   grid minor on;
-
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     subplot(2, 1, 1);
+%!     contourf(xx, zz, tauxx_a, scale_tauxx);
+%!     daspect([1,1,1]);
+%!     colormap jet;
+%!     colorbar;
+%!     xlabel("x [m]");
+%!     ylabel("z [m]");
+%!     title("stress component tauxx [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     subplot(2, 1, 2);
+%!     contourf(xx, zz, tauxx, scale_tauxx);
+%!     daspect([1,1,1]);
+%!     colormap jet;
+%!     colorbar;
+%!     xlabel("x [m]");
+%!     ylabel("z [m]");
+%!     title("stress component tauxx [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     scale_tauxz = linspace(min(min(tauxz_a)), max(max(tauxz_a)), num_iso + 1);
+%!     figure("visible", "off");
+%!     subplot(2, 1, 1);
+%!     contourf(xx, zz, tauxz_a, scale_tauxz);
+%!     daspect([1,1,1]);
+%!     colormap jet;
+%!     colorbar;
+%!     xlabel("x [m]");
+%!     ylabel("z [m]");
+%!     title("stress component tauxz [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     subplot(2, 1, 2);
+%!     contourf(xx, zz, tauxz, scale_tauxz);
+%!     daspect([1,1,1]);
+%!     colormap jet;
+%!     colorbar;
+%!     xlabel("x [m]");
+%!     ylabel("z [m]");
+%!     title("stress component tauxz [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     figure_list();
+%!   endif
 %!   if (do_post_pro)
 %!     opts.scale_def = 0.3 * a / max(max(abs(sol_stat.def)));
 %!     fem_post_sol_external(mesh, sol_stat, opts);
@@ -3189,7 +3257,10 @@ endfunction
 
 %!test
 %! ### TEST14
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -3198,38 +3269,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   N = 3;
-%!   a = 10e-3;
-%!   b = 5e-3;
-%!   c = 5e-3;
-%!   h = 5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fprintf(fd, "  Layers{%d}; Recombine;\n", ceil(c / h));
-%!   fputs(fd, "};\n");
-%!   fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     N = 3;
+%!     a = 10e-3;
+%!     b = 5e-3;
+%!     c = 5e-3;
+%!     h = 5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fprintf(fd, "  Layers{%d}; Recombine;\n", ceil(c / h));
+%!     fputs(fd, "};\n");
+%!     fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -3324,14 +3395,16 @@ endfunction
 %!                                              data(i).sol_stat);
 %!     data(i).W = data(i).sol_stat.U.' * data(i).mat_ass.K * data(i).sol_stat.U;
 %!   endfor
-%!   figure("visible", "off");
-%!   loglog([data.h], [data.W], "-x;W(h) [J];1");
-%!   xlabel("h [m]");
-%!   ylabel("W [J]");
-%!   grid on;
-%!   grid minor on;
-%!   title("strain energy");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     loglog([data.h], [data.W], "-x;W(h) [J];1");
+%!     xlabel("h [m]");
+%!     ylabel("W [J]");
+%!     grid on;
+%!     grid minor on;
+%!     title("strain energy");
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -3343,7 +3416,10 @@ endfunction
 
 %!test
 %! ### TEST 15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -3352,67 +3428,67 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   h1 = 10e-3;
-%!   h2 = 2e-3;
-%!   w = 4e-3;
-%!   l = 30e-3;
-%!   h = 2e-3;
-%!   do_post_pro = false;
-%!   scale_def = 20e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "h1=%g;\n", h1);
-%!   fprintf(fd, "h2=%g;\n", h2)
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0, -0.5 * w, -0.5 * h1 - h2, h};\n");
-%!   fputs(fd, "Point(2) = {0.0, -0.5 * w, -0.5 * h1, h};\n");
-%!   fputs(fd, "Point(3) = {0.0,  0.5 * w, -0.5 * h1, h};\n");
-%!   fputs(fd, "Point(4) = {0.0,  0.5 * w, -0.5 * h1 - h2, h};\n");
-%!   fputs(fd, "Point(5) = {0.0, -0.5 * w, 0.5 * h1, h};\n");
-%!   fputs(fd, "Point(6) = {0.0, -0.5 * w, 0.5 * h1 + h2, h};\n");
-%!   fputs(fd, "Point(7) = {0.0,  0.5 * w, 0.5 * h1 + h2, h};\n");
-%!   fputs(fd, "Point(8) = {0.0,  0.5 * w, 0.5 * h1, h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line(5) = {2,5};\n");
-%!   fputs(fd, "Line(6) = {5,8};\n");
-%!   fputs(fd, "Line(7) = {8,3};\n");
-%!   fputs(fd, "Line(8) = {3,2};\n");
-%!   fputs(fd, "Line(9) = {5,6};\n");
-%!   fputs(fd, "Line(10) = {6,7};\n");
-%!   fputs(fd, "Line(11) = {7,8};\n");
-%!   fputs(fd, "Line(12) = {8,5};\n");
-%!   fputs(fd, "Line Loop(13) = {1,2,3,4};\n");
-%!   fputs(fd, "Line Loop(14) = {5,6,7,8};\n");
-%!   fputs(fd, "Line Loop(15) = {9,10,11,12};\n");
-%!   fputs(fd, "Plane Surface(16) = {13};\n");
-%!   fputs(fd, "Plane Surface(17) = {14};\n");
-%!   fputs(fd, "Plane Surface(18) = {15};\n");
-%!   fputs(fd, "v1[] = Extrude {l,0.0,0.0} {\n");
-%!   fputs(fd, "  Surface{16};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "v2[] = Extrude {l,0.0,0.0} {\n");
-%!   fputs(fd, "  Surface{17};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "v3[] = Extrude {l,0.0,0.0} {\n");
-%!   fputs(fd, "  Surface{18};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "v = newv;\n");
-%!   fputs(fd, "BooleanUnion(v) = {Volume{v1[1]};}{ Volume{v2[1],v3[1]};};\n");
-%!   fputs(fd, "Coherence;\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {v1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {v2[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume3\",3) = {v3[1]};\n");
-%!   fputs(fd, "Physical Surface(\"surface1\",1) = {v1[0]};\n");
-%!   fputs(fd, "Physical Surface(\"surface2\",2) = {v2[0]};\n");
-%!   fputs(fd, "Physical Surface(\"surface3\",3) = {v3[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     h1 = 10e-3;
+%!     h2 = 2e-3;
+%!     w = 4e-3;
+%!     l = 30e-3;
+%!     h = 2e-3;
+%!     do_post_pro = false;
+%!     scale_def = 20e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "h1=%g;\n", h1);
+%!     fprintf(fd, "h2=%g;\n", h2)
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0, -0.5 * w, -0.5 * h1 - h2, h};\n");
+%!     fputs(fd, "Point(2) = {0.0, -0.5 * w, -0.5 * h1, h};\n");
+%!     fputs(fd, "Point(3) = {0.0,  0.5 * w, -0.5 * h1, h};\n");
+%!     fputs(fd, "Point(4) = {0.0,  0.5 * w, -0.5 * h1 - h2, h};\n");
+%!     fputs(fd, "Point(5) = {0.0, -0.5 * w, 0.5 * h1, h};\n");
+%!     fputs(fd, "Point(6) = {0.0, -0.5 * w, 0.5 * h1 + h2, h};\n");
+%!     fputs(fd, "Point(7) = {0.0,  0.5 * w, 0.5 * h1 + h2, h};\n");
+%!     fputs(fd, "Point(8) = {0.0,  0.5 * w, 0.5 * h1, h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line(5) = {2,5};\n");
+%!     fputs(fd, "Line(6) = {5,8};\n");
+%!     fputs(fd, "Line(7) = {8,3};\n");
+%!     fputs(fd, "Line(8) = {3,2};\n");
+%!     fputs(fd, "Line(9) = {5,6};\n");
+%!     fputs(fd, "Line(10) = {6,7};\n");
+%!     fputs(fd, "Line(11) = {7,8};\n");
+%!     fputs(fd, "Line(12) = {8,5};\n");
+%!     fputs(fd, "Line Loop(13) = {1,2,3,4};\n");
+%!     fputs(fd, "Line Loop(14) = {5,6,7,8};\n");
+%!     fputs(fd, "Line Loop(15) = {9,10,11,12};\n");
+%!     fputs(fd, "Plane Surface(16) = {13};\n");
+%!     fputs(fd, "Plane Surface(17) = {14};\n");
+%!     fputs(fd, "Plane Surface(18) = {15};\n");
+%!     fputs(fd, "v1[] = Extrude {l,0.0,0.0} {\n");
+%!     fputs(fd, "  Surface{16};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "v2[] = Extrude {l,0.0,0.0} {\n");
+%!     fputs(fd, "  Surface{17};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "v3[] = Extrude {l,0.0,0.0} {\n");
+%!     fputs(fd, "  Surface{18};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "v = newv;\n");
+%!     fputs(fd, "BooleanUnion(v) = {Volume{v1[1]};}{ Volume{v2[1],v3[1]};};\n");
+%!     fputs(fd, "Coherence;\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {v1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {v2[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume3\",3) = {v3[1]};\n");
+%!     fputs(fd, "Physical Surface(\"surface1\",1) = {v1[0]};\n");
+%!     fputs(fd, "Physical Surface(\"surface2\",2) = {v2[0]};\n");
+%!     fputs(fd, "Physical Surface(\"surface3\",3) = {v3[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -3479,7 +3555,10 @@ endfunction
 
 %!test
 %! ## TEST 16
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -3488,47 +3567,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ## K.J.Bathe page 328 4.20a
-%!   mesh_size = 1.5;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ## K.J.Bathe page 328 4.20a
+%!     mesh_size = 1.5;
+%!     p1 = 0.006;
+%!     E = 55;
+%!     nu = 0.3;
+%!     rho = 1000e-12;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Circle(3) = {3,11,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Circle(7) = {7,12,8};\n");
+%!     fputs(fd, "Line(8) = {8,9};\n");
+%!     fputs(fd, "Line(9) = {9,10};\n");
+%!     fputs(fd, "Line(10) = {10,1};\n");
+%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!     fputs(fd, "Plane Surface(14) = {11};\n");
+%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -5110,7 +5189,10 @@ endfunction
 
 %!test
 %! ### TEST18
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -5122,38 +5204,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 2e-3;
-%!   p = 25e6;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(c/h)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 2e-3;
+%!     p = 25e6;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(c/h)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -5167,65 +5249,65 @@ endfunction
 %!   unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   unlink([filename, ".msh"]);
-%!     group_defs(1).id = 1;
-%!     group_defs(1).name = "box1";
-%!     group_defs(1).R = eye(3);
-%!     group_defs(1).X0 = zeros(3, 1);
-%!     group_defs(1).type = "box";
-%!     group_defs(1).geometry.xmin = 0;
-%!     group_defs(1).geometry.xmax = 0;
-%!     group_defs(1).geometry.ymin = 0;
-%!     group_defs(1).geometry.ymax = b;
-%!     group_defs(1).geometry.zmin = 0;
-%!     group_defs(1).geometry.zmax = c;
-%!     group_defs(1).elem_type = "quad8";
-%!     group_defs(2).id = 2;
-%!     group_defs(2).name = "cylinder1";
-%!     group_defs(2).R = [-1, 0, 0;
-%!                        0, 0, 1;
-%!                        0, 1, 0];
-%!     group_defs(2).X0 = [0; 0.5 * b; 0.5 * c];
-%!     group_defs(2).type = "cylinder";
-%!     group_defs(2).geometry.rmin = 0;
-%!     group_defs(2).geometry.rmax = 0.5 * c;
-%!     group_defs(2).geometry.zmin = -0.5 * b;
-%!     group_defs(2).geometry.zmax = 0.5 * b;
-%!     group_defs(2).elem_type = "quad8";
-%!     group_defs(3).id = 3;
-%!     group_defs(3).name = "cylinder2";
-%!     group_defs(3).R = [-1, 0, 0;
-%!                        0, 0, 1;
-%!                        0, 1, 0];
-%!     group_defs(3).X0 = [a; 0.5 * b; 0.5 * c];
-%!     group_defs(3).type = "cylinder";
-%!     group_defs(3).geometry.rmin = 0;
-%!     group_defs(3).geometry.rmax = 0.5 * c;
-%!     group_defs(3).geometry.zmin = -0.5 * b;
-%!     group_defs(3).geometry.zmax = 0.5 * b;
-%!     group_defs(3).elem_type = "quad8";
-%!     group_defs(4).id = 4;
-%!     group_defs(4).name = "box2";
-%!     group_defs(4).R = eye(3);
-%!     group_defs(4).X0 = [a; 0.5 * b; 0.5 * c];
-%!     group_defs(4).type = "box";
-%!     group_defs(4).geometry.xmin = 0;
-%!     group_defs(4).geometry.xmax = 0;
-%!     group_defs(4).geometry.ymin = -0.5 * b;
-%!     group_defs(4).geometry.ymax = 0.5 * b;
-%!     group_defs(4).geometry.zmin = -0.5 * c;
-%!     group_defs(4).geometry.zmax = 0.5 * c;
-%!     group_defs(4).elem_type = "quad8";
-%!     groups = fem_pre_mesh_groups_create(mesh, group_defs, sqrt(eps));
-%!     assert(numel(groups.quad8), 4);
-%!     assert([groups.quad8.id], [group_defs.id]);
-%!     assert(groups.quad8(1).nodes, mesh.groups.quad8(1).nodes);
-%!     assert(groups.quad8(2).nodes, mesh.groups.quad8(1).nodes);
-%!     assert(groups.quad8(3).nodes, mesh.groups.quad8(2).nodes);
-%!     assert(groups.quad8(4).nodes, mesh.groups.quad8(2).nodes);
-%!     assert(groups.quad8(1).elements, mesh.groups.quad8(1).elements);
-%!     assert(groups.quad8(2).elements, mesh.groups.quad8(1).elements);
-%!     assert(groups.quad8(3).elements, mesh.groups.quad8(2).elements);
-%!     assert(groups.quad8(4).elements, mesh.groups.quad8(2).elements);
+%!   group_defs(1).id = 1;
+%!   group_defs(1).name = "box1";
+%!   group_defs(1).R = eye(3);
+%!   group_defs(1).X0 = zeros(3, 1);
+%!   group_defs(1).type = "box";
+%!   group_defs(1).geometry.xmin = 0;
+%!   group_defs(1).geometry.xmax = 0;
+%!   group_defs(1).geometry.ymin = 0;
+%!   group_defs(1).geometry.ymax = b;
+%!   group_defs(1).geometry.zmin = 0;
+%!   group_defs(1).geometry.zmax = c;
+%!   group_defs(1).elem_type = "quad8";
+%!   group_defs(2).id = 2;
+%!   group_defs(2).name = "cylinder1";
+%!   group_defs(2).R = [-1, 0, 0;
+%!                      0, 0, 1;
+%!                      0, 1, 0];
+%!   group_defs(2).X0 = [0; 0.5 * b; 0.5 * c];
+%!   group_defs(2).type = "cylinder";
+%!   group_defs(2).geometry.rmin = 0;
+%!   group_defs(2).geometry.rmax = 0.5 * c;
+%!   group_defs(2).geometry.zmin = -0.5 * b;
+%!   group_defs(2).geometry.zmax = 0.5 * b;
+%!   group_defs(2).elem_type = "quad8";
+%!   group_defs(3).id = 3;
+%!   group_defs(3).name = "cylinder2";
+%!   group_defs(3).R = [-1, 0, 0;
+%!                      0, 0, 1;
+%!                      0, 1, 0];
+%!   group_defs(3).X0 = [a; 0.5 * b; 0.5 * c];
+%!   group_defs(3).type = "cylinder";
+%!   group_defs(3).geometry.rmin = 0;
+%!   group_defs(3).geometry.rmax = 0.5 * c;
+%!   group_defs(3).geometry.zmin = -0.5 * b;
+%!   group_defs(3).geometry.zmax = 0.5 * b;
+%!   group_defs(3).elem_type = "quad8";
+%!   group_defs(4).id = 4;
+%!   group_defs(4).name = "box2";
+%!   group_defs(4).R = eye(3);
+%!   group_defs(4).X0 = [a; 0.5 * b; 0.5 * c];
+%!   group_defs(4).type = "box";
+%!   group_defs(4).geometry.xmin = 0;
+%!   group_defs(4).geometry.xmax = 0;
+%!   group_defs(4).geometry.ymin = -0.5 * b;
+%!   group_defs(4).geometry.ymax = 0.5 * b;
+%!   group_defs(4).geometry.zmin = -0.5 * c;
+%!   group_defs(4).geometry.zmax = 0.5 * c;
+%!   group_defs(4).elem_type = "quad8";
+%!   groups = fem_pre_mesh_groups_create(mesh, group_defs, sqrt(eps));
+%!   assert(numel(groups.quad8), 4);
+%!   assert([groups.quad8.id], [group_defs.id]);
+%!   assert(groups.quad8(1).nodes, mesh.groups.quad8(1).nodes);
+%!   assert(groups.quad8(2).nodes, mesh.groups.quad8(1).nodes);
+%!   assert(groups.quad8(3).nodes, mesh.groups.quad8(2).nodes);
+%!   assert(groups.quad8(4).nodes, mesh.groups.quad8(2).nodes);
+%!   assert(groups.quad8(1).elements, mesh.groups.quad8(1).elements);
+%!   assert(groups.quad8(2).elements, mesh.groups.quad8(1).elements);
+%!   assert(groups.quad8(3).elements, mesh.groups.quad8(2).elements);
+%!   assert(groups.quad8(4).elements, mesh.groups.quad8(2).elements);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.quad8(find([[mesh.groups.quad8].id] == 1)).nodes, :) = true;
 %!   load_case.pressure.quad8.elements = mesh.elements.quad8(mesh.groups.quad8(find([mesh.groups.quad8.id] == 2)).elements, :);
@@ -5277,7 +5359,10 @@ endfunction
 
 %!test
 %! ### TEST19
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -5290,43 +5375,43 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3e-3;
-%!   p = 25e6;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(c/h)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3e-3;
+%!     p = 25e6;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(c/h)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -5474,56 +5559,57 @@ endfunction
 %!   endfor
 %!   assert(all(f_lumped <= f));
 %!   assert(f, f_ref, tol * max(f_ref));
-
-%!   figure("visible","off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title('undeformed mesh');
-%!   opts_plot.elem_types = {"quad8", "iso20"};
-%!   opts_plot.elem_groups.quad8 = [mesh.groups.quad8.id];
-%!   opts_plot.elem_groups.iso20 = [mesh.groups.iso20.id];
-%!   for i=1:min(number_of_modes, length(sol_eig.f))
-%!     figure("visible", "off");
+%!   if (do_plot)
+%!     figure("visible","off");
 %!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, :, i), "rows")), i, opts_plot);
+%!     fem_post_sol_plot(mesh);
 %!     view(30,30);
 %!     xlabel('x [m]');
 %!     ylabel('y [m]');
 %!     zlabel('z [m]');
 %!     grid on;
 %!     grid minor on;
-%!     title(sprintf("%d. eigenmode: %gHz",i,sol_eig.f(i)));
-%!   endfor
+%!     title('undeformed mesh');
+%!     opts_plot.elem_types = {"quad8", "iso20"};
+%!     opts_plot.elem_groups.quad8 = [mesh.groups.quad8.id];
+%!     opts_plot.elem_groups.iso20 = [mesh.groups.iso20.id];
+%!     for i=1:min(number_of_modes, length(sol_eig.f))
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, :, i), "rows")), i, opts_plot);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("%d. eigenmode: %gHz",i,sol_eig.f(i)));
+%!     endfor
 
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat, scale_eig/max(norm(sol_stat.def, "rows")), 1, opts_plot);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh consistent load vector");
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat, scale_eig/max(norm(sol_stat.def, "rows")), 1, opts_plot);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh consistent load vector");
 
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_eig/max(norm(sol_stat_lumped.def, "rows")), 1, opts_plot);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh lumped load vector");
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_eig/max(norm(sol_stat_lumped.def, "rows")), 1, opts_plot);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh lumped load vector");
 
-%!   figure_list();
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -5535,7 +5621,10 @@ endfunction
 
 %!test
 %! ## TEST 20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -5544,52 +5633,52 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 5e-3;
-%!   mesh_size = 1e-3;
-%!   enable_linear_dist = false;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{Ceil(ro * Pi / 2 / %g)}; Recombine; };\n", mesh_size);
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 5e-3;
+%!     mesh_size = 1e-3;
+%!     enable_linear_dist = false;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{Ceil(ro * Pi / 2 / %g)}; Recombine; };\n", mesh_size);
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -5651,23 +5740,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -5753,8 +5843,9 @@ endfunction
 %!   fprintf(stderr, "err(M1_lumped)=%e\n", norm(Mtot1_lumped - M1_an) / norm(M1_an));
 %!   fprintf(stderr, "err(M2_lumped)=%e\n", norm(Mtot2_lumped - M2_an) / norm(M2_an));
 %!   fprintf(stderr, "err(M3_lumped)=%e\n", norm(Mtot3_lumped - M3_an) / norm(M3_an));
-
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -5767,11 +5858,13 @@ endfunction
 
 %!test
 %! ## TEST21
-%! close all;
+%! plot_modes = false;
+%! if (plot_modes)
+%!   close all;
+%! endif
 %! number_of_modes = 3;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
-%! plot_modes = true;
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -5780,41 +5873,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   d = -5e-3;
-%!   e = 35e-3;
-%!   h = 2e-3;
-%!   alpha = 1e-6;
-%!   beta = 1e-4;
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(c/h)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"modal\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"interfaces\",2) = {tmp[2]};\n");
-%!   fputs(fd, "SetFactory(\"Built-in\");\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     d = -5e-3;
+%!     e = 35e-3;
+%!     h = 2e-3;
+%!     alpha = 1e-6;
+%!     beta = 1e-4;
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(c/h)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"modal\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"interfaces\",2) = {tmp[2]};\n");
+%!     fputs(fd, "SetFactory(\"Built-in\");\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -5847,7 +5940,7 @@ endfunction
 %!                                                     cms_opt.nodes.interfaces.number], "quad8");
 %!   [mesh, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
 %!   mat_ass_cms.Dred = alpha * mat_ass_cms.Mred + beta * mat_ass_cms.Kred;
-%!   
+  
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -5886,7 +5979,10 @@ endfunction
 
 %!test
 %! ## TEST 22: patch test of iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -5895,43 +5991,43 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   px = 25.79e6;
-%!   py = 7.83e6;
-%!   pz = 1.3758e6;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     px = 25.79e6;
+%!     py = 7.83e6;
+%!     pz = 1.3758e6;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -5990,15 +6086,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.7;
 %!   Fx = -px * b * c;
 %!   Fy = -py * a * c;
@@ -6021,7 +6119,10 @@ endfunction
 
 %!test
 %! ## TEST 23: patch test of iso8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6030,42 +6131,42 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   px = 25.79e6;
-%!   py = 7.83e6;
-%!   pz = 1.3758e6;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     px = 25.79e6;
+%!     py = 7.83e6;
+%!     pz = 1.3758e6;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6098,8 +6199,8 @@ endfunction
 %!   elno_pz = mesh.elements.iso4(elem_id_pz, :);
 %!   load_case.pressure.iso4.elements = [elno_px; elno_py; elno_pz];
 %!   load_case.pressure.iso4.p = [repmat(px, rows(elno_px), columns(elno_px));
-%!                                 repmat(py, rows(elno_py), columns(elno_py));
-%!                                 repmat(pz, rows(elno_pz), columns(elno_pz))];
+%!                                repmat(py, rows(elno_py), columns(elno_py));
+%!                                repmat(pz, rows(elno_pz), columns(elno_pz))];
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   E = 210000e6;
 %!   nu = 0.3;
@@ -6118,15 +6219,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.7;
 %!   assert(max(max(max(abs(sol_stat.stress.tau.iso8(:, :, 1) / -px - 1)))) < tol);
 %!   assert(max(max(max(abs(sol_stat.stress.tau.iso8(:, :, 2) / -py - 1)))) < tol);
@@ -6143,7 +6246,10 @@ endfunction
 
 %!test
 %! ## TEST 24: patch test of tet10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6152,41 +6258,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   px = 25.79e6;
-%!   py = 7.83e6;
-%!   pz = 1.3758e6;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     px = 25.79e6;
+%!     py = 7.83e6;
+%!     pz = 1.3758e6;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6239,15 +6345,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.7;
 %!   assert(max(max(max(abs(sol_stat.stress.tau.tet10(:, :, 1) / -px - 1)))) < tol);
 %!   assert(max(max(max(abs(sol_stat.stress.tau.tet10(:, :, 2) / -py - 1)))) < tol);
@@ -6264,7 +6372,10 @@ endfunction
 
 %!test
 %! ## TEST 25: patch test of iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6273,42 +6384,42 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   shift = 1e-4;
-%!   mesh_size = 7e-3;
-%!   scale_def = 1e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.9;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     shift = 1e-4;
+%!     mesh_size = 7e-3;
+%!     scale_def = 1e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.9;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6358,7 +6469,10 @@ endfunction
 
 %!test
 %! ## TEST 26: patch test of iso8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6367,40 +6481,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   shift = 1e-4;
-%!   mesh_size = 7e-3;
-%!   scale_def = 1e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     shift = 1e-4;
+%!     mesh_size = 7e-3;
+%!     scale_def = 1e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6450,7 +6564,10 @@ endfunction
 
 %!test
 %! ## TEST 27: patch test of tet10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6459,39 +6576,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   shift = 1e-4;
-%!   mesh_size = 7e-3;
-%!   scale_def = 1e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     shift = 1e-4;
+%!     mesh_size = 7e-3;
+%!     scale_def = 1e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6541,7 +6658,10 @@ endfunction
 
 %!test
 %! ## TEST 28: patch test of penta15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6550,40 +6670,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   shift = 1e-4;
-%!   mesh_size = 7e-3;
-%!   scale_def = 1e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     shift = 1e-4;
+%!     mesh_size = 7e-3;
+%!     scale_def = 1e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6633,7 +6753,10 @@ endfunction
 
 %!test
 %! ## TEST 29: patch test of prism15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6642,42 +6765,42 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   px = 25.79e6;
-%!   py = 7.83e6;
-%!   pz = 1.3758e6;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     px = 25.79e6;
+%!     py = 7.83e6;
+%!     pz = 1.3758e6;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6759,15 +6882,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.7;
 %!   assert(max(max(max(abs(sol_stat.stress.tau.penta15(:, :, 1) / -px - 1)))) < tol);
 %!   assert(max(max(max(abs(sol_stat.stress.tau.penta15(:, :, 2) / -py - 1)))) < tol);
@@ -6784,7 +6909,10 @@ endfunction
 
 %!test
 %! ## TEST 30: patch test of tet10h
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6793,41 +6921,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   px = 25.79e6;
-%!   py = 7.83e6;
-%!   pz = 1.3758e6;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     px = 25.79e6;
+%!     py = 7.83e6;
+%!     pz = 1.3758e6;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -6881,15 +7009,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.7;
 %!   assert(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 1) / -px - 1)))) < tol);
 %!   assert(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 2) / -py - 1)))) < tol);
@@ -6906,7 +7036,10 @@ endfunction
 
 %!test
 %! ## TEST 31
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -6915,47 +7048,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ## K.J.Bathe page 328 4.20a
-%!   mesh_size = 1.5;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ## K.J.Bathe page 328 4.20a
+%!     mesh_size = 1.5;
+%!     p1 = 0.006;
+%!     E = 55;
+%!     nu = 0.3;
+%!     rho = 1000e-12;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Circle(3) = {3,11,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Circle(7) = {7,12,8};\n");
+%!     fputs(fd, "Line(8) = {8,9};\n");
+%!     fputs(fd, "Line(9) = {9,10};\n");
+%!     fputs(fd, "Line(10) = {10,1};\n");
+%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!     fputs(fd, "Plane Surface(14) = {11};\n");
+%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7044,7 +7177,10 @@ endfunction
 
 %!test
 %! ## TEST 32: thermal strain iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7053,41 +7189,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7129,15 +7265,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -7155,7 +7293,10 @@ endfunction
 
 %!test
 %! ## TEST 33: thermal strain iso8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7164,40 +7305,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7239,15 +7380,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -7265,7 +7408,10 @@ endfunction
 
 %!test
 %! ## TEST 34: thermal strain penta15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7274,40 +7420,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7349,15 +7495,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -7375,7 +7523,10 @@ endfunction
 
 %!test
 %! ## TEST 35: thermal strain tet10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7384,39 +7535,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7458,15 +7609,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -7484,7 +7637,10 @@ endfunction
 
 %!test
 %! ## TEST 36: thermal strain tet10h
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7493,39 +7649,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7568,15 +7724,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -7594,7 +7752,10 @@ endfunction
 
 %!test
 %! ## TEST 37: thermal strain iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7603,41 +7764,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 40e-3;
-%!   b = 15e-3;
-%!   c = 15e-3;
-%!   dT = 400;
-%!   mesh_size = 3.5e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 40e-3;
+%!     b = 15e-3;
+%!     c = 15e-3;
+%!     dT = 400;
+%!     mesh_size = 3.5e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7675,15 +7836,17 @@ endfunction
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure_list();
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure_list();
+%!   endif
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %! unwind_protect_cleanup
@@ -7697,7 +7860,10 @@ endfunction
 
 %!test
 %! ## TEST 38: thick walled cylinder with internal pressure tet10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7706,47 +7872,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ro = 50e-3;
-%!   ri = 25e-3;
-%!   L = 20e-3;
-%!   dT = 100;
-%!   Pi = 2e8;
-%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
-%!   E = 2.1e11;
-%!   nu = 0.3;
-%!   gamma = 0.12e-4;
-%!   rho = 7850;
-%!   mesh_size = 2.5e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "H = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
-%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
-%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
-%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
-%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ro = 50e-3;
+%!     ri = 25e-3;
+%!     L = 20e-3;
+%!     dT = 100;
+%!     Pi = 2e8;
+%!     sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!     E = 2.1e11;
+%!     nu = 0.3;
+%!     gamma = 0.12e-4;
+%!     rho = 7850;
+%!     mesh_size = 2.5e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "H = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!     fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!     fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!     fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!     fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7841,7 +8007,10 @@ endfunction
 
 %!test
 %! ## TEST 39: thick walled cylinder with internal pressure iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7850,48 +8019,48 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ro = 50e-3;
-%!   ri = 25e-3;
-%!   L = 20e-3;
-%!   dT = 100;
-%!   Pi = 2e8;
-%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
-%!   E = 2.1e11;
-%!   nu = 0.3;
-%!   gamma = 0.12e-4;
-%!   rho = 7850;
-%!   mesh_size = 2.5e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "H = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
-%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
-%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
-%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
-%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ro = 50e-3;
+%!     ri = 25e-3;
+%!     L = 20e-3;
+%!     dT = 100;
+%!     Pi = 2e8;
+%!     sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!     E = 2.1e11;
+%!     nu = 0.3;
+%!     gamma = 0.12e-4;
+%!     rho = 7850;
+%!     mesh_size = 2.5e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "H = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!     fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!     fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!     fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!     fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7986,7 +8155,10 @@ endfunction
 
 %!test
 %! ## TEST 40: thick walled cylinder with internal pressure iso8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -7995,47 +8167,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ro = 50e-3;
-%!   ri = 25e-3;
-%!   L = 20e-3;
-%!   dT = 100;
-%!   Pi = 2e8;
-%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
-%!   E = 2.1e11;
-%!   nu = 0.3;
-%!   gamma = 0.12e-4;
-%!   rho = 7850;
-%!   mesh_size = 1.25e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "H = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
-%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
-%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
-%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
-%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ro = 50e-3;
+%!     ri = 25e-3;
+%!     L = 20e-3;
+%!     dT = 100;
+%!     Pi = 2e8;
+%!     sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!     E = 2.1e11;
+%!     nu = 0.3;
+%!     gamma = 0.12e-4;
+%!     rho = 7850;
+%!     mesh_size = 1.25e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "H = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!     fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!     fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!     fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!     fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8130,7 +8302,10 @@ endfunction
 
 %!test
 %! ## TEST 41: thick walled cylinder with internal pressure penta15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8139,47 +8314,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ro = 50e-3;
-%!   ri = 25e-3;
-%!   L = 20e-3;
-%!   dT = 100;
-%!   Pi = 2e8;
-%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
-%!   E = 2.1e11;
-%!   nu = 0.3;
-%!   gamma = 0.12e-4;
-%!   rho = 7850;
-%!   mesh_size = 2.5e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "H = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
-%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
-%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
-%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
-%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ro = 50e-3;
+%!     ri = 25e-3;
+%!     L = 20e-3;
+%!     dT = 100;
+%!     Pi = 2e8;
+%!     sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!     E = 2.1e11;
+%!     nu = 0.3;
+%!     gamma = 0.12e-4;
+%!     rho = 7850;
+%!     mesh_size = 2.5e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "H = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!     fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!     fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!     fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!     fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; Layers{Ceil(ro*Pi/2/H)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8274,7 +8449,10 @@ endfunction
 
 %!test
 %! ## TEST 42: thick walled cylinder with internal pressure tet10h
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8283,46 +8461,46 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ro = 50e-3;
-%!   ri = 25e-3;
-%!   L = 20e-3;
-%!   dT = 100;
-%!   Pi = 2e8;
-%!   sigmaz = Pi * ri^2 / (ro^2 - ri^2);
-%!   E = 2.1e11;
-%!   nu = 0.3;
-%!   gamma = 0.12e-4;
-%!   rho = 7850;
-%!   mesh_size = 2.5e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "H = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
-%!   fputs(fd, "Point(1) = {0,ro,0,H};\n");
-%!   fputs(fd, "Point(2) = {0,ro,L,H};\n");
-%!   fputs(fd, "Point(3) = {0,ri,L,H};\n");
-%!   fputs(fd, "Point(4) = {0,ri,0,H};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ro = 50e-3;
+%!     ri = 25e-3;
+%!     L = 20e-3;
+%!     dT = 100;
+%!     Pi = 2e8;
+%!     sigmaz = Pi * ri^2 / (ro^2 - ri^2);
+%!     E = 2.1e11;
+%!     nu = 0.3;
+%!     gamma = 0.12e-4;
+%!     rho = 7850;
+%!     mesh_size = 2.5e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "H = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.9;\n");
+%!     fputs(fd, "Point(1) = {0,ro,0,H};\n");
+%!     fputs(fd, "Point(2) = {0,ro,L,H};\n");
+%!     fputs(fd, "Point(3) = {0,ri,L,H};\n");
+%!     fputs(fd, "Point(4) = {0,ri,0,H};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude{{0,0,1},{0,0,0}, -Pi/2}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 2) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 3) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-radial\", 5) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure-axial\", 6) = {tmp[3]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8418,7 +8596,10 @@ endfunction
 
 %!test
 %! ### TEST 43
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8427,38 +8608,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   N = 3;
-%!   L = 100e-3;
-%!   b = 0.25e-3;
-%!   H = 1e-3;
-%!   h = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "H = %g;\n", H);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {L,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; Layers{Ceil(H/h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
-%!   fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; Layers{Ceil(H/h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{tmp1[0], tmp2[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     N = 3;
+%!     L = 100e-3;
+%!     b = 0.25e-3;
+%!     H = 1e-3;
+%!     h = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "H = %g;\n", H);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {L,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; Layers{Ceil(H/h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
+%!     fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; Layers{Ceil(H/h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{tmp1[0], tmp2[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8506,17 +8687,17 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     grp_id_load = find([mesh.groups.iso4.id] == 4);
-%!     Uz = mean(sol_stat.def(mesh.groups.iso4(grp_id_load).nodes, 3));
-%!     tol = 1e-2;
-%!     assert(Uz, Uz_ref, tol * abs(Uz_ref));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_VEC_STRESS_CAUCH], ...
+%!                                    load_case, ...
+%!                                    sol_stat);
+%!   grp_id_load = find([mesh.groups.iso4.id] == 4);
+%!   Uz = mean(sol_stat.def(mesh.groups.iso4(grp_id_load).nodes, 3));
+%!   tol = 1e-2;
+%!   assert(Uz, Uz_ref, tol * abs(Uz_ref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -8528,7 +8709,10 @@ endfunction
 
 %!test
 %! ### TEST 44
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8537,39 +8721,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   N = 3;
-%!   L = 100e-3;
-%!   b = 0.5e-3;
-%!   H = 1e-3;
-%!   h = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "H = %g;\n", H);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {L,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; Layers{Ceil(H/h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
-%!   fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; Layers{Ceil(H/h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{tmp1[0], tmp2[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     N = 3;
+%!     L = 100e-3;
+%!     b = 0.5e-3;
+%!     H = 1e-3;
+%!     h = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "H = %g;\n", H);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {L,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; Layers{Ceil(H/h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
+%!     fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; Layers{Ceil(H/h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{tmp1[0], tmp2[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8617,17 +8801,17 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     grp_id_load = find([mesh.groups.quad8.id] == 4);
-%!     Uz = mean(sol_stat.def(mesh.groups.quad8(grp_id_load).nodes, 3));
-%!     tol = 1e-2;
-%!     assert(Uz, Uz_ref, tol * abs(Uz_ref));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_VEC_STRESS_CAUCH], ...
+%!                                    load_case, ...
+%!                                    sol_stat);
+%!   grp_id_load = find([mesh.groups.quad8.id] == 4);
+%!   Uz = mean(sol_stat.def(mesh.groups.quad8(grp_id_load).nodes, 3));
+%!   tol = 1e-2;
+%!   assert(Uz, Uz_ref, tol * abs(Uz_ref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -8639,7 +8823,10 @@ endfunction
 
 %!test
 %! ### TEST 45
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8648,37 +8835,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   N = 3;
-%!   L = 100e-3;
-%!   b = 0.5e-3;
-%!   H = 1e-3;
-%!   h = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "H = %g;\n", H);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {L,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; Layers{Ceil(H/h)}; Recombine; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; Layers{Ceil(H/h)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     N = 3;
+%!     L = 100e-3;
+%!     b = 0.5e-3;
+%!     H = 1e-3;
+%!     h = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "H = %g;\n", H);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {L,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; Layers{Ceil(H/h)}; Recombine; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; Layers{Ceil(H/h)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8726,17 +8913,17 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     grp_id_load = find([mesh.groups.quad8.id] == 4);
-%!     Uz = mean(sol_stat.def(mesh.groups.quad8(grp_id_load).nodes, 3));
-%!     tol = 1e-2;
-%!     assert(Uz, Uz_ref, tol * abs(Uz_ref));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_VEC_STRESS_CAUCH], ...
+%!                                    load_case, ...
+%!                                    sol_stat);
+%!   grp_id_load = find([mesh.groups.quad8.id] == 4);
+%!   Uz = mean(sol_stat.def(mesh.groups.quad8(grp_id_load).nodes, 3));
+%!   tol = 1e-2;
+%!   assert(Uz, Uz_ref, tol * abs(Uz_ref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -8748,7 +8935,10 @@ endfunction
 
 %!test
 %! ### TEST 46
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8757,36 +8947,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   N = 3;
-%!   L = 100e-3;
-%!   b = 0.5e-3;
-%!   H = 1e-3;
-%!   h = 0.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "H = %g;\n", H);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {L,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     N = 3;
+%!     L = 100e-3;
+%!     b = 0.5e-3;
+%!     H = 1e-3;
+%!     h = 0.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "H = %g;\n", H);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {L,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8834,17 +9024,17 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     grp_id_load = find([mesh.groups.tria6.id] == 4);
-%!     Uz = mean(sol_stat.def(mesh.groups.tria6(grp_id_load).nodes, 3));
-%!     tol = 1e-2;
-%!     assert(Uz, Uz_ref, tol * abs(Uz_ref));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_VEC_STRESS_CAUCH], ...
+%!                                    load_case, ...
+%!                                    sol_stat);
+%!   grp_id_load = find([mesh.groups.tria6.id] == 4);
+%!   Uz = mean(sol_stat.def(mesh.groups.tria6(grp_id_load).nodes, 3));
+%!   tol = 1e-2;
+%!   assert(Uz, Uz_ref, tol * abs(Uz_ref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -8856,7 +9046,10 @@ endfunction
 
 %!test
 %! ### TEST 47
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8865,35 +9058,35 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   L = 100e-3;
-%!   b = 0.5e-3;
-%!   H = 1e-3;
-%!   h = 0.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "H = %g;\n", H);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {L,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     L = 100e-3;
+%!     b = 0.5e-3;
+%!     H = 1e-3;
+%!     h = 0.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "H = %g;\n", H);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {L,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {L,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp1[] = Extrude {0,0.0,H} { Surface{6}; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {0,0.0,H} { Surface{tmp1[0]}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {tmp1[4],tmp2[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",4) = {tmp1[2],tmp2[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -8942,17 +9135,17 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     grp_id_load = find([mesh.groups.tria6.id] == 4);
-%!     Uz = mean(sol_stat.def(mesh.groups.tria6(grp_id_load).nodes, 3));
-%!     tol = 1e-2;
-%!     assert(Uz, Uz_ref, tol * abs(Uz_ref));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_VEC_STRESS_CAUCH], ...
+%!                                    load_case, ...
+%!                                    sol_stat);
+%!   grp_id_load = find([mesh.groups.tria6.id] == 4);
+%!   Uz = mean(sol_stat.def(mesh.groups.tria6(grp_id_load).nodes, 3));
+%!   tol = 1e-2;
+%!   assert(Uz, Uz_ref, tol * abs(Uz_ref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -8964,7 +9157,10 @@ endfunction
 
 %!test
 %! ### TEST 48
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -8973,52 +9169,52 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   r1 = 10e-3;
-%!   h1 = 5e-3;
-%!   h2 = 5e-3;
-%!   w = 10e-3;
-%!   h = 1.25e-3;
-%!   r2 = r1 + h1;
-%!   r3 = r2 + h2;
-%!   fprintf(fd, "w = %g;\n", w);
-%!   fprintf(fd, "r1 = %g;\n", r1);
-%!   fprintf(fd, "r2 = %g;\n", r2);
-%!   fprintf(fd, "r3 = %g;\n", r3);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0,r3,0,h};\n");
-%!   fputs(fd, "Point(2) = {0,r3,w,h};\n");
-%!   fputs(fd, "Point(3) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(4) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(5) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(6) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(7) = {0,r1,w,h};\n");
-%!   fputs(fd, "Point(8) = {0,r1,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,5};\n");
-%!   fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
-%!   fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(11) = {9};\n");
-%!   fputs(fd, "Plane Surface(12) = {10};\n");
-%!   fputs(fd, "tmp1[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{11}; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{12}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\",3) = {11,12};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\",4) = {tmp1[0],tmp2[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\",5) = {tmp1[5],tmp2[5]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     r1 = 10e-3;
+%!     h1 = 5e-3;
+%!     h2 = 5e-3;
+%!     w = 10e-3;
+%!     h = 1.25e-3;
+%!     r2 = r1 + h1;
+%!     r3 = r2 + h2;
+%!     fprintf(fd, "w = %g;\n", w);
+%!     fprintf(fd, "r1 = %g;\n", r1);
+%!     fprintf(fd, "r2 = %g;\n", r2);
+%!     fprintf(fd, "r3 = %g;\n", r3);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0,r3,0,h};\n");
+%!     fputs(fd, "Point(2) = {0,r3,w,h};\n");
+%!     fputs(fd, "Point(3) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(4) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(5) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(6) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(7) = {0,r1,w,h};\n");
+%!     fputs(fd, "Point(8) = {0,r1,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,5};\n");
+%!     fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
+%!     fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(11) = {9};\n");
+%!     fputs(fd, "Plane Surface(12) = {10};\n");
+%!     fputs(fd, "tmp1[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{11}; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{12}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\",3) = {11,12};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\",4) = {tmp1[0],tmp2[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\",5) = {tmp1[5],tmp2[5]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -9084,36 +9280,36 @@ endfunction
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     [sol_stat.stress, ...
-%!      sol_stat.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case, ...
-%!                                        sol_stat);
-%!     load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!     [mat_ass2.K, ...
-%!      mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                   dof_map, ...
-%!                                   [FEM_MAT_STIFFNESS, ...
-%!                                    FEM_VEC_LOAD_CONSISTENT], ...
-%!                                   load_case2);
-%!     [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!     [sol_stat2.stress, ...
-%!      sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                         dof_map, ...
-%!                                         [FEM_VEC_STRESS_CAUCH, ...
-%!                                          FEM_VEC_STRAIN_TOTAL], ...
-%!                                         load_case2, ...
-%!                                         sol_stat2);
-%!     tol_def = 1e-5;
-%!     tol_strain = 1e-3;
-%!     tol_stress = 5e-3;
-%!     assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
-%!     assert(sol_stat2.stress.tau.tet10h, zeros(size(sol_stat.stress.tau.tet10h)), tol_stress * max(max(max(abs(sol_stat.stress.tau.tet10h)))));
-%!     assert(sol_stat2.strain.epsilonm.tet10h, sol_stat.strain.epsilonm.tet10h, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10h)))));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress, ...
+%!    sol_stat.strain] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH, ...
+%!                                       FEM_VEC_STRAIN_TOTAL], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
+%!   tol_def = 1e-5;
+%!   tol_strain = 1e-3;
+%!   tol_stress = 5e-3;
+%!   assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
+%!   assert(sol_stat2.stress.tau.tet10h, zeros(size(sol_stat.stress.tau.tet10h)), tol_stress * max(max(max(abs(sol_stat.stress.tau.tet10h)))));
+%!   assert(sol_stat2.strain.epsilonm.tet10h, sol_stat.strain.epsilonm.tet10h, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10h)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -9125,7 +9321,10 @@ endfunction
 
 %!test
 %! ### TEST 49
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -9134,61 +9333,61 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   Ec = 210000e6;
-%!   Ei = 125000e6;
-%!   CTEc = 12.5e-6;
-%!   CTEi = 16.7e-6;
-%!   dT = 100;
-%!   H = 1e-3;
-%!   r1 = 0;
-%!   h1 = H;
-%!   h2 = H;
-%!   w = 1.25e-3;
-%!   h = 1.25e-3;
-%!   L = 100e-3;
-%!   r2 = r1 + h1;
-%!   r3 = r2 + h2;
-%!   K1 = 14 + (Ec/Ei) + (Ei/Ec);
-%!   Uy_ref = -3*(CTEc - CTEi)*dT*2*H*L^2/(H^2*K1);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "w = %g;\n", w);
-%!   fprintf(fd, "r1 = %g;\n", r1);
-%!   fprintf(fd, "r2 = %g;\n", r2);
-%!   fprintf(fd, "r3 = %g;\n", r3);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fputs(fd, "Point(1) = {0,r3,0,h};\n");
-%!   fputs(fd, "Point(2) = {0,r3,w,h};\n");
-%!   fputs(fd, "Point(3) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(4) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(5) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(6) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(7) = {0,r1,w,h};\n");
-%!   fputs(fd, "Point(8) = {0,r1,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,5};\n");
-%!   fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
-%!   fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(11) = {9};\n");
-%!   fputs(fd, "Plane Surface(12) = {10};\n");
-%!   fputs(fd, "tmp1[] = Extrude {L,0,0}{ Surface{11}; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {L,0,0}{ Surface{12}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {11,12};\n");
-%!   fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
-%!   fputs(fd, "Physical Surface(\"end-section\",8) = {tmp1[0],tmp2[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     Ec = 210000e6;
+%!     Ei = 125000e6;
+%!     CTEc = 12.5e-6;
+%!     CTEi = 16.7e-6;
+%!     dT = 100;
+%!     H = 1e-3;
+%!     r1 = 0;
+%!     h1 = H;
+%!     h2 = H;
+%!     w = 1.25e-3;
+%!     h = 1.25e-3;
+%!     L = 100e-3;
+%!     r2 = r1 + h1;
+%!     r3 = r2 + h2;
+%!     K1 = 14 + (Ec/Ei) + (Ei/Ec);
+%!     Uy_ref = -3*(CTEc - CTEi)*dT*2*H*L^2/(H^2*K1);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "w = %g;\n", w);
+%!     fprintf(fd, "r1 = %g;\n", r1);
+%!     fprintf(fd, "r2 = %g;\n", r2);
+%!     fprintf(fd, "r3 = %g;\n", r3);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fputs(fd, "Point(1) = {0,r3,0,h};\n");
+%!     fputs(fd, "Point(2) = {0,r3,w,h};\n");
+%!     fputs(fd, "Point(3) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(4) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(5) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(6) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(7) = {0,r1,w,h};\n");
+%!     fputs(fd, "Point(8) = {0,r1,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,5};\n");
+%!     fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
+%!     fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(11) = {9};\n");
+%!     fputs(fd, "Plane Surface(12) = {10};\n");
+%!     fputs(fd, "tmp1[] = Extrude {L,0,0}{ Surface{11}; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {L,0,0}{ Surface{12}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {11,12};\n");
+%!     fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
+%!     fputs(fd, "Physical Surface(\"end-section\",8) = {tmp1[0],tmp2[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -9243,16 +9442,16 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     sol_stat.stress = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                       load_case, ...
-%!                                       sol_stat);
-%!     Uy = mean(sol_stat.def(mesh.groups.tria6(grp_id_end).nodes, 2));
-%!     tol = 2e-2;
-%!     assert(Uy, Uy_ref, tol * abs(Uy));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_VEC_STRESS_CAUCH], ...
+%!                                    load_case, ...
+%!                                    sol_stat);
+%!   Uy = mean(sol_stat.def(mesh.groups.tria6(grp_id_end).nodes, 2));
+%!   tol = 2e-2;
+%!   assert(Uy, Uy_ref, tol * abs(Uy));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -9264,7 +9463,10 @@ endfunction
 
 %!test
 %! ### TEST 50
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -9273,61 +9475,61 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   Ec = 210000e6;
-%!   Ei = 125000e6;
-%!   CTEc = 12.5e-6;
-%!   CTEi = 16.7e-6;
-%!   dT = [100, 200];
-%!   H = 1e-3;
-%!   r1 = 0;
-%!   h1 = H;
-%!   h2 = H;
-%!   w = 1.25e-3;
-%!   h = 1.25e-3;
-%!   L = 100e-3;
-%!   r2 = r1 + h1;
-%!   r3 = r2 + h2;
-%!   K1 = 14 + (Ec/Ei) + (Ei/Ec);
-%!   Uy_ref = -3*(CTEc - CTEi)*dT*2*H*L^2/(H^2*K1);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "w = %g;\n", w);
-%!   fprintf(fd, "r1 = %g;\n", r1);
-%!   fprintf(fd, "r2 = %g;\n", r2);
-%!   fprintf(fd, "r3 = %g;\n", r3);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fputs(fd, "Point(1) = {0,r3,0,h};\n");
-%!   fputs(fd, "Point(2) = {0,r3,w,h};\n");
-%!   fputs(fd, "Point(3) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(4) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(5) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(6) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(7) = {0,r1,w,h};\n");
-%!   fputs(fd, "Point(8) = {0,r1,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,5};\n");
-%!   fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
-%!   fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(11) = {9};\n");
-%!   fputs(fd, "Plane Surface(12) = {10};\n");
-%!   fputs(fd, "tmp1[] = Extrude {L,0,0}{ Surface{11}; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {L,0,0}{ Surface{12}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",3) = {11,12};\n");
-%!   fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
-%!   fputs(fd, "Physical Surface(\"end-section\",8) = {tmp1[0],tmp2[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     Ec = 210000e6;
+%!     Ei = 125000e6;
+%!     CTEc = 12.5e-6;
+%!     CTEi = 16.7e-6;
+%!     dT = [100, 200];
+%!     H = 1e-3;
+%!     r1 = 0;
+%!     h1 = H;
+%!     h2 = H;
+%!     w = 1.25e-3;
+%!     h = 1.25e-3;
+%!     L = 100e-3;
+%!     r2 = r1 + h1;
+%!     r3 = r2 + h2;
+%!     K1 = 14 + (Ec/Ei) + (Ei/Ec);
+%!     Uy_ref = -3*(CTEc - CTEi)*dT*2*H*L^2/(H^2*K1);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "w = %g;\n", w);
+%!     fprintf(fd, "r1 = %g;\n", r1);
+%!     fprintf(fd, "r2 = %g;\n", r2);
+%!     fprintf(fd, "r3 = %g;\n", r3);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fputs(fd, "Point(1) = {0,r3,0,h};\n");
+%!     fputs(fd, "Point(2) = {0,r3,w,h};\n");
+%!     fputs(fd, "Point(3) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(4) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(5) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(6) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(7) = {0,r1,w,h};\n");
+%!     fputs(fd, "Point(8) = {0,r1,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,5};\n");
+%!     fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
+%!     fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(11) = {9};\n");
+%!     fputs(fd, "Plane Surface(12) = {10};\n");
+%!     fputs(fd, "tmp1[] = Extrude {L,0,0}{ Surface{11}; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {L,0,0}{ Surface{12}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",3) = {11,12};\n");
+%!     fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
+%!     fputs(fd, "Physical Surface(\"end-section\",8) = {tmp1[0],tmp2[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -9384,7 +9586,7 @@ endfunction
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
-%!                                 load_case);
+%!                                load_case);
 %!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
@@ -9428,7 +9630,10 @@ endfunction
 
 %!test
 %! ### TEST 51
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -9441,41 +9646,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   p = 25e6;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     p = 25e6;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -9619,55 +9824,56 @@ endfunction
 %!     fprintf(stderr, "mode %d f=%.0f\n", i, f(i));
 %!   endfor
 %!   assert(f, f_ref, tol * max(f_ref));
-
-%!   figure("visible","off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title('undeformed mesh');
-%!   opts_plot.elem_types = {"tria6h", "tet10h"};
-%!   opts_plot.elem_groups.tria6h = [mesh.groups.tria6h.id];
-%!   opts_plot.elem_groups.tet10h = [mesh.groups.tet10h.id];
-%!   for i=1:min(number_of_modes, length(sol_eig.f))
-%!     figure("visible", "off");
+%!   if (do_plot)
+%!     figure("visible","off");
 %!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, :, i), "rows")), i, opts_plot);
+%!     fem_post_sol_plot(mesh);
 %!     view(30,30);
 %!     xlabel('x [m]');
 %!     ylabel('y [m]');
 %!     zlabel('z [m]');
 %!     grid on;
 %!     grid minor on;
-%!     title(sprintf("%d. eigenmode: %gHz",i,sol_eig.f(i)));
-%!   endfor
+%!     title('undeformed mesh');
+%!     opts_plot.elem_types = {"tria6h", "tet10h"};
+%!     opts_plot.elem_groups.tria6h = [mesh.groups.tria6h.id];
+%!     opts_plot.elem_groups.tet10h = [mesh.groups.tet10h.id];
+%!     for i=1:min(number_of_modes, length(sol_eig.f))
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, :, i), "rows")), i, opts_plot);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("%d. eigenmode: %gHz",i,sol_eig.f(i)));
+%!     endfor
 
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat, scale_eig/max(norm(sol_stat.def, "rows")), 1, opts_plot);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh consistent load vector");
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat, scale_eig/max(norm(sol_stat.def, "rows")), 1, opts_plot);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh consistent load vector");
 
-%!   figure("visible", "off");
-%!   hold on;
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_eig/max(norm(sol_stat_lumped.def, "rows")), 1, opts_plot);
-%!   view(30,30);
-%!   xlabel('x [m]');
-%!   ylabel('y [m]');
-%!   zlabel('z [m]');
-%!   grid on;
-%!   grid minor on;
-%!   title("deformed mesh lumped load vector");
-%!   figure_list();
+%!     figure("visible", "off");
+%!     hold on;
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_eig/max(norm(sol_stat_lumped.def, "rows")), 1, opts_plot);
+%!     view(30,30);
+%!     xlabel('x [m]');
+%!     ylabel('y [m]');
+%!     zlabel('z [m]');
+%!     grid on;
+%!     grid minor on;
+%!     title("deformed mesh lumped load vector");
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -9679,7 +9885,10 @@ endfunction
 
 %!test
 %! ## TEST 52
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -9688,49 +9897,49 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 5e-3;
-%!   mesh_size = 3e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 5e-3;
+%!     mesh_size = 3e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -9761,8 +9970,8 @@ endfunction
 
 %!   load_case.pressure.tria6h.elements = [elno_p1; elno_p2; elno_p3];
 %!   load_case.pressure.tria6h.p = [repmat(p1, rows(elno_p1), columns(elno_p1));
-%!                                 repmat(p2, rows(elno_p2), columns(elno_p2));
-%!                                 repmat(p3, rows(elno_p3), columns(elno_p3))];
+%!                                  repmat(p2, rows(elno_p2), columns(elno_p2));
+%!                                  repmat(p3, rows(elno_p3), columns(elno_p3))];
 
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   E = 210000e6;
@@ -9781,23 +9990,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -9870,7 +10080,9 @@ endfunction
 %!   assert(Ftot3_lumped, F3_an, eps^0.2* norm(F3_an));
 %!   assert(Mtot3_con, M3_an, eps^0.2 * norm(M3_an));
 %!   assert(Mtot3_lumped, M3_an, eps^0.2 * norm(M3_an));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -9882,11 +10094,13 @@ endfunction
 
 %!test
 %! ## TEST 53
-%! close all;
+%! plot_modes = false;
+%! if (plot_modes)
+%!   close all;
+%! endif
 %! number_of_modes = 3;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
-%! plot_modes = true;
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -9895,39 +10109,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 30e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   d = -5e-3;
-%!   e = 35e-3;
-%!   h = 4e-3;
-%!   alpha = 1e-6;
-%!   beta = 1e-4;
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"modal\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"interfaces\",2) = {tmp[2]};\n");
-%!   fputs(fd, "SetFactory(\"Built-in\");\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 30e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     d = -5e-3;
+%!     e = 35e-3;
+%!     h = 4e-3;
+%!     alpha = 1e-6;
+%!     beta = 1e-4;
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"modal\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"interfaces\",2) = {tmp[2]};\n");
+%!     fputs(fd, "SetFactory(\"Built-in\");\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -9963,7 +10177,7 @@ endfunction
 %!   for i=1:numel(mesh.elements.rbe3)
 %!     assert(sum(mesh.elements.rbe3(i).weight), b * c, sqrt(eps) * (b * c));
 %!   endfor
-%!   
+  
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -9988,7 +10202,10 @@ endfunction
 
 %!test
 %! ## TEST 54
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -9997,50 +10214,50 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 5e-3;
-%!   mesh_size = 1e-3;
-%!   enable_linear_dist = false;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 5e-3;
+%!     mesh_size = 1e-3;
+%!     enable_linear_dist = false;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -10080,8 +10297,8 @@ endfunction
 
 %!   load_case.pressure.tria6h.elements = [elno_p1; elno_p2; elno_p3];
 %!   load_case.pressure.tria6h.p = [p1 * Phi1 / (pi / 2) .* z1 / h;
-%!                                 p2 * Phi2 / (pi / 2) .* z2 / h;
-%!                                 repmat(p3, rows(elno_p3), columns(elno_p3))];
+%!                                  p2 * Phi2 / (pi / 2) .* z2 / h;
+%!                                  repmat(p3, rows(elno_p3), columns(elno_p3))];
 %!   if (enable_linear_dist)
 %!     p_mid = load_case.pressure.tria6h.p(:, 1:3);
 %!     load_case.pressure.tria6h.p(:, 4:6) = [0.5 * (p_mid(:, 1) + p_mid(:, 2)), 0.5 * (p_mid(:, 2) + p_mid(:, 3)), 0.5 * (p_mid(:, 1) + p_mid(:, 3))];
@@ -10103,23 +10320,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def / max(norm(sol_stat_lumped.def(:, 1:3), "rows")));
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -10205,8 +10423,9 @@ endfunction
 %!   fprintf(stderr, "err(M1_lumped)=%e\n", norm(Mtot1_lumped - M1_an) / norm(M1_an));
 %!   fprintf(stderr, "err(M2_lumped)=%e\n", norm(Mtot2_lumped - M2_an) / norm(M2_an));
 %!   fprintf(stderr, "err(M3_lumped)=%e\n", norm(Mtot3_lumped - M3_an) / norm(M3_an));
-
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -10218,7 +10437,10 @@ endfunction
 
 %!test
 %! ## TEST 55
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -10227,49 +10449,49 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   ri = 8e-3;
-%!   ro = 10e-3;
-%!   h = 12e-3;
-%!   c = 2e-3;
-%!   b = h - 2 * c;
-%!   p1 = 25.79e6;
-%!   p2 = 7.83e6;
-%!   p3 = 1.3758e6;
-%!   scale_def = 100;
-%!   mesh_size = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "ri = %g;\n", ri);
-%!   fprintf(fd, "ro = %g;\n", ro);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%!   fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%!   fputs(fd, "Point(3) = {ro,0.0,c};\n");
-%!   fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
-%!   fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%!   fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%!   fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
-%!   fputs(fd, "Point(8) = {ri,0.0,c};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
-%!   fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     ri = 8e-3;
+%!     ro = 10e-3;
+%!     h = 12e-3;
+%!     c = 2e-3;
+%!     b = h - 2 * c;
+%!     p1 = 25.79e6;
+%!     p2 = 7.83e6;
+%!     p3 = 1.3758e6;
+%!     scale_def = 100;
+%!     mesh_size = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "ri = %g;\n", ri);
+%!     fprintf(fd, "ro = %g;\n", ro);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!     fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!     fputs(fd, "Point(3) = {ro,0.0,c};\n");
+%!     fputs(fd, "Point(4) = {ro,0.0,h - c};\n");
+%!     fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!     fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!     fputs(fd, "Point(7) = {ri,0.0,h - c};\n");
+%!     fputs(fd, "Point(8) = {ri,0.0,c};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%!     fputs(fd, "Physical Surface(\"load3\",4) = {tmp[6]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -10309,8 +10531,8 @@ endfunction
 
 %!   load_case.pressure.tria6h.elements = [elno_p1; elno_p2; elno_p3];
 %!   load_case.pressure.tria6h.p = [p1 * cos(Phi1) .* sin(pi * z1 / h);
-%!                                 p2 * cos(Phi2) .* sin(pi * z2 / h);
-%!                                 repmat(p3, rows(elno_p3), columns(elno_p3))];
+%!                                  p2 * cos(Phi2) .* sin(pi * z2 / h);
+%!                                  repmat(p3, rows(elno_p3), columns(elno_p3))];
 
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   E = 210000e6;
@@ -10329,23 +10551,24 @@ endfunction
 
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat, scale_def);
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - consistent pressure load");
-%!   figure("visible", "off");
-%!   fem_post_sol_plot(mesh, sol_stat_lumped, scale_def);
-%!   xlabel("x [m]");
-%!   ylabel("y [m]");
-%!   zlabel("z [m]");
-%!   grid on;
-%!   grid minor on;
-%!   title("static deflection - lumped pressure load");
-
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat, scale_def);
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - consistent pressure load");
+%!     figure("visible", "off");
+%!     fem_post_sol_plot(mesh, sol_stat_lumped, scale_def);
+%!     xlabel("x [m]");
+%!     ylabel("y [m]");
+%!     zlabel("z [m]");
+%!     grid on;
+%!     grid minor on;
+%!     title("static deflection - lumped pressure load");
+%!   endif
 %!   X1 = mesh.nodes(unique(elno_p1), 1:3).';
 %!   X2 = mesh.nodes(unique(elno_p2), 1:3).';
 %!   X3 = mesh.nodes(unique(elno_p3), 1:3).';
@@ -10427,8 +10650,9 @@ endfunction
 %!   assert(Ftot3_lumped, F3_an, eps^0.2* norm(F3_an));
 %!   assert(Mtot3_con, M3_an, eps^0.2 * norm(M3_an));
 %!   assert(Mtot3_lumped, M3_an, eps^0.2 * norm(M3_an));
-
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -10440,7 +10664,10 @@ endfunction
 
 %!test
 %! ### TEST 56
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! number_of_modes = 10;
 %! scale_eig = 10e-3;
 %! tol = 1e-2;
@@ -10453,40 +10680,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 15e-3;
-%!   b = 20e-3;
-%!   c = 10e-3;
-%!   h = 3.5e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0.0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0.0,h};\n");
-%!   fputs(fd, "Line(1) = {4,3};\n");
-%!   fputs(fd, "Line(2) = {3,2};\n");
-%!   fputs(fd, "Line(3) = {2,1};\n");
-%!   fputs(fd, "Line(4) = {1,4};\n");
-%!   fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   if (do_rotate)
-%!     fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!     fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
-%!   endif
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 15e-3;
+%!     b = 20e-3;
+%!     c = 10e-3;
+%!     h = 3.5e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0.0,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0.0,0.0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0.0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0.0,h};\n");
+%!     fputs(fd, "Line(1) = {4,3};\n");
+%!     fputs(fd, "Line(2) = {3,2};\n");
+%!     fputs(fd, "Line(3) = {2,1};\n");
+%!     fputs(fd, "Line(4) = {1,4};\n");
+%!     fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     if (do_rotate)
+%!       fputs(fd, "Rotate{{1, 0, 0},{0, 0, 0}, 30 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 1, 0},{0, 0, 0}, 7 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!       fputs(fd, "Rotate{{0, 0, 1},{0, 0, 0}, 15 * Pi / 180}{ Volume{tmp[1]}; }\n");
+%!     endif
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load\",2) = {tmp[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -10586,20 +10813,20 @@ endfunction
 %!                                     [FEM_SCA_STRESS_VMIS], ...
 %!                                     load_case, ...
 %!                                     sol_eig);
-
-%!   for i=1:numel(sol_eig.f)
-%!     figure("visible", "off");
-%!     hold on;
-%!     fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%!     view(30,30);
-%!     xlabel('x [m]');
-%!     ylabel('y [m]');
-%!     zlabel('z [m]');
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
-%!   endfor
-
+%!   if (do_plot)
+%!     for i=1:numel(sol_eig.f)
+%!       figure("visible", "off");
+%!       hold on;
+%!       fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%!       view(30,30);
+%!       xlabel('x [m]');
+%!       ylabel('y [m]');
+%!       zlabel('z [m]');
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!     endfor
+%!   endif
 %!   f_ref = [8768.74;
 %!            14636.1;
 %!            21145.7;
@@ -10614,7 +10841,9 @@ endfunction
 %!     fprintf(stderr, "mode %d f=%.0f\n", i, sol_eig.f(i));
 %!   endfor
 %!   assert(sol_eig.f(:), f_ref, tol * max(f_ref));
-%!   figure_list();
+%!   if (do_plot)
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -10626,7 +10855,10 @@ endfunction
 
 %!test
 %! ### TEST 57
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -10635,52 +10867,52 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   r1 = 10e-3;
-%!   h1 = 5e-3;
-%!   h2 = 5e-3;
-%!   w = 10e-3;
-%!   h = 1.25e-3;
-%!   r2 = r1 + h1;
-%!   r3 = r2 + h2;
-%!   fprintf(fd, "w = %g;\n", w);
-%!   fprintf(fd, "r1 = %g;\n", r1);
-%!   fprintf(fd, "r2 = %g;\n", r2);
-%!   fprintf(fd, "r3 = %g;\n", r3);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fputs(fd, "Point(1) = {0,r3,0,h};\n");
-%!   fputs(fd, "Point(2) = {0,r3,w,h};\n");
-%!   fputs(fd, "Point(3) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(4) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(5) = {0,r2,0,h};\n");
-%!   fputs(fd, "Point(6) = {0,r2,w,h};\n");
-%!   fputs(fd, "Point(7) = {0,r1,w,h};\n");
-%!   fputs(fd, "Point(8) = {0,r1,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Line(7) = {7,8};\n");
-%!   fputs(fd, "Line(8) = {8,5};\n");
-%!   fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
-%!   fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(11) = {9};\n");
-%!   fputs(fd, "Plane Surface(12) = {10};\n");
-%!   fputs(fd, "tmp1[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{11}; };\n");
-%!   fputs(fd, "tmp2[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{12}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\",3) = {11,12};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\",4) = {tmp1[0],tmp2[0]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\",5) = {tmp1[5],tmp2[5]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     r1 = 10e-3;
+%!     h1 = 5e-3;
+%!     h2 = 5e-3;
+%!     w = 10e-3;
+%!     h = 1.25e-3;
+%!     r2 = r1 + h1;
+%!     r3 = r2 + h2;
+%!     fprintf(fd, "w = %g;\n", w);
+%!     fprintf(fd, "r1 = %g;\n", r1);
+%!     fprintf(fd, "r2 = %g;\n", r2);
+%!     fprintf(fd, "r3 = %g;\n", r3);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fputs(fd, "Point(1) = {0,r3,0,h};\n");
+%!     fputs(fd, "Point(2) = {0,r3,w,h};\n");
+%!     fputs(fd, "Point(3) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(4) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(5) = {0,r2,0,h};\n");
+%!     fputs(fd, "Point(6) = {0,r2,w,h};\n");
+%!     fputs(fd, "Point(7) = {0,r1,w,h};\n");
+%!     fputs(fd, "Point(8) = {0,r1,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Line(7) = {7,8};\n");
+%!     fputs(fd, "Line(8) = {8,5};\n");
+%!     fputs(fd, "Line Loop(9) = {1,2,3,4};\n");
+%!     fputs(fd, "Line Loop(10) = {5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(11) = {9};\n");
+%!     fputs(fd, "Plane Surface(12) = {10};\n");
+%!     fputs(fd, "tmp1[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{11}; };\n");
+%!     fputs(fd, "tmp2[] = Extrude {{0,0,1},{0,0,0},-Pi/2} { Surface{12}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",1) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",2) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\",3) = {11,12};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\",4) = {tmp1[0],tmp2[0]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\",5) = {tmp1[5],tmp2[5]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",6) = {tmp1[4]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",7) = {tmp2[2]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -10746,36 +10978,36 @@ endfunction
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
-%!                                 load_case);
-%!     [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!     [sol_stat.stress, ...
-%!      sol_stat.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case, ...
-%!                                        sol_stat);
-%!     load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!     [mat_ass2.K, ...
-%!      mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                   dof_map, ...
-%!                                   [FEM_MAT_STIFFNESS, ...
-%!                                    FEM_VEC_LOAD_CONSISTENT], ...
-%!                                   load_case2);
-%!     [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!     [sol_stat2.stress, ...
-%!      sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                         dof_map, ...
-%!                                         [FEM_VEC_STRESS_CAUCH, ...
-%!                                          FEM_VEC_STRAIN_TOTAL], ...
-%!                                         load_case2, ...
-%!                                         sol_stat2);
-%!     tol_def = 1e-5;
-%!     tol_strain = 1e-3;
-%!     tol_stress = 3e-3;
-%!     assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
-%!     assert(sol_stat2.stress.tau.tet10, zeros(size(sol_stat.stress.tau.tet10)), tol_stress * max(max(max(abs(sol_stat.stress.tau.tet10)))));
-%!     assert(sol_stat2.strain.epsilonm.tet10, sol_stat.strain.epsilonm.tet10, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10)))));
+%!                                load_case);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat.stress, ...
+%!    sol_stat.strain] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH, ...
+%!                                       FEM_VEC_STRAIN_TOTAL], ...
+%!                                      load_case, ...
+%!                                      sol_stat);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
+%!   tol_def = 1e-5;
+%!   tol_strain = 1e-3;
+%!   tol_stress = 3e-3;
+%!   assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
+%!   assert(sol_stat2.stress.tau.tet10, zeros(size(sol_stat.stress.tau.tet10)), tol_stress * max(max(max(abs(sol_stat.stress.tau.tet10)))));
+%!   assert(sol_stat2.strain.epsilonm.tet10, sol_stat.strain.epsilonm.tet10, tol_strain * max(max(max(abs(sol_stat.strain.epsilon.tet10)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -10792,7 +11024,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -10801,40 +11036,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -10865,43 +11100,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.tria6.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:1000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t /   T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.tria6.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:1000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t /   T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -10924,8 +11160,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -10942,7 +11179,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -10951,40 +11191,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11016,43 +11256,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.tria6h.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:10000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.tria6h.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:10000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t / T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -11075,8 +11316,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -11093,7 +11335,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11102,41 +11347,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11168,43 +11413,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.tria6h.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:10000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.tria6h.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:10000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t / T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -11227,8 +11473,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -11240,7 +11487,10 @@ endfunction
 
 %!test
 %! ### TEST 61
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11249,37 +11499,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11321,10 +11571,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11340,7 +11590,10 @@ endfunction
 
 %!test
 %! ### TEST 62
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11349,37 +11602,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11408,7 +11661,7 @@ endfunction
 %!   mesh.elements.convection.tria6.nodes = mesh.elements.tria6([mesh.groups.tria6.elements], :);
 %!   mesh.elements.convection.tria6.h = repmat(he, rows(mesh.elements.convection.tria6.nodes), columns(mesh.elements.convection.tria6.nodes));
 %!   load_case.convection.tria6.theta = [repmat(thetae(1), numel(mesh.groups.tria6(1).elements), columns(mesh.elements.convection.tria6.nodes));
-%!                                        repmat(thetae(2), numel(mesh.groups.tria6(2).elements), columns(mesh.elements.convection.tria6.nodes))];
+%!                                       repmat(thetae(2), numel(mesh.groups.tria6(2).elements), columns(mesh.elements.convection.tria6.nodes))];
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -11421,10 +11674,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11439,8 +11692,11 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ### TEST 63
-%! close all;
+%! ### TEST63
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11449,38 +11705,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11522,10 +11778,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11541,7 +11797,10 @@ endfunction
 
 %!test
 %! ### TEST 64
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11550,39 +11809,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11611,7 +11870,7 @@ endfunction
 %!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([mesh.groups.quad8.elements], :);
 %!   mesh.elements.convection.quad8.h = repmat(he, rows(mesh.elements.convection.quad8.nodes), columns(mesh.elements.convection.quad8.nodes));
 %!   load_case.convection.quad8.theta = [repmat(thetae(1), numel(mesh.groups.quad8(1).elements), columns(mesh.elements.convection.quad8.nodes));
-%!                                        repmat(thetae(2), numel(mesh.groups.quad8(2).elements), columns(mesh.elements.convection.quad8.nodes))];
+%!                                       repmat(thetae(2), numel(mesh.groups.quad8(2).elements), columns(mesh.elements.convection.quad8.nodes))];
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -11624,10 +11883,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11643,7 +11902,10 @@ endfunction
 
 %!test
 %! ### TEST 65
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11652,37 +11914,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11724,10 +11986,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11743,7 +12005,10 @@ endfunction
 
 %!test
 %! ### TEST 66
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11752,37 +12017,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11815,7 +12080,7 @@ endfunction
 %!                                      repmat(h1, size(mesh.elements.iso4(mesh.groups.iso4(2).elements, :)))];                                          
 %!   load_case.convection.iso4.theta = [theta_s(mesh.elements.iso4(mesh.groups.iso4(1).elements, :));
 %!                                      theta_s(mesh.elements.iso4(mesh.groups.iso4(2).elements, :))];
-%!                                     
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -11828,10 +12093,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -11846,7 +12111,10 @@ endfunction
 
 %!test
 %! ### TEST 67
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11855,38 +12123,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -11921,10 +12189,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.quad8.h = [repmat(h0, size(mesh.elements.quad8(mesh.groups.quad8(1).elements, :)));
-%!                                      repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];                                          
+%!                                       repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];                                          
 %!   load_case.convection.quad8.theta = [theta_s(mesh.elements.quad8(mesh.groups.quad8(1).elements, :));
-%!                                      theta_s(mesh.elements.quad8(mesh.groups.quad8(2).elements, :))];
-%!                                     
+%!                                       theta_s(mesh.elements.quad8(mesh.groups.quad8(2).elements, :))];
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -11937,10 +12205,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -11955,7 +12223,10 @@ endfunction
 
 %!test
 %! ### TEST 68
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -11964,37 +12235,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12024,10 +12295,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.quad8.h = [repmat(h0, size(mesh.elements.quad8(mesh.groups.quad8(1).elements, :)));
-%!                                      repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];                                          
+%!                                       repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];                                          
 %!   load_case.convection.quad8.theta = [theta_s(mesh.elements.quad8(mesh.groups.quad8(1).elements, :));
-%!                                      theta_s(mesh.elements.quad8(mesh.groups.quad8(2).elements, :))];
-%!                                     
+%!                                       theta_s(mesh.elements.quad8(mesh.groups.quad8(2).elements, :))];
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12040,10 +12311,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12058,7 +12329,10 @@ endfunction
 
 %!test
 %! ### TEST 69
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12067,36 +12341,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12126,10 +12400,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.tria6.h = [repmat(h0, size(mesh.elements.tria6(mesh.groups.tria6(1).elements, :)));
-%!                                      repmat(h1, size(mesh.elements.tria6(mesh.groups.tria6(2).elements, :)))];                                          
+%!                                       repmat(h1, size(mesh.elements.tria6(mesh.groups.tria6(2).elements, :)))];                                          
 %!   load_case.convection.tria6.theta = [theta_s(mesh.elements.tria6(mesh.groups.tria6(1).elements, :));
-%!                                      theta_s(mesh.elements.tria6(mesh.groups.tria6(2).elements, :))];
-%!                                     
+%!                                       theta_s(mesh.elements.tria6(mesh.groups.tria6(2).elements, :))];
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12142,10 +12416,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12160,7 +12434,10 @@ endfunction
 
 %!test
 %! ### TEST 70
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12169,36 +12446,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12229,10 +12506,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.tria6h.h = [repmat(h0, size(mesh.elements.tria6h(mesh.groups.tria6h(1).elements, :)));
-%!                                      repmat(h1, size(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :)))];                                          
+%!                                        repmat(h1, size(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :)))];                                          
 %!   load_case.convection.tria6h.theta = [theta_s(mesh.elements.tria6h(mesh.groups.tria6h(1).elements, :));
-%!                                      theta_s(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :))];
-%!                                     
+%!                                        theta_s(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :))];
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12245,10 +12522,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12263,7 +12540,10 @@ endfunction
 
 %!test
 %! ### TEST 71
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12272,36 +12552,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12332,7 +12612,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!                                     
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12345,10 +12625,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12364,7 +12644,10 @@ endfunction
 
 %!test
 %! ### TEST 72
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12373,36 +12656,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12433,7 +12716,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!                                     
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12446,10 +12729,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12465,7 +12748,10 @@ endfunction
 
 %!test
 %! ### TEST 73
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12474,37 +12760,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12534,7 +12820,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!                                     
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12547,10 +12833,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12566,7 +12852,10 @@ endfunction
 
 %!test
 %! ### TEST 74
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12575,38 +12864,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12641,7 +12930,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!                                     
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12654,10 +12943,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   opt_sol.refine_max_iter = int32(2000);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12673,7 +12962,10 @@ endfunction
 
 %!test
 %! ### TEST 75
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12682,37 +12974,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 10e-3;
-%!   b = 10e-3;
-%!   c = 10e-3;
-%!   d = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 10e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     d = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"h0\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"h1\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12742,7 +13034,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!                                     
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12776,7 +13068,10 @@ endfunction
 
 %!test
 %! ### TEST 76
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12791,32 +13086,32 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12838,32 +13133,32 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -12939,7 +13234,10 @@ endfunction
 
 %!test
 %! ### TEST 77
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -12954,33 +13252,33 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13007,33 +13305,33 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13114,7 +13412,10 @@ endfunction
 
 %!test
 %! ### TEST 78
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13129,33 +13430,33 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13177,33 +13478,33 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13279,7 +13580,10 @@ endfunction
 
 %!test
 %! ### TEST 79
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13294,31 +13598,31 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13340,31 +13644,31 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13440,7 +13744,10 @@ endfunction
 
 %!test
 %! ### TEST 80
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13455,31 +13762,31 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13502,31 +13809,31 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13570,7 +13877,7 @@ endfunction
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   
+  
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13604,7 +13911,10 @@ endfunction
 
 %!test
 %! ### TEST 81
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13613,37 +13923,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13686,10 +13996,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -13706,7 +14016,10 @@ endfunction
 
 %!test
 %! ### TEST 82
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13715,38 +14028,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13789,10 +14102,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -13809,7 +14122,10 @@ endfunction
 
 %!test
 %! ### TEST 83
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13818,37 +14134,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13892,10 +14208,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -13912,7 +14228,10 @@ endfunction
 
 %!test
 %! ### TEST 84
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -13921,36 +14240,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -13994,10 +14313,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -14014,7 +14333,10 @@ endfunction
 
 %!test
 %! ### TEST 85
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14023,36 +14345,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 15e-3;
-%!   h = 12e-3;
-%!   dx = 2e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 15e-3;
+%!     h = 12e-3;
+%!     dx = 2e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14096,10 +14418,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_THERMAL_COND, ...
-%!                                 FEM_VEC_LOAD_THERMAL], ...
-%!                                load_case);
+%! 				dof_map, ...
+%! 				[FEM_MAT_THERMAL_COND, ...
+%!                                  FEM_VEC_LOAD_THERMAL], ...
+%! 				load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -14117,7 +14439,10 @@ endfunction
 %!test
 %! ### TEST 86
 %! ### Code_Aster TLL100 V4.21.100 12/12/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14126,38 +14451,38 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 1e-3;
-%!   L = 100e-3;
-%!   W = dx;
-%!   H = dx;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L=%g;\n", L);
-%!   fprintf(fd, "W=%g;\n", W);
-%!   fprintf(fd, "H=%g;\n", H);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-L,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {-L,W,0,dx};\n");
-%!   fputs(fd, "Point(3) = {-L,W,H,dx};\n");
-%!   fputs(fd, "Point(4) = {-L,0,H,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 1e-3;
+%!     L = 100e-3;
+%!     W = dx;
+%!     H = dx;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L=%g;\n", L);
+%!     fprintf(fd, "W=%g;\n", W);
+%!     fprintf(fd, "H=%g;\n", H);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-L,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {-L,W,0,dx};\n");
+%!     fputs(fd, "Point(3) = {-L,W,H,dx};\n");
+%!     fputs(fd, "Point(4) = {-L,0,H,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14229,17 +14554,19 @@ endfunction
 %!   theta_ref = theta0 * theta_ref;
 %!   tol = 1e-3;
 %!   assert(sol.theta(idx_x, 100:end), theta_ref(:, 100:end), tol * abs(theta0));
-%!   for i=[1:10,11:100:numel(sol.t)]
-%!     figure("visible", "off");
-%!     hold("on");
-%!     plot(x, theta_ref(:, i), "-;reference;0");
-%!     plot(x, sol.theta(idx_x, i), "-;solution;1");
-%!     xlabel("x [m]");
-%!     ylabel("theta [degC]");
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("t=%gs", sol.t(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=[1:10,11:100:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, theta_ref(:, i), "-;reference;0");
+%!       plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!       xlabel("x [m]");
+%!       ylabel("theta [degC]");
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("t=%gs", sol.t(i)));
+%!     endfor
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -14251,7 +14578,10 @@ endfunction
 
 %!test
 %! ### TEST 87
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14266,33 +14596,33 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14319,33 +14649,33 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14392,7 +14722,7 @@ endfunction
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
-%!                                                                  "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
+%!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   mesh.elements.thconstr(end + (1:numel(thconstr_surf))) = thconstr_surf;
 %!   load_case.thconstr(end + (1:numel(thconstr_surf))) = struct("U", mat2cell(zeros(1, numel(thconstr_surf)), 1, ones(1, numel(thconstr_surf))));
@@ -14429,7 +14759,10 @@ endfunction
 
 %!test
 %! ### TEST 88
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14444,32 +14777,32 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14491,32 +14824,32 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14558,7 +14891,7 @@ endfunction
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
 %!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
-%!                                                                  "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
+%!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   mesh.elements.thconstr(end + (1:numel(thconstr_surf))) = thconstr_surf;
 %!   load_case.thconstr(end + (1:numel(thconstr_surf))) = struct("U", mat2cell(zeros(1, numel(thconstr_surf)), 1, ones(1, numel(thconstr_surf))));
@@ -14595,7 +14928,10 @@ endfunction
 
 %!test
 %! ### TEST 89
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14610,31 +14946,31 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14657,31 +14993,31 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14761,7 +15097,10 @@ endfunction
 
 %!test
 %! ### TEST 90
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14776,31 +15115,31 @@ endfunction
 %!   dx = 0.25e-3;
 %!   lambda = 50;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-b,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-b,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14823,31 +15162,31 @@ endfunction
 %!   mesh_data(1).mesh.material_data.cp = 465;
 %!   unlink([filename, ".msh"]);
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a=%g;\n", a);
-%!   fprintf(fd, "b=%g;\n", b);
-%!   fprintf(fd, "c=%g;\n", c);
-%!   fprintf(fd, "d=%g;\n", d);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {b,0,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,c,0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Line Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a=%g;\n", a);
+%!     fprintf(fd, "b=%g;\n", b);
+%!     fprintf(fd, "c=%g;\n", c);
+%!     fprintf(fd, "d=%g;\n", d);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {b,0,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,c,0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Line Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -14927,7 +15266,10 @@ endfunction
 
 %!test
 %! ## TEST 91: thermal strain iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -14936,41 +15278,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15014,21 +15356,21 @@ endfunction
 %!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!    load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!    [mat_ass2.K, ...
-%!     mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                  dof_map, ...
-%!                                  [FEM_MAT_STIFFNESS, ...
-%!                                   FEM_VEC_LOAD_CONSISTENT], ...
-%!                                  load_case2);
-%!    [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!    [sol_stat2.stress, ...
-%!     sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case2, ...
-%!                                        sol_stat2);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -15069,7 +15411,10 @@ endfunction
 
 %!test
 %! ## TEST 92: thermal strain penta15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15078,40 +15423,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15174,21 +15519,21 @@ endfunction
 %!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!    load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!    [mat_ass2.K, ...
-%!     mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                  dof_map, ...
-%!                                  [FEM_MAT_STIFFNESS, ...
-%!                                   FEM_VEC_LOAD_CONSISTENT], ...
-%!                                  load_case2);
-%!    [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!    [sol_stat2.stress, ...
-%!     sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case2, ...
-%!                                        sol_stat2);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -15229,7 +15574,10 @@ endfunction
 
 %!test
 %! ## TEST 93: thermal strain tet10h
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15238,39 +15586,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15321,21 +15669,21 @@ endfunction
 %!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!    load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!    [mat_ass2.K, ...
-%!     mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                  dof_map, ...
-%!                                  [FEM_MAT_STIFFNESS, ...
-%!                                   FEM_VEC_LOAD_CONSISTENT], ...
-%!                                  load_case2);
-%!    [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!    [sol_stat2.stress, ...
-%!     sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case2, ...
-%!                                        sol_stat2);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -15376,7 +15724,10 @@ endfunction
 
 %!test
 %! ## TEST 94: thermal strain tet10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15385,39 +15736,39 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15468,21 +15819,21 @@ endfunction
 %!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!    load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!    [mat_ass2.K, ...
-%!     mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                  dof_map, ...
-%!                                  [FEM_MAT_STIFFNESS, ...
-%!                                   FEM_VEC_LOAD_CONSISTENT], ...
-%!                                  load_case2);
-%!    [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!    [sol_stat2.stress, ...
-%!     sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case2, ...
-%!                                        sol_stat2);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -15515,7 +15866,10 @@ endfunction
 
 %!test
 %! ## TEST 95: thermal strain iso20
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15524,51 +15878,51 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   d1 = 50e-3;
-%!   d2 = 150e-3;
-%!   L = 0.5e-3;
-%!   h = 0.5e-3;
-%!   Phi = 5 * pi / 180;
-%!   alpha1 = 50;
-%!   alpha2 = 100;
-%!   lambda = 40;
-%!   Theta2 = 100;
-%!   q1 = 1000000;
-%!   q2 = q1 * d1 / d2;
-%!   Q1 = d1 * pi * L * q1;
-%!   kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
-%!   Theta1 = Theta2 + Q1 / (L * kR);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "d1 = %g;\n", d1);
-%!   fprintf(fd, "d2 = %g;\n", d2);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0, 0, 0, h};\n");
-%!   fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
-%!   fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Line(2) = {3,4};\n");
-%!   fputs(fd, "Circle(3) = {4,1,5};\n");
-%!   fputs(fd, "Line(4) = {5,2};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; Layers{Ceil(L / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     d1 = 50e-3;
+%!     d2 = 150e-3;
+%!     L = 0.5e-3;
+%!     h = 0.5e-3;
+%!     Phi = 5 * pi / 180;
+%!     alpha1 = 50;
+%!     alpha2 = 100;
+%!     lambda = 40;
+%!     Theta2 = 100;
+%!     q1 = 1000000;
+%!     q2 = q1 * d1 / d2;
+%!     Q1 = d1 * pi * L * q1;
+%!     kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
+%!     Theta1 = Theta2 + Q1 / (L * kR);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "d1 = %g;\n", d1);
+%!     fprintf(fd, "d2 = %g;\n", d2);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0, 0, 0, h};\n");
+%!     fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
+%!     fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Line(2) = {3,4};\n");
+%!     fputs(fd, "Circle(3) = {4,1,5};\n");
+%!     fputs(fd, "Line(4) = {5,2};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; Layers{Ceil(L / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15631,7 +15985,10 @@ endfunction
 
 %!test
 %! ## TEST 96: thermal strain penta15
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15640,52 +15997,52 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   d1 = 50e-3;
-%!   d2 = 150e-3;
-%!   L = 0.5e-3;
-%!   h = 0.5e-3;
-%!   Phi = 5 * pi / 180;
-%!   alpha1 = 50;
-%!   alpha2 = 100;
-%!   lambda = 40;
-%!   Theta2 = 100;
-%!   q1 = 1000000;
-%!   q2 = q1 * d1 / d2;
-%!   Q1 = d1 * pi * L * q1;
-%!   kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
-%!   Theta1 = Theta2 + Q1 / (L * kR);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "d1 = %g;\n", d1);
-%!   fprintf(fd, "d2 = %g;\n", d2);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Point(1) = {0, 0, 0, h};\n");
-%!   fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
-%!   fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Line(2) = {3,4};\n");
-%!   fputs(fd, "Circle(3) = {4,1,5};\n");
-%!   fputs(fd, "Line(4) = {5,2};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; Layers{Ceil(L / h)}; Recombine; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     d1 = 50e-3;
+%!     d2 = 150e-3;
+%!     L = 0.5e-3;
+%!     h = 0.5e-3;
+%!     Phi = 5 * pi / 180;
+%!     alpha1 = 50;
+%!     alpha2 = 100;
+%!     lambda = 40;
+%!     Theta2 = 100;
+%!     q1 = 1000000;
+%!     q2 = q1 * d1 / d2;
+%!     Q1 = d1 * pi * L * q1;
+%!     kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
+%!     Theta1 = Theta2 + Q1 / (L * kR);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "d1 = %g;\n", d1);
+%!     fprintf(fd, "d2 = %g;\n", d2);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Point(1) = {0, 0, 0, h};\n");
+%!     fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
+%!     fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Line(2) = {3,4};\n");
+%!     fputs(fd, "Circle(3) = {4,1,5};\n");
+%!     fputs(fd, "Line(4) = {5,2};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; Layers{Ceil(L / h)}; Recombine; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15748,7 +16105,10 @@ endfunction
 
 %!test
 %! ## TEST 97: thermal strain tet10h
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15757,52 +16117,52 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   d1 = 50e-3;
-%!   d2 = 150e-3;
-%!   L = 0.5e-3;
-%!   h = 0.5e-3;
-%!   Phi = 5 * pi / 180;
-%!   alpha1 = 50;
-%!   alpha2 = 100;
-%!   lambda = 40;
-%!   Theta2 = 100;
-%!   q1 = 1000000;
-%!   q2 = q1 * d1 / d2;
-%!   Q1 = d1 * pi * L * q1;
-%!   kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
-%!   Theta1 = Theta2 + Q1 / (L * kR);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "d1 = %g;\n", d1);
-%!   fprintf(fd, "d2 = %g;\n", d2);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0, 0, 0, h};\n");
-%!   fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
-%!   fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Line(2) = {3,4};\n");
-%!   fputs(fd, "Circle(3) = {4,1,5};\n");
-%!   fputs(fd, "Line(4) = {5,2};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=3;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     d1 = 50e-3;
+%!     d2 = 150e-3;
+%!     L = 0.5e-3;
+%!     h = 0.5e-3;
+%!     Phi = 5 * pi / 180;
+%!     alpha1 = 50;
+%!     alpha2 = 100;
+%!     lambda = 40;
+%!     Theta2 = 100;
+%!     q1 = 1000000;
+%!     q2 = q1 * d1 / d2;
+%!     Q1 = d1 * pi * L * q1;
+%!     kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
+%!     Theta1 = Theta2 + Q1 / (L * kR);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "d1 = %g;\n", d1);
+%!     fprintf(fd, "d2 = %g;\n", d2);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0, 0, 0, h};\n");
+%!     fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
+%!     fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Line(2) = {3,4};\n");
+%!     fputs(fd, "Circle(3) = {4,1,5};\n");
+%!     fputs(fd, "Line(4) = {5,2};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=3;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15861,7 +16221,10 @@ endfunction
 
 %!test
 %! ## TEST 98: thermal strain tet10
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15870,52 +16233,52 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   d1 = 50e-3;
-%!   d2 = 150e-3;
-%!   L = 0.5e-3;
-%!   h = 0.5e-3;
-%!   Phi = 5 * pi / 180;
-%!   alpha1 = 50;
-%!   alpha2 = 100;
-%!   lambda = 40;
-%!   Theta2 = 100;
-%!   q1 = 1000000;
-%!   q2 = q1 * d1 / d2;
-%!   Q1 = d1 * pi * L * q1;
-%!   kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
-%!   Theta1 = Theta2 + Q1 / (L * kR);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "d1 = %g;\n", d1);
-%!   fprintf(fd, "d2 = %g;\n", d2);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0, 0, 0, h};\n");
-%!   fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
-%!   fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Line(2) = {3,4};\n");
-%!   fputs(fd, "Circle(3) = {4,1,5};\n");
-%!   fputs(fd, "Line(4) = {5,2};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=3;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     d1 = 50e-3;
+%!     d2 = 150e-3;
+%!     L = 0.5e-3;
+%!     h = 0.5e-3;
+%!     Phi = 5 * pi / 180;
+%!     alpha1 = 50;
+%!     alpha2 = 100;
+%!     lambda = 40;
+%!     Theta2 = 100;
+%!     q1 = 1000000;
+%!     q2 = q1 * d1 / d2;
+%!     Q1 = d1 * pi * L * q1;
+%!     kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
+%!     Theta1 = Theta2 + Q1 / (L * kR);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "d1 = %g;\n", d1);
+%!     fprintf(fd, "d2 = %g;\n", d2);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0, 0, 0, h};\n");
+%!     fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
+%!     fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Line(2) = {3,4};\n");
+%!     fputs(fd, "Circle(3) = {4,1,5};\n");
+%!     fputs(fd, "Line(4) = {5,2};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=3;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -15974,7 +16337,10 @@ endfunction
 
 %!test
 %! ## TEST 99: thermal strain iso8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -15983,51 +16349,51 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   d1 = 50e-3;
-%!   d2 = 150e-3;
-%!   L = 0.5e-3;
-%!   h = 0.5e-3;
-%!   Phi = 5 * pi / 180;
-%!   alpha1 = 50;
-%!   alpha2 = 100;
-%!   lambda = 40;
-%!   Theta2 = 100;
-%!   q1 = 1000000;
-%!   q2 = q1 * d1 / d2;
-%!   Q1 = d1 * pi * L * q1;
-%!   kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
-%!   Theta1 = Theta2 + Q1 / (L * kR);
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "d1 = %g;\n", d1);
-%!   fprintf(fd, "d2 = %g;\n", d2);
-%!   fprintf(fd, "L = %g;\n", L);
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0, 0, 0, h};\n");
-%!   fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
-%!   fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
-%!   fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Line(2) = {3,4};\n");
-%!   fputs(fd, "Circle(3) = {4,1,5};\n");
-%!   fputs(fd, "Line(4) = {5,2};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; Layers{Ceil(L / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     d1 = 50e-3;
+%!     d2 = 150e-3;
+%!     L = 0.5e-3;
+%!     h = 0.5e-3;
+%!     Phi = 5 * pi / 180;
+%!     alpha1 = 50;
+%!     alpha2 = 100;
+%!     lambda = 40;
+%!     Theta2 = 100;
+%!     q1 = 1000000;
+%!     q2 = q1 * d1 / d2;
+%!     Q1 = d1 * pi * L * q1;
+%!     kR = pi / (1 / (alpha1 * d1) + 1 / (2 * lambda) * log(d2 / d1) + 1 / (alpha2 * d2));
+%!     Theta1 = Theta2 + Q1 / (L * kR);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "d1 = %g;\n", d1);
+%!     fprintf(fd, "d2 = %g;\n", d2);
+%!     fprintf(fd, "L = %g;\n", L);
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0, 0, 0, h};\n");
+%!     fputs(fd, "Point(2) = {0.5 * d1, 0, 0, h};\n");
+%!     fputs(fd, "Point(3) = {0.5 * d1 * Cos(Phi), 0.5 * d1 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(4) = {0.5 * d2 * Cos(Phi), 0.5 * d2 * Sin(Phi), 0, h};\n");
+%!     fputs(fd, "Point(5) = {0.5 * d2, 0, 0, h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Line(2) = {3,4};\n");
+%!     fputs(fd, "Circle(3) = {4,1,5};\n");
+%!     fputs(fd, "Line(4) = {5,2};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, L}{ Surface{6}; Layers{Ceil(L / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"inside-surface\", 2) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"outside-surface\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"top-surface\", 4) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bottom-surface\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface1\", 6) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"side-surface2\", 7) = {tmp[4]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16090,7 +16456,10 @@ endfunction
 
 %!test
 %! ## TEST 100: thermal strain iso8
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16099,41 +16468,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   a = 8e-3;
-%!   b = 15e-3;
-%!   c = 12e-3;
-%!   dT = 400;
-%!   mesh_size = 7e-3;
-%!   scale_def = 10e-3;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "a = %g;\n", a);
-%!   fprintf(fd, "b = %g;\n", b);
-%!   fprintf(fd, "c = %g;\n", c);
-%!   fprintf(fd, "h = %g;\n", mesh_size);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!   fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!   fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!   fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     dT = 400;
+%!     mesh_size = 7e-3;
+%!     scale_def = 10e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16177,21 +16546,21 @@ endfunction
 %!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!    load_case2.epsilon0 = sol_stat.strain.epsilon;
-%!    [mat_ass2.K, ...
-%!     mat_ass2.R] = fem_ass_matrix(mesh, ...
-%!                                  dof_map, ...
-%!                                  [FEM_MAT_STIFFNESS, ...
-%!                                   FEM_VEC_LOAD_CONSISTENT], ...
-%!                                  load_case2);
-%!    [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
-%!    [sol_stat2.stress, ...
-%!     sol_stat2.strain] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_VEC_STRESS_CAUCH, ...
-%!                                         FEM_VEC_STRAIN_TOTAL], ...
-%!                                        load_case2, ...
-%!                                        sol_stat2);
+%!   load_case2.epsilon0 = sol_stat.strain.epsilon;
+%!   [mat_ass2.K, ...
+%!    mat_ass2.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                 load_case2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2.stress, ...
+%!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_VEC_STRESS_CAUCH, ...
+%!                                        FEM_VEC_STRAIN_TOTAL], ...
+%!                                       load_case2, ...
+%!                                       sol_stat2);
 %!   tol = eps^0.8;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
@@ -16233,7 +16602,10 @@ endfunction
 %!test
 %! ### TEST 101
 %! ### Code_Aster TLL100 V4.21.100 12/12/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16242,37 +16614,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 0.5e-3;
-%!   L = 100e-3;
-%!   W = dx;
-%!   H = dx;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L=%g;\n", L);
-%!   fprintf(fd, "W=%g;\n", W);
-%!   fprintf(fd, "H=%g;\n", H);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-L,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {-L,W,0,dx};\n");
-%!   fputs(fd, "Point(3) = {-L,W,H,dx};\n");
-%!   fputs(fd, "Point(4) = {-L,0,H,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 0.5e-3;
+%!     L = 100e-3;
+%!     W = dx;
+%!     H = dx;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L=%g;\n", L);
+%!     fprintf(fd, "W=%g;\n", W);
+%!     fprintf(fd, "H=%g;\n", H);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-L,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {-L,W,0,dx};\n");
+%!     fputs(fd, "Point(3) = {-L,W,H,dx};\n");
+%!     fputs(fd, "Point(4) = {-L,0,H,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16342,17 +16714,19 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:1000:numel(sol.t)]
-%!     figure("visible", "off");
-%!     hold("on");
-%!     plot(x, theta_ref(:, i), "-;reference;0");
-%!     plot(x, sol.theta(idx_x, i), "-;solution;1");
-%!     xlabel("x [m]");
-%!     ylabel("theta [degC]");
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("t=%gs", sol.t(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=[1:10,11:1000:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, theta_ref(:, i), "-;reference;0");
+%!       plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!       xlabel("x [m]");
+%!       ylabel("theta [degC]");
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("t=%gs", sol.t(i)));
+%!     endfor
+%!   endif
 %!   tol = 1e-3;
 %!   assert(sol.theta(idx_x, 100:end), theta_ref(:, 100:end), tol * abs(theta0));
 %! unwind_protect_cleanup
@@ -16367,7 +16741,10 @@ endfunction
 %!test
 %! ### TEST 102
 %! ### Code_Aster TLL100 V4.21.100 12/12/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16376,37 +16753,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 0.5e-3;
-%!   L = 100e-3;
-%!   W = dx;
-%!   H = dx;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L=%g;\n", L);
-%!   fprintf(fd, "W=%g;\n", W);
-%!   fprintf(fd, "H=%g;\n", H);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-L,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {-L,W,0,dx};\n");
-%!   fputs(fd, "Point(3) = {-L,W,H,dx};\n");
-%!   fputs(fd, "Point(4) = {-L,0,H,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 0.5e-3;
+%!     L = 100e-3;
+%!     W = dx;
+%!     H = dx;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L=%g;\n", L);
+%!     fprintf(fd, "W=%g;\n", W);
+%!     fprintf(fd, "H=%g;\n", H);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-L,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {-L,W,0,dx};\n");
+%!     fputs(fd, "Point(3) = {-L,W,H,dx};\n");
+%!     fputs(fd, "Point(4) = {-L,0,H,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(L/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16477,17 +16854,19 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:1000:numel(sol.t)]
-%!     figure("visible", "off");
-%!     hold("on");
-%!     plot(x, theta_ref(:, i), "-;reference;0");
-%!     plot(x, sol.theta(idx_x, i), "-;solution;1");
-%!     xlabel("x [m]");
-%!     ylabel("theta [degC]");
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("t=%gs", sol.t(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=[1:10,11:1000:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, theta_ref(:, i), "-;reference;0");
+%!       plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!       xlabel("x [m]");
+%!       ylabel("theta [degC]");
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("t=%gs", sol.t(i)));
+%!     endfor
+%!   endif
 %!   tol = 1e-3;
 %!   assert(sol.theta(idx_x, 100:end), theta_ref(:, 100:end), tol * abs(theta0));
 %! unwind_protect_cleanup
@@ -16502,7 +16881,10 @@ endfunction
 %!test
 %! ### TEST 103
 %! ### Code_Aster TLL100 V4.21.100 12/12/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16511,36 +16893,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 1e-3;
-%!   L = 100e-3;
-%!   W = dx;
-%!   H = dx;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L=%g;\n", L);
-%!   fprintf(fd, "W=%g;\n", W);
-%!   fprintf(fd, "H=%g;\n", H);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-L,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {-L,W,0,dx};\n");
-%!   fputs(fd, "Point(3) = {-L,W,H,dx};\n");
-%!   fputs(fd, "Point(4) = {-L,0,H,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 1e-3;
+%!     L = 100e-3;
+%!     W = dx;
+%!     H = dx;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L=%g;\n", L);
+%!     fprintf(fd, "W=%g;\n", W);
+%!     fprintf(fd, "H=%g;\n", H);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-L,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {-L,W,0,dx};\n");
+%!     fputs(fd, "Point(3) = {-L,W,H,dx};\n");
+%!     fputs(fd, "Point(4) = {-L,0,H,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16611,17 +16993,19 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:1000:numel(sol.t)]
-%!     figure("visible", "off");
-%!     hold("on");
-%!     plot(x, theta_ref(:, i), "-;reference;0");
-%!     plot(x, sol.theta(idx_x, i), "-;solution;1");
-%!     xlabel("x [m]");
-%!     ylabel("theta [degC]");
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("t=%gs", sol.t(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=[1:10,11:1000:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, theta_ref(:, i), "-;reference;0");
+%!       plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!       xlabel("x [m]");
+%!       ylabel("theta [degC]");
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("t=%gs", sol.t(i)));
+%!     endfor
+%!   endif
 %!   tol = 1e-3;
 %!   assert(sol.theta(idx_x, 100:end), theta_ref(:, 100:end), tol * abs(theta0));
 %! unwind_protect_cleanup
@@ -16636,7 +17020,10 @@ endfunction
 %!test
 %! ### TEST 104
 %! ### Code_Aster TLL100 V4.21.100 12/12/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16645,36 +17032,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 1e-3;
-%!   L = 100e-3;
-%!   W = dx;
-%!   H = dx;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "L=%g;\n", L);
-%!   fprintf(fd, "W=%g;\n", W);
-%!   fprintf(fd, "H=%g;\n", H);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {-L,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {-L,W,0,dx};\n");
-%!   fputs(fd, "Point(3) = {-L,W,H,dx};\n");
-%!   fputs(fd, "Point(4) = {-L,0,H,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 1e-3;
+%!     L = 100e-3;
+%!     W = dx;
+%!     H = dx;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "L=%g;\n", L);
+%!     fprintf(fd, "W=%g;\n", W);
+%!     fprintf(fd, "H=%g;\n", H);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {-L,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {-L,W,0,dx};\n");
+%!     fputs(fd, "Point(3) = {-L,W,H,dx};\n");
+%!     fputs(fd, "Point(4) = {-L,0,H,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {2 * L,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"source\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16745,17 +17132,19 @@ endfunction
 %!     theta_ref += Ai(i) * exp(-zetai(i)^2 * lambda / (rho * cp * L^2) * sol.t) .* cos(zetai(i) * x / L);
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
-%!   for i=[1:10,11:1000:numel(sol.t)]
-%!     figure("visible", "off");
-%!     hold("on");
-%!     plot(x, theta_ref(:, i), "-;reference;0");
-%!     plot(x, sol.theta(idx_x, i), "-;solution;1");
-%!     xlabel("x [m]");
-%!     ylabel("theta [degC]");
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("t=%gs", sol.t(i)));
-%!   endfor
+%!   if (do_plot)
+%!     for i=[1:10,11:1000:numel(sol.t)]
+%!       figure("visible", "off");
+%!       hold("on");
+%!       plot(x, theta_ref(:, i), "-;reference;0");
+%!       plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!       xlabel("x [m]");
+%!       ylabel("theta [degC]");
+%!       grid on;
+%!       grid minor on;
+%!       title(sprintf("t=%gs", sol.t(i)));
+%!     endfor
+%!   endif
 %!   tol = 1e-3;
 %!   assert(sol.theta(idx_x, 100:end), theta_ref(:, 100:end), tol * abs(theta0));
 %! unwind_protect_cleanup
@@ -16770,7 +17159,10 @@ endfunction
 %!test
 %! ### TEST 105
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16779,37 +17171,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 2.5e-3;
-%!   R = 0.1;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,1,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 2.5e-3;
+%!     R = 0.1;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,1,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -16889,38 +17281,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -16933,7 +17327,10 @@ endfunction
 %!test
 %! ### TEST 106
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -16942,36 +17339,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 2.5e-3;
-%!   R = 0.1;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,1,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 2.5e-3;
+%!     R = 0.1;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,1,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -17051,38 +17448,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17095,7 +17494,10 @@ endfunction
 %!test
 %! ### TEST 107
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -17104,36 +17506,36 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 2.5e-3;
-%!   R = 0.1;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,1,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 2.5e-3;
+%!     R = 0.1;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,1,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -17213,38 +17615,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17257,7 +17661,10 @@ endfunction
 %!test
 %! ### TEST 108
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -17266,43 +17673,43 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 5e-3;
-%!   R = 0.1;
-%!   r = 1e-6;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "r=%g;\n", r);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {r * Cos(Phi1),r * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Point(4) = {r * Cos(Phi2),r * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Point(5) = {0, 0, 0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,5,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Circle(4) = {4,5,1};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {8};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 5e-3;
+%!     R = 0.1;
+%!     r = 1e-6;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "r=%g;\n", r);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {r * Cos(Phi1),r * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Point(4) = {r * Cos(Phi2),r * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Point(5) = {0, 0, 0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,5,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Circle(4) = {4,5,1};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {8};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -17384,38 +17791,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17428,7 +17837,10 @@ endfunction
 %!test
 %! ### TEST 109
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -17437,42 +17849,42 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 5e-3;
-%!   R = 0.1;
-%!   r = 1e-6;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "r=%g;\n", r);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {r * Cos(Phi1),r * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Point(4) = {r * Cos(Phi2),r * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Point(5) = {0, 0, 0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,5,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Circle(4) = {4,5,1};\n");
-%!   fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {8};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 5e-3;
+%!     R = 0.1;
+%!     r = 1e-6;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "r=%g;\n", r);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {r * Cos(Phi1),r * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Point(4) = {r * Cos(Phi2),r * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Point(5) = {0, 0, 0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,5,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Circle(4) = {4,5,1};\n");
+%!     fputs(fd, "Curve Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(R*Phi3/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {8};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -17553,38 +17965,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17597,7 +18011,10 @@ endfunction
 %!test
 %! ### TEST 110
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -17606,37 +18023,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 5e-3;
-%!   R = 0.1;
-%!   r = 0;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,1,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 5e-3;
+%!     R = 0.1;
+%!     r = 0;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,1,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -17717,38 +18134,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17761,7 +18180,10 @@ endfunction
 %!test
 %! ### TEST 111
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -17770,37 +18192,37 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   dx = 5e-3;
-%!   R = 0.1;
-%!   r = 0;
-%!   Phi1 = -15 * pi / 180;
-%!   Phi2 = 15 * pi / 180;
-%!   Phi3 = 30 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "R=%g;\n", R);
-%!   fprintf(fd, "Phi1=%g;\n", Phi1);
-%!   fprintf(fd, "Phi2=%g;\n", Phi2);
-%!   fprintf(fd, "Phi3=%g;\n", Phi3);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
-%!   fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Circle(2) = {2,1,3};\n");
-%!   fputs(fd, "Line(3) = {3,1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
-%!   fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     dx = 5e-3;
+%!     R = 0.1;
+%!     r = 0;
+%!     Phi1 = -15 * pi / 180;
+%!     Phi2 = 15 * pi / 180;
+%!     Phi3 = 30 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "R=%g;\n", R);
+%!     fprintf(fd, "Phi1=%g;\n", Phi1);
+%!     fprintf(fd, "Phi2=%g;\n", Phi2);
+%!     fprintf(fd, "Phi3=%g;\n", Phi3);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Phi4 = 0.5*(Phi1+Phi2)+Pi/2;\n");
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {R * Cos(Phi1),R * Sin(Phi1),0,dx};\n");
+%!     fputs(fd, "Point(3) = {R * Cos(Phi2),R * Sin(Phi2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Circle(2) = {2,1,3};\n");
+%!     fputs(fd, "Line(3) = {3,1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {{Cos(Phi4),Sin(Phi4),0},{0,0,0},Phi3} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"convection\",2) = {7};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -17881,38 +18303,40 @@ endfunction
 %!                       923
 %!                       942
 %!                       956];
-%!  theta_ref_surface = [461
-%!                       608
-%!                       696
-%!                       774
-%!                       828
-%!                       868
-%!                       902
-%!                       923
-%!                       942
-%!                       956
-%!                       962];
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_center, "-;reference;0");
-%!  plot(sol.t, theta_center, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature in the center");
-%!  figure("visible", "off");
-%!  hold on;
-%!  plot(t_ref, theta_ref_surface, "-;reference;0");
-%!  plot(sol.t, theta_surface, "-;solution;1");
-%!  xlabel("t [s]");
-%!  ylabel("theta [degC]");
-%!  grid on;
-%!  grid minor on;
-%!  title("temperature at the surface");
-%!  tol = 1.5e-2;
-%!  assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!  assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   theta_ref_surface = [461
+%!                        608
+%!                        696
+%!                        774
+%!                        828
+%!                        868
+%!                        902
+%!                        923
+%!                        942
+%!                        956
+%!                        962];
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_center, "-;reference;0");
+%!     plot(sol.t, theta_center, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature in the center");
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(t_ref, theta_ref_surface, "-;reference;0");
+%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature at the surface");
+%!   endif
+%!   tol = 1.5e-2;
+%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
+%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -17924,7 +18348,10 @@ endfunction
 
 %!test
 %! ### TEST 112
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   dx = 2.5e-3;
@@ -17953,46 +18380,46 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 7};\n");
-%!   fputs(fd, "Line(7) = {7, 8};\n");
-%!   fputs(fd, "Line(8) = {8, 1};\n");
-%!   fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(10) = {9};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
-%!   fputs(fd, "  Surface{10};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 7};\n");
+%!     fputs(fd, "Line(7) = {7, 8};\n");
+%!     fputs(fd, "Line(8) = {8, 1};\n");
+%!     fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(10) = {9};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
+%!     fputs(fd, "  Surface{10};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18009,44 +18436,44 @@ endfunction
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 1};\n");
-%!   fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(8) = {7};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{8};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 1};\n");
+%!     fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(8) = {7};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{8};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18062,38 +18489,38 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18109,38 +18536,38 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18156,7 +18583,7 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
 %!   mesh_data(1).mesh.material_data.nu = nu;
@@ -18164,7 +18591,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = cp;
 %!   mesh_data(1).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(2).mesh.materials.tet10h = ones(rows(mesh_data(2).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = E;
 %!   mesh_data(2).mesh.material_data.nu = nu;
@@ -18172,7 +18599,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = cp;
 %!   mesh_data(2).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(3).mesh.materials.tet10h = ones(rows(mesh_data(3).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(3).mesh.material_data.E = E;
 %!   mesh_data(3).mesh.material_data.nu = nu;
@@ -18180,7 +18607,7 @@ endfunction
 %!   mesh_data(3).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(3).mesh.material_data.cp = cp;
 %!   mesh_data(3).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(4).mesh.materials.tet10h = ones(rows(mesh_data(4).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(4).mesh.material_data.E = E;
 %!   mesh_data(4).mesh.material_data.nu = nu;
@@ -18188,7 +18615,7 @@ endfunction
 %!   mesh_data(4).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(4).mesh.material_data.cp = cp;
 %!   mesh_data(4).mesh.material_data.gamma = gamma;
-%!
+
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   dof_stat.locked_dof = false(rows(mesh.nodes), 1);
@@ -18322,21 +18749,23 @@ endfunction
 %!   sol3 = fem_sol_static(mesh3, dof_map3, mat_ass3);
 %!   [sol3.stress, ...
 %!    sol3.strain] = fem_ass_matrix(mesh3, ...
-%!                                 dof_map3, ...
-%!                                 [FEM_VEC_STRESS_CAUCH, ...
-%!                                  FEM_VEC_STRAIN_TOTAL], ...
-%!                                 load_case3, sol3);
+%!                                  dof_map3, ...
+%!                                  [FEM_VEC_STRESS_CAUCH, ...
+%!                                   FEM_VEC_STRAIN_TOTAL], ...
+%!                                  load_case3, sol3);
 %!   opt_post.elem_types = {"tet10h", "tria6h"};
 %!   opt_post.skin_only = false;
-%!   figure("visible", "off");
-%!   hold on;
-%!   plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
-%!   plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
-%!   xlabel("t [s]");
-%!   ylabel("theta [degC]");
-%!   grid on;
-%!   grid minor on;
-%!   title("temperature versus time");
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -18348,7 +18777,10 @@ endfunction
 
 %!test
 %! ### TEST 113
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   dx = 2.5e-3;
@@ -18377,46 +18809,46 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 7};\n");
-%!   fputs(fd, "Line(7) = {7, 8};\n");
-%!   fputs(fd, "Line(8) = {8, 1};\n");
-%!   fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(10) = {9};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
-%!   fputs(fd, "  Surface{10};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 7};\n");
+%!     fputs(fd, "Line(7) = {7, 8};\n");
+%!     fputs(fd, "Line(8) = {8, 1};\n");
+%!     fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(10) = {9};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
+%!     fputs(fd, "  Surface{10};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18433,44 +18865,44 @@ endfunction
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 1};\n");
-%!   fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(8) = {7};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{8};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 1};\n");
+%!     fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(8) = {7};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{8};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18486,38 +18918,38 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18533,38 +18965,38 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18580,7 +19012,7 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
 %!   mesh_data(1).mesh.material_data.nu = nu;
@@ -18588,7 +19020,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = cp;
 %!   mesh_data(1).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(2).mesh.materials.tet10 = ones(rows(mesh_data(2).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = E;
 %!   mesh_data(2).mesh.material_data.nu = nu;
@@ -18596,7 +19028,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = cp;
 %!   mesh_data(2).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(3).mesh.materials.tet10 = ones(rows(mesh_data(3).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(3).mesh.material_data.E = E;
 %!   mesh_data(3).mesh.material_data.nu = nu;
@@ -18604,7 +19036,7 @@ endfunction
 %!   mesh_data(3).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(3).mesh.material_data.cp = cp;
 %!   mesh_data(3).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(4).mesh.materials.tet10 = ones(rows(mesh_data(4).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(4).mesh.material_data.E = E;
 %!   mesh_data(4).mesh.material_data.nu = nu;
@@ -18612,7 +19044,7 @@ endfunction
 %!   mesh_data(4).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(4).mesh.material_data.cp = cp;
 %!   mesh_data(4).mesh.material_data.gamma = gamma;
-%!
+
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   dof_stat.locked_dof = false(rows(mesh.nodes), 1);
@@ -18681,15 +19113,17 @@ endfunction
 %!   sol.theta = U(dof_map.idx_node, :);
 %!   opt_post.elem_types = {"tet10", "tria6"};
 %!   opt_post.skin_only = false;
-%!   figure("visible", "off");
-%!   hold on;
-%!   plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
-%!   plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
-%!   xlabel("t [s]");
-%!   ylabel("theta [degC]");
-%!   grid on;
-%!   grid minor on;
-%!   title("temperature versus time");
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -18701,7 +19135,10 @@ endfunction
 
 %!test
 %! ### TEST 114
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   dx = 2.5e-3;
@@ -18730,47 +19167,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 7};\n");
-%!   fputs(fd, "Line(7) = {7, 8};\n");
-%!   fputs(fd, "Line(8) = {8, 1};\n");
-%!   fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(10) = {9};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
-%!   fputs(fd, "  Surface{10}; Layers{Ceil(L1/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 7};\n");
+%!     fputs(fd, "Line(7) = {7, 8};\n");
+%!     fputs(fd, "Line(8) = {8, 1};\n");
+%!     fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(10) = {9};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
+%!     fputs(fd, "  Surface{10}; Layers{Ceil(L1/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18787,45 +19224,45 @@ endfunction
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 1};\n");
-%!   fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(8) = {7};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{8}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 1};\n");
+%!     fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(8) = {7};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{8}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18841,39 +19278,39 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18889,39 +19326,39 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -18937,7 +19374,7 @@ endfunction
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
 %!   mesh_data(1).mesh.material_data.nu = nu;
@@ -18945,7 +19382,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = cp;
 %!   mesh_data(1).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = E;
 %!   mesh_data(2).mesh.material_data.nu = nu;
@@ -18953,7 +19390,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = cp;
 %!   mesh_data(2).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(3).mesh.materials.penta15 = ones(rows(mesh_data(3).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(3).mesh.material_data.E = E;
 %!   mesh_data(3).mesh.material_data.nu = nu;
@@ -18961,7 +19398,7 @@ endfunction
 %!   mesh_data(3).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(3).mesh.material_data.cp = cp;
 %!   mesh_data(3).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(4).mesh.materials.penta15 = ones(rows(mesh_data(4).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(4).mesh.material_data.E = E;
 %!   mesh_data(4).mesh.material_data.nu = nu;
@@ -18969,7 +19406,7 @@ endfunction
 %!   mesh_data(4).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(4).mesh.material_data.cp = cp;
 %!   mesh_data(4).mesh.material_data.gamma = gamma;
-%!
+
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   dof_stat.locked_dof = false(rows(mesh.nodes), 1);
@@ -19042,15 +19479,17 @@ endfunction
 %!   sol.theta = U(dof_map.idx_node, :);
 %!   opt_post.elem_types = {"penta15", "tria6h", "quad8"};
 %!   opt_post.skin_only = false;
-%!   figure("visible", "off");
-%!   hold on;
-%!   plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
-%!   plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
-%!   xlabel("t [s]");
-%!   ylabel("theta [degC]");
-%!   grid on;
-%!   grid minor on;
-%!   title("temperature versus time");
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -19062,7 +19501,10 @@ endfunction
 
 %!test
 %! ### TEST 115
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   dx = 2.5e-3;
@@ -19091,48 +19533,48 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 7};\n");
-%!   fputs(fd, "Line(7) = {7, 8};\n");
-%!   fputs(fd, "Line(8) = {8, 1};\n");
-%!   fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(10) = {9};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
-%!   fputs(fd, "  Surface{10}; Layers{Ceil(L1/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{10, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 7};\n");
+%!     fputs(fd, "Line(7) = {7, 8};\n");
+%!     fputs(fd, "Line(8) = {8, 1};\n");
+%!     fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(10) = {9};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
+%!     fputs(fd, "  Surface{10}; Layers{Ceil(L1/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{10, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19149,46 +19591,46 @@ endfunction
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 1};\n");
-%!   fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(8) = {7};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{8}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{8, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 1};\n");
+%!     fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(8) = {7};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{8}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{8, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19204,40 +19646,40 @@ endfunction
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19253,40 +19695,40 @@ endfunction
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19302,7 +19744,7 @@ endfunction
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
 %!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
@@ -19313,7 +19755,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = cp;
 %!   mesh_data(1).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(2).mesh.materials.iso20 = ones(rows(mesh_data(2).mesh.elements.iso20), 1, "int32");
 %!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
 %!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
@@ -19324,7 +19766,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = cp;
 %!   mesh_data(2).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(3).mesh.materials.iso20 = ones(rows(mesh_data(3).mesh.elements.iso20), 1, "int32");
 %!   if (isfield(mesh_data(3).mesh.elements, "penta15"))
 %!     mesh_data(3).mesh.materials.penta15 = ones(rows(mesh_data(3).mesh.elements.penta15), 1, "int32");
@@ -19335,7 +19777,7 @@ endfunction
 %!   mesh_data(3).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(3).mesh.material_data.cp = cp;
 %!   mesh_data(3).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(4).mesh.materials.iso20 = ones(rows(mesh_data(4).mesh.elements.iso20), 1, "int32");
 %!   if (isfield(mesh_data(4).mesh.elements, "penta15"))
 %!     mesh_data(4).mesh.materials.penta15 = ones(rows(mesh_data(4).mesh.elements.penta15), 1, "int32");
@@ -19346,7 +19788,7 @@ endfunction
 %!   mesh_data(4).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(4).mesh.material_data.cp = cp;
 %!   mesh_data(4).mesh.material_data.gamma = gamma;
-%!
+
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   dof_stat.locked_dof = false(rows(mesh.nodes), 1);
@@ -19419,15 +19861,17 @@ endfunction
 %!   sol.theta = U(dof_map.idx_node, :);
 %!   opt_post.elem_types = {"iso20", "quad8", "quad8"};
 %!   opt_post.skin_only = false;
-%!   figure("visible", "off");
-%!   hold on;
-%!   plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
-%!   plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
-%!   xlabel("t [s]");
-%!   ylabel("theta [degC]");
-%!   grid on;
-%!   grid minor on;
-%!   title("temperature versus time");
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -19439,7 +19883,10 @@ endfunction
 
 %!test
 %! ### TEST 116
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   dx = 2.5e-3;
@@ -19468,47 +19915,47 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 7};\n");
-%!   fputs(fd, "Line(7) = {7, 8};\n");
-%!   fputs(fd, "Line(8) = {8, 1};\n");
-%!   fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
-%!   fputs(fd, "Plane Surface(10) = {9};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
-%!   fputs(fd, "  Surface{10}; Layers{Ceil(L1/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{10, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(4) = {t2/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(5) = {t2/2 + a1, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(6) = {w1/2, t1, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(7) = {w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Point(8) = {-w1/2, 0, -(L1 - L2) / 2, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 7};\n");
+%!     fputs(fd, "Line(7) = {7, 8};\n");
+%!     fputs(fd, "Line(8) = {8, 1};\n");
+%!     fputs(fd, "Curve Loop(9) = {1,2,3,4,5,6,7,8};\n");
+%!     fputs(fd, "Plane Surface(10) = {9};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L1} {\n");
+%!     fputs(fd, "  Surface{10}; Layers{Ceil(L1/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{10, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"bar1\", 100) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-convection\", 101) = {10,tmp[0],tmp[2],tmp[6],tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam1\", 102) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"bar1-weldseam2\", 103) = {tmp[5]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19525,45 +19972,45 @@ endfunction
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
-%!   fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 4};\n");
-%!   fputs(fd, "Line(4) = {4, 5};\n");
-%!   fputs(fd, "Line(5) = {5, 6};\n");
-%!   fputs(fd, "Line(6) = {6, 1};\n");
-%!   fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(8) = {7};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{8}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{8, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2, t2 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(4) = {-t2/2, t1 + h2, 0, dx};\n");
+%!     fputs(fd, "Point(5) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Point(6) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 4};\n");
+%!     fputs(fd, "Line(4) = {4, 5};\n");
+%!     fputs(fd, "Line(5) = {5, 6};\n");
+%!     fputs(fd, "Line(6) = {6, 1};\n");
+%!     fputs(fd, "Curve Loop(7) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(8) = {7};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{8}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{8, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"bar2\", 200) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-convection\", 201) = {8,tmp[0],tmp[3],tmp[4],tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam1\", 204) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"bar2-weldseam2\", 205) = {tmp[6]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19579,39 +20026,39 @@ endfunction
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {t2/2 + a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam1\", 300) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-convection\", 301) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam1\", 303) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam1-weldseam2\", 304) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19627,39 +20074,39 @@ endfunction
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "dx=%g;\n", dx);
-%!   fprintf(fd, "L1=%g;\n", L1);
-%!   fprintf(fd, "L2=%g;\n", L2);
-%!   fprintf(fd, "t1=%g;\n", t1);
-%!   fprintf(fd, "t2=%g;\n", t2);
-%!   fprintf(fd, "w1=%g;\n", w1);
-%!   fprintf(fd, "h2=%g;\n", h2);
-%!   fprintf(fd, "a1=%g;\n", a1);
-%!   fprintf(fd, "a2=%g;\n", a2);
-%!   fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
-%!   fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
-%!   fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
-%!   fputs(fd, "Line(1) = {1, 2};\n");
-%!   fputs(fd, "Line(2) = {2, 3};\n");
-%!   fputs(fd, "Line(3) = {3, 1};\n");
-%!   fputs(fd, "Curve Loop(4) = {1,2,3};\n");
-%!   fputs(fd, "Plane Surface(5) = {4};\n");
-%!   fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
-%!   fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{5, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
-%!   fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "dx=%g;\n", dx);
+%!     fprintf(fd, "L1=%g;\n", L1);
+%!     fprintf(fd, "L2=%g;\n", L2);
+%!     fprintf(fd, "t1=%g;\n", t1);
+%!     fprintf(fd, "t2=%g;\n", t2);
+%!     fprintf(fd, "w1=%g;\n", w1);
+%!     fprintf(fd, "h2=%g;\n", h2);
+%!     fprintf(fd, "a1=%g;\n", a1);
+%!     fprintf(fd, "a2=%g;\n", a2);
+%!     fputs(fd, "Point(1) = {-t2/2, t1, 0, dx};\n");
+%!     fputs(fd, "Point(2) = {-t2/2 - a1, t1, 0, dx};\n");
+%!     fputs(fd, "Point(3) = {-t2/2, t1 + a2, 0, dx};\n");
+%!     fputs(fd, "Line(1) = {1, 2};\n");
+%!     fputs(fd, "Line(2) = {2, 3};\n");
+%!     fputs(fd, "Line(3) = {3, 1};\n");
+%!     fputs(fd, "Curve Loop(4) = {1,2,3};\n");
+%!     fputs(fd, "Plane Surface(5) = {4};\n");
+%!     fputs(fd, "tmp[] = Extrude {0,0,L2} {\n");
+%!     fputs(fd, "  Surface{5}; Layers{Ceil(L2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"weld-seam2\", 400) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-convection\", 401) = {5,tmp[0],tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam1\", 402) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"weld-seam2-weldseam2\", 405) = {tmp[4]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19675,7 +20122,7 @@ endfunction
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   unlink([filename, ".msh"]);
-%!
+
 %!   mesh_data(1).mesh.materials.iso8 = ones(rows(mesh_data(1).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
 %!   mesh_data(1).mesh.material_data.nu = nu;
@@ -19683,7 +20130,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = cp;
 %!   mesh_data(1).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(2).mesh.materials.iso8 = ones(rows(mesh_data(2).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = E;
 %!   mesh_data(2).mesh.material_data.nu = nu;
@@ -19691,7 +20138,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = cp;
 %!   mesh_data(2).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(3).mesh.materials.iso8 = ones(rows(mesh_data(3).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(3).mesh.material_data.E = E;
 %!   mesh_data(3).mesh.material_data.nu = nu;
@@ -19699,7 +20146,7 @@ endfunction
 %!   mesh_data(3).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(3).mesh.material_data.cp = cp;
 %!   mesh_data(3).mesh.material_data.gamma = gamma;
-%!
+
 %!   mesh_data(4).mesh.materials.iso8 = ones(rows(mesh_data(4).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(4).mesh.material_data.E = E;
 %!   mesh_data(4).mesh.material_data.nu = nu;
@@ -19707,7 +20154,7 @@ endfunction
 %!   mesh_data(4).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(4).mesh.material_data.cp = cp;
 %!   mesh_data(4).mesh.material_data.gamma = gamma;
-%!
+
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   dof_stat.locked_dof = false(rows(mesh.nodes), 1);
@@ -19780,15 +20227,17 @@ endfunction
 %!   sol.theta = U(dof_map.idx_node, :);
 %!   opt_post.elem_types = {"iso8", "iso4"};
 %!   opt_post.skin_only = false;
-%!   figure("visible", "off");
-%!   hold on;
-%!   plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
-%!   plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
-%!   xlabel("t [s]");
-%!   ylabel("theta [degC]");
-%!   grid on;
-%!   grid minor on;
-%!   title("temperature versus time");
+%!   if (do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title("temperature versus time");
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -19805,7 +20254,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -19814,42 +20266,42 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6,tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6,tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -19881,43 +20333,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.quad8.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:10000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.quad8.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:10000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t / T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -19940,8 +20393,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -19958,7 +20412,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -19967,41 +20424,41 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6,tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6,tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -20033,43 +20490,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.iso4.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:10000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.iso4.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:10000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t / T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -20092,8 +20550,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -20110,7 +20569,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -20119,40 +20581,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -20183,43 +20645,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.iso4.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:10000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.iso4.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:10000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t / T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -20242,8 +20705,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -20260,7 +20724,10 @@ endfunction
 %! ## Matthew J. Hancock
 %! ## Fall 2006
 %! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -20269,40 +20736,40 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 10e-3;
-%!   w = 0.25e-3;
-%!   h = 0.25e-3;
-%!   dx = 0.25e-3;
-%!   lambda = 50;
-%!   rho = 7850;
-%!   cp = 465;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
-%!   fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 10e-3;
+%!     w = 0.25e-3;
+%!     h = 0.25e-3;
+%!     dx = 0.25e-3;
+%!     lambda = 50;
+%!     rho = 7850;
+%!     cp = 465;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd1\",1) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"bnd2\",2) = {6};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -20333,43 +20800,44 @@ endfunction
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!     idx_b = [mesh.groups.iso4.nodes];
-%!     idx_i = true(rows(mesh.nodes), 1);
-%!     idx_i(idx_b) = false;
-%!     idx_i = find(idx_i);
-%!     x = mesh.nodes(:, 1);
-%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
-%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
-%!     C11 = mat_ass.C(idx_i, idx_i);
-%!     theta_b = repmat(ub, numel(idx_b), 1);
-%!     theta0 = repmat(u0, dof_map.totdof, 1);
-%!     qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
-%!     dt = rho * cp * dx^2 / lambda;
-%!     alpha = 0.6;
-%!     T_ = l^2 / lambda * rho * cp;
-%!     sol.t = 0:dt:T_;
-%!     sol.theta = zeros(dof_map.totdof, numel(sol.t));
-%!     sol.theta(:, 1) = theta0;
-%!     A = (1 / dt) * C11 + alpha * Kk11;
-%!     opts.number_of_threads = int32(1);
-%!     opts.solver = "pastix";
-%!     Afact = fem_sol_factor(A, opts);
-%!     for i=2:numel(sol.t)
-%!       sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
-%!       sol.theta(idx_b, i) = theta_b;
-%!     endfor
-%!     u0_ = 1;
-%!     n = 1:10000;
-%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
-%!     x_ = x / l;
-%!     u_ = zeros(numel(x), numel(sol.t));
-%!     for n=1:numel(Bn_)
-%!       t_ = sol.t / T_;
-%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
-%!     endfor
-%!     sol.theta_ref = u_ * (u0 - ub) + ub;
-%!     [x, idx_theta] = sort(x);
+%!   idx_b = [mesh.groups.iso4.nodes];
+%!   idx_i = true(rows(mesh.nodes), 1);
+%!   idx_i(idx_b) = false;
+%!   idx_i = find(idx_i);
+%!   x = mesh.nodes(:, 1);
+%!   Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!   Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!   C11 = mat_ass.C(idx_i, idx_i);
+%!   theta_b = repmat(ub, numel(idx_b), 1);
+%!   theta0 = repmat(u0, dof_map.totdof, 1);
+%!   qref = mesh.material_data.rho * mesh.material_data.cp * l * w * h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   dt = rho * cp * dx^2 / lambda;
+%!   alpha = 0.6;
+%!   T_ = l^2 / lambda * rho * cp;
+%!   sol.t = 0:dt:T_;
+%!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
+%!   sol.theta(:, 1) = theta0;
+%!   A = (1 / dt) * C11 + alpha * Kk11;
+%!   opts.number_of_threads = int32(1);
+%!   opts.solver = "pastix";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol.t)
+%!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!     sol.theta(idx_b, i) = theta_b;
+%!   endfor
+%!   u0_ = 1;
+%!   n = 1:10000;
+%!   Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!   x_ = x / l;
+%!   u_ = zeros(numel(x), numel(sol.t));
+%!   for n=1:numel(Bn_)
+%!     t_ = sol.t / T_;
+%!     u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!   endfor
+%!   sol.theta_ref = u_ * (u0 - ub) + ub;
+%!   [x, idx_theta] = sort(x);
+%!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
 %!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
@@ -20392,8 +20860,9 @@ endfunction
 %!       grid on;
 %!       grid minor on;
 %!     endfor
-%!     tol = 1e-2;
-%!     assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol.theta(:, 10:end), sol.theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -20416,46 +20885,46 @@ endfunction
 %!   animate = true;
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 1;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     mesh_size = 1;
+%!     p1 = 0.006;
+%!     E = 55;
+%!     nu = 0.3;
+%!     rho = 1000e-12;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Circle(3) = {3,11,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Circle(7) = {7,12,8};\n");
+%!     fputs(fd, "Line(8) = {8,9};\n");
+%!     fputs(fd, "Line(9) = {9,10};\n");
+%!     fputs(fd, "Line(10) = {10,1};\n");
+%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!     fputs(fd, "Plane Surface(14) = {11};\n");
+%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -20827,48 +21296,48 @@ endfunction
 %!   animate = true;
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 0.3;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!   fputs(fd, "Recombine Surface{14, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     mesh_size = 0.3;
+%!     p1 = 0.006;
+%!     E = 55;
+%!     nu = 0.3;
+%!     rho = 1000e-12;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Circle(3) = {3,11,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Circle(7) = {7,12,8};\n");
+%!     fputs(fd, "Line(8) = {8,9};\n");
+%!     fputs(fd, "Line(9) = {9,10};\n");
+%!     fputs(fd, "Line(10) = {10,1};\n");
+%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!     fputs(fd, "Plane Surface(14) = {11};\n");
+%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
+%!     fputs(fd, "Recombine Surface{14, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -20986,47 +21455,47 @@ endfunction
 %!   animate = true;
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 0.15;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!   fputs(fd, "Recombine Surface{14, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     mesh_size = 0.15;
+%!     p1 = 0.006;
+%!     E = 55;
+%!     nu = 0.3;
+%!     rho = 1000e-12;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Circle(3) = {3,11,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Circle(7) = {7,12,8};\n");
+%!     fputs(fd, "Line(8) = {8,9};\n");
+%!     fputs(fd, "Line(9) = {9,10};\n");
+%!     fputs(fd, "Line(10) = {10,1};\n");
+%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!     fputs(fd, "Plane Surface(14) = {11};\n");
+%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
+%!     fputs(fd, "Recombine Surface{14, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -21143,44 +21612,44 @@ endfunction
 %!   animate = true;
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   E = 200000e6;
-%!   nu = 0.3;
-%!   rho = 7850;
-%!   R = 100e-3;
-%!   h = 10e-3;
-%!   t = 2e-3;
-%!   scale_def = 0.5 * R;
-%!   N = 10;
-%!   Phi = 0 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "R = %g;\n", R);
-%!   fprintf(fd, "t = %g;\n", t);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = {  0.0, 0.0,    0.0, h};\n");
-%!   fputs(fd, "Point(2) = {  R * Sin(Phi), 0.0,     -R * Cos(Phi), h};\n");
-%!   fputs(fd, "Point(3) = {    R, 0.0,    0.0, h};\n");
-%!   fputs(fd, "Point(4) = {  R * Sin(Phi), 0.0,      R * Cos(Phi), h};\n");
-%!   fputs(fd, "Point(5) = { (R + t) * Sin(Phi), 0.0,  (R + t) * Cos(Phi), h};\n");
-%!   fputs(fd, "Point(6) = { R + t, 0.0,    0.0, h};\n");
-%!   fputs(fd, "Point(7) = {  (R + t) * Sin(Phi), 0.0, -(R + t) * Cos(Phi), h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Circle(2) = {3,1,4};\n");
-%!   fputs(fd, "Line(3) = {4,5};\n");
-%!   fputs(fd, "Circle(4) = {5, 1, 6};\n");
-%!   fputs(fd, "Circle(5) = {6, 1, 7};\n");
-%!   fputs(fd, "Line(6) = {7, 2};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fprintf(fd, "tmp[] = Extrude {{0, 0, 1},{0,0,0}, Pi / 2}{ Surface{6}; Layers{Ceil(2 * Pi * R / h)}; Recombine; };\n");
-%!   fputs(fd, "Recombine Surface{6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {6, tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     E = 200000e6;
+%!     nu = 0.3;
+%!     rho = 7850;
+%!     R = 100e-3;
+%!     h = 10e-3;
+%!     t = 2e-3;
+%!     scale_def = 0.5 * R;
+%!     N = 10;
+%!     Phi = 0 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "R = %g;\n", R);
+%!     fprintf(fd, "t = %g;\n", t);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = {  0.0, 0.0,    0.0, h};\n");
+%!     fputs(fd, "Point(2) = {  R * Sin(Phi), 0.0,     -R * Cos(Phi), h};\n");
+%!     fputs(fd, "Point(3) = {    R, 0.0,    0.0, h};\n");
+%!     fputs(fd, "Point(4) = {  R * Sin(Phi), 0.0,      R * Cos(Phi), h};\n");
+%!     fputs(fd, "Point(5) = { (R + t) * Sin(Phi), 0.0,  (R + t) * Cos(Phi), h};\n");
+%!     fputs(fd, "Point(6) = { R + t, 0.0,    0.0, h};\n");
+%!     fputs(fd, "Point(7) = {  (R + t) * Sin(Phi), 0.0, -(R + t) * Cos(Phi), h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Circle(2) = {3,1,4};\n");
+%!     fputs(fd, "Line(3) = {4,5};\n");
+%!     fputs(fd, "Circle(4) = {5, 1, 6};\n");
+%!     fputs(fd, "Circle(5) = {6, 1, 7};\n");
+%!     fputs(fd, "Line(6) = {7, 2};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fprintf(fd, "tmp[] = Extrude {{0, 0, 1},{0,0,0}, Pi / 2}{ Surface{6}; Layers{Ceil(2 * Pi * R / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {6, tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -21258,42 +21727,42 @@ endfunction
 %!   animate = true;
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   E = 200000e6;
-%!   nu = 0.3;
-%!   rho = 7850;
-%!   R = 100e-3;
-%!   h = 10e-3;
-%!   t = 2e-3;
-%!   N = 10;
-%!   scale_def = 0.5 * R;
-%!   Phi = 0 * pi / 180;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "h = %g;\n", h);
-%!   fprintf(fd, "R = %g;\n", R);
-%!   fprintf(fd, "t = %g;\n", t);
-%!   fprintf(fd, "Phi = %g;\n", Phi);
-%!   fputs(fd, "Point(1) = {  0.0, 0.0,    0.0, h};\n");
-%!   fputs(fd, "Point(2) = {  R * Sin(Phi), 0.0,     -R * Cos(Phi), h};\n");
-%!   fputs(fd, "Point(3) = {    R, 0.0,    0.0, h};\n");
-%!   fputs(fd, "Point(4) = {  R * Sin(Phi), 0.0,      R * Cos(Phi), h};\n");
-%!   fputs(fd, "Point(5) = { (R + t) * Sin(Phi), 0.0,  (R + t) * Cos(Phi), h};\n");
-%!   fputs(fd, "Point(6) = { R + t, 0.0,    0.0, h};\n");
-%!   fputs(fd, "Point(7) = {  (R + t) * Sin(Phi), 0.0, -(R + t) * Cos(Phi), h};\n");
-%!   fputs(fd, "Circle(1) = {2,1,3};\n");
-%!   fputs(fd, "Circle(2) = {3,1,4};\n");
-%!   fputs(fd, "Line(3) = {4,5};\n");
-%!   fputs(fd, "Circle(4) = {5, 1, 6};\n");
-%!   fputs(fd, "Circle(5) = {6, 1, 7};\n");
-%!   fputs(fd, "Line(6) = {7, 2};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4,5,6};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fprintf(fd, "tmp[] = Extrude {{0, 0, 1},{0,0,0}, Pi/2}{ Surface{6}; };\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",1) = {6, tmp[0]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     E = 200000e6;
+%!     nu = 0.3;
+%!     rho = 7850;
+%!     R = 100e-3;
+%!     h = 10e-3;
+%!     t = 2e-3;
+%!     N = 10;
+%!     scale_def = 0.5 * R;
+%!     Phi = 0 * pi / 180;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "h = %g;\n", h);
+%!     fprintf(fd, "R = %g;\n", R);
+%!     fprintf(fd, "t = %g;\n", t);
+%!     fprintf(fd, "Phi = %g;\n", Phi);
+%!     fputs(fd, "Point(1) = {  0.0, 0.0,    0.0, h};\n");
+%!     fputs(fd, "Point(2) = {  R * Sin(Phi), 0.0,     -R * Cos(Phi), h};\n");
+%!     fputs(fd, "Point(3) = {    R, 0.0,    0.0, h};\n");
+%!     fputs(fd, "Point(4) = {  R * Sin(Phi), 0.0,      R * Cos(Phi), h};\n");
+%!     fputs(fd, "Point(5) = { (R + t) * Sin(Phi), 0.0,  (R + t) * Cos(Phi), h};\n");
+%!     fputs(fd, "Point(6) = { R + t, 0.0,    0.0, h};\n");
+%!     fputs(fd, "Point(7) = {  (R + t) * Sin(Phi), 0.0, -(R + t) * Cos(Phi), h};\n");
+%!     fputs(fd, "Circle(1) = {2,1,3};\n");
+%!     fputs(fd, "Circle(2) = {3,1,4};\n");
+%!     fputs(fd, "Line(3) = {4,5};\n");
+%!     fputs(fd, "Circle(4) = {5, 1, 6};\n");
+%!     fputs(fd, "Circle(5) = {6, 1, 7};\n");
+%!     fputs(fd, "Line(6) = {7, 2};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4,5,6};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fprintf(fd, "tmp[] = Extrude {{0, 0, 1},{0,0,0}, Pi/2}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",1) = {6, tmp[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -21366,47 +21835,47 @@ endfunction
 %!   animate = true;
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   mesh_size = 0.3;
-%!   p1 = 0.006;
-%!   E = 55;
-%!   nu = 0.3;
-%!   rho = 1000e-12;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!   fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!   fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!   fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!   fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!   fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Circle(3) = {3,11,4};\n");
-%!   fputs(fd, "Line(4) = {4,5};\n");
-%!   fputs(fd, "Line(5) = {5,6};\n");
-%!   fputs(fd, "Line(6) = {6,7};\n");
-%!   fputs(fd, "Circle(7) = {7,12,8};\n");
-%!   fputs(fd, "Line(8) = {8,9};\n");
-%!   fputs(fd, "Line(9) = {9,10};\n");
-%!   fputs(fd, "Line(10) = {10,1};\n");
-%!   fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!   fputs(fd, "Plane Surface(14) = {11};\n");
-%!   fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!   fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!   fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!   fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     mesh_size = 0.3;
+%!     p1 = 0.006;
+%!     E = 55;
+%!     nu = 0.3;
+%!     rho = 1000e-12;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
+%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
+%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
+%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
+%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
+%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Circle(3) = {3,11,4};\n");
+%!     fputs(fd, "Line(4) = {4,5};\n");
+%!     fputs(fd, "Line(5) = {5,6};\n");
+%!     fputs(fd, "Line(6) = {6,7};\n");
+%!     fputs(fd, "Circle(7) = {7,12,8};\n");
+%!     fputs(fd, "Line(8) = {8,9};\n");
+%!     fputs(fd, "Line(9) = {9,10};\n");
+%!     fputs(fd, "Line(10) = {10,1};\n");
+%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
+%!     fputs(fd, "Plane Surface(14) = {11};\n");
+%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
+%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
+%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
+%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);

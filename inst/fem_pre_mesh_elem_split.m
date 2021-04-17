@@ -100,7 +100,10 @@ function mesh_split = fem_pre_mesh_elem_split(mesh, options)
 endfunction
 
 %!test
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! a = 70e-3;
 %! b = 20e-3;
 %! c = 10e-3;
@@ -161,6 +164,7 @@ endfunction
 %!                                              dof_map(idx_mesh), ...
 %!                                              [FEM_SCA_TOT_MASS], ...
 %!                                              load_case(idx_mesh));
+%!   if (do_plot)
 %!   figure("visible","off");
 %!   fem_post_sol_plot(mesh(idx_mesh));
 %!   fem_post_sol_plot(mesh_split(idx_mesh));
@@ -170,14 +174,20 @@ endfunction
 %!   zlabel("z [m]");
 %!   grid on;
 %!   grid minor on;
+%!   endif
 %! endfor
 %! endfor
 %! assert(all(abs([mat_ass.m] - m) < tol * m));
 %! assert(all(abs([mat_ass_split.m] - m) < tol * m));
+%! if (do_plot)
 %! figure_list();
+%! endif
 
 %!test
+%! do_plot = false;
+%! if (do_plot)
 %! close all;
+%! endif
 %! a = 70e-3;
 %! b = 20e-3;
 %! c = 10e-3;
@@ -239,6 +249,7 @@ endfunction
 %!                                              dof_map(idx_mesh), ...
 %!                                              [FEM_SCA_TOT_MASS], ...
 %!                                              load_case(idx_mesh));
+%!   if (do_plot)
 %!   figure("visible","off");
 %!   fem_post_sol_plot(mesh(idx_mesh));
 %!   fem_post_sol_plot(mesh_split(idx_mesh));
@@ -248,14 +259,20 @@ endfunction
 %!   zlabel("z [m]");
 %!   grid on;
 %!   grid minor on;
+%!   endif
 %! endfor
 %! endfor
 %! assert(all(abs([mat_ass.m] - m) < tol * m));
 %! assert(all(abs([mat_ass_split.m] - m) < tol * m));
+%! if (do_plot)
 %! figure_list();
+%! endif
 
 %!demo
+%! do_plot = true;
+%! if (do_plot)
 %! close all;
+%! endif
 %! a = 20e-3;
 %! b = 15e-3;
 %! c = 10e-3;
@@ -308,9 +325,11 @@ endfunction
 %!       opts.output_step_idx = j;
 %!       fem_post_sol_external(mesh_data(i).mesh, mesh_data(i).sol_eig, opts);
 %!       [img, map, alpha] = imread(sprintf("%s_%03d.jpg", opts.print_to_file, 1));
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title(sprintf("mode %d f=%.0fHz", j, mesh_data(i).sol_eig.f(j)));
+%!       if (do_plot)
+%!         figure("visible", "off");
+%!         imshow(img, map);
+%!         title(sprintf("mode %d f=%.0fHz", j, mesh_data(i).sol_eig.f(j)));
+%!       endif
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup
