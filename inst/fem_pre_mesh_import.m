@@ -20463,8 +20463,8 @@ endfunction
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -20556,8 +20556,8 @@ endfunction
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -20655,8 +20655,8 @@ endfunction
 %!   if (isfield(mesh.elements, "penta15"))
 %!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   endif
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -20749,8 +20749,8 @@ endfunction
 %!   if (isfield(mesh.elements, "iso8"))
 %!     mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   endif
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -20842,8 +20842,8 @@ endfunction
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -20943,8 +20943,8 @@ endfunction
 %!   mesh.materials.acoustic_pressure.tria6h = ones(rows(mesh.elements.acoustic_pressure.tria6h.nodes), 1, "int32");
 %!   load_case.acoustic_pressure.tria6h.p = [repmat(pinput, numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
 %!                                           repmat(poutput, numel(mesh.groups.tria6h(grp_idx_output).elements), 6)];
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -21055,8 +21055,8 @@ endfunction
 %!   mesh.elements.acoustic_pressure.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_input).elements, :);
 %!   mesh.materials.acoustic_pressure.tria6h = ones(rows(mesh.elements.acoustic_pressure.tria6h.nodes), 1, "int32");
 %!   load_case.acoustic_pressure.tria6h.p = repmat(pinput, numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -21166,8 +21166,8 @@ endfunction
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;%
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
-%!   mesh.material_data.E = 210000e6;
-%!   mesh.material_data.nu = 0.3;
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -21186,22 +21186,21 @@ endfunction
 %!   t = 0:dt:T;
 %!   tau = 0.1 * T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
-%!   alpha = sin(pi * t / tau).^2 .* (t <= tau);
 %!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "umfpack";
-%!   opt_sol.delta = 0.55;
+%!   opt_sol.delta = 1;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   cond = mesh.nodes(:, 1) <= l / 2;
 %!   dPhi_dt(dof_map.ndof(find(cond)), 1) = -pleft / rho;
 %!   dPhi_dt(dof_map.ndof(find(~cond)), 1) = -pright / rho;
 %!   for i=2:numel(t)
 %!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
-%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra * alpha(i), sol_dat);
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
 %!   endfor
 %!   sol.t = t;
 %!   sol.p = -rho * dPhi_dt(dof_map.ndof, :);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
-%!   for i=1:100:numel(t)
+%!   for i=1:10:numel(t)
 %!     figure("visible", "off");
 %!     hold on;
 %!     plot(x, sol.p(idx, i), "-;p(x);1");
