@@ -1,11 +1,11 @@
 Name: mboct-fem-pkg
-Version: 0.1.0
-Date: 2020-03-14
+Version: 0.2.0
+Date: 2021-04-17
 Author: Reinhard <octave-user@a1.net>
 Maintainer: Reinhard <octave-user@a1.net>
 Title: MBDyn/Octave Finite Element toolkit
 Description: This package belongs to a suite of packages which can be used for pre- and postprocessing of flexible bodies in MBDyn (www.mbdyn.org) with GNU-Octave.
-             It contains a general purpose structural Finite Element toolkit for linear statics and dynamics, which can be used to generate flexible body data for MBDyn's modal element.
+             It contains a general purpose Finite Element toolkit for linear structural and linear thermal analysis. This toolkit can be used to generate flexible body data for MBDyn's modal element.
 License: GPLv3
-Categories: Preprocessing Postprocessing Assembly Solvers Substructuring Tests
+Categories: Preprocessing Postprocessing Assembly Solvers Substructuring
 Depends: octave (>=5.1.0),mboct-numerical-pkg (>=0.1.0),mboct-mbdyn-pkg (>=0.1.0),mboct-octave-pkg (>=0.1.0)

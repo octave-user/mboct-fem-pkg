@@ -20,11 +20,31 @@ In addition to that, there are functions for pre- and post-processing of MBDyn's
   - Expand modal results from MBDyn from several flexible bodies, scale elastic deformations, compute stresses and perform post-processing of combined meshes from several flexible bodies in Gmsh
   - Generate compliance matrices for elastohydrodynamic journal and slider bearings
 
+# Supported element types and application
+  - 8 node linear hexahedral 3D element (structural, thermal)
+  - 6 node linear pentahedral 3D element (structural, thermal)
+  - 4 node linear tetrahedral 3D element (structural, thermal)
+  - 20 node quadratic hexahedral 3D element (structural, thermal)
+  - 15 node quadratic pentahedral 3D element (structural, thermal)
+  - 10 node quadratic tetrahedral 3D p-element (structural, thermal)
+  - 10 node quadratic tetrahedral 3D h-element (structural, thermal)
+  - 4 node linear quadrilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 3 node linear trilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 8 node quadratic quadrilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 6 node quadratic trilateral 3D surface p-element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 6 node quadratic trilateral 3D surface h-element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 2 node beam element (structural)
+  - Load distributing Nastran like RBE3 element (structural)
+  - Generic joint element (structural, thermal)
+  - Surface to node constraint elements for coupling between unrelated meshes (structural, thermal)
+  - Lumped force/torque element
+
 Copyright<sup>&copy;</sup> 2019-2021
 
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
+  ## Ubuntu 20.04
   The following code is an example how mboct-fem-pkg can be installed on an Ubuntu system:
  
   `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev coreutils`
@@ -58,42 +78,46 @@ Copyright<sup>&copy;</sup> 2019-2021
   `git clone -b master https://github.com/octave-user/mboct-fem-pkg.git`
 
   `make -C mboct-fem-pkg install_local`
-    
-## GNU Octave installation
-  - Follow the instructions on (http://www.gnu.org/software/octave/) to install GNU Octave.  
-  - Make sure, that `mkoctfile` is installed.  
-    `mkoctfile --version` 
+  
+  ## openSUSE 15.2
+  The following code is an example how mboct-fem-pkg can be installed on an openSUSE system.
+  
+  `sudo zypper install octave octave-devel octave-forge-nurbs nlopt-devel suitesparse-devel autoconf automake libtool git arpack-ng-devel ginac-devel`
 
-## MBDyn installation:
-  - Clone the source tree of MBDyn.  
-    `git clone https://public.gitlab.polimi.it/DAER/mbdyn.git -b develop`
-  - Compile and install MBDyn.  
-    `cd mbdyn`  
-    `./bootstrap.sh`  
-    `./configure CXXFLAGS="-O3 -march=native" --enable-octave --enable-autodiff --with-static-modules --with-umfpack`  
-    `make`  
-    `make install`
+  `wget http://gmsh.info/bin/Linux/gmsh-4.8.3-Linux64.tgz`
 
-## GNU Octave package installation:
-  - Make sure that the GNU Octave nurbs package is installed.  
-    `octave --eval 'pkg install -forge nurbs'`
-  - Install the following packages from github.  
-    `for pkg in octave numerical mbdyn fem; do`    
-        `git clone https://github.com/octave-user/mboct-${pkg}-pkg.git && make -C mboct-${pkg}-pkg install_local`	  
-    `done`
+  `tar -xvf gmsh-4.8.3-Linux64.tgz`
 
-## NLOpt installation:
-  - Follow the instructions on https://nlopt.readthedocs.io to install nlopt.
+  `sudo install gmsh-4.8.3-Linux64/bin/gmsh /usr/local/bin`
 
-## Gmsh installation:
-  - Follow the instructions on (http://www.gmsh.info/) to install Gmsh.  
-  - Make sure Gmsh is on your path (e.g. `export PATH=/opt/gmsh/bin:${PATH}`)
+  `git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git`
 
-## Usage
-  - Run Octave.  
-    `octave`
-  - At the Octave prompt load the package.   
-    `pkg load mboct-fem-pkg`
-  - At the Octave prompt execute a demo.  
-    `demo fem_cms_export`
+  `pushd mbdyn`
+
+  `./bootstrap.sh`
+
+  `./configure --enable-octave --with-umfpack --with-arpack --without-metis --with-static-modules --enable-sparse_autodiff --with-lapack --with-suitesparseqr CPPFLAGS=-I/usr/include/suitesparse CXXFLAGS=-Wall -ggdb3 -march=native -O3 --disable-Werror`
+
+  `make`
+
+  `sudo make install`
+
+  `popd`
+
+  `git clone -b master https://github.com/octave-user/mboct-octave-pkg.git`
+
+  `make -C mboct-octave-pkg install_local`
+
+  `git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git`
+
+  `make -C mboct-numerical-pkg install_local`
+
+  `git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git`
+
+  `make -C mboct-mbdyn-pkg install_local`
+
+  `git clone -b master https://github.com/octave-user/mboct-fem-pkg.git`
+
+  `make -C mboct-fem-pkg install_local`
+  
 	
