@@ -37,7 +37,7 @@ In addition to that, there are functions for pre- and post-processing of MBDyn's
   - Load distributing Nastran like RBE3 element (structural)
   - Generic joint element (structural, thermal)
   - Surface to node constraint elements for coupling between unrelated meshes (structural, thermal)
-  - Lumped force/torque element
+  - Lumped force/torque element (structural)
 
 Copyright<sup>&copy;</sup> 2019-2021
 
@@ -120,4 +120,7 @@ Copyright<sup>&copy;</sup> 2019-2021
 
   `make -C mboct-fem-pkg install_local`
   
-	
+# Applications
+  - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
+  
+  - Rotor dynamics test case using MBDyn (https://www.youtube.com/watch?v=VohVTeggqI4)	
