@@ -1,6 +1,6 @@
 # mboct-fem-pkg<sup>&copy;</sup>
 **mboct-fem-pkg** belongs to a suite of packages which can be used for pre- and post-processing of flexible bodies in MBDyn (https://www.mbdyn.org) with GNU-Octave (http://www.gnu.org/software/octave/) and Gmsh (http://www.gmsh.info/).
-It contains a general purpose Finite Element toolkit for linear structural and linear thermal problems, which can be used to generate flexible body data for MBDyn's modal element. 
+It contains a general purpose Finite Element toolkit for linear structural and linear thermal problems, which can be used to generate flexible body data for MBDyn's modal element.
 In addition to that, there are functions for pre- and post-processing of MBDyn's elastohydrodynamic journal- and slider- plain bearings.
 
 # List of features
@@ -29,11 +29,11 @@ In addition to that, there are functions for pre- and post-processing of MBDyn's
   - 10 node quadratic tetrahedral 3D p-element (structural, thermal)
   - 10 node quadratic tetrahedral 3D h-element (structural, thermal)
   - 4 node linear quadrilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
-  - 3 node linear trilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 3 node linear triangular 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
   - 8 node quadratic quadrilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
-  - 6 node quadratic trilateral 3D surface p-element (surface to node constraint, pressure load, thermal convection, heat source)
-  - 6 node quadratic trilateral 3D surface h-element (surface to node constraint, pressure load, thermal convection, heat source)
-  - 2 node beam element (structural)
+  - 6 node quadratic triangular 3D surface p-element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 6 node quadratic triangular 3D surface h-element (surface to node constraint, pressure load, thermal convection, heat source)
+  - 2 node Timoshenko beam element (structural)
   - Load distributing Nastran like RBE3 element (structural)
   - Generic joint element (structural, thermal)
   - Surface to node constraint elements for coupling between unrelated meshes (structural, thermal)
@@ -46,7 +46,7 @@ Copyright<sup>&copy;</sup> 2019-2021
 # Installation
   ## Ubuntu 20.04
   The following code is an example how mboct-fem-pkg can be installed on an Ubuntu system:
- 
+
   `sudo apt-get install octave liboctave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev octave-nurbs gmsh libnlopt-dev libmkl-full-dev coreutils`
 
   `git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git`
@@ -78,10 +78,10 @@ Copyright<sup>&copy;</sup> 2019-2021
   `git clone -b master https://github.com/octave-user/mboct-fem-pkg.git`
 
   `make -C mboct-fem-pkg install_local`
-  
+
   ## openSUSE 15.2
   The following code is an example how mboct-fem-pkg can be installed on an openSUSE system.
-  
+
   `sudo zypper install octave octave-devel octave-forge-nurbs nlopt-devel suitesparse-devel autoconf automake libtool git arpack-ng-devel ginac-devel`
 
   `wget http://gmsh.info/bin/Linux/gmsh-4.8.3-Linux64.tgz`
