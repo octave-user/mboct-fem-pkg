@@ -573,6 +573,20 @@ public:
           VEC_LOAD_ACOUSTICS = 0x1800u | DofMap::DO_ACOUSTICS
      };
 
+     static constexpr unsigned MAT_TYPE_COUNT = 24u;
+     
+     static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
+          constexpr unsigned MAT_TYPE_FIRST = MAT_STIFFNESS;
+          constexpr unsigned MAT_TYPE_MASK = 0xFF00u;
+          constexpr unsigned MAT_TYPE_SHIFT = 8u;
+          
+          unsigned i = (((eMatType - MAT_TYPE_FIRST) & MAT_TYPE_MASK) >> MAT_TYPE_SHIFT);
+          
+          FEM_ASSERT(i < MAT_TYPE_COUNT);
+          
+          return i;
+     }
+     
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
           :eltype(eltype), id(id), X(X), material(material), nodes(nodes) {
 
@@ -597,7 +611,7 @@ public:
           return 0.;
      }
 
-     virtual bool bNeedMatrixInfo(FemMatrixType eMatType) const {
+     static constexpr bool bNeedMatrixInfo(FemMatrixType eMatType) {
           return false;
      }
 
@@ -615,12 +629,7 @@ protected:
 class MatrixAss {
 public:
      struct MatrixInfo {
-          MatrixInfo()
-               :alpha(1.), beta(1.) {
-          }
-
-          double alpha; // scale factor for double Lagrange multipliers
-          double beta; // scale factor for constraint equations
+          double beta = 1.; // scale factor for constraint equations
      };
 
      explicit MatrixAss(octave_idx_type max_nnz)
@@ -631,8 +640,8 @@ public:
            data(max_nnz, 0.) {
      }
 
-     const MatrixInfo& GetMatrixInfo() const {
-          return info;
+     const MatrixInfo& GetMatrixInfo(Element::FemMatrixType eMatType) const {
+          return info[Element::GetMatTypeIndex(eMatType)];
      }
 
      void UpdateMatrixInfo() {
@@ -662,8 +671,9 @@ public:
                }
           }
 
+          const unsigned i = Element::GetMatTypeIndex(eMatType);
           // According to Code_Aster r3.03.08
-          info.alpha = info.beta = (minA != INIT_MIN && maxA != INIT_MAX) ? 0.5 * (minA + maxA) : 1.;
+          info[i].beta = (minA != INIT_MIN && maxA != INIT_MAX) ? 0.5 * (minA + maxA) : 1.;
      }
 
      void Insert(double d, octave_idx_type r, octave_idx_type c) {
@@ -722,10 +732,9 @@ public:
                               iNumCols);
      }
 
-     void Reset(Element::FemMatrixType eMatTypeCurr, const MatrixInfo& oMatInfo) {
+     void Reset(Element::FemMatrixType eMatTypeCurr) {
           eMatType = eMatTypeCurr;
           nnz = 0;
-          info = oMatInfo;
      }
 
 private:
@@ -782,7 +791,7 @@ private:
      octave_idx_type nnz;
      int32NDArray ridx, cidx;
      ColumnVector data;
-     MatrixInfo info;
+     std::array<MatrixInfo, Element::MAT_TYPE_COUNT> info;
 };
 
 class ElemJoint: public Element
@@ -806,6 +815,8 @@ public:
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          const FemMatrixType eMatTypeScale = eMatType == MAT_DAMPING_ACOUSTICS ? MAT_MASS_ACOUSTICS : eMatType;
+          
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -825,8 +836,8 @@ public:
                for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
-
-               const double beta = mat.GetMatrixInfo().beta;
+               
+               const double beta = mat.GetMatrixInfo(eMatTypeScale).beta;
 
                for (octave_idx_type j = 0; j < C.columns(); ++j) {
                     for (octave_idx_type i = 0; i < C.rows(); ++i) {
@@ -846,8 +857,8 @@ public:
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
 
-               const double sig = eMatType == VEC_LOAD_ACOUSTICS ? -1. : 1.;
-               const double beta = sig * mat.GetMatrixInfo().beta;
+               const double signC = eMatType == VEC_LOAD_ACOUSTICS ? -1. : 1.;
+               const double beta = signC * mat.GetMatrixInfo(eMatTypeScale).beta;
 
                for (octave_idx_type j = 0; j < U.columns(); ++j) {
                     for (octave_idx_type i = 0; i < U.rows(); ++i) {
@@ -879,7 +890,7 @@ public:
           }
      }
 
-     virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const {
+     static constexpr bool bNeedMatrixInfo(Element::FemMatrixType eMatType) {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -1069,7 +1080,7 @@ public:
           FEM_TRACE("W=[\n" << W << "];\n");
           FEM_TRACE("B=[\n" << B << "];\n");
 
-          const double beta = mat.GetMatrixInfo().beta;
+          const double beta = mat.GetMatrixInfo(eMatType).beta;
 
           for (octave_idx_type i = 0; i < 6; ++i) {
                mat.Insert(-beta, ndofidx.xelem(i), edofidx.xelem(i));
@@ -1097,7 +1108,7 @@ public:
           }
      }
 
-     virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const {
+     static constexpr bool bNeedMatrixInfo(Element::FemMatrixType eMatType) {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -7506,7 +7517,7 @@ public:
      }
 
      virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const {
-          return rgElements.empty() ? false : rgElements.front().bNeedMatrixInfo(eMatType);
+          return ElementType::bNeedMatrixInfo(eMatType);
      }
 
      void Reserve(octave_idx_type iNumElem) {
@@ -10958,8 +10969,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           MatrixAss oMatAss(iMaxWorkSpaceSize);
           MeshInfo oMeshInfo;
-          MatrixAss::MatrixInfo oMatInfo;
-          bool bMatInfo = false;
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
                const Element::FemMatrixType eMatType = static_cast<Element::FemMatrixType>(matrix_type.xelem(i).value());
@@ -10985,14 +10994,15 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_MASS_ACOUSTICS:
                case Element::MAT_DAMPING_ACOUSTICS:
                case Element::VEC_LOAD_ACOUSTICS: {
-                    oMatAss.Reset(eMatType, oMatInfo);
-
+                    oMatAss.Reset(eMatType);
+                    
+                    bool bMatInfo = false;
+                    
                     for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
                          const bool bNeedMatInfo = (*j)->bNeedMatrixInfo(eMatType);
 
                          if (!bMatInfo && bNeedMatInfo) {
                               oMatAss.UpdateMatrixInfo();
-                              oMatInfo = oMatAss.GetMatrixInfo();
                               bMatInfo = true;
                          }
 
@@ -11002,7 +11012,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
 
                     oMatAss.Finish();
+                    
                     retval.append(oMatAss.Assemble(oDof, load_case.numel()));
+
+                    if (!bMatInfo) {
+                         oMatAss.UpdateMatrixInfo(); // Needed for linear acoustics only
+                    }
                } break;
                case Element::SCA_TOT_MASS: {
                     double dMass = 0.;
@@ -11243,9 +11258,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           }
 
           octave_scalar_map mat_info;
+          ColumnVector beta(matrix_type.numel());
 
-          mat_info.assign("alpha", oMatInfo.alpha);
-          mat_info.assign("beta", oMatInfo.beta);
+          for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
+               auto eMatType = static_cast<Element::FemMatrixType>(matrix_type.xelem(i).value());
+               beta.xelem(i) = oMatAss.GetMatrixInfo(eMatType).beta;
+          }
+          
+          mat_info.assign("beta", beta);
 
           retval.append(mat_info);
           retval.append(oMeshInfo.Get());
