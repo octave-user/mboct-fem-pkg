@@ -815,7 +815,7 @@ public:
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
-          const FemMatrixType eMatTypeScale = eMatType == MAT_DAMPING_ACOUSTICS ? MAT_MASS_ACOUSTICS : eMatType;
+          const FemMatrixType eMatTypeScale = eMatType == MAT_DAMPING_ACOUSTICS ? MAT_STIFFNESS_ACOUSTICS : eMatType;
           
           switch (eMatType) {
           case MAT_STIFFNESS:
