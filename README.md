@@ -123,4 +123,4 @@ Copyright<sup>&copy;</sup> 2019-2021
 # Applications
   - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
   
-  - Rotor dynamics test case using MBDyn (https://www.youtube.com/watch?v=VohVTeggqI4)
+  - Rotor dynamics test case using MBDyn (https://www.youtube.com/watch?v=VohVTeggqI4)	

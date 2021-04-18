@@ -10282,6 +10282,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
                     }
                     break;
+                    
                default:
                     throw std::runtime_error("invalid value for domain");
                }              
@@ -10353,6 +10354,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
                          octave_idx_type imaterial = elem_mat.xelem(i);
+                         
                          if (imaterial <= 0 || imaterial > material_data.numel()) {
                               throw std::runtime_error("invalid index in matrix mesh.materials in argument mesh");
                          }
