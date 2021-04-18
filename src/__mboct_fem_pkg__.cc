@@ -11015,9 +11015,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                     retval.append(oMatAss.Assemble(oDof, load_case.numel()));
 
-                    if (!bMatInfo) {
-                         oMatAss.UpdateMatrixInfo(); // Needed for linear acoustics only
-                    }
+                    oMatAss.UpdateMatrixInfo(); // Needed for linear acoustics only
                } break;
                case Element::SCA_TOT_MASS: {
                     double dMass = 0.;
