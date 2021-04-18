@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 ##
 ## @var{alg} @dots{} Algorithm to use: One of ("generic", "unsymmetric", "shift-invert", "symmetric-inverse").
 ##
-## @var{solver} @dots{} Linear solver to use: One of ("pastix", "mumps", "umfpack", "chol", "lu", "mldivide").
+## @var{solver} @dots{} Linear solver to use: One of ("pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide").
 ##
 ## @var{num_threads} @dots{} Number of threads to use for the linear solver.
 ## @seealso{fem_sol_modal}
@@ -165,7 +165,7 @@ endfunction
 %! N = 300;
 %! n = 10;
 %! toleigs = 0;
-%! solvers = {"pastix", "mumps", "umfpack", "lu", "chol", "mldivide"};
+%! solvers = {"pastix", "pardiso", "mumps", "umfpack", "lu", "chol", "mldivide"};
 %! alg={"symmetric-inverse","shift-invert","unsymmetric"};
 %! t = zeros(numel(alg), numel(solvers));
 %! for k=1:numel(solvers)

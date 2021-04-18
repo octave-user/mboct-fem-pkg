@@ -1,4 +1,4 @@
-## Copyright (C) 2020 Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ function fem_post_sol_script(post_pro_script_file, options)
   fd = -1;
   
   unwind_protect
-    [fd, msg] = fopen(post_pro_script_file, "wt");
+    [fd, msg] = fopen(post_pro_script_file, "w");
 
     if (fd == -1)
       error("failed to open file \"%s\"", post_pro_script_file);

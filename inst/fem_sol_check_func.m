@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -25,6 +25,11 @@ function flag = fem_sol_check_func(func)
   if (nargin ~= 1 || nargout > 1)
     print_usage();
   endif
+
+  switch (func)
+    case "pastix_ref"
+      func = "pastix";
+  endswitch
   
   flag = false;
   

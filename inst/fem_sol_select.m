@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ function solver = fem_sol_select(blambda, solver)
   endif
 
   if (nargin < 2 || ~fem_sol_check_func(solver))
-    solvers = {"pastix", "mumps", "umfpack", "chol", "lu"};
+    solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
     
     for i=1:numel(solvers)
       if (fem_sol_check_func(solvers{i}))

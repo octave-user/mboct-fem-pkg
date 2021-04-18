@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {} @var{fact} = fem_fact_pastix(@var{A}, @var{opts})
-## Create a factor object which uses PaStiX solve @var{A} * x = b via @var{x} = @var{Afact} \ @var{b}
+## Create a factor object which uses PaStiX to solve @var{A} * x = b via @var{x} = @var{Afact} \ @var{b}
 ## @seealso{pastix}
 ## @end deftypefn
 

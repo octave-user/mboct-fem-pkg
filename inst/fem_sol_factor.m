@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 ##
 ## @var{options}.solver @dots{} Character string name of the linear solver to use.
 ##
-## Use one of @{"pastix" | "mumps" | "umfpack" | "lu" | "chol" | "mldivide"@}.
+## Use one of @{"pastix" | "pardiso" | "mumps" | "umfpack" | "lu" | "chol" | "mldivide"@}.
 ##
 ## @var{options}.refine_max_iter @dots{} Maximum number of refinement iterations.
 ##
@@ -74,7 +74,7 @@ function Afact = fem_sol_factor(A, options)
   options.solver = fem_sol_select(blambda, options.solver);
   
   switch (options.solver)
-    case "pastix"
+    case {"pastix", "pastix_ref"}
       if (~isfield(options, "matrix_type"))
         options.matrix_type = PASTIX_API_SYM_YES;
       endif
@@ -90,8 +90,31 @@ function Afact = fem_sol_factor(A, options)
       if (~isfield(options, "bind_thread_mode"))
         options.bind_thread_mode = PASTIX_API_BIND_NO;
       endif
+
+      switch (options.solver)
+	case "pastix"
+	  linear_solver = @fem_fact_pastix;
+	case "pastix_ref"
+	  linear_solver = @fem_fact_pastix_ref;
+      endswitch
+    case "pardiso"
+      if (~isfield(options, "symmetric"))
+        options.symmetric = true;
+      endif
+
+      if (~isfield(options, "verbose"))
+        options.verbose = false;
+      endif
+
+      if (~isfield(options, "scaling"))
+        options.scaling = blambda;
+      endif
+
+      if (~isfield(options, "weighted_matching"))
+        options.weighted_matching = blambda;
+      endif
       
-      linear_solver = @fem_fact_pastix;
+      linear_solver = @fem_fact_pardiso;
     case "mumps"
       if (blambda)
         options.matrix_type = MUMPS_MAT_SYM;
@@ -128,7 +151,7 @@ endfunction
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
-%!   solvers = {"pastix", "mumps", "umfpack", "lu", "chol", "mldivide"};
+%!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "lu", "chol", "mldivide"};
 %!   M = 20;
 %!   options.refine_max_iter = 10;
 %!   options.number_of_threads = int32(4);

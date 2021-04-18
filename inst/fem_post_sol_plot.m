@@ -1,4 +1,4 @@
-## Copyright (C) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   endif
 
   if (~isfield(options, "elem_types"))
-    options.elem_types = {"iso8", "iso20", "tet10", "rbe3", "tria6", "iso4", "quad8", "tria3"};
+    options.elem_types = {"iso8", "iso20", "tet10", "rbe3", "tria6", "iso4", "quad8", "tria3", "tria6h"};
   endif
 
   if (~isfield(options, "elem_groups"))
@@ -93,7 +93,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
 	inumfaces += 6 * rows(elements);
       case {"tet10", "tet10h"}
         inumfaces += 16 * rows(elements);
-      case "tria6"
+      case {"tria6", "tria6h"}
         inumfaces += 4 * rows(elements);
       case "iso4"
         inumfaces += 2 * rows(elements);
@@ -196,7 +196,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
                  5, 2, 6;
                  5, 6, 7;
                  6, 3, 7];
-      case "tria6"
+      case {"tria6", "tria6h"}
         faces = [1, 4, 5;
                  2, 5, 4;
                  1, 5, 6;

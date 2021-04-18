@@ -1,4 +1,4 @@
-## Copyright (C) 2016(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2016(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -255,7 +255,7 @@ endfunction
 function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, options)
   hnd = -1;
   
-  if (options.plot_const_pressure && isfield(comp_mat, "C"))
+  if (options.plot_const_pressure && isfield(comp_mat, "C") && ~isempty(comp_mat.C))
     w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
 
     for l=1:rows(w)
@@ -280,7 +280,7 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
     endif
   endif
   
-  if (options.plot_matrix && isfield(comp_mat, "C"))
+  if (options.plot_matrix && isfield(comp_mat, "C") && ~isempty(comp_mat.C))
     for j=1:options.plot_step.x:numel(comp_mat.bearing_surf.grid_x)
       for k=1:options.plot_step.z:numel(comp_mat.bearing_surf.grid_z)
         w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
@@ -407,7 +407,7 @@ endfunction
 %!   filename(filename == "\\") = "/";
 %! endif
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif

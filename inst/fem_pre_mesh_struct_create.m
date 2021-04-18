@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -221,12 +221,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   endswitch
 
   mesh.elements.rbe3 = struct("nodes", [], "weight", [])([]);
-  mesh.material_data = struct("C", [], "rho", [])([]);
-
-  for i=1:numel(material)
-    mesh.material_data(i).C = fem_pre_mat_isotropic(material(i).E, material(i).nu);
-    mesh.material_data(i).rho = material(i).rho;
-  endfor
+  mesh.material_data = material;
 
   switch (options.elem_type)
     case "iso8"
@@ -1792,7 +1787,7 @@ endfunction
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.5 * geo.a / max(max(max(abs(sol_eig.def))));
-%!   opts.print_and_exit = false;
+%!   opts.print_and_exit = true;
 %!   opts.print_to_file = "";
 %!   opts.skin_only = true;
 %!   opts.show_element = true;

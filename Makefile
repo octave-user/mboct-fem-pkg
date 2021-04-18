@@ -229,7 +229,7 @@ doctest: $(install_stamp)
 ## Test package.
 octave_test_commands = \
 ' dirs = {"inst", "src"}; \
-  dirs(cellfun (@ (x) isempty (a = stat (x)) || ! S_ISDIR (a.mode), dirs)) = []; \
+  dirs(cellfun (@ (x) isempty (stat (x)) || ! S_ISDIR (stat(x).mode), dirs)) = []; \
   if (isempty (dirs)) error ("no \"inst\" or \"src\" directory"); exit (1); \
   else \
     dirs = \

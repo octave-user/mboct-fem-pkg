@@ -1,4 +1,4 @@
-## Copyright (C) 2016(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2016(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -507,7 +507,10 @@ endfunction
 %!     endfor
 %!   endif
 %!test
+%! do_plot = false;
+%! if (do_plot)
 %! close all;
+%! endif
 %! material.E = 210000e6;
 %! material.nu = 0.3;
 %! material.rho = 7850;
@@ -542,7 +545,9 @@ endfunction
 %! opt_plot.plot_load_cases = true;
 %! opt_plot.plot_const_pressure = true;
 %! opt_plot.contour_levels = 5;
+%! if (do_plot)
 %! fem_ehd_pre_comp_mat_plot(comp_mat, opt_plot);
+%! endif
 %! unwind_protect_cleanup
 %!   if (numel(comp_mat_file))
 %!     fn = dir([comp_mat_file, "*"]);
@@ -553,7 +558,10 @@ endfunction
 %! end_unwind_protect
 
 %!demo
-%! close all;
+%! do_plot = true;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! function [geometry, loads, bearing_surf] = bearing_callback(bearing_dimensions, options)
 %!   dx = options.element_size;
 %!   b = bearing_dimensions.bearing_width;
@@ -735,6 +743,7 @@ endfunction
 %! opt_plot.nodal_plot = false;
 %! opt_plot.plot_load_cases = false;
 %! opt_plot.plot_const_pressure = false;
+%! if (do_plot)
 %! fem_ehd_pre_comp_mat_plot(comp_mat, opt_plot);
 %! fig = get(0, "children");
 %! for i=1:numel(fig)
@@ -744,6 +753,7 @@ endfunction
 %!   endfor
 %! endfor
 %! figure_list();
+%! endif
 %! unwind_protect_cleanup
 %!   if (numel(comp_mat_file))
 %!     fn = dir([comp_mat_file, "*"]);

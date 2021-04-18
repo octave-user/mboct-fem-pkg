@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,25 +14,17 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{Asub} = subsref(@var{Asym}, @var{varargin})
-## Return @var{Asub} = @var{Asym}(@var{varargin}).
+## @deftypefn {} @var{fact} = fem_fact_pardiso(@var{A}, @var{opts})
+## Create a factor object which uses Intel MKL Pardiso to solve @var{A} * x = b via @var{x} = @var{Afact} \ @var{b}
+## @seealso{pastix}
 ## @end deftypefn
 
-function Asub = subsref(Asym, s)
-  if (nargin ~= 2)
+function fact = fem_fact_pardiso(A, opts)
+  if (~(nargin == 2 && ismatrix(A) && issquare(A) && isstruct(opts)))
     print_usage();
   endif
+    
+  fact.parobj = pardiso(A, opts);
 
-  if (~(isstruct(s) && isfield(s, "subs") && iscell(s.subs) && numel(s.subs) == 2))
-    error("index operation not valid for class fem_mat_sym");
-  endif
-  
-  i = s.subs{1};
-  j = s.subs{2};
-
-  if (numel(i) ~= numel(j) || any(i ~= j))
-    error("row and column index must be the same for class fem_mat_sym");
-  endif
-  
-  Asub = fem_mat_sym(Asym.A(i, j));
+  fact = class(fact, "fem_fact_pardiso");
 endfunction

@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -45,88 +45,102 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
   fd = -1;
   
   unwind_protect
-    [fd, msg] = fopen(filename, "wt");
+    [fd, msg] = fopen(filename, "w");
 
     if (fd == -1)
       error("failed to open file \"%s\"", filename);
     endif
 
     fputs(fd, "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n");
-    fprintf(fd, "$NodeData\n1\n\"nodal deformation\"\n1\n%e\n3\n%d\n3\n%d\n", t, idx_t - 1, size(sol.def, 1));
-    fprintf(fd, "%d %e %e %e\n", [1:size(sol.def, 1); scale * sol.def(:, 1:3, idx_sol).']);
-    fputs(fd, "$EndNodeData\n");
 
-    if (isfield(sol, "stress"))
-      idxtens = int32([1, 4, 6, 4, 2, 5, 6, 5, 3]);
+    nodal_fields = struct("name", {"def", "theta"}, ...
+                          "title", {"nodal deformation", "nodal temperature"}, ...
+                          "dim", {3, 1}, ...
+                          "value", {@(x) x(:, 1:3, idx_sol), @(x) x(:, idx_sol)});
 
-      stress_type = {"discontinuous stress tensor", "continuous stress tensor", "van Mises stress"};
-      stress_field = {"tau", "taum", "vmis"};      
-      stress_comp = int32([9, 9, 1]);
-      
-      for l=1:numel(stress_field)
-        if (isfield(sol.stress, stress_field{l}))
-          elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h"};
+    for i=1:numel(nodal_fields)
+      if (isfield(sol, nodal_fields(i).name))
+        x = nodal_fields(i).value(getfield(sol, nodal_fields(i).name));
+        fprintf(fd, "$NodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
+        fprintf(fd, "%d %e\n", [1:size(x, 1); x.']);
+        fputs(fd, "$EndNodeData\n");
+      endif
+    endfor
+    
+    field_type = {"stress", "strain"};
 
-          inumelem = int32(0);
-          
-          for i=1:numel(elem_stress)
-            if (isfield(getfield(sol.stress, stress_field{l}), elem_stress{i}))
-              tau = getfield(getfield(sol.stress, stress_field{l}), elem_stress{i});
-              inumelem += rows(tau);
-            endif
-          endfor
+    idxtens = int32([1, 4, 6, 4, 2, 5, 6, 5, 3]);
+    stress_type = {"discontinuous stress tensor", "continuous stress tensor", "van Mises stress", "discontinuous strain", "continuous strain"};
+    stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm"};
+    stress_comp = int32([9, 9, 1, 9, 9]);
+    
+    for n=1:numel(field_type)
+      if (isfield(sol, field_type{n}))        
+        for l=1:numel(stress_field)
+          if (isfield(getfield(sol, field_type{n}), stress_field{l}))
+            elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h"};
 
-          fprintf(fd, "$ElementNodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", stress_type{l}, t, idx_t - 1, stress_comp(l), inumelem);
+            inumelem = int32(0);
+            
+            for i=1:numel(elem_stress)
+              if (isfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i}))
+                tau = getfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i});
+                inumelem += rows(tau);
+              endif
+            endfor
 
-          inumelem = int32(0);
+            fprintf(fd, "$ElementNodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", stress_type{l}, t, idx_t - 1, stress_comp(l), inumelem);
 
-          for i=1:numel(elem_stress)
-            if (isfield(getfield(sol.stress, stress_field{l}), elem_stress{i}))
-              switch (elem_stress{i})
-                case "iso3"
-                  idxnode = int32([1:3]);
-                case "iso4"
-                  idxnode = int32([1:4]);
-		case "quad8"
-		  idxnode = int32([1:8]);
-                case "iso8"
-                  idxnode = int32([5:8, 1:4]);
-		case "iso20"
-		  idxnode = int32([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]);
-		case "penta15"
-		  idxnode =  int32([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]);
-                case {"tet10", "tet10h"}
-                  idxnode = int32([1:8, 10, 9]);
-              endswitch
-              
-              tau = getfield(getfield(sol.stress, stress_field{l}), elem_stress{i});
+            inumelem = int32(0);
 
-              tauout = zeros(2 + numel(idxnode) * stress_comp(l), rows(tau));
-              tauout(1, :) = inumelem + (1:rows(tau));
-              tauout(2, :) = numel(idxnode);
-              
-              for k=1:numel(idxnode)
-                if (stress_comp(l) == 1)
-                  taukl = tau(:, idxnode(k), idx_sol);
-                else
-                  taukl = tau(:, idxnode(k), idxtens, idx_sol);
-                endif
+            for i=1:numel(elem_stress)
+              if (isfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i}))
+                switch (elem_stress{i})
+                  case "iso3"
+                    idxnode = int32([1:3]);
+                  case "iso4"
+                    idxnode = int32([1:4]);
+		  case "quad8"
+		    idxnode = int32([1:8]);
+                  case "iso8"
+                    idxnode = int32([5:8, 1:4]);
+		  case "iso20"
+		    idxnode = int32([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]);
+		  case "penta15"
+		    idxnode =  int32([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]);
+                  case {"tet10", "tet10h"}
+                    idxnode = int32([1:8, 10, 9]);
+                endswitch
                 
-                tauout(2 + (k - 1) * stress_comp(l) + (1:stress_comp(l)), :) = reshape(taukl, rows(tau), stress_comp(l)).';
-              endfor
+                tau = getfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i});
 
-              inumelem += rows(tau);
-              
-              format = ["%d %d", repmat(" %e", 1, numel(idxnode) * stress_comp(l)), "\n"];
+                tauout = zeros(2 + numel(idxnode) * stress_comp(l), rows(tau));
+                tauout(1, :) = inumelem + (1:rows(tau));
+                tauout(2, :) = numel(idxnode);
+                
+                for k=1:numel(idxnode)
+                  if (stress_comp(l) == 1)
+                    taukl = tau(:, idxnode(k), idx_sol);
+                  else
+                    taukl = tau(:, idxnode(k), idxtens, idx_sol);
+                  endif
+                  
+                  tauout(2 + (k - 1) * stress_comp(l) + (1:stress_comp(l)), :) = reshape(taukl, rows(tau), stress_comp(l)).';
+                endfor
 
-              fprintf(fd, format, tauout);
-            endif
-          endfor
+                inumelem += rows(tau);
+                
+                format = ["%d %d", repmat(" %e", 1, numel(idxnode) * stress_comp(l)), "\n"];
 
-          fputs(fd, "$EndElementNodeData\n");
-        endif
-      endfor
-    endif
+                fprintf(fd, format, tauout);
+              endif
+            endfor
+
+            fputs(fd, "$EndElementNodeData\n");
+          endif
+        endfor
+      endif
+    endfor
   unwind_protect_cleanup
     if (fd ~= -1)
       fclose(fd);
@@ -158,7 +172,7 @@ endfunction
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif
@@ -244,7 +258,7 @@ endfunction
 %!   fn = dir([filename, "_post_pro_*.msh"]);
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen([filename, "_post_pro.geo"], "wt");
+%!     fd = fopen([filename, "_post_pro.geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", [filename, "_post_pro.geo"]);
 %!     endif

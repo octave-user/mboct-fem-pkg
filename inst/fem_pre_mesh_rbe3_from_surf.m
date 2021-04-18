@@ -1,4 +1,4 @@
-## Copyright Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     load_case_i.pressure = setfield(struct(), elem_type, press_elem);
     dof_map_i.ndof = [reshape(1:(numel(inode) * 3), numel(inode), 3), zeros(numel(inode), 3)];
     dof_map_i.totdof = numel(inode) * 3;
+    dof_map_i.domain = FEM_DO_STRUCTURAL;
     mesh_i.nodes = mesh.nodes(inode, :);
     mesh_i.elements = struct();
     mesh_i.materials = struct();
@@ -100,7 +101,7 @@ endfunction
 %! endif
 %! fd = -1;
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif
@@ -204,7 +205,7 @@ endfunction
 %! endif
 %! fd = -1;
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif
@@ -305,7 +306,7 @@ endfunction
 %! endif
 %! fd = -1;
 %! unwind_protect
-%! [fd, msg] = fopen([filename, ".geo"], "wt");
+%! [fd, msg] = fopen([filename, ".geo"], "w");
 %! if (fd == -1)
 %!   error("failed to open file \"%s.geo\"", filename);
 %! endif

@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ function fem_cms_export(filename, mesh, dof_map, mat_ass, cms_opt)
   fd = -1;
   
   unwind_protect
-    [fd, msg] = fopen([filename, ".elm"], "wt");
+    [fd, msg] = fopen([filename, ".elm"], "w");
 
     if (fd == -1)
       error("failed to open file \"%s\": %s", [filename, ".elm"], msg);
@@ -301,7 +301,7 @@ endfunction
 %!
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen(mbdyn_filenames{1}, "wt");
+%!     fd = fopen(mbdyn_filenames{1}, "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", mbdyn_filenames{1});
 %!     endif
@@ -468,7 +468,7 @@ endfunction
 
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen(mbdyn_filenames{2}, "wt");
+%!     fd = fopen(mbdyn_filenames{2}, "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", mbdyn_filenames{2});
 %!     endif
@@ -780,7 +780,7 @@ endfunction
 %!   geometry_file = [filename, ".geo"];
 %!   fd = -1;
 %!   unwind_protect
-%!     [fd, msg] = fopen(geometry_file, "wt");
+%!     [fd, msg] = fopen(geometry_file, "w");
 
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", geometry_file);
@@ -920,7 +920,7 @@ endfunction
 %!   eig_post_pro_file = sprintf("%s_modes_post.geo", filename);
 %!   fd = -1;
 %!   unwind_protect
-%!     [fd, msg] = fopen(eig_post_pro_file, "wt");
+%!     [fd, msg] = fopen(eig_post_pro_file, "w");
 
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", eig_post_pro_file);

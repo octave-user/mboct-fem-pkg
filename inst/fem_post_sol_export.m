@@ -1,4 +1,4 @@
-## Copyright (C) 2019-2020 Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2020) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 ## @end deftypefn
 
 function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
-  if (nargin < 3 || nargin > 4 || nargout > 1)
+  if (nargin < 3 || nargin > 4 || nargout > 1 || ~isscalar(sol) || ~isstruct(sol) || ~isscalar(mesh) || ~isstruct(mesh))
     print_usage();
   endif
 
@@ -64,6 +64,14 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
   options.mesh_filename = [prefix, ".msh"];
   fem_post_mesh_export(options.mesh_filename, mesh);
 
+  if (isfield(sol, "def"))
+    num_steps = size(sol.def, 3);
+  elseif (isfield(sol, "theta"))
+    num_steps = size(sol.theta, 2);
+  else
+    error("there are no nodal fields in argument sol");
+  endif
+  
   if (isfield(sol, "t"))
     t = sol.t;
     options.show_time = 1;
@@ -71,12 +79,12 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
     t = sol.f;
     options.show_time = 6;
   else
-    t = 1:size(sol.def, 3);
+    t = 1:num_steps;
     options.show_time = 1;
   endif
 
   if (~isfield(options, "output_step_idx"))
-    options.output_step_idx = 1:size(sol.def, 3);
+    options.output_step_idx = 1:num_steps;
   endif
 
   options.num_time_steps = numel(options.output_step_idx);
@@ -123,7 +131,7 @@ endfunction
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif

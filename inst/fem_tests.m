@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -50,8 +50,11 @@
 %! mesh_size.num_elem_h = ceil(geometry.h / h);
 %! number_of_modes = 10;
 %! number_of_modes_disp = 3;
-%! plot_def = fem_tests_enable_plotting();
-
+%! if (exist("fem_tests_enable_plotting"))
+%!   plot_def = fem_tests_enable_plotting();
+%! else
+%!   plot_def = false;
+%! endif
 %! f = [ 0; Fy; 0 ];
 %! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
@@ -63,7 +66,9 @@
 %!                               FEM_MAT_STIFFNESS, ...
 %!                               FEM_VEC_LOAD_CONSISTENT], ...
 %!                              load_case);
+%!
 %! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!
 %! sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                  dof_map, ...
 %!                                  [FEM_VEC_STRESS_CAUCH], ...
@@ -73,6 +78,8 @@
 %! rho = 100;
 %! tol = 1e-6;
 %! err = zeros(number_of_modes, numel(alg));
+%! empty_cell = cell(1, numel(alg));
+%! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell);
 %! for a=1:numel(alg)
 %!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
 %! endfor
@@ -1220,7 +1227,11 @@
 
 %!test
 %! ## TEST 15
+%! if (exist("fem_tests_enable_plotting"))
 %! do_plot = fem_tests_enable_plotting();
+%! else
+%! do_plot = false;
+%! endif
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -1276,9 +1287,11 @@
 %!    data(ialg).mat_ass_cms, ...
 %!    data(ialg).dof_map_cms, ...
 %!    data(ialg).sol_eig_cms] = fem_cms_create(data(ialg).mesh, data(ialg).load_case, data(ialg).cms_opt);
-%!   data(ialg).mesh.elements.joints(end + 1).nodes = data(ialg).cms_opt.nodes.modal.number;
-%!   data(ialg).mesh.elements.joints(end).C = eye(6);
-%!   data(ialg).load_case.joints(end + 1).U = zeros(6, 1);
+%!   data(ialg).mesh.elements.joints = struct("nodes", cell(1, 1), "C", cell(1,1));
+%!   data(ialg).load_case.joints = struct("U", cell(1, 1));
+%!   data(ialg).mesh.elements.joints(1).nodes = data(ialg).cms_opt.nodes.modal.number;
+%!   data(ialg).mesh.elements.joints(1).C = eye(6);
+%!   data(ialg).load_case.joints(1).U = zeros(6, 1);
 %!   data(ialg).load_case.loaded_nodes = [data(ialg).cms_opt.nodes.interfaces.number];
 %!   data(ialg).load_case.loads = [0, 0, -1, 0, 0, 0] / SI_unit_N;
 %!   data(ialg).dof_map = fem_ass_dof_map(data(ialg).mesh, data(ialg).load_case);
@@ -1525,7 +1538,11 @@
 %! b = 0.3;
 %! c = 0.7;
 %! p = 2.5e9;
-%! do_plot = fem_tests_enable_plotting();
+%! if (exist("fem_tests_enable_plotting"))
+%!   do_plot = fem_tests_enable_plotting();
+%! else
+%!   do_plot = false;
+%! endif
 %! scale = -0.5 * a;
 
 %! X = [      0,       0,       0;
@@ -1548,8 +1565,9 @@
 %!   R1 = euler123_to_rotation_matrix([Phi1(i); Phi2(i); Phi3(i)]);
 %!   data(i).mesh.nodes = [(R1 * X).', zeros(columns(X), 3)];
 %!   data(i).mesh.elements.tet10 = int32(1:10);
+%!   data(i).mesh.elements.joints = struct("C", cell(1,0), "nodes", cell(1,0));
 %!   for j=[1,2,4,5,8,9]
-%!     data(i).mesh.elements.joints(end+1).nodes = j;
+%!     data(i).mesh.elements.joints(end + 1).nodes = j;
 %!     data(i).mesh.elements.joints(end).C = [eye(3), zeros(3, 3)];
 %!   endfor
 %!   data(i).mesh.materials.tet10 = int32(1);
@@ -2059,8 +2077,8 @@
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
-%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "mumps"};
-%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_mumps};
+%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps", "pardiso"};
+%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_pastix_ref, @fem_fact_mumps, @fem_fact_pardiso};
 %!   warnfunc = false(size(func));
 %!   options.refine_max_iter = int32(100);
 %!   options.verbose = int32(0);
@@ -2753,7 +2771,11 @@
 %! material1.E = 210000e6;
 %! material1.nu = 0.3;
 %! material1.rho = 7850;
-%! contour_plot = do_plot = fem_tests_enable_plotting();
+%! if (exist("fem_tests_enable_plotting"))
+%!   contour_plot = do_plot = fem_tests_enable_plotting();
+%! else
+%!   contour_plot = do_plot = false;
+%! endif
 %! h1 = 5e-3;
 %! geometry1.l = 20e-3;
 %! geometry1.w = 30e-3;
@@ -3739,7 +3761,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST49
+%! ## TEST46
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3813,7 +3835,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST50
+%! ## TEST 47
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3887,7 +3909,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST51
+%! ## TEST 48
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3961,7 +3983,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST52
+%! ## TEST 49
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4045,7 +4067,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST53
+%! ## TEST 50
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4130,6 +4152,296 @@
 %! unwind_protect_cleanup
 %!   rand("state", state);
 %! end_unwind_protect
+
+%!test
+%! ## TEST 51
+%! if (~fem_sol_check_func("pastix"))
+%!   return;
+%! endif
+%! s = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   N = 1000;
+%!   for i=1:100
+%!     for j=1:3
+%!       A = sprand(N, N, 0.01) + diag(rand(N, 1));
+%!       A += A.';
+%!       opts.factorization = PASTIX_API_FACT_LDLT;
+%!       opts.refine_max_iter = int32(100);
+%!       opts.matrix_type = PASTIX_API_SYM_YES;
+%!       opts.epsilon_refine = eps^0.7;
+%!       opts.verbose = PASTIX_API_VERBOSE_NOT;
+%!       switch (j)
+%!         case 1
+%!           Asym = A;
+%!           opts.symmetric = false;
+%!         case {2, 3}
+%!           [r, c, d] = find(A);
+%!           switch (j)
+%!             case 2
+%!               idx = find(r >= c);
+%!             case 3
+%!               idx = find(r <= c);
+%!           endswitch
+%!           Asym = sparse(r(idx), c(idx), d(idx), rows(A), columns(A));
+%!           opts.symmetric = true;
+%!       endswitch
+%!       Afact = fem_fact_pastix_ref(Asym, opts);
+%!       B = rand(rows(A), 30);
+%!       X = Afact \ B;
+%!       assert(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) < opts.epsilon_refine);
+%!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", s);
+%! end_unwind_protect
+
+%!test
+%! ## TEST 52
+%! close all;
+%! elem_types = {"iso8", "iso20"};
+%! for k=1:numel(elem_types)
+%! options.elem_type = elem_types{k};
+%! switch (options.elem_type)
+%! case "iso8"
+%!   M = 2;
+%! case "iso20"
+%!   M = 1;
+%! endswitch
+%! geometry.user_data.l = 10e-3;
+%! geometry.user_data.w = 0.02e-3;
+%! geometry.user_data.h = 0.02e-3;
+%! dx = 1e-3 / M;
+%!
+%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t)
+%!   x = geo.l * r;
+%!   y = geo.w * s;
+%!   z = geo.h * t;
+%! endfunction
+%!
+%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx)
+%!   p = [];
+%! endfunction
+%!
+%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data)
+%!   F = [];
+%!   locked = [];
+%! endfunction
+%!
+%! geometry.mesh_size.r = linspace(0, 1, max([2, ceil(geometry.user_data.l / dx) + 1]));
+%! geometry.mesh_size.s = linspace(0, 1, max([2, ceil(geometry.user_data.w / dx) + 1]));
+%! geometry.mesh_size.t = linspace(0, 1, max([2, ceil(geometry.user_data.h / dx) + 1]));
+%! geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.l;
+%! geometry.spatial_coordinates = @(r, s, t) feval("cube_geo", geometry.user_data, r, s, t);
+%! geometry.material_selector = @(r, s, t) 1;
+%! geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("boundary_cond_callback", r, s, t, geometry, load_data);
+%! geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
+%! k = 50;
+%! material.E = 210000e6;
+%! material.nu = 0.3;
+%! material.rho = 7850;
+%! material.k = diag([k, k, k]);
+%! material.cp = 465;
+%! load_data.pressure = 0;
+%! [mesh] = fem_pre_mesh_struct_create(geometry, load_data, material, options);
+%! load_case.locked_dof = false(rows(mesh.nodes), 1);
+%! load_case.domain = FEM_DO_THERMAL;
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! empty_cell = cell(1, 2);
+%! sol = struct("t", empty_cell, "theta", empty_cell);
+%! for j=1:2
+%!   switch (j)
+%!     case 1
+%!       R = eye(3);
+%!     case 2
+%!       e1 = [0.5; 0.2; 0.1];
+%!       e2 = [0; 1; 0];
+%!       e3 = cross(e1, e2);
+%!       e2 = cross(e3, e1);
+%!       R = [e1 / norm(e1), e2 / norm(e2), e3 / norm(e3)];
+%!   endswitch
+%!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
+%!   [mat_ass.Kk, mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_MAT_THERMAL_COND, ...
+%!                                             FEM_MAT_HEAT_CAPACITY], ...
+%!                                            load_case);
+%!   qref = material.rho * material.cp * geometry.user_data.l * geometry.user_data.w * geometry.user_data.h;
+%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   theta_x0 = 20;
+%!   theta_xl = 100;
+%!   theta0 = (R(:,1).' * mesh.nodes(:, 1:3).' - R(:, 1).' * mesh.nodes(1, 1:3).') / geometry.user_data.l * (theta_xl - theta_x0) + theta_x0;
+%!   dt = 0.1;
+%!   alpha = 0.5;
+%!   sol(j).t = 0:dt:100;
+%!   sol(j).theta = zeros(dof_map.totdof, numel(sol(j).t));
+%!   sol(j).theta(:, 1) = theta0;
+%!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
+%!   opts.number_of_threads = int32(4);
+%!   opts.solver = "chol";
+%!   Afact = fem_sol_factor(A, opts);
+%!   for i=2:numel(sol(j).t)
+%!     sol(j).theta(:, i) = Afact \ (mat_ass.C * (sol(j).theta(:, i - 1)) / dt - mat_ass.Kk * (sol(j).theta(:, i - 1) * (1 - alpha)));
+%!   endfor
+%!   assert(sol(j).theta(:, end), repmat(0.5 * (theta_x0 + theta_xl), rows(sol(j).theta), 1), eps^0.5 * abs(theta_xl));
+%! endfor
+%! assert(sol(2).theta, sol(1).theta, eps^0.5 * abs(theta_xl));
+%! if (exist("fem_tests_enable_plotting") && fem_tests_enable_plotting())
+%!   figure("visible", "off");
+%!   hold on;
+%!   for j=1:2
+%!     plot(sol(j).t, max(sol(j).theta, [], 1), sprintf("-;max(theta%d);1", j));
+%!     plot(sol(j).t, min(sol(j).theta, [], 1), sprintf("-;min(theta%d);3", j));
+%!   endfor
+%!   xlabel("t [s]");
+%!   ylabel("theta [degC]");
+%!   grid on;
+%!   grid minor on;
+%!   title("transient thermal problem of a bar");
+%! endif
+%! endfor
+
+%!test
+%! ## TEST 53
+%! ## The 1-D Heat Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! ## https://ocw.mit.edu/courses/mathematics/18-303-linear-partial-differential-equations-fall-2006/lecture-notes/heateqni.pdf
+%!
+%! if (exist("fem_tests_enable_plotting") && fem_tests_enable_plotting())
+%!   close all;
+%! endif
+%!
+%! elem_types = {"iso8", "iso20"};
+
+%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t)
+%!   x = geo.l * r;
+%!   y = geo.w * s;
+%!   z = geo.h * t;
+%! endfunction
+
+%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx)
+%!   p = [];
+%! endfunction
+
+%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data)
+%!   F = [];
+%!   locked = [];
+%! endfunction
+
+%! for k=1:numel(elem_types)
+%!   options.elem_type = elem_types{k};
+%!   switch (options.elem_type)
+%!     case "iso8"
+%!       M = 2;
+%!     case "iso20"
+%!       M = 1;
+%!   endswitch
+%!   geometry.user_data.l = 20e-3;
+%!   geometry.user_data.w = 1e-3;
+%!   geometry.user_data.h = 1e-3;
+%!   dx = 1e-3 / M;
+%!   geometry.mesh_size.r = linspace(0, 1, max([2, ceil(geometry.user_data.l / dx) + 1]));
+%!   geometry.mesh_size.s = linspace(0, 1, max([2, ceil(geometry.user_data.w / dx) + 1]));
+%!   geometry.mesh_size.t = linspace(0, 1, max([2, ceil(geometry.user_data.h / dx) + 1]));
+%!   geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.l;
+%!   geometry.spatial_coordinates = @(r, s, t) feval("cube_geo", geometry.user_data, r, s, t);
+%!   geometry.material_selector = @(r, s, t) 1;
+%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("boundary_cond_callback", r, s, t, geometry, load_data);
+%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
+%!   K0 = 5000;
+%!   material.E = 210000e6;
+%!   material.nu = 0.3;
+%!   material.rho = 7850;
+%!   material.k = diag([K0, K0, K0]);
+%!   material.cp = 465;
+%!   u0 = 100;
+%!   ub = 50;
+%!   load_data.pressure = 0;
+%!   [mesh] = fem_pre_mesh_struct_create(geometry, load_data, material, options);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
+%!   [dof_map] = fem_ass_dof_map(mesh, load_case);
+%!   empty_cell = cell(1, 2);
+%!   sol = struct("t", empty_cell, "theta", empty_cell);
+%!   for j=1:2
+%!     switch (j)
+%!       case 1
+%!         R = eye(3);
+%!       case 2
+%!         e1 = [0.5; 0.2; 0.1];
+%!         e2 = [0; 1; 0];
+%!         e3 = cross(e1, e2);
+%!         e2 = cross(e3, e1);
+%!         R = [e1 / norm(e1), e2 / norm(e2), e3 / norm(e3)];
+%!     endswitch
+%!     cond_b = (mesh.nodes(:, 1) == 0 | mesh.nodes(:, 1) == geometry.user_data.l);
+%!     idx_b = find(cond_b);
+%!     idx_i = find(~cond_b);
+%!     x = mesh.nodes(:, 1);
+%!     mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
+%!     [mat_ass.Kk, mat_ass.C] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_MAT_THERMAL_COND, ...
+%!                                               FEM_MAT_HEAT_CAPACITY], ...
+%!                                              load_case);
+%!     Kk11 = mat_ass.Kk(idx_i, idx_i);
+%!     Kk12 = mat_ass.Kk(idx_i, idx_b);
+%!     C11 = mat_ass.C(idx_i, idx_i);
+%!     theta_b = repmat(ub, numel(idx_b), 1);
+%!     theta0 = repmat(u0, dof_map.totdof, 1);
+%!     qref = material.rho * material.cp * geometry.user_data.l * geometry.user_data.w * geometry.user_data.h;
+%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     kappa = K0 / (material.rho * material.cp);
+%!     T_ = geometry.user_data.l^2 / kappa;
+%!     dt = dx^2 / (2 * kappa);
+%!     alpha = 0.6;
+%!     sol(j).t = 0:dt:0.1*T_;
+%!     sol(j).theta = zeros(dof_map.totdof, numel(sol(j).t));
+%!     sol(j).theta(:, 1) = theta0;
+%!     A = (1 / dt) * C11 + alpha * Kk11;
+%!     opts.number_of_threads = int32(1);
+%!     opts.solver = "pastix";
+%!     Afact = fem_sol_factor(A, opts);
+%!     for i=2:numel(sol(j).t)
+%!       sol(j).theta(idx_i, i) = Afact \ (C11 * (sol(j).theta(idx_i, i - 1) / dt) - Kk11 * (sol(j).theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
+%!       sol(j).theta(idx_b, i) = theta_b;
+%!     endfor
+%!     u0_ = 1;
+%!     n = 1:10000;
+%!     Bn_ = -2 * u0_ ./ (n * pi) .* ((-1).^n - 1);
+%!     x_ = x / geometry.user_data.l;
+%!     u_ = zeros(numel(x), numel(sol(j).t));
+%!     for n=1:numel(Bn_)
+%!       t_ = sol(j).t / T_;
+%!       u_ += Bn_(n) * sin(n * pi * x_) .* exp(-n^2 * pi^2 * t_);
+%!     endfor
+%!     sol(j).theta_ref = u_ * (u0 - ub) + ub;
+%!   endfor
+%!   [x, idx_theta] = sort(x);
+%!   if (exist("fem_tests_enable_plotting") && fem_tests_enable_plotting())
+%!   for j=1:numel(sol)
+%!     colors = rainbow(numel(sol(j).t));
+%!     figure("visible", "off");
+%!     hold on;
+%!     legend off;
+%!     for i=1:10:numel(sol(j).t)
+%!       set(plot(x, sol(j).theta(idx_theta, i), sprintf("-;t=%.2f;", sol(j).t(i))), "color", colors(i,:));
+%!       hnd = plot(x, sol(j).theta_ref(idx_theta, i), sprintf("--;tref=%.2f;", sol(j).t(i)));
+%!       set(hnd, "color", colors(i,:));
+%!       set(hnd, "linewidth", 2);
+%!     endfor
+%!     xlabel("t [s]");
+%!     ylabel("theta [degC]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("transient thermal problem of a bar: %s/%d", elem_types{k}, j));
+%!   endfor
+%!   endif
+%!   tol = 1e-2;
+%!   assert(sol(j).theta(:, 10:end), sol(j).theta_ref(:, 10:end), tol * abs(u0 - ub));
+%! endfor
 
 %!demo
 %! ## DEMO 1
@@ -4274,7 +4586,7 @@
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif
@@ -4484,7 +4796,7 @@
 %!   fd = -1;
 %!   unwind_protect
 %!     geo_file = [filename, ".geo"];
-%!     fd = fopen(geo_file, "wt");
+%!     fd = fopen(geo_file, "w");
 %!     if (fd == -1)
 %!       error("failed to open file %s", geo_file);
 %!     endif

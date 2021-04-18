@@ -1,4 +1,4 @@
-## Copyright (C) 2016(-2020) Reinhard <octave-user@a1.net>
+## Copyright (C) 2016(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
       fd = stdout;
     elseif (ischar(varargin{1}))
       owns_fd = true;
-      [fd, msg] = fopen(varargin{1}, "wt");
+      [fd, msg] = fopen(varargin{1}, "w");
       if (fd == -1)
         error("failed to open file \"%s\": %s", varargin{1}, msg);
       endif
@@ -180,7 +180,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         print_matrix(fd, D, "substruct contrib matrix");
         print_matrix(fd, E, "substruct residual matrix");
-      case "nodal substruct total"
+      case {"nodal substruct total", "modal substruct total"}
         if (~isfield(comp_mat, "D"))
           error("missing field \"D\"");
         endif
@@ -199,7 +199,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         D = comp_mat.D(1:end - numel(z), :);
         E = comp_mat.E(:, 1:end - numel(z));
-
+	
         print_matrix(fd, D, "substruct total contrib matrix");
         print_matrix(fd, E, "substruct total residual matrix");
       case "modal"
@@ -231,6 +231,8 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
         print_matrix(fd, KPhi \ RPhi, "modal load");
 
         fprintf(fd, "\n\n## cond(KPhi)=%e\n", cond(KPhi));
+      otherwise
+	error("unknown option matrix_type=\"%s\"", options.matrix_type);
     endswitch
 
   unwind_protect_cleanup
@@ -391,7 +393,7 @@ endfunction
 %!   group_defs(end).bearing = "elem_id_bearing";
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen([output_file, ".geo"], "wt");
+%!     fd = fopen([output_file, ".geo"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", [output_file, ".geo"]);
 %!     endif
@@ -628,7 +630,7 @@ endfunction
 %!   unwind_protect
 %!     fd = -1;
 
-%!     [fd, msg] = fopen([output_file, "_shell.set"], "wt");
+%!     [fd, msg] = fopen([output_file, "_shell.set"], "w");
 
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\": %s", [output_file, "_shell.set"], msg);
@@ -651,7 +653,7 @@ endfunction
 %!   options_mbdyn.f_run_mbdyn2easyanim = false;
 %!   fd = -1;
 %!   unwind_protect
-%!     fd = fopen([output_file, "_mbd.mbdyn"], "wt");
+%!     fd = fopen([output_file, "_mbd.mbdyn"], "w");
 %!     if (fd == -1)
 %!       error("failed to open file \"%s\"", [output_file, "_mbd.mbdyn"]);
 %!     endif
