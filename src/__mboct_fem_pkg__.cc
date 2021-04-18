@@ -466,7 +466,9 @@ public:
           ELEM_ACOUSTIC_PRESS_QUAD8,
           ELEM_ACOUSTIC_PRESS_TRIA6,
           ELEM_ACOUSTIC_PRESS_TRIA6H,
-          ELEM_TYPE_COUNT
+          ELEM_ACOUSTIC_CONSTR,
+          ELEM_TYPE_COUNT,
+          ELEM_TYPE_UNKNOWN = -1
      };
 
      struct TypeInfo {
@@ -521,7 +523,8 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_ACOUSTIC_PRESS_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_PRESS_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF}
+     {ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_CONSTR,    "acconstr", 1, -1, DofMap::ELEM_JOINT}
 };
 
 class Element
@@ -807,7 +810,8 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
-          case MAT_THERMAL_COND: {
+          case MAT_THERMAL_COND:
+          case MAT_DAMPING_ACOUSTICS: {
                int32NDArray ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
@@ -834,14 +838,16 @@ public:
           } break;
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
-          case VEC_LOAD_THERMAL: {
+          case VEC_LOAD_THERMAL:
+          case VEC_LOAD_ACOUSTICS: {
                int32NDArray edofidx(dim_vector(C.rows(), 1));
 
                for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
 
-               const double beta = mat.GetMatrixInfo().beta;
+               const double sig = eMatType == VEC_LOAD_ACOUSTICS ? -1. : 1.;
+               const double beta = sig * mat.GetMatrixInfo().beta;
 
                for (octave_idx_type j = 0; j < U.columns(); ++j) {
                     for (octave_idx_type i = 0; i < U.rows(); ++i) {
@@ -858,6 +864,7 @@ public:
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_THERMAL_COND:
+          case MAT_DAMPING_ACOUSTICS:
                return 2 * C.rows() * C.columns();
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
@@ -865,6 +872,7 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
+          case VEC_LOAD_ACOUSTICS:
                return U.rows() * U.columns();
           default:
                return 0;
@@ -877,6 +885,7 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
+          case MAT_DAMPING_ACOUSTICS:
                return true;
           default:
                return false;
@@ -8190,7 +8199,24 @@ public:
                  const ConstraintType eType,
                  const unsigned uConstraintFlags,
                  const DofMap::DomainType eDomain) {
-          ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(eDomain == DofMap::DO_STRUCTURAL ? ElementTypes::ELEM_JOINT : ElementTypes::ELEM_THERM_CONSTR, nidxslave.numel()));
+          
+          ElementTypes::TypeId eElemType = ElementTypes::ELEM_TYPE_UNKNOWN;
+
+          switch (eDomain) {
+          case DofMap::DO_STRUCTURAL:
+               eElemType = ElementTypes::ELEM_JOINT;
+               break;
+          case DofMap::DO_THERMAL:
+               eElemType = ElementTypes::ELEM_THERM_CONSTR;
+               break;
+          case DofMap::DO_ACOUSTICS:
+               eElemType = ElementTypes::ELEM_ACOUSTIC_CONSTR;
+               break;
+          }
+
+          FEM_ASSERT(eElemType != ElementTypes::ELEM_TYPE_UNKNOWN);
+          
+          ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(eElemType, nidxslave.numel()));
 
           FEM_ASSERT(X.columns() >= iNumDimNode);
           FEM_ASSERT(X.columns() == 6);
@@ -9458,6 +9484,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
                     case ElementTypes::ELEM_THERM_CONSTR:
+                    case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                          break;
 
                     default:
@@ -9488,9 +9515,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
-                    case ElementTypes::ELEM_THERM_CONSTR: {
+                    case ElementTypes::ELEM_THERM_CONSTR:
+                    case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                          const char* const fn = (oElemType.type == ElementTypes::ELEM_JOINT ||
-                                                 oElemType.type == ElementTypes::ELEM_THERM_CONSTR)
+                                                 oElemType.type == ElementTypes::ELEM_THERM_CONSTR ||
+                                                 oElemType.type == ElementTypes::ELEM_ACOUSTIC_CONSTR)
                               ? "C"
                               : "slave";
 
@@ -9528,6 +9557,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    switch (oElemType.type) {
                                    case ElementTypes::ELEM_JOINT:
                                    case ElementTypes::ELEM_THERM_CONSTR:
+                                   case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                                         icurrconstr = ov_fn(j).rows();
                                         edof[CS_JOINT].elem_count++;
                                         break;
@@ -9564,6 +9594,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    switch (oElemType.type) {
                                    case ElementTypes::ELEM_JOINT:
                                    case ElementTypes::ELEM_THERM_CONSTR:
+                                   case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                                         icurrconstr = ov_fn(j).rows();
                                         icurrjoints = 1;
                                         break;
@@ -10269,15 +10300,28 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
-                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;                         
                          break;
-                    case Element::MAT_DAMPING_ACOUSTICS:
+                         
                     case Element::VEC_LOAD_ACOUSTICS:
+                         if (load_case.numel() == 0) {
+                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_ACOUSTICS");
+                         }
+                         
+                         [[fallthrough]];
+                         
+                    case Element::MAT_DAMPING_ACOUSTICS:
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8] = true;                         
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H] = true;
                          break;
+                         
                     default:
                          break;
                     }
@@ -10388,7 +10432,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_BEAM2:
                case ElementTypes::ELEM_RBE3:
                case ElementTypes::ELEM_JOINT:
-               case ElementTypes::ELEM_THERM_CONSTR: {
+               case ElementTypes::ELEM_THERM_CONSTR:
+               case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                     const auto iter_elem = elements.seek(oElemType.name);
 
                     if (iter_elem == elements.end()) {
@@ -10449,7 +10494,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     Cell ov_C;
 
-                    if (oElemType.type == ElementTypes::ELEM_JOINT || oElemType.type == ElementTypes::ELEM_THERM_CONSTR) {
+                    if (oElemType.type == ElementTypes::ELEM_JOINT ||
+                        oElemType.type == ElementTypes::ELEM_THERM_CONSTR ||
+                        oElemType.type == ElementTypes::ELEM_ACOUSTIC_CONSTR) {
                          const auto iter_C = s_elem.seek("C");
 
                          if (iter_C == s_elem.end()) {
@@ -10484,6 +10531,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
                     case ElementTypes::ELEM_JOINT:
                     case ElementTypes::ELEM_THERM_CONSTR:
+                    case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                          pElem.reset(new ElementBlock<ElemJoint>(oElemType.type, s_elem.numel()));
                          break;
                     default:
@@ -10673,7 +10721,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               pElem->Insert<ElemRBE3>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, weight);
                          } break;
                          case ElementTypes::ELEM_JOINT:
-                         case ElementTypes::ELEM_THERM_CONSTR: {
+                         case ElementTypes::ELEM_THERM_CONSTR:
+                         case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                               const Matrix C(ov_C.xelem(i).matrix_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
@@ -10708,7 +10757,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                         }
 #endif
 
-                                        const auto iter_U = s_joints.seek("U");
+                                        // FIXME: use a different name for thermal and acoustic constraints
+                                        const auto iter_U = s_joints.seek("U"); 
 
                                         if (iter_U == s_elem.end()) {
                                              throw std::runtime_error("missing field load_case."s + oElemType.name + ".U in argument load case");
