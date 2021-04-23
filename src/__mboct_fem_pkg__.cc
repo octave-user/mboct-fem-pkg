@@ -462,10 +462,10 @@ public:
           ELEM_HEAT_SOURCE_QUAD8,
           ELEM_HEAT_SOURCE_TRIA6,
           ELEM_HEAT_SOURCE_TRIA6H,
-          ELEM_ACOUSTIC_PRESS_ISO4,
-          ELEM_ACOUSTIC_PRESS_QUAD8,
-          ELEM_ACOUSTIC_PRESS_TRIA6,
-          ELEM_ACOUSTIC_PRESS_TRIA6H,
+          ELEM_PARTICLE_VEL_ISO4,
+          ELEM_PARTICLE_VEL_QUAD8,
+          ELEM_PARTICLE_VEL_TRIA6,
+          ELEM_PARTICLE_VEL_TRIA6H,
           ELEM_ACOUSTIC_CONSTR,
           ELEM_TYPE_COUNT,
           ELEM_TYPE_UNKNOWN = -1
@@ -520,10 +520,10 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_PRESS_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_PRESS_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_CONSTR,    "acconstr", 1, -1, DofMap::ELEM_JOINT}
 };
 
@@ -7027,9 +7027,9 @@ private:
      const octave_idx_type colidx;
 };
 
-class ScalarFieldDirichletBC: public SurfaceElement {
+class ScalarFieldBC: public SurfaceElement {
 public:
-     ScalarFieldDirichletBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h)
+     ScalarFieldBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h)
           :SurfaceElement(eltype, id, X, material, nodes), Thetae(Thetae), h(h) {
 
           FEM_ASSERT(X.rows() == 3);
@@ -7037,7 +7037,7 @@ public:
           FEM_ASSERT(X.columns() == nodes.numel());
      }
 
-     ScalarFieldDirichletBC(const ScalarFieldDirichletBC& oElem)
+     ScalarFieldBC(const ScalarFieldBC& oElem)
           :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), Thetae(oElem.Thetae), h(oElem.h) {
      }
 
@@ -7049,7 +7049,6 @@ public:
                break;
 
           case MAT_THERMAL_COND:
-          case MAT_DAMPING_ACOUSTICS:
                CoefficientMatrix(mat, info, dof, eMatType);
                break;
                
@@ -7351,10 +7350,10 @@ typedef SurfaceElementImpl<ShapeQuad8, PressureLoad> PressureLoadQuad8;
 typedef SurfaceElementImpl<ShapeTria6, PressureLoad> PressureLoadTria6;
 typedef SurfaceElementImpl<ShapeTria6H, PressureLoad> PressureLoadTria6H;
 
-typedef SurfaceElementImpl<ShapeIso4, ScalarFieldDirichletBC> ScalarFieldDirichletBCIso4;
-typedef SurfaceElementImpl<ShapeQuad8, ScalarFieldDirichletBC> ScalarFieldDirichletBCQuad8;
-typedef SurfaceElementImpl<ShapeTria6, ScalarFieldDirichletBC> ScalarFieldDirichletBCTria6;
-typedef SurfaceElementImpl<ShapeTria6H, ScalarFieldDirichletBC> ScalarFieldDirichletBCTria6H;
+typedef SurfaceElementImpl<ShapeIso4, ScalarFieldBC> ScalarFieldBCIso4;
+typedef SurfaceElementImpl<ShapeQuad8, ScalarFieldBC> ScalarFieldBCQuad8;
+typedef SurfaceElementImpl<ShapeTria6, ScalarFieldBC> ScalarFieldBCTria6;
+typedef SurfaceElementImpl<ShapeTria6H, ScalarFieldBC> ScalarFieldBCTria6H;
 
 typedef SurfaceElementImpl<ShapeIso4, HeatSource> HeatSourceIso4;
 typedef SurfaceElementImpl<ShapeQuad8, HeatSource> HeatSourceQuad8;
@@ -7933,32 +7932,32 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
      rgElemBlocks.emplace_back(std::move(pElem));
 }
 
-template <typename PressureElemType>
-void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const std::vector<Material>& rgMaterials, const octave_scalar_map& materials, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
-     const auto iter_pressure = elements.seek("acoustic_pressure");
+template <typename VelocityElemType>
+void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const std::vector<Material>& rgMaterials, const octave_scalar_map& materials, const octave_map& load_case, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_velocity = elements.seek("particle_velocity");
 
-     if (iter_pressure == elements.end()) {
+     if (iter_velocity == elements.end()) {
           return;
      }
      
-     const octave_value ov_pressure = elements.contents(iter_pressure);
+     const octave_value ov_velocity = elements.contents(iter_velocity);
 
-     if (!(ov_pressure.isstruct() && ov_pressure.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.acoustic_pressure must be a scalar struct");
+     if (!(ov_velocity.isstruct() && ov_velocity.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.particle_velocity must be a scalar struct");
      }
 
-     const octave_scalar_map m_pressure = ov_pressure.scalar_map_value();
+     const octave_scalar_map m_velocity = ov_velocity.scalar_map_value();
      
-     const auto iter_elem_type = m_pressure.seek(pszElemName);
+     const auto iter_elem_type = m_velocity.seek(pszElemName);
 
-     if (iter_elem_type == m_pressure.end()) {
+     if (iter_elem_type == m_velocity.end()) {
           return;
      }
 
-     const octave_value ov_elem_type = m_pressure.contents(iter_elem_type);
+     const octave_value ov_elem_type = m_velocity.contents(iter_elem_type);
 
      if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.acoustic_pressure."s + pszElemName + " must be a scalar struct");
+          throw std::runtime_error("mesh.elements.particle_velocity."s + pszElemName + " must be a scalar struct");
      }
 
      const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
@@ -7966,13 +7965,13 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
      const auto iter_elnodes = m_elem_type.seek("nodes");
 
      if (iter_elnodes == m_elem_type.end()) {
-          throw std::runtime_error("missing field mesh.elements.acoustic_pressure."s + pszElemName + ".nodes");
+          throw std::runtime_error("missing field mesh.elements.particle_velocity."s + pszElemName + ".nodes");
      }
 
      const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.acoustic_pressure."s + pszElemName + ".nodes must be an integer matrix");          
+          throw std::runtime_error("mesh.elements.particle_velocity."s + pszElemName + ".nodes must be an integer matrix");          
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -7984,7 +7983,7 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
                octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_pressure."s + pszElemName + ".nodes");
+                    throw std::runtime_error("node index out of range in mesh.elements.particle_velocity."s + pszElemName + ".nodes");
                }
                
                for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -7993,24 +7992,24 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
           }
      }
 
-     const auto iter_press_mat = materials.seek("acoustic_pressure");
+     const auto iter_vel_mat = materials.seek("particle_velocity");
 
-     if (iter_press_mat == materials.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_pressure is not defined");
+     if (iter_vel_mat == materials.end()) {
+          throw std::runtime_error("mesh.materials.particle_velocity is not defined");
      }
 
-     const octave_scalar_map m_press_mat = materials.contents(iter_press_mat).scalar_map_value();
+     const octave_scalar_map m_vel_mat = materials.contents(iter_vel_mat).scalar_map_value();
 
-     const auto iter_elem_type_mat = m_press_mat.seek(pszElemName);
+     const auto iter_elem_type_mat = m_vel_mat.seek(pszElemName);
 
-     if (iter_elem_type_mat == m_press_mat.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_pressure."s + pszElemName + " is not defined");
+     if (iter_elem_type_mat == m_vel_mat.end()) {
+          throw std::runtime_error("mesh.materials.particle_velocity."s + pszElemName + " is not defined");
      }
      
-     const int32NDArray elem_mat = m_press_mat.contents(iter_elem_type_mat).int32_array_value();
+     const int32NDArray elem_mat = m_vel_mat.contents(iter_elem_type_mat).int32_array_value();
 
      if (elem_mat.numel() != elnodes.rows()) {
-          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_pressure."s + pszElemName + " in argument mesh");
+          throw std::runtime_error("invalid number of rows for matrix mesh.materials.particle_velocity."s + pszElemName + " in argument mesh");
      }
      
      const octave_idx_type inum_materials = rgMaterials.size();
@@ -8019,86 +8018,85 @@ void InsertAcousticPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes
           const octave_idx_type imaterial = elem_mat.xelem(i);
           
           if (imaterial <= 0 || imaterial > inum_materials) {
-               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_pressure."s + pszElemName + " in argument mesh");
+               throw std::runtime_error("invalid index in matrix mesh.materials.particle_velocity."s + pszElemName + " in argument mesh");
           }
      }
 
-     NDArray press(dim_vector(load_case.numel(), elnodes.columns(), elnodes.rows()), 0.);
+     NDArray vel(dim_vector(load_case.numel(), elnodes.columns(), elnodes.rows()), 0.);
 
-     const auto iter_press_load = load_case.seek("acoustic_pressure");
+     const auto iter_vel_load = load_case.seek("particle_velocity");
 
-     if (iter_press_load != load_case.end()) {
-          const Cell cell_press_load = load_case.contents(iter_press_load);
+     if (iter_vel_load != load_case.end()) {
+          const Cell cell_vel_load = load_case.contents(iter_vel_load);
 
-          FEM_ASSERT(cell_press_load.numel() == press.rows());
+          FEM_ASSERT(cell_vel_load.numel() == vel.rows());
           
-          for (octave_idx_type k = 0; k < press.rows(); ++k) {
-               const octave_value ov_press_load = cell_press_load.xelem(k);
+          for (octave_idx_type k = 0; k < vel.rows(); ++k) {
+               const octave_value ov_vel_load = cell_vel_load.xelem(k);
                
-               if (!(ov_press_load.isstruct() && ov_press_load.numel() == 1)) {
-                    throw std::runtime_error("load_case.acoustic_pressure must be a scalar struct");
+               if (!(ov_vel_load.isstruct() && ov_vel_load.numel() == 1)) {
+                    throw std::runtime_error("load_case.particle_velocity must be a scalar struct");
                }
 
-               const octave_scalar_map m_press_load = ov_press_load.scalar_map_value();
+               const octave_scalar_map m_vel_load = ov_vel_load.scalar_map_value();
 
-               const auto iter_press_load_elem = m_press_load.seek(pszElemName);
+               const auto iter_vel_load_elem = m_vel_load.seek(pszElemName);
 
-               if (iter_press_load_elem == m_press_load.end()) {
+               if (iter_vel_load_elem == m_vel_load.end()) {
                     continue;
                }
 
-               const octave_value ov_press_load_elem = m_press_load.contents(iter_press_load_elem);
+               const octave_value ov_vel_load_elem = m_vel_load.contents(iter_vel_load_elem);
 
-               if (!(ov_press_load_elem.isstruct() && ov_press_load_elem.numel() == 1)) {
-                    throw std::runtime_error("load_case.acoustic_pressure."s + pszElemName + " must be a scalar struct");
+               if (!(ov_vel_load_elem.isstruct() && ov_vel_load_elem.numel() == 1)) {
+                    throw std::runtime_error("load_case.particle_velocity."s + pszElemName + " must be a scalar struct");
                }
 
-               const octave_scalar_map m_press_load_elem = ov_press_load_elem.scalar_map_value();
+               const octave_scalar_map m_vel_load_elem = ov_vel_load_elem.scalar_map_value();
 
-               const auto iter_press = m_press_load_elem.seek("p");
+               const auto iter_vel = m_vel_load_elem.seek("vn");
 
-               if (iter_press == m_press_load_elem.end()) {
-                    throw std::runtime_error("missing field load_case.acoustic_pressure."s + pszElemName + ".p");
+               if (iter_vel == m_vel_load_elem.end()) {
+                    throw std::runtime_error("missing field load_case.particle_velocity."s + pszElemName + ".vn");
                }
 
-               const octave_value ov_pk = m_press_load_elem.contents(iter_press);
+               const octave_value ov_vnk = m_vel_load_elem.contents(iter_vel);
 
-               if (!(ov_pk.is_matrix_type() && ov_pk.isreal() && ov_pk.rows() == elnodes.rows() && ov_pk.columns() == elnodes.columns())) {
-                    throw std::runtime_error("load_case.acoustic_pressure."s + pszElemName + ".p must be a real matrix with the same dimensions like mesh.elements.acoustic_pressure."s + pszElemName + ".nodes");
+               if (!(ov_vnk.is_matrix_type() && ov_vnk.isreal() && ov_vnk.rows() == elnodes.rows() && ov_vnk.columns() == elnodes.columns())) {
+                    throw std::runtime_error("load_case.particle_velocity."s + pszElemName + ".vn must be a real matrix with the same dimensions like mesh.elements.particle_velocity."s + pszElemName + ".nodes");
                }
 
-               const Matrix pk = ov_pk.matrix_value();
+               const Matrix vk = ov_vnk.matrix_value();
 
                for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
-                    const double rho = rgMaterials[elem_mat.xelem(j).value() - 1].Density();
-                    
                     for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
-                         press.xelem(k, i, j) = pk.xelem(j, i) / -rho;
+                         vel.xelem(k, i, j) = vk.xelem(j, i);
                     }
                }
           }
      }
      
-     std::unique_ptr<ElementBlock<PressureElemType> > pElem{new ElementBlock<PressureElemType>(eltype)};
+     std::unique_ptr<ElementBlock<VelocityElemType> > pElem{new ElementBlock<VelocityElemType>(eltype)};
 
      pElem->Reserve(elnodes.rows());
 
+     const RowVector unity(elnodes.columns(), 1.);
+
      for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
           const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
-          const Matrix pressk = press.linear_slice(press.rows() * press.columns() * k, press.rows() * press.columns() * (k + 1)).reshape(dim_vector(press.rows(), press.columns()));
+          const Matrix velk = vel.linear_slice(vel.rows() * vel.columns() * k, vel.rows() * vel.columns() * (k + 1)).reshape(dim_vector(vel.rows(), vel.columns()));
 
           FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
           
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
-          const RowVector minus_rho(elnodes.columns(), -materialk->Density());
           
           pElem->Insert(k,
                         Xk,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
-                        pressk,
-                        minus_rho);
+                        velk,
+                        unity);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
@@ -9250,12 +9248,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_ISO4:
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_QUAD8:
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6:
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H:
+               case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
+               case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
                     if (eDomain == DofMap::DO_THERMAL || eDomain == DofMap::DO_ACOUSTICS) {
-                         static constexpr char elem_name[][18] = {"convection", "acoustic_pressure"};
+                         static constexpr char elem_name[][18] = {"convection", "particle_velocity"};
                          const enum {
                               EL_IDX_CONVECTION,
                               EL_IDX_ACOUSTIC_PRESS
@@ -10318,7 +10316,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          if (load_case.numel() == 0) {
                               throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_ACOUSTICS");
                          }
-                         
+
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;                         
                          [[fallthrough]];
                          
                     case Element::MAT_DAMPING_ACOUSTICS:
@@ -10327,10 +10329,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;                         
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_ISO4] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_QUAD8] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H] = true;
                          break;
                          
                     default:
@@ -10905,16 +10903,16 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
                } break;
                case ElementTypes::ELEM_THERM_CONV_ISO4:
-                    InsertThermalConvElem<ScalarFieldDirichletBCIso4>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ScalarFieldBCIso4>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
-                    InsertThermalConvElem<ScalarFieldDirichletBCQuad8>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ScalarFieldBCQuad8>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
-                    InsertThermalConvElem<ScalarFieldDirichletBCTria6>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ScalarFieldBCTria6>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
-                    InsertThermalConvElem<ScalarFieldDirichletBCTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ScalarFieldBCTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_HEAT_SOURCE_ISO4:
                     InsertHeatSourceElem<HeatSourceIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
@@ -10928,17 +10926,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_HEAT_SOURCE_TRIA6H:
                     InsertHeatSourceElem<HeatSourceTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_ISO4:
-                    InsertAcousticPressureElem<ScalarFieldDirichletBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+               case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
+                    InsertParticleVelocityBC<ScalarFieldBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_QUAD8:
-                    InsertAcousticPressureElem<ScalarFieldDirichletBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+               case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+                    InsertParticleVelocityBC<ScalarFieldBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6:
-                    InsertAcousticPressureElem<ScalarFieldDirichletBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
+                    InsertParticleVelocityBC<ScalarFieldBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
-               case ElementTypes::ELEM_ACOUSTIC_PRESS_TRIA6H:
-                    InsertAcousticPressureElem<ScalarFieldDirichletBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+                    InsertParticleVelocityBC<ScalarFieldBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;                    
                default:
                     FEM_ASSERT(false);
