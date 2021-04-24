@@ -630,6 +630,7 @@ class MatrixAss {
 public:
      struct MatrixInfo {
           double beta = 1.; // scale factor for constraint equations
+          bool updated = false;
      };
 
      explicit MatrixAss(octave_idx_type max_nnz)
@@ -641,10 +642,22 @@ public:
      }
 
      const MatrixInfo& GetMatrixInfo(Element::FemMatrixType eMatType) const {
-          return info[Element::GetMatTypeIndex(eMatType)];
+          unsigned idx = Element::GetMatTypeIndex(eMatType);
+
+          if (!info[idx].updated) {
+               throw std::runtime_error("fem_ass_matrix: invalid order of values in argument matrix_type - e.g. the right hand side vector must be assembled always after the stiffness matrix");
+          }
+          
+          return info[idx];
      }
 
      void UpdateMatrixInfo() {
+          const unsigned i = Element::GetMatTypeIndex(eMatType);
+
+          if (info[i].updated) {
+               return;
+          }
+          
           ColumnVector diagA(nnz, 0.);
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
@@ -671,9 +684,9 @@ public:
                }
           }
 
-          const unsigned i = Element::GetMatTypeIndex(eMatType);
           // According to Code_Aster r3.03.08
           info[i].beta = (minA != INIT_MIN && maxA != INIT_MAX) ? 0.5 * (minA + maxA) : 1.;
+          info[i].updated = true;
      }
 
      void Insert(double d, octave_idx_type r, octave_idx_type c) {
