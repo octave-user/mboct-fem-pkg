@@ -641,6 +641,12 @@ public:
            data(max_nnz, 0.) {
      }
 
+     bool bHaveMatrixInfo(Element::FemMatrixType eMatType) const {
+          unsigned idx = Element::GetMatTypeIndex(eMatType);
+
+          return info[idx].updated;
+     }
+     
      const MatrixInfo& GetMatrixInfo(Element::FemMatrixType eMatType) const {
           unsigned idx = Element::GetMatTypeIndex(eMatType);
 
@@ -11320,7 +11326,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
                auto eMatType = static_cast<Element::FemMatrixType>(matrix_type.xelem(i).value());
-               beta.xelem(i) = oMatAss.GetMatrixInfo(eMatType).beta;
+               beta.xelem(i) = oMatAss.bHaveMatrixInfo(eMatType) ? oMatAss.GetMatrixInfo(eMatType).beta : -1.;
           }
           
           mat_info.assign("beta", beta);
