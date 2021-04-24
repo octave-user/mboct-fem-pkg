@@ -828,7 +828,7 @@ public:
                
           case MAT_THERMAL_COND:
           case VEC_LOAD_THERMAL:
-               eMatTypeScale = MAT_THERMAL_COND:
+               eMatTypeScale = MAT_THERMAL_COND;
                break;
                
           case MAT_DAMPING_ACOUSTICS:
