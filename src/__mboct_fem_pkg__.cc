@@ -897,6 +897,10 @@ public:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL:
+          case VEC_LOAD_ACOUSTICS:    
                return true;
           default:
                return false;
