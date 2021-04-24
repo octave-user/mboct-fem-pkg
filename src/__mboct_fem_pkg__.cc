@@ -815,7 +815,30 @@ public:
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
-          const FemMatrixType eMatTypeScale = (eMatType & DofMap::DO_ACOUSTICS) ? MAT_STIFFNESS_ACOUSTICS : eMatType;
+          FemMatrixType eMatTypeScale;
+          
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+               eMatTypeScale = MAT_STIFFNESS;
+               break;
+               
+          case MAT_THERMAL_COND:
+          case VEC_LOAD_THERMAL:
+               eMatTypeScale = MAT_THERMAL_COND:
+               break;
+               
+          case MAT_DAMPING_ACOUSTICS:
+          case VEC_LOAD_ACOUSTICS:
+               eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
+               break;
+               
+          default:
+               eMatTypeScale = MAT_UNKNOWN;
+          }
           
           switch (eMatType) {
           case MAT_STIFFNESS:
