@@ -12609,9 +12609,9 @@ endfunction
 %!   x = mesh.nodes(:, 1);
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   nodes_constr = unique([[mesh.groups.tria6h].nodes]);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
@@ -12713,9 +12713,9 @@ endfunction
 %!   x = mesh.nodes(:, 1);
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   nodes_constr = unique([[mesh.groups.tria6].nodes]);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
@@ -12817,9 +12817,9 @@ endfunction
 %!   x = mesh.nodes(:, 1);
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   nodes_constr = unique([[mesh.groups.iso4].nodes]);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
@@ -12927,9 +12927,9 @@ endfunction
 %!   x = mesh.nodes(:, 1);
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   nodes_constr = unique([[mesh.groups.quad8].nodes]);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
@@ -13031,9 +13031,9 @@ endfunction
 %!   x = mesh.nodes(:, 1);
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   nodes_constr = unique([[mesh.groups.quad8].nodes]);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
@@ -13196,9 +13196,9 @@ endfunction
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;                                     
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -13374,9 +13374,9 @@ endfunction
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;                                     
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -13542,9 +13542,9 @@ endfunction
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;                                     
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -13706,9 +13706,9 @@ endfunction
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;                                     
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -13874,9 +13874,9 @@ endfunction
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
   
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
@@ -14715,17 +14715,17 @@ endfunction
 %!   elem_constr.sfncon8.maxdist = 1e-4 * a;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   thconstr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
+%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
 %!   for i=1:numel(elem_constr.sfncon8.slave)
 %!     idx = find(nodes_constr == elem_constr.sfncon8.slave(i));
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   mesh.elements.thconstr(end + (1:numel(thconstr_surf))) = thconstr_surf;
-%!   load_case.thconstr(end + (1:numel(thconstr_surf))) = struct("U", mat2cell(zeros(1, numel(thconstr_surf)), 1, ones(1, numel(thconstr_surf))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -14884,17 +14884,17 @@ endfunction
 %!   elem_constr.sfncon8.maxdist = 1e-4 * a;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   thconstr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
+%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
 %!   for i=1:numel(elem_constr.sfncon8.slave)
 %!     idx = find(nodes_constr == elem_constr.sfncon8.slave(i));
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   mesh.elements.thconstr(end + (1:numel(thconstr_surf))) = thconstr_surf;
-%!   load_case.thconstr(end + (1:numel(thconstr_surf))) = struct("U", mat2cell(zeros(1, numel(thconstr_surf)), 1, ones(1, numel(thconstr_surf))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -15053,17 +15053,17 @@ endfunction
 %!   elem_constr.sfncon6h.maxdist = 1e-10 * a;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   thconstr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
+%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
 %!   for i=1:numel(elem_constr.sfncon6h.slave)
 %!     idx = find(nodes_constr == elem_constr.sfncon6h.slave(i));
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   mesh.elements.thconstr(end + (1:numel(thconstr_surf))) = thconstr_surf;
-%!   load_case.thconstr(end + (1:numel(thconstr_surf))) = struct("U", mat2cell(zeros(1, numel(thconstr_surf)), 1, ones(1, numel(thconstr_surf))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -15222,17 +15222,17 @@ endfunction
 %!   elem_constr.sfncon6.maxdist = 1e-4 * a;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   thconstr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
+%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
 %!   for i=1:numel(elem_constr.sfncon6.slave)
 %!     idx = find(nodes_constr == elem_constr.sfncon6.slave(i));
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
-%!   mesh.elements.thconstr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
+%!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
-%!   load_case.thconstr = struct("U", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   mesh.elements.thconstr(end + (1:numel(thconstr_surf))) = thconstr_surf;
-%!   load_case.thconstr(end + (1:numel(thconstr_surf))) = struct("U", mat2cell(zeros(1, numel(thconstr_surf)), 1, ones(1, numel(thconstr_surf))));
+%!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
+%!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -21413,9 +21413,9 @@ endfunction
 %!   node_idx_constr = [node_idx_input, node_idx_output];
 %!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
 %!               repmat(poutput, 1, numel(node_idx_output))];
-%!   mesh.elements.acconstr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
 %!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case.acconstr = struct("U", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
 %!   mesh.material_data.E = 0;
 %!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
@@ -21485,6 +21485,7 @@ endfunction
 %!   c = 340;
 %!   rho = 1.25;
 %!   pinput = 100;
+%!   voutput = 0.1;
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -21527,13 +21528,18 @@ endfunction
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
-%!   mesh.elements.acoustic_pressure.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_input).elements, :);
-%!   mesh.materials.acoustic_pressure.tria6h = ones(rows(mesh.elements.acoustic_pressure.tria6h.nodes), 1, "int32");
-%!   load_case.acoustic_pressure.tria6h.p = repmat(pinput, numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
 %!   mesh.material_data.E = 0;
 %!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
+%!   node_idx_constr = mesh.groups.tria6h(grp_idx_input).nodes;
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(repmat(pinput, 1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))));
+%!
+%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_output).elements, :);
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   load_case.particle_velocity.tria6h.vn = repmat(voutput, numel(mesh.groups.tria6h(grp_idx_output).elements), 6);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
@@ -21762,9 +21768,9 @@ endfunction
 %!   node_idx_constr = [node_idx_input, node_idx_output];
 %!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
 %!               repmat(poutput, 1, numel(node_idx_output))];
-%!   mesh.elements.acconstr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
 %!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case.acconstr = struct("U", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -21909,9 +21915,9 @@ endfunction
 %!   node_idx_constr = [node_idx_input, node_idx_output];
 %!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
 %!               repmat(poutput, 1, numel(node_idx_output))];
-%!   mesh.elements.acconstr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
 %!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case.acconstr = struct("U", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");

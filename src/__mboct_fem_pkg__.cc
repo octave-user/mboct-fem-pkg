@@ -473,7 +473,7 @@ public:
 
      struct TypeInfo {
           TypeId type;
-          char name[9];
+          char name[16];
           octave_idx_type min_nodes, max_nodes;
           DofMap::ElementType dof_type;
      };
@@ -515,7 +515,7 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_THERM_CONV_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_THERM_CONV_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_THERM_CONV_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONSTR,       "thconstr", 1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_THERM_CONSTR,       "thermal_constr", 1, -1, DofMap::ELEM_JOINT},
      {ElementTypes::ELEM_HEAT_SOURCE_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
@@ -524,7 +524,7 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_CONSTR,    "acconstr", 1, -1, DofMap::ELEM_JOINT}
+     {ElementTypes::ELEM_ACOUSTIC_CONSTR,    "acoustic_constr", 1, -1, DofMap::ELEM_JOINT}
 };
 
 class Element
@@ -10766,8 +10766,30 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                         }
 #endif
 
-                                        // FIXME: use a different name for thermal and acoustic constraints
-                                        const auto iter_U = s_joints.seek("U"); 
+                                        enum ConstrVarName {
+                                             CS_VAR_NAME_STRUCT,
+                                             CS_VAR_NAME_THERMAL,
+                                             CS_VAR_NAME_ACOUSTIC,
+                                             CS_VAR_NAME_EMPTY
+                                        } idx = CS_VAR_NAME_EMPTY;
+                                        
+                                        static constexpr char var_name[4][6] = {"U", "theta", "p", ""};
+
+                                        switch (oElemType.type) {
+                                        case ElementTypes::ELEM_JOINT:
+                                             idx = CS_VAR_NAME_STRUCT;
+                                             break;
+                                        case ElementTypes::ELEM_THERM_CONSTR:
+                                             idx = CS_VAR_NAME_THERMAL;
+                                             break;
+                                        case ElementTypes::ELEM_ACOUSTIC_CONSTR:
+                                             idx = CS_VAR_NAME_ACOUSTIC;
+                                             break;
+                                        default:
+                                             FEM_ASSERT(0);
+                                        }
+                                        
+                                        const auto iter_U = s_joints.seek(var_name[idx]); 
 
                                         if (iter_U == s_elem.end()) {
                                              throw std::runtime_error("missing field load_case."s + oElemType.name + ".U in argument load case");
