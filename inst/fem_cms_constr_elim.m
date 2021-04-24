@@ -24,8 +24,15 @@ function [Tred, Kred, Mred, Rred] = fem_cms_constr_elim(mesh, dof_map, mat_ass)
   if (nargin ~= 3 || nargout > 4)
     print_usage();
   endif
-  
-  C = mat_ass.K(dof_map.idx_lambda, dof_map.idx_node) / mat_ass.mat_info.beta;
+
+  diagK = abs(diag(mat_ass.K));
+  max_diagK = full(max(diagK));
+  min_diagK = full(min(diagK));
+
+  ## According to Code_Aster r3.03.08
+  beta = 0.5 * (min_diagK + max_diagK);
+
+  C = mat_ass.K(dof_map.idx_lambda, dof_map.idx_node) / beta;
 
   cond = sum(abs(C), 1);
   idx_constr = find(cond);
