@@ -804,7 +804,7 @@ endfunction
 %! 	load_case_itf(i).loads = zeros(1, 6);
 %! 	load_case_itf(i).loads(i) = 1;
 %!       endfor
-%!       Ritf = fem_ass_matrix(mesh, dof_map, FEM_VEC_LOAD_CONSISTENT, load_case_itf);
+%!       [Kitf, Ritf] = fem_ass_matrix(mesh, dof_map, [FEM_MAT_STIFFNESS_SYM, FEM_VEC_LOAD_CONSISTENT], load_case_itf);
 %!       nx1 = numel(comp_mat(1).bearing_surf.grid_x);
 %!       nz1 = numel(comp_mat(1).bearing_surf.grid_z);
 %!       nx2 = numel(comp_mat(2).bearing_surf.grid_x);
@@ -1046,7 +1046,7 @@ endfunction
 %!               load_case_itf(i).loads(i) *= d1;
 %!           endswitch
 %!         endfor
-%!         Ritf = fem_ass_matrix(mesh_l, dof_map, FEM_VEC_LOAD_CONSISTENT, load_case_itf);
+%!         [Kitf, Ritf] = fem_ass_matrix(mesh_l, dof_map, [FEM_MAT_STIFFNESS_SYM, FEM_VEC_LOAD_CONSISTENT], load_case_itf);
 %!         nx1 = numel(comp_mat(1).bearing_surf.grid_x);
 %!         nz1 = numel(comp_mat(1).bearing_surf.grid_z);
 %!         nx2 = numel(comp_mat(2).bearing_surf.grid_x);
@@ -1335,7 +1335,7 @@ endfunction
 %!               load_case_itf(i).loads(i) *= d1;
 %!           endswitch
 %!         endfor
-%!         Ritf = fem_ass_matrix(mesh_l, dof_map, FEM_VEC_LOAD_CONSISTENT, load_case_itf);
+%!         [Kitf, Ritf] = fem_ass_matrix(mesh_l, dof_map, [FEM_MAT_STIFFNESS_SYM, FEM_VEC_LOAD_CONSISTENT], load_case_itf);
 %!         nx1 = numel(comp_mat(1).bearing_surf.grid_x);
 %!         nz1 = numel(comp_mat(1).bearing_surf.grid_z);
 %!         X1 = mesh_l.nodes(mesh_l.groups.tria6(bearing_surf_l(1).group_idx).nodes, 1:3) - bearing_surf_l(1).X0.';
@@ -1631,7 +1631,7 @@ endfunction
 %!               load_case_itf(i).loads(i) *= d1;
 %!           endswitch
 %!         endfor
-%!         Ritf = fem_ass_matrix(mesh_l, dof_map, FEM_VEC_LOAD_CONSISTENT, load_case_itf);
+%!         [Kitf, Ritf] = fem_ass_matrix(mesh_l, dof_map, [FEM_MAT_STIFFNESS_SYM, FEM_VEC_LOAD_CONSISTENT], load_case_itf);
 %!         nx1 = numel(comp_mat(1).bearing_surf.grid_x);
 %!         nz1 = numel(comp_mat(1).bearing_surf.grid_z);
 %!         X1 = mesh_l.nodes(mesh_l.groups.tria6(bearing_surf_l(1).group_idx).nodes, 1:3) - bearing_surf_l(1).X0.';
