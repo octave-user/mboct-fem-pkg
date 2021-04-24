@@ -8126,8 +8126,6 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
 
      pElem->Reserve(elnodes.rows());
 
-     const RowVector unity(elnodes.columns(), 1.);
-
      for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
           const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
           const Matrix velk = vel.linear_slice(vel.rows() * vel.columns() * k, vel.rows() * vel.columns() * (k + 1)).reshape(dim_vector(vel.rows(), vel.columns()));
@@ -8135,14 +8133,15 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
           FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
           
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
-          
+          const RowVector rho(elnodes.columns(), materialk->Density());
+
           pElem->Insert(k,
                         Xk,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
                         velk,
-                        unity);
+                        rho);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
