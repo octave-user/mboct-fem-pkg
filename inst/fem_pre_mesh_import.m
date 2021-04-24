@@ -14725,7 +14725,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
-%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("theta", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -14894,7 +14894,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
-%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("theta", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -15063,7 +15063,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
-%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("theta", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -15232,7 +15232,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
-%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("U", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
+%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("theta", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -21946,8 +21946,8 @@ endfunction
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
-%!   g = @(x) zeros(size(x));
-%!   N = 20;
+%!   g = @(x) c * sin(5 * pi * x / l);
+%!   N = 200;
 %!   alpha = zeros(1, N);
 %!   beta = zeros(1, N);
 %!   for n=1:N
@@ -21980,6 +21980,132 @@ endfunction
 %!   endfor
 %!   tol = 5e-3;
 %!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 131
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 1.5;
+%!     dx = 3e-3;
+%!     w = dx;
+%!     h = dx;
+%!     c = 340;
+%!     rho = 1.25;
+%!     vinput = -1;
+%!     poutput = 0;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface {6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso20", "quad8"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
+%!   node_idx_input = mesh.groups.quad8(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.quad8(grp_idx_output).nodes;
+%!   p_constr = repmat(poutput, 1, numel(node_idx_output));
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_output)), 1, ones(1, numel(node_idx_output))), ...
+%!                                   "nodes", mat2cell(node_idx_output, 1, ones(1, numel(node_idx_output))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   load_case.particle_velocity.quad8.vn = repmat(vinput, numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                  FEM_MAT_MASS_ACOUSTICS, ...
+%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                 load_case);
+%!   T = 2 * l / c;
+%!   dt = dx / c;
+%!   t = 0:dt:T;
+%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
+%!   opt_sol.number_of_threads = int32(1);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.delta = 0.6;
+%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=2:numel(t)
+%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
+%!   endfor
+%!   sol.t = t;
+%!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   for i=1:20:numel(t)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p(x);1");
+%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%.2fs", t(i)));
+%!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
