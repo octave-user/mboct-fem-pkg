@@ -6006,9 +6006,8 @@ public:
           } break;
           case Element::VEC_LOAD_CONSISTENT:
           case Element::VEC_LOAD_THERMAL:
-          case Element::VEC_LOAD_ACOUSTIC:
-          case Element::MAT_THERMAL_COND:
-          case Element::MAT_STIFFNESS_ACOUSTICS: {
+          case Element::VEC_LOAD_ACOUSTICS:
+          case Element::MAT_THERMAL_COND: {
                if (!oIntegConsistent.iGetNumEvalPoints()) {
                     constexpr double g1 = (6. - sqrt(15.)) / 21.;
                     constexpr double g2 = (6. + sqrt(15.)) / 21.;
