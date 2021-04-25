@@ -21345,6 +21345,11 @@ endfunction
 
 %!test
 %! ### TEST 126
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -21359,13 +21364,17 @@ endfunction
 %!     error("failed to open file \"%s.geo\"", filename);
 %!   endif
 %!   l = 100e-3;
-%!   w = 2e-3;
-%!   h = 2e-3;
-%!   dx = 2e-3;
 %!   c = 340;
 %!   rho = 1.25;
-%!   pinput = -100;
-%!   poutput = 100;
+%!   k = 100;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 - 100j;
+%!   poutput = pinput * exp(-1j * k * l);
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -21405,8 +21414,8 @@ endfunction
 %!   unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
 %!   node_idx_output = mesh.groups.tria6h(grp_idx_output).nodes;
@@ -21414,13 +21423,15 @@ endfunction
 %!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
 %!               repmat(poutput, 1, numel(node_idx_output))];
 %!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
-%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case = struct("acoustic_constr", cell(1, 2));
+%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
+%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
 %!   mesh.material_data.E = 0;
 %!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
 %!    mat_ass.Da, ...
@@ -21433,264 +21444,31 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   f = c / (2 * l);
-%!   omega = 2 * pi * f;
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(250);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
-%!   Phi = fem_sol_factor(Keff, opt_sol) \ mat_ass.Ra;
+%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
 %!   Psi = linspace(0, 2 * pi, 37);
-%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
 %!   sol.t = Psi / omega;
-%!   figure("visible", "off");
-%!   hold on;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
 %!   [x, idx] = sort(mesh.nodes(:, 1));
-%!   colors = jet(numel(Psi));
 %!   for i=1:numel(Psi)
-%!     set(plot(x, sol.p(idx, i), sprintf("-;Psi=%.1f;", 180 / pi * Psi(i))), "color", colors(i, :));
-%!   endfor
-%!   xlabel("x [m]");
-%!   ylabel("p [Pa]");
-%!   grid on;
-%!   grid minor on;
-%!   title("pressure distribution");
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!test
-%! ### TEST 127
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   fd = -1;
-%!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 100e-3;
-%!   w = 2e-3;
-%!   h = 2e-3;
-%!   dx = 2e-3;
-%!   c = 340;
-%!   rho = 1.25;
-%!   pinput = 100;
-%!   voutput = 0.1;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6};\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
-%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_ACOUSTICS;
-%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
-%!   mesh.material_data.E = 0;
-%!   mesh.material_data.nu = 0;
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.c = c;
-%!   node_idx_constr = mesh.groups.tria6h(grp_idx_input).nodes;
-%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
-%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case.acoustic_constr = struct("p", mat2cell(repmat(pinput, 1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))));
-%!
-%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_output).elements, :);
-%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
-%!   load_case.particle_velocity.tria6h.vn = repmat(voutput, numel(mesh.groups.tria6h(grp_idx_output).elements), 6);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.Ka, ...
-%!    mat_ass.Ma, ...
-%!    mat_ass.Da, ...
-%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
-%!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
-%!                                  FEM_MAT_MASS_ACOUSTICS, ...
-%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
-%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
-%!                                 load_case);
-%!   f = c / (2 * l);
-%!   omega = 2 * pi * f;
-%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
-%!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   Phi = fem_sol_factor(Keff, opt_sol) \ mat_ass.Ra;
-%!   Psi = linspace(0, 2 * pi, 37);
-%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
-%!   sol.t = Psi / omega;
-%!   figure("visible", "off");
-%!   hold on;
-%!   [x, idx] = sort(mesh.nodes(:, 1));
-%!   colors = jet(numel(Psi));
-%!   for i=1:numel(Psi)
-%!     set(plot(x, sol.p(idx, i), sprintf("-;Psi=%.1f;", 180 / pi * Psi(i))), "color", colors(i, :));
-%!   endfor
-%!   xlabel("x [m]");
-%!   ylabel("p [Pa]");
-%!   grid on;
-%!   grid minor on;
-%!   title("pressure distribution");
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!test
-%! ### TEST 128
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   fd = -1;
-%!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   l = 100e-3;
-%!   dx = 0.1e-3;
-%!   w = dx;
-%!   h = dx;
-%!   c = 340;
-%!   rho = 1.25;
-%!   pleft = 1;
-%!   pright = -1;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l=%g;\n", l);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface {6, tmp[0]};\n");
-%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
-%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_ACOUSTICS;
-%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
-%!   mesh.material_data.E = 0;
-%!   mesh.material_data.nu = 0;
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.c = c;
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.Ka, ...
-%!    mat_ass.Ma, ...
-%!    mat_ass.Da, ...
-%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
-%!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
-%!                                  FEM_MAT_MASS_ACOUSTICS, ...
-%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
-%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
-%!                                 load_case);
-%!   T = l / 2 / c;
-%!   dt = dx / c;
-%!   t = 0:dt:T;
-%!   tau = 0.1 * T;
-%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
-%!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.delta = 1;
-%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
-%!   cond = mesh.nodes(:, 1) <= l / 2;
-%!   dPhi_dt(dof_map.ndof(find(cond)), 1) = -pleft / rho;
-%!   dPhi_dt(dof_map.ndof(find(~cond)), 1) = -pright / rho;
-%!   for i=2:numel(t)
-%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
-%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
-%!   endfor
-%!   sol.t = t;
-%!   sol.p = -dPhi_dt(dof_map.ndof, :);
-%!   [x, idx] = sort(mesh.nodes(:, 1));
-%!   for i=1:10:numel(t)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, sol.p(idx, i), "-;p(x);1");
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
 %!     grid minor on;
-%!     title(sprintf("t=%.2fs", t(i)));
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -21701,146 +21479,13 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST 127
+
+%!test
+%! ## TEST 128
+
+%!test
 %! ### TEST 129
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
-%!     endif
-%!     l = 1.5;
-%!     dx = 1e-3;
-%!     w = dx;
-%!     h = dx;
-%!     c = 340;
-%!     rho = 1.25;
-%!     pinput = 0;
-%!     poutput = 0;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fprintf(fd, "l=%g;\n", l);
-%!     fprintf(fd, "w=%g;\n", w);
-%!     fprintf(fd, "h=%g;\n", h);
-%!     fprintf(fd, "dx = %g;\n", dx);
-%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
-%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
-%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
-%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Line(3) = {3,4};\n");
-%!     fputs(fd, "Line(4) = {4,1};\n");
-%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!     fputs(fd, "Plane Surface(6) = {5};\n");
-%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
-%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
-%!     fputs(fd, "};\n");
-%!     fputs(fd, "Recombine Surface {6, tmp[0]};\n");
-%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
-%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
-%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
-%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
-%!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
-%!   node_idx_output = mesh.groups.iso4(grp_idx_output).nodes;
-%!   node_idx_constr = [node_idx_input, node_idx_output];
-%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
-%!               repmat(poutput, 1, numel(node_idx_output))];
-%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
-%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
-%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_ACOUSTICS;
-%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
-%!   mesh.material_data.E = 0;
-%!   mesh.material_data.nu = 0;
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.c = c;
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.Ka, ...
-%!    mat_ass.Ma, ...
-%!    mat_ass.Da, ...
-%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
-%!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
-%!                                  FEM_MAT_MASS_ACOUSTICS, ...
-%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
-%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
-%!                                 load_case);
-%!   T = l / c;
-%!   dt = dx / c;
-%!   t = 0:dt:T;
-%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
-%!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.delta = 0.5;
-%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
-%!   [x, idx] = sort(mesh.nodes(:, 1));
-%!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
-%!   g = @(x) zeros(size(x));
-%!   N = 20;
-%!   alpha = zeros(1, N);
-%!   beta = zeros(1, N);
-%!   for n=1:N
-%!     alpha(n) = 2 * quad(@(x) f(x) / l .* sin(n * pi * x / l), 0, l);
-%!     beta(n) = 2 / (n * pi) * quad(@(x) g(x) * T / l .* sin(n * pi * x / l), 0, l);
-%!   endfor
-%!   Phi(dof_map.ndof, 1) = f(mesh.nodes(:, 1));
-%!   dPhi_dt(dof_map.ndof, 1) = g(mesh.nodes(:, 1));
-%!   Phiref = zeros(numel(x), numel(t));
-%!   for n=1:N
-%!     Phiref += (alpha(n) * cos(n * pi * t / T) + beta(n) * sin(n * pi * t / T)) .* sin(n * pi * x / l);
-%!   endfor
-%!   for i=2:numel(t)
-%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
-%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
-%!   endfor
-%!   sol.t = t;
-%!   sol.p = -dPhi_dt(dof_map.ndof, :);
-%!   for i=1:20:numel(t)
-%!     figure("visible", "off");
-%!     hold on;
-%!     plot(x, Phi(idx, i), "-;Phi(x);1");
-%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
-%!     ylim([min(min(Phi)), max(max(Phi))]);
-%!     xlabel("x [m]");
-%!     ylabel("Phi [m^2/s]");
-%!     grid on;
-%!     grid minor on;
-%!     title(sprintf("t=%.2fs", t(i)));
-%!   endfor
-%!   tol = 5e-3;
-%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
 
 %!test
 %! ### TEST 130
@@ -22106,6 +21751,2212 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("t=%.2fs", t(i)));
 %!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 132
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 350;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 + 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   vx0 = k * pinput / (omega * rho);
+%!   vxl = k * pinput / (omega * rho) * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6h.vn = [repmat(-real(vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!                                               repmat(real(vxl), numel(mesh.groups.tria6h(grp_idx_output).elements), 6)];
+%!   load_case(2).particle_velocity.tria6h.vn = [repmat(-imag(vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!                                               repmat(imag(vxl), numel(mesh.groups.tria6h(grp_idx_output).elements), 6)];
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 133
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 350;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 + 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   vx0 = k * pinput / (omega * rho);
+%!   vxl = k * pinput / (omega * rho) * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10", "tria6"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.elements.particle_velocity.tria6.nodes = mesh.elements.tria6([[mesh.groups.tria6([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.tria6 = ones(rows(mesh.elements.particle_velocity.tria6.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6.vn = [repmat(-real(vx0), numel(mesh.groups.tria6(grp_idx_input).elements), 6);
+%!                                               repmat(real(vxl), numel(mesh.groups.tria6(grp_idx_output).elements), 6)];
+%!   load_case(2).particle_velocity.tria6.vn = [repmat(-imag(vx0), numel(mesh.groups.tria6(grp_idx_input).elements), 6);
+%!                                               repmat(imag(vxl), numel(mesh.groups.tria6(grp_idx_output).elements), 6)];
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 134
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 350;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 + 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   vx0 = k * pinput / (omega * rho);
+%!   vxl = k * pinput / (omega * rho) * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"penta15", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6h.vn = [repmat(-real(vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!                                               repmat(real(vxl), numel(mesh.groups.tria6h(grp_idx_output).elements), 6)];
+%!   load_case(2).particle_velocity.tria6h.vn = [repmat(-imag(vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!                                               repmat(imag(vxl), numel(mesh.groups.tria6h(grp_idx_output).elements), 6)];
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 135
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 350;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 + 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   vx0 = k * pinput / (omega * rho);
+%!   vxl = k * pinput / (omega * rho) * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface {6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso20", "quad8"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.quad8.vn = [repmat(-real(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!                                               repmat(real(vxl), numel(mesh.groups.quad8(grp_idx_output).elements), 8)];
+%!   load_case(2).particle_velocity.quad8.vn = [repmat(-imag(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!                                               repmat(imag(vxl), numel(mesh.groups.quad8(grp_idx_output).elements), 8)];
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 136
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 350;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 300;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 + 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   vx0 = k * pinput / (omega * rho);
+%!   vxl = k * pinput / (omega * rho) * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface {6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso8", "iso4"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.elements.particle_velocity.iso4.nodes = mesh.elements.iso4([[mesh.groups.iso4([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.iso4 = ones(rows(mesh.elements.particle_velocity.iso4.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.iso4.vn = [repmat(-real(vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
+%!                                               repmat(real(vxl), numel(mesh.groups.iso4(grp_idx_output).elements), 4)];
+%!   load_case(2).particle_velocity.iso4.vn = [repmat(-imag(vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
+%!                                               repmat(imag(vxl), numel(mesh.groups.iso4(grp_idx_output).elements), 4)];
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 2e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 137
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 350;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 300;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 + 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   vx0 = k * pinput / (omega * rho);
+%!   vxl = k * pinput / (omega * rho) * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.elements.particle_velocity.iso4.nodes = mesh.elements.iso4([[mesh.groups.iso4([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.iso4 = ones(rows(mesh.elements.particle_velocity.iso4.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.iso4.vn = [repmat(-real(vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
+%!                                               repmat(real(vxl), numel(mesh.groups.iso4(grp_idx_output).elements), 4)];
+%!   load_case(2).particle_velocity.iso4.vn = [repmat(-imag(vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
+%!                                               repmat(imag(vxl), numel(mesh.groups.iso4(grp_idx_output).elements), 4)];
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 2e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 138
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 100;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 - 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10", "tria6"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   node_idx_input = mesh.groups.tria6(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.tria6(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case = struct("acoustic_constr", cell(1, 2));
+%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
+%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
+%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 139
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 100;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 - 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"penta15", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.tria6h(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case = struct("acoustic_constr", cell(1, 2));
+%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
+%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
+%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 140
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 100;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 - 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface {6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso20", "quad8"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   node_idx_input = mesh.groups.quad8(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.quad8(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case = struct("acoustic_constr", cell(1, 2));
+%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
+%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
+%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 141
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 100;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 300;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 - 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface {6, tmp[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso8", "iso4"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.iso4(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case = struct("acoustic_constr", cell(1, 2));
+%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
+%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
+%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 142
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   l = 100e-3;
+%!   c = 340;
+%!   rho = 1.25;
+%!   k = 100;
+%!   omega = k * c;
+%!   f = omega / (2 * pi);
+%!   lambda = c / f;
+%!   dx = lambda / 300;
+%!   w = dx;
+%!   h = dx;
+%!   pinput = 50 - 100j;
+%!   poutput = pinput * exp(-1j * k * l);
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l=%g;\n", l);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!   fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!   fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!   fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.iso4(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case = struct("acoustic_constr", cell(1, 2));
+%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
+%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(250);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
+%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   x = mesh.nodes(:, 1);
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
+%!   sol.t = Psi / omega;
+%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, pref(idx, i), "-;pref;0");
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 1e-3;
+%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 143
+%! ## The 1-D Wave Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 1.5;
+%!     dx = 3e-3;
+%!     w = dx;
+%!     h = dx;
+%!     c = 340;
+%!     rho = 1.25;
+%!     pinput = 0;
+%!     poutput = 0;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface {6, tmp[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso8", "iso4"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.iso4(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                  FEM_MAT_MASS_ACOUSTICS, ...
+%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                 load_case);
+%!   T = l / c;
+%!   dt = dx / c;
+%!   t = 0:dt:T;
+%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
+%!   opt_sol.number_of_threads = int32(1);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.delta = 0.5;
+%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
+%!   g = @(x) c * sin(5 * pi * x / l);
+%!   N = 200;
+%!   alpha = zeros(1, N);
+%!   beta = zeros(1, N);
+%!   for n=1:N
+%!     alpha(n) = 2 * quad(@(x) f(x) / l .* sin(n * pi * x / l), 0, l);
+%!     beta(n) = 2 / (n * pi) * quad(@(x) g(x) * T / l .* sin(n * pi * x / l), 0, l);
+%!   endfor
+%!   Phi(dof_map.ndof, 1) = f(mesh.nodes(:, 1));
+%!   dPhi_dt(dof_map.ndof, 1) = g(mesh.nodes(:, 1));
+%!   Phiref = zeros(numel(x), numel(t));
+%!   for n=1:N
+%!     Phiref += (alpha(n) * cos(n * pi * t / T) + beta(n) * sin(n * pi * t / T)) .* sin(n * pi * x / l);
+%!   endfor
+%!   for i=2:numel(t)
+%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
+%!   endfor
+%!   sol.t = t;
+%!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   for i=1:20:numel(t)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, Phi(idx, i), "-;Phi(x);1");
+%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
+%!     ylim([min(min(Phi)), max(max(Phi))]);
+%!     xlabel("x [m]");
+%!     ylabel("Phi [m^2/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%.2fs", t(i)));
+%!   endfor
+%!   tol = 5e-3;
+%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 144
+%! ## The 1-D Wave Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 1.5;
+%!     dx = 3e-3;
+%!     w = dx;
+%!     h = dx;
+%!     c = 340;
+%!     rho = 1.25;
+%!     pinput = 0;
+%!     poutput = 0;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.iso4(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                  FEM_MAT_MASS_ACOUSTICS, ...
+%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                 load_case);
+%!   T = l / c;
+%!   dt = dx / c;
+%!   t = 0:dt:T;
+%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
+%!   opt_sol.number_of_threads = int32(1);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.delta = 0.5;
+%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
+%!   g = @(x) c * sin(5 * pi * x / l);
+%!   N = 200;
+%!   alpha = zeros(1, N);
+%!   beta = zeros(1, N);
+%!   for n=1:N
+%!     alpha(n) = 2 * quad(@(x) f(x) / l .* sin(n * pi * x / l), 0, l);
+%!     beta(n) = 2 / (n * pi) * quad(@(x) g(x) * T / l .* sin(n * pi * x / l), 0, l);
+%!   endfor
+%!   Phi(dof_map.ndof, 1) = f(mesh.nodes(:, 1));
+%!   dPhi_dt(dof_map.ndof, 1) = g(mesh.nodes(:, 1));
+%!   Phiref = zeros(numel(x), numel(t));
+%!   for n=1:N
+%!     Phiref += (alpha(n) * cos(n * pi * t / T) + beta(n) * sin(n * pi * t / T)) .* sin(n * pi * x / l);
+%!   endfor
+%!   for i=2:numel(t)
+%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
+%!   endfor
+%!   sol.t = t;
+%!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   for i=1:20:numel(t)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, Phi(idx, i), "-;Phi(x);1");
+%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
+%!     ylim([min(min(Phi)), max(max(Phi))]);
+%!     xlabel("x [m]");
+%!     ylabel("Phi [m^2/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%.2fs", t(i)));
+%!   endfor
+%!   tol = 5e-3;
+%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 145
+%! ## The 1-D Wave Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 1.5;
+%!     dx = 3e-3;
+%!     w = dx;
+%!     h = dx;
+%!     c = 340;
+%!     rho = 1.25;
+%!     pinput = 0;
+%!     poutput = 0;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"penta15", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.tria6h(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                  FEM_MAT_MASS_ACOUSTICS, ...
+%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                 load_case);
+%!   T = l / c;
+%!   dt = dx / c;
+%!   t = 0:dt:T;
+%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
+%!   opt_sol.number_of_threads = int32(1);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.delta = 0.5;
+%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
+%!   g = @(x) c * sin(5 * pi * x / l);
+%!   N = 200;
+%!   alpha = zeros(1, N);
+%!   beta = zeros(1, N);
+%!   for n=1:N
+%!     alpha(n) = 2 * quad(@(x) f(x) / l .* sin(n * pi * x / l), 0, l);
+%!     beta(n) = 2 / (n * pi) * quad(@(x) g(x) * T / l .* sin(n * pi * x / l), 0, l);
+%!   endfor
+%!   Phi(dof_map.ndof, 1) = f(mesh.nodes(:, 1));
+%!   dPhi_dt(dof_map.ndof, 1) = g(mesh.nodes(:, 1));
+%!   Phiref = zeros(numel(x), numel(t));
+%!   for n=1:N
+%!     Phiref += (alpha(n) * cos(n * pi * t / T) + beta(n) * sin(n * pi * t / T)) .* sin(n * pi * x / l);
+%!   endfor
+%!   for i=2:numel(t)
+%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
+%!   endfor
+%!   sol.t = t;
+%!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   for i=1:20:numel(t)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, Phi(idx, i), "-;Phi(x);1");
+%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
+%!     ylim([min(min(Phi)), max(max(Phi))]);
+%!     xlabel("x [m]");
+%!     ylabel("Phi [m^2/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%.2fs", t(i)));
+%!   endfor
+%!   tol = 5e-3;
+%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 146
+%! ## The 1-D Wave Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 1.5;
+%!     dx = 3e-3;
+%!     w = dx;
+%!     h = dx;
+%!     c = 340;
+%!     rho = 1.25;
+%!     pinput = 0;
+%!     poutput = 0;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.tria6h(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                  FEM_MAT_MASS_ACOUSTICS, ...
+%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                 load_case);
+%!   T = l / c;
+%!   dt = dx / c;
+%!   t = 0:dt:T;
+%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
+%!   opt_sol.number_of_threads = int32(1);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.delta = 0.5;
+%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
+%!   g = @(x) c * sin(5 * pi * x / l);
+%!   N = 200;
+%!   alpha = zeros(1, N);
+%!   beta = zeros(1, N);
+%!   for n=1:N
+%!     alpha(n) = 2 * quad(@(x) f(x) / l .* sin(n * pi * x / l), 0, l);
+%!     beta(n) = 2 / (n * pi) * quad(@(x) g(x) * T / l .* sin(n * pi * x / l), 0, l);
+%!   endfor
+%!   Phi(dof_map.ndof, 1) = f(mesh.nodes(:, 1));
+%!   dPhi_dt(dof_map.ndof, 1) = g(mesh.nodes(:, 1));
+%!   Phiref = zeros(numel(x), numel(t));
+%!   for n=1:N
+%!     Phiref += (alpha(n) * cos(n * pi * t / T) + beta(n) * sin(n * pi * t / T)) .* sin(n * pi * x / l);
+%!   endfor
+%!   for i=2:numel(t)
+%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
+%!   endfor
+%!   sol.t = t;
+%!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   for i=1:20:numel(t)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, Phi(idx, i), "-;Phi(x);1");
+%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
+%!     ylim([min(min(Phi)), max(max(Phi))]);
+%!     xlabel("x [m]");
+%!     ylabel("Phi [m^2/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%.2fs", t(i)));
+%!   endfor
+%!   tol = 5e-3;
+%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 147
+%! ## The 1-D Wave Equation
+%! ## 18.303 Linear Partial Differential Equations
+%! ## Matthew J. Hancock
+%! ## Fall 2006
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     l = 1.5;
+%!     dx = 3e-3;
+%!     w = dx;
+%!     h = dx;
+%!     c = 340;
+%!     rho = 1.25;
+%!     pinput = 0;
+%!     poutput = 0;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l=%g;\n", l);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0,dx};\n");
+%!     fputs(fd, "Point(2) = {0,w,0,dx};\n");
+%!     fputs(fd, "Point(3) = {0,w,h,dx};\n");
+%!     fputs(fd, "Point(4) = {0,0,h,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {l,0,0} {\n");
+%!     fputs(fd, "  Surface{6};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10", "tria6"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
+%!   node_idx_input = mesh.groups.tria6(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.tria6(grp_idx_output).nodes;
+%!   node_idx_constr = [node_idx_input, node_idx_output];
+%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
+%!               repmat(poutput, 1, numel(node_idx_output))];
+%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
+%!                                   "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
+%!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.material_data.E = 0;
+%!   mesh.material_data.nu = 0;
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Da, ...
+%!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                  FEM_MAT_MASS_ACOUSTICS, ...
+%!                                  FEM_MAT_DAMPING_ACOUSTICS, ...
+%!                                  FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                 load_case);
+%!   T = l / c;
+%!   dt = dx / c;
+%!   t = 0:dt:T;
+%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
+%!   opt_sol.number_of_threads = int32(1);
+%!   opt_sol.solver = "umfpack";
+%!   opt_sol.delta = 0.5;
+%!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   f = @(x) (cos(pi * (2 * x / l - 1)) + 1) / 2;
+%!   g = @(x) c * sin(5 * pi * x / l);
+%!   N = 200;
+%!   alpha = zeros(1, N);
+%!   beta = zeros(1, N);
+%!   for n=1:N
+%!     alpha(n) = 2 * quad(@(x) f(x) / l .* sin(n * pi * x / l), 0, l);
+%!     beta(n) = 2 / (n * pi) * quad(@(x) g(x) * T / l .* sin(n * pi * x / l), 0, l);
+%!   endfor
+%!   Phi(dof_map.ndof, 1) = f(mesh.nodes(:, 1));
+%!   dPhi_dt(dof_map.ndof, 1) = g(mesh.nodes(:, 1));
+%!   Phiref = zeros(numel(x), numel(t));
+%!   for n=1:N
+%!     Phiref += (alpha(n) * cos(n * pi * t / T) + beta(n) * sin(n * pi * t / T)) .* sin(n * pi * x / l);
+%!   endfor
+%!   for i=2:numel(t)
+%!     fprintf(stderr, "Step %d/%d\n", i, numel(t));
+%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Ra, sol_dat);
+%!   endfor
+%!   sol.t = t;
+%!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   for i=1:20:numel(t)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, Phi(idx, i), "-;Phi(x);1");
+%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
+%!     ylim([min(min(Phi)), max(max(Phi))]);
+%!     xlabel("x [m]");
+%!     ylabel("Phi [m^2/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("t=%.2fs", t(i)));
+%!   endfor
+%!   tol = 5e-3;
+%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
