@@ -6006,6 +6006,7 @@ public:
           } break;
           case Element::VEC_LOAD_CONSISTENT:
           case Element::VEC_LOAD_THERMAL:
+          case Element::VEC_LOAD_ACOUSTIC:
           case Element::MAT_THERMAL_COND:
           case Element::MAT_STIFFNESS_ACOUSTICS: {
                if (!oIntegConsistent.iGetNumEvalPoints()) {
