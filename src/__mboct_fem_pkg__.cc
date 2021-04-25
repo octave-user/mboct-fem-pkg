@@ -9483,10 +9483,10 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                }
           }
 
-          octave_map dof_map;
+          octave_scalar_map dof_map;
 
-          dof_map.assign("ndof", octave_value(ndof));
-          dof_map.assign("domain", octave_value(eDomain));
+          dof_map.assign("ndof", ndof);
+          dof_map.assign("domain", octave_int32{eDomain});
 
           int32NDArray idx_node(dim_vector(icurrdof, 1), -1);
           octave_idx_type icurrndof = 0;
@@ -9501,7 +9501,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           FEM_ASSERT(icurrndof == icurrdof);
 
-          dof_map.assign("idx_node", octave_value(idx_node));
+          dof_map.assign("idx_node", idx_node);
 
           octave_scalar_map m_edof;
 
@@ -9727,14 +9727,14 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
           FEM_ASSERT(icurrlambda == inumlambda);
 
           if (m_edof.nfields()) {
-               dof_map.assign("edof", octave_value(m_edof));
+               dof_map.assign("edof", m_edof);
           }
 
           if (inumlambda) {
-               dof_map.assign("idx_lambda", octave_value(idx_lambda));
+               dof_map.assign("idx_lambda", idx_lambda);
           }
 
-          dof_map.assign("totdof", octave_value(icurrdof));
+          dof_map.assign("totdof", octave_int32(icurrdof));
 
           retval.append(dof_map);
 
