@@ -466,6 +466,10 @@ public:
           ELEM_PARTICLE_VEL_QUAD8,
           ELEM_PARTICLE_VEL_TRIA6,
           ELEM_PARTICLE_VEL_TRIA6H,
+          ELEM_ACOUSTIC_IMPE_ISO4,
+          ELEM_ACOUSTIC_IMPE_QUAD8,
+          ELEM_ACOUSTIC_IMPE_TRIA6,
+          ELEM_ACOUSTIC_IMPE_TRIA6H,
           ELEM_ACOUSTIC_CONSTR,
           ELEM_TYPE_COUNT,
           ELEM_TYPE_UNKNOWN = -1
@@ -494,37 +498,41 @@ private:
 };
 
 const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_COUNT] = {
-     {ElementTypes::ELEM_ISO8,               "iso8",     8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ISO20,              "iso20",   20, 20, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PENTA15,            "penta15", 15, 15, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10H,             "tet10h",  10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_TET10,              "tet10",   10, 10, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_BEAM2,              "beam2",    2,  2, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_RBE3,               "rbe3",     2, -1, DofMap::ELEM_RBE3},
-     {ElementTypes::ELEM_JOINT,              "joints",   1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON4,            "sfncon4",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6,            "sfncon6",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON6H,           "sfncon6h", 1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_SFNCON8,            "sfncon8",  1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_PRESSURE_ISO4,      "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_QUAD8,     "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6,     "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PRESSURE_TRIA6H,    "tria6h",   6,  6, DofMap::ELEM_NODOF},     
-     {ElementTypes::ELEM_STRUCT_FORCE,       "force",    1, -1, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_ISO4,    "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_QUAD8,   "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6,   "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONV_TRIA6H,  "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_THERM_CONSTR,       "thermal_constr", 1, -1, DofMap::ELEM_JOINT},
-     {ElementTypes::ELEM_HEAT_SOURCE_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PARTICLE_VEL_ISO4,   "iso4",     4,  4, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,  "quad8",    8,  8, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,  "tria6",    6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H, "tria6h",   6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_CONSTR,    "acoustic_constr", 1, -1, DofMap::ELEM_JOINT}
+     {ElementTypes::ELEM_ISO8,                 "iso8",            8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ISO20,                "iso20",          20, 20, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PENTA15,              "penta15",        15, 15, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10H,               "tet10h",         10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_TET10,                "tet10",          10, 10, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_BEAM2,                "beam2",           2,  2, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_RBE3,                 "rbe3",            2, -1, DofMap::ELEM_RBE3},
+     {ElementTypes::ELEM_JOINT,                "joints",          1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON4,              "sfncon4",         1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6,              "sfncon6",         1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON6H,             "sfncon6h",        1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_SFNCON8,              "sfncon8",         1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_PRESSURE_ISO4,        "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_QUAD8,       "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6,       "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PRESSURE_TRIA6H,      "tria6h",          6,  6, DofMap::ELEM_NODOF},     
+     {ElementTypes::ELEM_STRUCT_FORCE,         "force",           1, -1, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_ISO4,      "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_QUAD8,     "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6,     "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONV_TRIA6H,    "tria6h",          6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_THERM_CONSTR,         "thermal_constr",  1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_HEAT_SOURCE_ISO4,     "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,    "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,    "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H,   "tria6h",          6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4,   "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8,  "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6,  "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H, "tria6h",          6,  6, DofMap::ELEM_NODOF},     
+     {ElementTypes::ELEM_ACOUSTIC_CONSTR,      "acoustic_constr", 1, -1, DofMap::ELEM_JOINT}
 };
 
 class Element
@@ -2710,7 +2718,7 @@ public:
           FEM_ASSERT(nodes.numel() == 8);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
           static const octave_idx_type N = 2;
           static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
           static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
@@ -2749,7 +2757,7 @@ public:
      }
 
 protected:
-     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const final {
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(rv.numel() == 3);
@@ -2778,7 +2786,7 @@ protected:
           return Determinant3x3(J);
      }
 
-     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(H.rows() == 3);
           FEM_ASSERT(H.columns() == 24);
@@ -2861,7 +2869,7 @@ protected:
           H.xelem(2,23) = ((r+1)*(1-s)*(1-t))/8.0;
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
@@ -3030,7 +3038,7 @@ protected:
 #endif
      }
 
-     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
@@ -3072,7 +3080,7 @@ protected:
           Bt.xelem(2,7) = (invJ.xelem(2,0)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(2,1)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(2,2)*(r+1)*(1-s))/8.0E+0;
      }
      
-     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -3093,7 +3101,7 @@ protected:
      }
 
 private:
-     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 8);
           FEM_ASSERT(irow >= 0);
@@ -3123,7 +3131,7 @@ public:
           FEM_ASSERT(nodes.numel() == 20);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
           constexpr octave_idx_type N = 3;
           static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
@@ -3162,7 +3170,7 @@ public:
      }
 
 protected:
-     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const final {
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(rv.numel() == 3);
@@ -3187,7 +3195,7 @@ protected:
           return Determinant3x3(J);
      }
 
-     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(H.rows() == 3);
           FEM_ASSERT(H.columns() == 60);
@@ -3381,7 +3389,7 @@ protected:
           H.xelem(2,59) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
@@ -3761,7 +3769,7 @@ protected:
           B.xelem(5,59) = (invJ.xelem(0,0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(0,1)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(0,2)*(r+1)*(1-s)*t)/2.0E+0;
      }
 
-     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -3782,7 +3790,7 @@ protected:
      }
 
 private:
-     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 20);
           FEM_ASSERT(irow >= 0);
@@ -3817,7 +3825,7 @@ private:
           Hs.xelem(irow, 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
      }
 
-     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 20);
           FEM_ASSERT(J.rows() == 3);
@@ -3905,7 +3913,7 @@ public:
           FEM_ASSERT(nodes.numel() == 15);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
           // r = 0 ... 1
           // s = 0 ... (1 - r)
           // t = -1 ... 1
@@ -3971,7 +3979,7 @@ public:
      }
 
 protected:
-     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const final {
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(rv.numel() == 3);
@@ -3994,7 +4002,7 @@ protected:
           return Determinant3x3(J);
      }
 
-     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(H.rows() == 3);
           FEM_ASSERT(H.columns() == 45);
@@ -4141,7 +4149,7 @@ protected:
           H.xelem(2,44) = s*(1-t2);
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
@@ -4429,7 +4437,7 @@ protected:
           B.xelem(5,44) = invJ(0,1)*(1-t2)-2*invJ(0,2)*s*t;
      }
 
-     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 15);
           FEM_ASSERT(J.rows() == 3);
@@ -4491,7 +4499,7 @@ protected:
           Bt.xelem(2,14) = invJ.xelem(2,1)*(1-t_2)-2*invJ.xelem(2,2)*s*t;
      }
      
-     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -4512,7 +4520,7 @@ protected:
      }
 
 private:
-     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 15);
           FEM_ASSERT(irow >= 0);
@@ -4549,7 +4557,7 @@ public:
           FEM_ASSERT(nodes.numel() == 10);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
 
           constexpr double a1 = 0.25;
           constexpr double b1 = 1. / 6.;
@@ -4669,7 +4677,7 @@ public:
      }
 
 protected:
-     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const final {
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(rv.numel() == 3);
@@ -4691,7 +4699,7 @@ protected:
           return Determinant3x3(J);
      }
 
-     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(H.rows() == 3);
           FEM_ASSERT(H.columns() == 30);
@@ -4792,7 +4800,7 @@ protected:
           H.xelem(2,29) = 4*r*((-t)-s-r+1);
      }
 
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
@@ -4989,7 +4997,7 @@ protected:
           B.xelem(5,29) = invJ.xelem(0,0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(0,2)*r-4*invJ.xelem(0,1)*r;
      }
 
-     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -5030,7 +5038,7 @@ protected:
           return taun;
      }
 
-     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 10);
           FEM_ASSERT(irow >= 0);
@@ -5052,7 +5060,7 @@ protected:
           Hs.xelem(irow,9) = 4*r*((-t)-s-r+1);
      }
 
-     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(J.rows() == 3);
@@ -5128,7 +5136,7 @@ public:
           FEM_ASSERT(nodes.numel() == 10);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const {
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
           static IntegrationRule oIntegStiff, oIntegMass, oIntegMassDiag;
 
           switch (eMatType) {
@@ -5249,7 +5257,7 @@ public:
      }
 
 protected:
-     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const {
+     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const final {
           FEM_ASSERT(J.rows() == 4);
           FEM_ASSERT(J.columns() == 4);
           FEM_ASSERT(rv.numel() == 4);
@@ -5281,7 +5289,7 @@ protected:
           return Determinant4x4(J) * gamma;
      }
 
-     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
+     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
           FEM_ASSERT(H.rows() == 3);
           FEM_ASSERT(H.columns() == 30);
           FEM_ASSERT(rv.numel() == 4);
@@ -5383,7 +5391,7 @@ protected:
           H.xelem(2,29) = 4*Zeta3*Zeta4;
      }
 
-     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const {
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
           FEM_ASSERT(Bt.rows() == 3);
           FEM_ASSERT(Bt.columns() == 10);
           FEM_ASSERT(rv.numel() == 4);
@@ -5431,7 +5439,7 @@ protected:
           Bt.xelem(2,9) = 4*invJ.xelem(2,3)*Zeta4+4*invJ.xelem(3,3)*Zeta3;
      }
      
-     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const {
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
           FEM_ASSERT(J.rows() == 4);
           FEM_ASSERT(J.columns() == 4);
           FEM_ASSERT(invJ.rows() == 4);
@@ -5629,7 +5637,7 @@ protected:
           B.xelem(5,29) = 4*invJ.xelem(2,1)*Zeta4+4*invJ.xelem(3,1)*Zeta3;
      }
 
-     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const {
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -5670,7 +5678,7 @@ protected:
           return taun;
      }
 
-     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 4);
           FEM_ASSERT(Hs.columns() == 10);
           FEM_ASSERT(irow >= 0);
@@ -7075,35 +7083,15 @@ private:
 
 class ScalarFieldBC: public SurfaceElement {
 public:
-     ScalarFieldBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h)
-          :SurfaceElement(eltype, id, X, material, nodes), Thetae(Thetae), h(h) {
+     ScalarFieldBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :SurfaceElement(eltype, id, X, material, nodes) {
 
           FEM_ASSERT(X.rows() == 3);
-          FEM_ASSERT(X.columns() == Thetae.columns());
-          FEM_ASSERT(X.columns() == nodes.numel());
      }
 
-     ScalarFieldBC(const ScalarFieldBC& oElem)
-          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), Thetae(oElem.Thetae), h(oElem.h) {
-     }
+     ScalarFieldBC(const ScalarFieldBC& oElem)=default;
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
-          switch (eMatType) {
-          case VEC_LOAD_THERMAL:
-          case VEC_LOAD_ACOUSTICS:
-               RightHandSideVector(mat, info, dof, eMatType);
-               break;
-
-          case MAT_THERMAL_COND:
-               CoefficientMatrix(mat, info, dof, eMatType);
-               break;
-               
-          default:
-               ;
-          }          
-     }
-
-     void CoefficientMatrix(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+     void CoefficientMatrix(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType, const RowVector& h) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumDof = iGetNumDof();
@@ -7166,7 +7154,7 @@ public:
           }
      }
      
-     void RightHandSideVector(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+     void RightHandSideVector(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType, const Matrix& Thetae, const RowVector& h) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumDof = iGetNumDof();
@@ -7234,7 +7222,37 @@ public:
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+     octave_idx_type iGetNumDof() const {
+          return nodes.numel();
+     }
+};
+
+class ThermalConvectionBC: public ScalarFieldBC {
+public:
+     ThermalConvectionBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& Thetae, const RowVector& h)
+          :ScalarFieldBC(eltype, id, X, material, nodes), Thetae(Thetae), h(h) {
+          FEM_ASSERT(X.columns() == Thetae.columns());
+          FEM_ASSERT(X.columns() == nodes.numel());
+     }
+
+     ThermalConvectionBC(const ThermalConvectionBC& oElem)=default;
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
+          switch (eMatType) {
+          case VEC_LOAD_THERMAL:
+               RightHandSideVector(mat, info, dof, eMatType, Thetae, h);
+               break;
+
+          case MAT_THERMAL_COND:
+               CoefficientMatrix(mat, info, dof, eMatType, h);
+               break;
+               
+          default:
+               ;
+          }          
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
           switch (eMatType) {
           case MAT_THERMAL_COND:
                return iGetNumDof() * iGetNumDof();
@@ -7246,15 +7264,79 @@ public:
                return 0;
           }
      }
+     
+private:
+     const Matrix Thetae;
+     const RowVector h;     
+};
 
-     octave_idx_type iGetNumDof() const {
-          return nodes.numel();
+class ParticleVelocityBC: public ScalarFieldBC {
+public:
+     ParticleVelocityBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& vn, const RowVector& rho)
+          :ScalarFieldBC(eltype, id, X, material, nodes), vn(vn), rho(rho) {
+     }
+
+     ParticleVelocityBC(const ParticleVelocityBC& oElem)=default;
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
+          switch (eMatType) {
+          case VEC_LOAD_ACOUSTICS:
+               RightHandSideVector(mat, info, dof, eMatType, vn, rho);
+               break;
+
+          default:
+               ;
+          }          
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
+          switch (eMatType) {          
+          case VEC_LOAD_ACOUSTICS:
+               return iGetNumDof() * vn.rows();
+               
+          default:
+               return 0;
+          }
+     }
+     
+private:
+     const Matrix vn;
+     const RowVector rho;
+};
+
+class AcousticImpedanceBC: public ScalarFieldBC {
+public:
+     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rhoz)
+          :ScalarFieldBC(eltype, id, X, material, nodes), rhoz(rhoz) {
+     }
+
+     AcousticImpedanceBC(const AcousticImpedanceBC& oElem)=default;
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
+          switch (eMatType) {
+          case MAT_DAMPING_ACOUSTICS:
+               CoefficientMatrix(mat, info, dof, eMatType, rhoz);
+               break;
+
+          default:
+               ;
+          }          
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
+          switch (eMatType) {          
+          case MAT_DAMPING_ACOUSTICS:
+               return iGetNumDof() * iGetNumDof();
+               
+          default:
+               return 0;
+          }
      }
 
 private:
-     const Matrix Thetae;
-     const RowVector h;
+     const RowVector rhoz;
 };
+
 
 class HeatSource: public SurfaceElement {
 public:
@@ -7370,23 +7452,23 @@ public:
      }
 
 protected:
-     virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) const override {
+     virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) const override final {
           SHAPE_FUNC::ScalarInterpMatrix(rv, HA);
      }
 
-     virtual void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const override {
+     virtual void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const override final {
           SHAPE_FUNC::VectorInterpMatrix(rv, Hf);
      }
 
-     virtual void DisplacementInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) const override {
+     virtual void DisplacementInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) const override final {
           SHAPE_FUNC::VectorInterpMatrixDerR(rv, dHf_dr);
      }
 
-     virtual void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const override {
+     virtual void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const override final {
           SHAPE_FUNC::VectorInterpMatrixDerS(rv, dHf_ds);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) const override {
+     virtual const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) const override final {
           return SHAPE_FUNC::GetIntegrationRule(eMatType);
      }
 };
@@ -7396,15 +7478,25 @@ typedef SurfaceElementImpl<ShapeQuad8, PressureLoad> PressureLoadQuad8;
 typedef SurfaceElementImpl<ShapeTria6, PressureLoad> PressureLoadTria6;
 typedef SurfaceElementImpl<ShapeTria6H, PressureLoad> PressureLoadTria6H;
 
-typedef SurfaceElementImpl<ShapeIso4, ScalarFieldBC> ScalarFieldBCIso4;
-typedef SurfaceElementImpl<ShapeQuad8, ScalarFieldBC> ScalarFieldBCQuad8;
-typedef SurfaceElementImpl<ShapeTria6, ScalarFieldBC> ScalarFieldBCTria6;
-typedef SurfaceElementImpl<ShapeTria6H, ScalarFieldBC> ScalarFieldBCTria6H;
+typedef SurfaceElementImpl<ShapeIso4, ThermalConvectionBC> ThermalConvectionBCIso4;
+typedef SurfaceElementImpl<ShapeQuad8, ThermalConvectionBC> ThermalConvectionBCQuad8;
+typedef SurfaceElementImpl<ShapeTria6, ThermalConvectionBC> ThermalConvectionBCTria6;
+typedef SurfaceElementImpl<ShapeTria6H, ThermalConvectionBC> ThermalConvectionBCTria6H;
 
 typedef SurfaceElementImpl<ShapeIso4, HeatSource> HeatSourceIso4;
 typedef SurfaceElementImpl<ShapeQuad8, HeatSource> HeatSourceQuad8;
 typedef SurfaceElementImpl<ShapeTria6, HeatSource> HeatSourceTria6;
 typedef SurfaceElementImpl<ShapeTria6H, HeatSource> HeatSourceTria6H;
+
+typedef SurfaceElementImpl<ShapeIso4, ParticleVelocityBC> ParticleVelocityBCIso4;
+typedef SurfaceElementImpl<ShapeQuad8, ParticleVelocityBC> ParticleVelocityBCQuad8;
+typedef SurfaceElementImpl<ShapeTria6, ParticleVelocityBC> ParticleVelocityBCTria6;
+typedef SurfaceElementImpl<ShapeTria6H, ParticleVelocityBC> ParticleVelocityBCTria6H;
+
+typedef SurfaceElementImpl<ShapeIso4, AcousticImpedanceBC> AcousticImpedanceBCIso4;
+typedef SurfaceElementImpl<ShapeQuad8, AcousticImpedanceBC> AcousticImpedanceBCQuad8;
+typedef SurfaceElementImpl<ShapeTria6, AcousticImpedanceBC> AcousticImpedanceBCTria6;
+typedef SurfaceElementImpl<ShapeTria6H, AcousticImpedanceBC> AcousticImpedanceBCTria6H;
 
 class StructForce: public Element {
 public:
@@ -8142,6 +8234,139 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
                                       idx_vector::make_range(0, 1, elnodes.columns())),
                         velk,
                         rho);
+     }
+     
+     rgElemBlocks.emplace_back(std::move(pElem));
+}
+
+template <typename ImpedanceElemType>
+void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const std::vector<Material>& rgMaterials, const octave_scalar_map& materials, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_impedance = elements.seek("acoustic_impedance");
+
+     if (iter_impedance == elements.end()) {
+          return;
+     }
+     
+     const octave_value ov_impedance = elements.contents(iter_impedance);
+
+     if (!(ov_impedance.isstruct() && ov_impedance.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.acoustic_impedance must be a scalar struct");
+     }
+
+     const octave_scalar_map m_impedance = ov_impedance.scalar_map_value();
+     
+     const auto iter_elem_type = m_impedance.seek(pszElemName);
+
+     if (iter_elem_type == m_impedance.end()) {
+          return;
+     }
+
+     const octave_value ov_elem_type = m_impedance.contents(iter_elem_type);
+
+     if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + " must be a scalar struct");
+     }
+
+     const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
+
+     const auto iter_elnodes = m_elem_type.seek("nodes");
+
+     if (iter_elnodes == m_elem_type.end()) {
+          throw std::runtime_error("missing field mesh.elements.acoustic_impedance."s + pszElemName + ".nodes");
+     }
+
+     const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
+
+     if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
+          throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + ".nodes must be an integer matrix");          
+     }
+
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
+     
+     NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
+               octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
+
+               if (inode < 0 || inode >= nodes.rows()) {
+                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_impedance."s + pszElemName + ".nodes");
+               }
+               
+               for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                    X.xelem(m, l, k) = nodes.xelem(inode, m);
+               }
+          }
+     }
+
+     const auto iter_z = m_elem_type.seek("z");
+
+     if (iter_z == m_elem_type.end()) {
+          throw std::runtime_error("missing field mesh.elements.acoustic_impedance."s + pszElemName + ".z");
+     }
+
+     const octave_value ov_z = m_elem_type.contents(iter_z);
+
+     if (!(ov_z.is_matrix_type() && ov_z.isreal() && ov_z.rows() == elnodes.rows() && ov_z.columns() == elnodes.columns())) {
+          throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + ".z must be a real matrix of the same size "
+                                   "like mesh.elements.acoustic_impedance." + pszElemName + ".nodes");
+     }
+
+     const Matrix z = ov_z.matrix_value();
+     
+     const auto iter_impe_mat = materials.seek("acoustic_impedance");
+
+     if (iter_impe_mat == materials.end()) {
+          throw std::runtime_error("mesh.materials.acoustic_impedance is not defined");
+     }
+
+     const octave_scalar_map m_impe_mat = materials.contents(iter_impe_mat).scalar_map_value();
+
+     const auto iter_elem_type_mat = m_impe_mat.seek(pszElemName);
+
+     if (iter_elem_type_mat == m_impe_mat.end()) {
+          throw std::runtime_error("mesh.materials.acoustic_impedance."s + pszElemName + " is not defined");
+     }
+     
+     const int32NDArray elem_mat = m_impe_mat.contents(iter_elem_type_mat).int32_array_value();
+
+     if (elem_mat.numel() != elnodes.rows()) {
+          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_impedance."s + pszElemName + " in argument mesh");
+     }
+     
+     const octave_idx_type inum_materials = rgMaterials.size();
+     
+     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
+          const octave_idx_type imaterial = elem_mat.xelem(i);
+          
+          if (imaterial <= 0 || imaterial > inum_materials) {
+               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_impedance."s + pszElemName + " in argument mesh");
+          }
+     }
+
+     std::unique_ptr<ElementBlock<ImpedanceElemType> > pElem{new ElementBlock<ImpedanceElemType>(eltype)};
+
+     pElem->Reserve(elnodes.rows());
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
+
+          FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
+          
+          const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
+          const double rhok = materialk->Density();
+          RowVector rhoz(elnodes.columns());
+
+          for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
+               rhoz.xelem(i) = rhok * z.xelem(k, i);
+          }
+
+          pElem->Insert(k,
+                        Xk,
+                        materialk,
+                        elnodes.index(idx_vector::make_range(k, 1, 1),
+                                      idx_vector::make_range(0, 1, elnodes.columns())),
+                        rhoz);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
@@ -9297,12 +9522,44 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
                     if (eDomain == DofMap::DO_THERMAL || eDomain == DofMap::DO_ACOUSTICS) {
-                         static constexpr char elem_name[][18] = {"convection", "particle_velocity"};
-                         const enum {
+                         static constexpr char elem_name[][19] = {"convection", "particle_velocity", "acoustic_impedance"};
+                         
+                         enum {
                               EL_IDX_CONVECTION,
-                              EL_IDX_ACOUSTIC_PRESS
-                         } ielem_name = eDomain == DofMap::DO_THERMAL ? EL_IDX_CONVECTION : EL_IDX_ACOUSTIC_PRESS;
+                              EL_IDX_PARTICLE_VEL,
+                              EL_IDX_ACOUSTIC_IMPEDANCE
+                         } ielem_name;
+
+                         switch (oElemType.type) {
+                         case ElementTypes::ELEM_THERM_CONV_ISO4:
+                         case ElementTypes::ELEM_THERM_CONV_QUAD8:
+                         case ElementTypes::ELEM_THERM_CONV_TRIA6:
+                         case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+                              ielem_name = EL_IDX_CONVECTION;
+                              break;
+                              
+                         case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
+                         case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+                         case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
+                         case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+                              ielem_name = EL_IDX_PARTICLE_VEL;
+                              break;
+                              
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
+                              ielem_name = EL_IDX_ACOUSTIC_IMPEDANCE;
+                              break;
+                              
+                         default:
+                              FEM_ASSERT(0);
+                         }
                          
                          const auto iter_elem_name = m_elements.seek(elem_name[ielem_name]);
 
@@ -10373,7 +10630,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
-                         rgElemUse[ElementTypes::ELEM_SFNCON8] = true;                         
+                         rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
                          break;
                          
                     default:
@@ -10970,16 +11231,16 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
                } break;
                case ElementTypes::ELEM_THERM_CONV_ISO4:
-                    InsertThermalConvElem<ScalarFieldBCIso4>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionBCIso4>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
-                    InsertThermalConvElem<ScalarFieldBCQuad8>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionBCQuad8>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
-                    InsertThermalConvElem<ScalarFieldBCTria6>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionBCTria6>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
-                    InsertThermalConvElem<ScalarFieldBCTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertThermalConvElem<ThermalConvectionBCTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_HEAT_SOURCE_ISO4:
                     InsertHeatSourceElem<HeatSourceIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
@@ -10994,16 +11255,28 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     InsertHeatSourceElem<HeatSourceTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
-                    InsertParticleVelocityBC<ScalarFieldBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertParticleVelocityBC<ParticleVelocityBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
-                    InsertParticleVelocityBC<ScalarFieldBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertParticleVelocityBC<ParticleVelocityBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
-                    InsertParticleVelocityBC<ScalarFieldBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertParticleVelocityBC<ParticleVelocityBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
-                    InsertParticleVelocityBC<ScalarFieldBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    InsertParticleVelocityBC<ParticleVelocityBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;                    
                default:
                     FEM_ASSERT(false);
