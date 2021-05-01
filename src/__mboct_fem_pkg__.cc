@@ -6012,10 +6012,7 @@ public:
 
                return oIntegLumped;
           } break;
-          case Element::VEC_LOAD_CONSISTENT:
-          case Element::VEC_LOAD_THERMAL:
-          case Element::VEC_LOAD_ACOUSTICS:
-          case Element::MAT_THERMAL_COND: {
+          default: {
                if (!oIntegConsistent.iGetNumEvalPoints()) {
                     constexpr double g1 = (6. - sqrt(15.)) / 21.;
                     constexpr double g2 = (6. + sqrt(15.)) / 21.;
@@ -6051,8 +6048,6 @@ public:
 
                return oIntegConsistent;
           } break;
-          default:
-               throw std::runtime_error("invalid matrix type");
           }
      }
 };
