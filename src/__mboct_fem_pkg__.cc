@@ -617,12 +617,12 @@ public:
           return info;
      }
 
-     void UpdateMatrixInfo() {
-          ColumnVector diagA(nnz, 0.);
+     void UpdateMatrixInfo(const DofMap& oDofMap) {
+          ColumnVector diagA(oDofMap.iGetNumDof(), 0.);
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
                if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
-                    diagA.xelem(ridx.xelem(i)) += data.xelem(i);
+                    diagA.xelem(ridx.xelem(i).value()) += data.xelem(i);
                }
           }
 
@@ -632,7 +632,7 @@ public:
           double minA = INIT_MIN;
           double maxA = INIT_MAX;
 
-          for (octave_idx_type i = 0; i < nnz; ++i) {
+          for (octave_idx_type i = 0; i < diagA.numel(); ++i) {
                const double absA = fabs(diagA.xelem(i));
 
                if (absA > maxA) {
@@ -10670,7 +10670,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const bool bNeedMatInfo = (*j)->bNeedMatrixInfo(eMatType);
 
                          if (!bMatInfo && bNeedMatInfo) {
-                              oMatAss.UpdateMatrixInfo();
+                              oMatAss.UpdateMatrixInfo(oDof);
                               oMatInfo = oMatAss.GetMatrixInfo();
                               bMatInfo = true;
                          }
