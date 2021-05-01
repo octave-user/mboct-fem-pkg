@@ -128,9 +128,9 @@ struct array
 class DofMap {
 public:
      enum DomainType: unsigned {
-          DO_STRUCTURAL = 0x00000000u,
-          DO_THERMAL    = 0x01000000u,
-          DO_ACOUSTICS  = 0x02000000u
+          DO_STRUCTURAL = 0x01000000u,
+          DO_THERMAL    = 0x02000000u,
+          DO_ACOUSTICS  = 0x03000000u
      };
 
      enum ElementType {
@@ -539,46 +539,52 @@ class Element
 {
 public:
      enum MatSymmetryFlag: unsigned {
-          MAT_SYM_FULL = 0x0u,
-          MAT_SYM_UPPER = 0x1u,
-          MAT_SYM_LOWER = 0x2u,
-          MAT_SYM_DIAG = 0x3u,
-          MAT_SYM_MASK = 0xFu
+          MAT_SYM_FULL = 0x00u,
+          MAT_SYM_UPPER = 0x01u,
+          MAT_SYM_LOWER = 0x02u,
+          MAT_SYM_DIAG = 0x03u,
+          MAT_SYM_MASK = 0x03u,
+          MAT_TYPE_MATRIX = 0x04u,
+          MAT_TYPE_VECTOR = 0x08u,
+          MAT_TYPE_SCALAR = 0x12u,
+          MAT_TYPE_ARRAY = 0x16u,
+          MAT_TYPE_MASK = 0x1cu,
+          MAT_UPDATE_INFO_ALWAYS = 0x20u
      };
 
      enum FemMatrixType: unsigned {
-          MAT_UNKNOWN = static_cast<unsigned>(-1),
-          MAT_STIFFNESS = 0x100u,
-          MAT_STIFFNESS_SYM = MAT_STIFFNESS | MAT_SYM_UPPER,
-          MAT_STIFFNESS_SYM_L = MAT_STIFFNESS | MAT_SYM_LOWER,
-          MAT_MASS = 0x200u,
-          MAT_MASS_SYM = MAT_MASS | MAT_SYM_UPPER,
-          MAT_MASS_SYM_L = MAT_MASS | MAT_SYM_LOWER,
-          MAT_MASS_LUMPED = MAT_MASS | MAT_SYM_DIAG,
-          MAT_DAMPING = 0x300u,
-          MAT_DAMPING_SYM = MAT_DAMPING | MAT_SYM_UPPER,
-          MAT_DAMPING_SYM_L = MAT_DAMPING | MAT_SYM_LOWER,
-          SCA_TOT_MASS = 0x400u,
-          VEC_INERTIA_M1 = 0x500u,
-          MAT_INERTIA_J = 0x600u,
-          MAT_INERTIA_INV3 = 0x700u,
-          MAT_INERTIA_INV4 = 0x800u,
-          MAT_INERTIA_INV5 = 0x900u,
-          MAT_INERTIA_INV8 = 0xA00u,
-          MAT_INERTIA_INV9 = 0xB00u,
-          MAT_ACCEL_LOAD = 0xC00u,
-          VEC_LOAD_CONSISTENT = 0xD00u,
-          VEC_LOAD_LUMPED = 0xE00u,
-          VEC_STRESS_CAUCH = 0xF00u,
-          VEC_STRAIN_TOTAL = 0x1000u,
-          SCA_STRESS_VMIS = 0x1100u,
-          MAT_THERMAL_COND = 0x1200u | DofMap::DO_THERMAL,
-          MAT_HEAT_CAPACITY = 0x1300u | DofMap::DO_THERMAL,
-          VEC_LOAD_THERMAL = 0x1400u | DofMap::DO_THERMAL,
-          MAT_MASS_ACOUSTICS = 0x1500u | DofMap::DO_ACOUSTICS,
-          MAT_STIFFNESS_ACOUSTICS = 0x1600u | DofMap::DO_ACOUSTICS,
-          MAT_DAMPING_ACOUSTICS = 0x1700u | DofMap::DO_ACOUSTICS,
-          VEC_LOAD_ACOUSTICS = 0x1800u | DofMap::DO_ACOUSTICS
+          MAT_UNKNOWN              = 0x0000u,
+          MAT_STIFFNESS            = 0x0100u | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_STIFFNESS_SYM        =           MAT_STIFFNESS | MAT_SYM_UPPER,
+          MAT_STIFFNESS_SYM_L      =           MAT_STIFFNESS | MAT_SYM_LOWER,
+          MAT_MASS                 = 0x0200u | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_MASS_SYM             =           MAT_MASS | MAT_SYM_UPPER,
+          MAT_MASS_SYM_L           =           MAT_MASS | MAT_SYM_LOWER,
+          MAT_MASS_LUMPED          =           MAT_MASS | MAT_SYM_DIAG,
+          MAT_DAMPING              = 0x0300u | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_DAMPING_SYM          =           MAT_DAMPING | MAT_SYM_UPPER,
+          MAT_DAMPING_SYM_L        =           MAT_DAMPING | MAT_SYM_LOWER,
+          SCA_TOT_MASS             = 0x0400u | MAT_TYPE_SCALAR | DofMap::DO_STRUCTURAL,
+          VEC_INERTIA_M1           = 0x0500u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_J            = 0x0600u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV3         = 0x0700u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV4         = 0x0800u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV5         = 0x0900u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV8         = 0x0A00u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV9         = 0x0B00u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_ACCEL_LOAD           = 0x0C00u | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_LOAD_CONSISTENT      = 0x0D00u | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_LOAD_LUMPED          = 0x0E00u | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_STRESS_CAUCH         = 0x0F00u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          VEC_STRAIN_TOTAL         = 0x1000u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          SCA_STRESS_VMIS          = 0x1100u | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_THERMAL_COND         = 0x1200u | DofMap::DO_THERMAL | MAT_TYPE_MATRIX,
+          MAT_HEAT_CAPACITY        = 0x1300u | DofMap::DO_THERMAL | MAT_TYPE_MATRIX,
+          VEC_LOAD_THERMAL         = 0x1400u | DofMap::DO_THERMAL | MAT_TYPE_VECTOR,
+          MAT_MASS_ACOUSTICS       = 0x1500u | DofMap::DO_ACOUSTICS | MAT_TYPE_MATRIX,
+          MAT_STIFFNESS_ACOUSTICS  = 0x1600u | DofMap::DO_ACOUSTICS | MAT_TYPE_MATRIX | MAT_UPDATE_INFO_ALWAYS,
+          MAT_DAMPING_ACOUSTICS    = 0x1700u | DofMap::DO_ACOUSTICS | MAT_TYPE_MATRIX,
+          VEC_LOAD_ACOUSTICS       = 0x1800u | DofMap::DO_ACOUSTICS | MAT_TYPE_VECTOR 
      };
 
      static constexpr unsigned MAT_TYPE_COUNT = 24u;
@@ -11349,7 +11355,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                     retval.append(oMatAss.Assemble(oDof, load_case.numel()));
 
-                    oMatAss.UpdateMatrixInfo(oDof); // Needed for linear acoustics only
+                    if (eMatType & Element::MAT_UPDATE_INFO_ALWAYS) {
+                         oMatAss.UpdateMatrixInfo(oDof);
+                    }
                } break;
                case Element::SCA_TOT_MASS: {
                     double dMass = 0.;
@@ -11594,7 +11602,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
                auto eMatType = static_cast<Element::FemMatrixType>(matrix_type.xelem(i).value());
-               beta.xelem(i) = oMatAss.bHaveMatrixInfo(eMatType) ? oMatAss.GetMatrixInfo(eMatType).beta : -1.;
+               beta.xelem(i) = oMatAss.bHaveMatrixInfo(eMatType) ? oMatAss.GetMatrixInfo(eMatType).beta : 0.;
           }
           
           mat_info.assign("beta", beta);
