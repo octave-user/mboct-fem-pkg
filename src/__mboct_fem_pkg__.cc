@@ -665,14 +665,14 @@ public:
           return info[idx];
      }
 
-     void UpdateMatrixInfo() {
+     void UpdateMatrixInfo(const DofMap& oDofMap) {
           const unsigned i = Element::GetMatTypeIndex(eMatType);
 
           if (info[i].updated) {
                return;
           }
           
-          ColumnVector diagA(nnz, 0.);
+          ColumnVector diagA(oDofMap.iGetNumDof(), 0.);
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
                if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
@@ -11340,7 +11340,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const bool bNeedMatInfo = (*j)->bNeedMatrixInfo(eMatType);
 
                          if (!bMatInfo && bNeedMatInfo) {
-                              oMatAss.UpdateMatrixInfo();
+                              oMatAss.UpdateMatrixInfo(oDof);
                               bMatInfo = true;
                          }
 
@@ -11353,7 +11353,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                     retval.append(oMatAss.Assemble(oDof, load_case.numel()));
 
-                    oMatAss.UpdateMatrixInfo(); // Needed for linear acoustics only
+                    oMatAss.UpdateMatrixInfo(oDof); // Needed for linear acoustics only
                } break;
                case Element::SCA_TOT_MASS: {
                     double dMass = 0.;
