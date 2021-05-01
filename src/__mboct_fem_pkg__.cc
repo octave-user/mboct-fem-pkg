@@ -9554,6 +9554,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                               
                          default:
                               FEM_ASSERT(0);
+                              throw std::logic_error("unexpected element type");
                          }
                          
                          const auto iter_elem_name = m_elements.seek(elem_name[ielem_name]);
