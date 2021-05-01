@@ -599,11 +599,12 @@ public:
           VEC_LOAD_THERMAL         = (20u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
           MAT_MASS_ACOUSTICS       = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
           MAT_STIFFNESS_ACOUSTICS  = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
-          MAT_DAMPING_ACOUSTICS    = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          VEC_LOAD_ACOUSTICS       = (24u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS
+          MAT_DAMPING_ACOUSTICS_RE = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_DAMPING_ACOUSTICS_IM = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          VEC_LOAD_ACOUSTICS       = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 24u;
+     static constexpr unsigned MAT_TYPE_COUNT = 25u;
      
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -876,7 +877,8 @@ public:
                eMatTypeScale = MAT_THERMAL_COND;
                break;
                
-          case MAT_DAMPING_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
           case VEC_LOAD_ACOUSTICS:
                eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
                break;
@@ -890,7 +892,8 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
-          case MAT_DAMPING_ACOUSTICS: {
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM: {
                int32NDArray ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
@@ -943,7 +946,8 @@ public:
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_THERMAL_COND:
-          case MAT_DAMPING_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
                return 2 * C.rows() * C.columns();
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
@@ -964,7 +968,8 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
-          case MAT_DAMPING_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
@@ -7319,18 +7324,21 @@ private:
 
 class AcousticImpedanceBC: public ScalarFieldBC {
 public:
-     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rho_z)
-          :ScalarFieldBC(eltype, id, X, material, nodes), rho_z(rho_z) {
+     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rho_z_re, const RowVector& rho_z_im)
+          :ScalarFieldBC(eltype, id, X, material, nodes), rho_z_re(rho_z_re), rho_z_im(rho_z_im) {
      }
 
      AcousticImpedanceBC(const AcousticImpedanceBC& oElem)=default;
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
-          case MAT_DAMPING_ACOUSTICS:
-               CoefficientMatrix(mat, info, dof, eMatType, rho_z);
+          case MAT_DAMPING_ACOUSTICS_RE:
+               CoefficientMatrix(mat, info, dof, eMatType, rho_z_re);
                break;
-
+          case MAT_DAMPING_ACOUSTICS_IM:
+               CoefficientMatrix(mat, info, dof, eMatType, rho_z_im);
+               break;
+               
           default:
                ;
           }          
@@ -7338,7 +7346,8 @@ public:
 
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
           switch (eMatType) {          
-          case MAT_DAMPING_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
                return iGetNumDof() * iGetNumDof();
                
           default:
@@ -7347,7 +7356,7 @@ public:
      }
 
 private:
-     const RowVector rho_z;
+     const RowVector rho_z_re, rho_z_im;
 };
 
 
@@ -8320,12 +8329,12 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
 
      const octave_value ov_z = m_elem_type.contents(iter_z);
 
-     if (!(ov_z.is_matrix_type() && ov_z.isreal() && ov_z.rows() == elnodes.rows() && ov_z.columns() == elnodes.columns())) {
+     if (!(ov_z.is_matrix_type() && ov_z.rows() == elnodes.rows() && ov_z.columns() == elnodes.columns())) {
           throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + ".z must be a real matrix of the same size "
                                    "like mesh.elements.acoustic_impedance." + pszElemName + ".nodes");
      }
 
-     const Matrix z = ov_z.matrix_value();
+     const ComplexMatrix z = ov_z.complex_matrix_value();
      
      const auto iter_impe_mat = materials.seek("acoustic_impedance");
 
@@ -8368,10 +8377,12 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
           
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
           const double rhok = materialk->Density();
-          RowVector rho_z(elnodes.columns());
+          RowVector rho_z_re(elnodes.columns()), rho_z_im(elnodes.columns());
 
           for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
-               rho_z.xelem(i) = rhok / z.xelem(k, i);
+               auto zki = rhok / z.xelem(k, i);
+               rho_z_re.xelem(i) = std::real(zki);
+               rho_z_im.xelem(i) = std::imag(zki);               
           }
 
           pElem->Insert(k,
@@ -8379,7 +8390,8 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
-                        rho_z);
+                        rho_z_re,
+                        rho_z_im);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
@@ -9314,7 +9326,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_MASS_ACOUSTICS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_ACOUSTICS", "__mboct_fem_pkg__.oct");
-// PKG_ADD: autoload("FEM_MAT_DAMPING_ACOUSTICS", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_DAMPING_ACOUSTICS_RE", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_DAMPING_ACOUSTICS_IM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_ACOUSTICS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
@@ -9355,7 +9368,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_VEC_LOAD_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_MASS_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_STIFFNESS_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
-// PKG_DEL: autoload("FEM_MAT_DAMPING_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_DAMPING_ACOUSTICS_RE", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_DAMPING_ACOUSTICS_IM", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_LOAD_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
@@ -10639,7 +10653,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;                         
                          [[fallthrough]];
                          
-                    case Element::MAT_DAMPING_ACOUSTICS:
+                    case Element::MAT_DAMPING_ACOUSTICS_RE:
+                    case Element::MAT_DAMPING_ACOUSTICS_IM:
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
@@ -11344,7 +11359,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_LOAD_THERMAL:
                case Element::MAT_STIFFNESS_ACOUSTICS:
                case Element::MAT_MASS_ACOUSTICS:
-               case Element::MAT_DAMPING_ACOUSTICS:
+               case Element::MAT_DAMPING_ACOUSTICS_RE:
+               case Element::MAT_DAMPING_ACOUSTICS_IM:
                case Element::VEC_LOAD_ACOUSTICS: {
                     oMatAss.Reset(eMatType);
                     
@@ -11677,7 +11693,8 @@ DEFINE_GLOBAL_CONSTANT(Element, MAT_HEAT_CAPACITY, "heat capacity matrix")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_THERMAL, "thermal load vector")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_ACOUSTICS, "acoustic stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_ACOUSTICS, "acoustic mass matrix")
-DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_ACOUSTICS, "acoustic damping matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_ACOUSTICS_RE, "real part of acoustic damping matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_ACOUSTICS_IM, "imaginary part of acoustic damping matrix")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_ACOUSTICS, "acoustic load vector")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
