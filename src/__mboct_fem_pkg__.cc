@@ -552,6 +552,10 @@ public:
           MAT_UPDATE_INFO_ALWAYS = 0x20u
      };
 
+     static_assert((MAT_SYM_MASK & MAT_TYPE_MASK) == 0u);
+     static_assert((MAT_SYM_MASK & MAT_UPDATE_INFO_ALWAYS) == 0u);
+     static_assert((MAT_TYPE_MASK & MAT_UPDATE_INFO_ALWAYS) == 0u);
+     
      enum FemMatrixType: unsigned {
           MAT_UNKNOWN              = 0x0000u,
           MAT_STIFFNESS            = 0x0100u | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
@@ -590,11 +594,11 @@ public:
      static constexpr unsigned MAT_TYPE_COUNT = 24u;
      
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
-          constexpr unsigned MAT_TYPE_FIRST = MAT_STIFFNESS;
-          constexpr unsigned MAT_TYPE_MASK = 0xFF00u;
-          constexpr unsigned MAT_TYPE_SHIFT = 8u;
+          constexpr unsigned MAT_ID_MASK = 0xFF00u;
+          constexpr unsigned MAT_ID_FIRST = MAT_ID_MAKS & MAT_STIFFNESS;
+          constexpr unsigned MAT_ID_SHIFT = 8u;
           
-          unsigned i = (((eMatType - MAT_TYPE_FIRST) & MAT_TYPE_MASK) >> MAT_TYPE_SHIFT);
+          unsigned i = (((eMatType - MAT_ID_FIRST) & MAT_ID_MASK) >> MAT_ID_SHIFT);
           
           FEM_ASSERT(i < MAT_TYPE_COUNT);
           
