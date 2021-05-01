@@ -7306,8 +7306,8 @@ private:
 
 class AcousticImpedanceBC: public ScalarFieldBC {
 public:
-     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rhoz)
-          :ScalarFieldBC(eltype, id, X, material, nodes), rhoz(rhoz) {
+     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rho_z)
+          :ScalarFieldBC(eltype, id, X, material, nodes), rho_z(rho_z) {
      }
 
      AcousticImpedanceBC(const AcousticImpedanceBC& oElem)=default;
@@ -7315,7 +7315,7 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
           case MAT_DAMPING_ACOUSTICS:
-               CoefficientMatrix(mat, info, dof, eMatType, rhoz);
+               CoefficientMatrix(mat, info, dof, eMatType, rho_z);
                break;
 
           default:
@@ -7334,7 +7334,7 @@ public:
      }
 
 private:
-     const RowVector rhoz;
+     const RowVector rho_z;
 };
 
 
@@ -8355,10 +8355,10 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
           
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
           const double rhok = materialk->Density();
-          RowVector rhoz(elnodes.columns());
+          RowVector rho_z(elnodes.columns());
 
           for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
-               rhoz.xelem(i) = rhok * z.xelem(k, i);
+               rho_z.xelem(i) = rhok / z.xelem(k, i);
           }
 
           pElem->Insert(k,
@@ -8366,7 +8366,7 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
-                        rhoz);
+                        rho_z);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
