@@ -128,9 +128,12 @@ struct array
 class DofMap {
 public:
      enum DomainType: unsigned {
-          DO_STRUCTURAL = 0x01000000u,
-          DO_THERMAL    = 0x02000000u,
-          DO_ACOUSTICS  = 0x03000000u,
+          DO_STRUCTURAL = 0x00000000u,
+          DO_THERMAL    = 0x01000000u,
+          DO_ACOUSTICS  = 0x02000000u,
+     };
+
+     enum: unsigned {
           DO_MASK       = 0xFF000000u
      };
 
@@ -591,21 +594,19 @@ public:
           VEC_STRESS_CAUCH         = (15u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
           VEC_STRAIN_TOTAL         = (16u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
           SCA_STRESS_VMIS          = (17u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_THERMAL_COND         = (18u << MAT_ID_SHIFT) | DofMap::DO_THERMAL | MAT_TYPE_MATRIX,
-          MAT_HEAT_CAPACITY        = (19u << MAT_ID_SHIFT) | DofMap::DO_THERMAL | MAT_TYPE_MATRIX,
-          VEC_LOAD_THERMAL         = (20u << MAT_ID_SHIFT) | DofMap::DO_THERMAL | MAT_TYPE_VECTOR,
-          MAT_MASS_ACOUSTICS       = (21u << MAT_ID_SHIFT) | DofMap::DO_ACOUSTICS | MAT_TYPE_MATRIX,
-          MAT_STIFFNESS_ACOUSTICS  = (22u << MAT_ID_SHIFT) | DofMap::DO_ACOUSTICS | MAT_TYPE_MATRIX | MAT_UPDATE_INFO_ALWAYS,
-          MAT_DAMPING_ACOUSTICS    = (23u << MAT_ID_SHIFT) | DofMap::DO_ACOUSTICS | MAT_TYPE_MATRIX,
-          VEC_LOAD_ACOUSTICS       = (24u << MAT_ID_SHIFT) | DofMap::DO_ACOUSTICS | MAT_TYPE_VECTOR 
+          MAT_THERMAL_COND         = (18u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
+          MAT_HEAT_CAPACITY        = (19u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
+          VEC_LOAD_THERMAL         = (20u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
+          MAT_MASS_ACOUSTICS       = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_STIFFNESS_ACOUSTICS  = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
+          MAT_DAMPING_ACOUSTICS    = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          VEC_LOAD_ACOUSTICS       = (24u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS
      };
 
      static constexpr unsigned MAT_TYPE_COUNT = 24u;
      
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
-          constexpr unsigned MAT_ID_FIRST = MAT_ID_MASK & MAT_STIFFNESS;
-          
-          unsigned i = (((eMatType - MAT_ID_FIRST) & MAT_ID_MASK) >> MAT_ID_SHIFT);
+          unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
           
           FEM_ASSERT(i < MAT_TYPE_COUNT);
           
