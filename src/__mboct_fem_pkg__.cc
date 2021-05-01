@@ -676,7 +676,7 @@ public:
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
                if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
-                    diagA.xelem(ridx.xelem(i)) += data.xelem(i);
+                    diagA.xelem(ridx.xelem(i).value()) += data.xelem(i);
                }
           }
 
@@ -686,7 +686,7 @@ public:
           double minA = INIT_MIN;
           double maxA = INIT_MAX;
 
-          for (octave_idx_type i = 0; i < nnz; ++i) {
+          for (octave_idx_type i = 0; i < diagA.numel(); ++i) {
                const double absA = fabs(diagA.xelem(i));
 
                if (absA > maxA) {
