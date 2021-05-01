@@ -26966,7 +26966,12 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ### TEST 166
+%! ### TEST 166 - spherical waves
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -27050,7 +27055,7 @@ endfunction
 %!   yi = mesh.nodes(node_idx_constr, 2).';
 %!   zi = mesh.nodes(node_idx_constr, 3).';
 %!   ri = sqrt(xi.^2 + yi.^2 + zi.^2);
-%!   p = @(r, t) A * exp(1j * (omega * t - k * r)) ./ r;
+%!   p = @(r, t) A * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
 %!   p_constr = p(ri, 0);
 %!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
 %!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
@@ -27184,8 +27189,8 @@ endfunction
 %!   yi = mesh.nodes(node_idx_constr, 2).';
 %!   zi = mesh.nodes(node_idx_constr, 3).';
 %!   ri = sqrt(xi.^2 + yi.^2 + zi.^2);
-%!   p = @(r, t) A * exp(1j * (omega * t - k * r)) ./ r;
-%!   z = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2);
+%!   p = @(r, t) A * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
+%!   z = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according equation 5.11.9
 %!   p_constr = p(ri, 0);
 %!   mesh.elements.acoustic_impedance.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_outlet).elements, :);
 %!   xo = mesh.nodes(:, 1)(mesh.elements.acoustic_impedance.tria6.nodes);
