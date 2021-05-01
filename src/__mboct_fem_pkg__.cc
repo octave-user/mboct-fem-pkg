@@ -676,7 +676,7 @@ public:
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
                if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
-                    diagA.xelem(ridx.xelem(i).value()) += data.xelem(i);
+                    diagA.xelem(ridx.xelem(i).value() - 1) += data.xelem(i);
                }
           }
 
