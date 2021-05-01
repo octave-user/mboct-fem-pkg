@@ -878,7 +878,6 @@ public:
                break;
                
           case MAT_DAMPING_ACOUSTICS_RE:
-          case MAT_DAMPING_ACOUSTICS_IM:
           case VEC_LOAD_ACOUSTICS:
                eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
                break;
@@ -892,8 +891,7 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
-          case MAT_DAMPING_ACOUSTICS_RE:
-          case MAT_DAMPING_ACOUSTICS_IM: {
+          case MAT_DAMPING_ACOUSTICS_RE: {
                int32NDArray ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
@@ -947,7 +945,6 @@ public:
           case MAT_STIFFNESS:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
-          case MAT_DAMPING_ACOUSTICS_IM:
                return 2 * C.rows() * C.columns();
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
@@ -969,7 +966,6 @@ public:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
-          case MAT_DAMPING_ACOUSTICS_IM:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
@@ -10654,12 +10650,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          [[fallthrough]];
                          
                     case Element::MAT_DAMPING_ACOUSTICS_RE:
-                    case Element::MAT_DAMPING_ACOUSTICS_IM:
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         [[fallthrough]];
+                         
+                    case Element::MAT_DAMPING_ACOUSTICS_IM:
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
