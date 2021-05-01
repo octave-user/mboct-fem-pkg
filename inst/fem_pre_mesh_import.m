@@ -26716,7 +26716,7 @@ endfunction
 %!   omega = k * c;
 %!   f = omega / (2 * pi);
 %!   lambda = c / f;
-%!   dx = lambda / 30;
+%!   dx = lambda / 50;
 %!   w = dx;
 %!   h = dx;
 %!   pinput = 50 - 100j;
