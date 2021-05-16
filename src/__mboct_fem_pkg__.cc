@@ -22,6 +22,7 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 using namespace std::string_literals;
@@ -125,6 +126,40 @@ struct array
      std::array<T, N> data;
 };
 
+template <typename T>
+struct PostProcTypeTraits;
+
+template <>
+struct PostProcTypeTraits<double> {
+     typedef Matrix MatrixType;
+     typedef ColumnVector ColumnVectorType;
+     typedef RowVector RowVectorType;
+     typedef NDArray NDArrayType;
+     
+     static double
+     EffectiveAmplitude(double x, double y) {
+          // return the instantaneous value of x * y
+          return x * y;
+     }
+};
+
+template <>
+struct PostProcTypeTraits<std::complex<double> > {
+     typedef ComplexMatrix MatrixType;
+     typedef ComplexColumnVector ColumnVectorType;
+     typedef ComplexRowVector RowVectorType;
+     typedef ComplexNDArray NDArrayType;
+     
+     static double
+     EffectiveAmplitude(const std::complex<double>& x, const std::complex<double>& y) {
+          // return the effective amplitude of x * y
+          // where x and y are complex amplitudes of harmonic quantities
+          // e.g. x(t) = realpart(x * exp(j * omega * t))
+          //      y(t) = realpart(y * exp(j * omega * t))
+          return std::abs(x) * std::abs(y) / 2.;
+     }
+};
+
 class DofMap {
 public:
      enum DomainType: unsigned {
@@ -162,6 +197,10 @@ public:
 
      octave_idx_type iGetNumDof() const {
           return totdof;
+     }
+
+     octave_idx_type iGetNumNodes() const {
+          return ndof.rows();
      }
 
      octave_idx_type iGetNodeMaxDofIndex() const {
@@ -437,6 +476,8 @@ struct StrainField {
      Cell rgRefStrain;
 };
 
+class PostProcData;
+
 class ElementTypes {
 public:
      enum TypeId {
@@ -475,6 +516,10 @@ public:
           ELEM_ACOUSTIC_IMPE_TRIA6,
           ELEM_ACOUSTIC_IMPE_TRIA6H,
           ELEM_ACOUSTIC_CONSTR,
+          ELEM_ACOUSTIC_BND_ISO4,
+          ELEM_ACOUSTIC_BND_QUAD8,
+          ELEM_ACOUSTIC_BND_TRIA6,
+          ELEM_ACOUSTIC_BND_TRIA6H,
           ELEM_TYPE_COUNT,
           ELEM_TYPE_UNKNOWN = -1
      };
@@ -536,7 +581,11 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8,  "quad8",           8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6,  "tria6",           6,  6, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H, "tria6h",          6,  6, DofMap::ELEM_NODOF},     
-     {ElementTypes::ELEM_ACOUSTIC_CONSTR,      "acoustic_constr", 1, -1, DofMap::ELEM_JOINT}
+     {ElementTypes::ELEM_ACOUSTIC_CONSTR,      "acoustic_constr", 1, -1, DofMap::ELEM_JOINT},
+     {ElementTypes::ELEM_ACOUSTIC_BND_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_BND_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF}
 };
 
 class Element
@@ -601,10 +650,14 @@ public:
           MAT_STIFFNESS_ACOUSTICS  = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
           MAT_DAMPING_ACOUSTICS_RE = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
           MAT_DAMPING_ACOUSTICS_IM = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          VEC_LOAD_ACOUSTICS       = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS
+          VEC_LOAD_ACOUSTICS       = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY    = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY_C  = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          SCA_ACOUSTIC_INTENSITY   = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          SCA_ACOUSTIC_INTENSITY_C = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 25u;
+     static constexpr unsigned MAT_TYPE_COUNT = 29u;
      
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -612,6 +665,17 @@ public:
           FEM_ASSERT(i < MAT_TYPE_COUNT);
           
           return i;
+     }
+
+     static constexpr FemMatrixType ComplexMatrixType(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case VEC_PARTICLE_VELOCITY:
+               return VEC_PARTICLE_VELOCITY_C;
+          case SCA_ACOUSTIC_INTENSITY:
+               return SCA_ACOUSTIC_INTENSITY_C;
+          default:
+               throw std::logic_error("requested complex matrix type does not exist");
+          }
      }
      
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -629,7 +693,7 @@ public:
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const=0;
 
-     virtual void PostProcElem(NDArray& mat, FemMatrixType eMatType, const NDArray& U) const {
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const {
      }
 
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const=0;
@@ -652,6 +716,333 @@ protected:
      const Material* material;
      const int32NDArray nodes;
 };
+
+class PostProcData {
+public:
+     enum FieldTypeReal: unsigned {
+          VEC_NO_STRUCT_DISPLACEMENT_RE,     // nodal displacement vector field
+          SCA_NO_ACOUSTIC_PART_VEL_POT_RE,   // nodal particle velocity potential scalar field
+          SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, // first derivative of nodal particle velocity potential scalar field
+          VEC_NO_ACOUSTIC_PART_VEL_RE,       // nodal particle velocity vector field
+          SCA_NO_ACOUSTIC_PRESSURE_RE,       // nodal acoustic pressure scalar field
+          VEC_EL_ACOUSTIC_PART_VEL_RE,       // particle velocity scalar field at elements
+          SCA_EL_ACOUSTIC_PART_VEL_NORM_RE,  // surface normal particle velocity at elements
+          SCA_EL_ACOUSTIC_INTENSITY_RE,      // acoustic intensity at elements
+          SCA_EL_ACOUSTIC_SOUND_POWER_RE,    // acoustic sound power at elements
+          VEC_EL_STRUCT_STRESS_CAUCH_RE,     // stress tensor at elements
+          VEC_EL_STRUCT_STRAIN_TOTAL_RE,     // strain tensor at elements
+          SCA_NO_THERMAL_TEMPERATURE_RE,     // scalar temperature field
+          VEC_G_STRUCT_INERTIA_M1_RE,        // center of mass times total mass
+          MAT_G_STRUCT_INERTIA_J_RE,         // total moment of inertia
+          MAT_G_STRUCT_INERTIA_INV3_RE,      // MBDyn's modal invariant 3
+          MAT_G_STRUCT_INERTIA_INV4_RE,      // MBDyn's modal invariant 4
+          MAT_G_STRUCT_INERTIA_INV5_RE,      // MBDyn's modal invariant 5
+          MAT_G_STRUCT_INERTIA_INV8_RE,      // MBDyn's modal invariant 8
+          MAT_G_STRUCT_INERTIA_INV9_RE,      // MBDyn's modal invariant 9
+          FIELD_COUNT_RE,
+          UNKNOWN_FIELD_RE = ~0u
+     };
+
+     enum FieldTypeComplex: unsigned {
+          VEC_NO_STRUCT_DISPLACEMENT_C,
+          SCA_NO_ACOUSTIC_PART_VEL_POT_C,
+          SCA_NO_ACOUSTIC_PART_VEL_POT_P_C,
+          VEC_NO_ACOUSTIC_PART_VEL_C,
+          SCA_NO_ACOUSTIC_PRESSURE_C,
+          VEC_EL_ACOUSTIC_PART_VEL_C,
+          SCA_EL_ACOUSTIC_PART_VEL_NORM_C,
+          SCA_EL_ACOUSTIC_INTENSITY_C,
+          FIELD_COUNT_C,
+          UNKNOWN_FIELD_C = ~0u
+     };
+     
+     PostProcData(const DofMap& oDofMap, const octave_scalar_map& sol)
+          :eDomain(oDofMap.GetDomain()), iNumSteps(0) {
+
+          enum DataType {
+               DT_REAL,
+               DT_COMPLEX
+          };
+     
+          struct SolField {
+               unsigned id;
+               DataType type;
+               char name[6];
+          };
+
+          static constexpr SolField structFields[] = {
+               {VEC_NO_STRUCT_DISPLACEMENT_RE, DT_REAL, "def"},
+               {VEC_NO_STRUCT_DISPLACEMENT_C, DT_COMPLEX, "def"}
+          };
+
+          static constexpr SolField thermalFields[] = {
+               {SCA_NO_THERMAL_TEMPERATURE_RE, DT_REAL, "theta"}
+          };
+
+          static constexpr SolField acousticFields[] = {
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, "PhiP"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, "PhiP"}
+          };
+
+          struct DomainField {
+               DofMap::DomainType domain;
+               const SolField* begin;
+               const SolField* end;
+          };
+
+          static constexpr DomainField domainFields[] = {
+               {DofMap::DO_STRUCTURAL, std::begin(structFields),   std::end(structFields)},
+               {DofMap::DO_THERMAL,    std::begin(thermalFields),  std::end(thermalFields)},
+               {DofMap::DO_ACOUSTICS,  std::begin(acousticFields), std::end(acousticFields)}
+          };
+
+          constexpr octave_idx_type numDomainFields = sizeof(domainFields) / sizeof(domainFields[0]);
+
+          octave_idx_type iDomain = -1;
+
+          for (octave_idx_type i = 0; i < numDomainFields; ++i) {
+               if (domainFields[i].domain == eDomain) {
+                    iDomain = i;
+                    break;
+               }
+          }
+          
+          if (iDomain < 0) {
+               throw std::logic_error("unknown domain for post processing");
+          }
+          
+          const DomainField& oDomain = domainFields[iDomain];
+
+          const octave_idx_type iMaxDofNode = oDofMap.iGetNodeMaxDofIndex();
+
+          for (const SolField* pSol = oDomain.begin; pSol != oDomain.end; ++pSol) {
+               const auto iterSol = sol.seek(pSol->name);
+
+               if (iterSol == sol.end()) {
+                    continue;
+               }
+
+               const octave_value ovSol = sol.contents(iterSol);
+
+               if (!(ovSol.is_matrix_type() && (ovSol.isreal() || ovSol.iscomplex()))) {
+                    throw std::runtime_error("field sol."s + pSol->name + " must be an real or complex array in argument sol");
+               }
+
+               dim_vector dimSol;
+
+               if (ovSol.isreal() && pSol->type == DT_REAL) {
+                    NDArray solArrayRe = ovSol.array_value();
+                    dimSol = solArrayRe.dims();
+                    SetField(static_cast<FieldTypeReal>(pSol->id), ElementTypes::ELEM_TYPE_UNKNOWN, solArrayRe);
+               } else if (ovSol.iscomplex() && pSol->type == DT_COMPLEX) {
+                    ComplexNDArray solArrayC = ovSol.complex_array_value();
+                    dimSol = solArrayC.dims();
+                    SetField(static_cast<FieldTypeComplex>(pSol->id), ElementTypes::ELEM_TYPE_UNKNOWN, solArrayC);
+               } else {
+                    continue;
+               }
+
+               octave_idx_type iNumCols, iNumStepsCurr;
+               
+               if (iMaxDofNode == 1) {
+                    iNumCols = iMaxDofNode;
+                    iNumStepsCurr = dimSol(1);
+               } else {
+                    iNumCols = dimSol(1);
+                    iNumStepsCurr = dimSol.ndims() > 2 ? dimSol(2) : 1;
+               }
+
+               if (iNumCols != iMaxDofNode) {
+                    throw std::runtime_error("columns of sol."s + pSol->name + " is not consistent with dof_map.ndof");
+               }
+
+               if (iNumSteps > 0 && iNumStepsCurr != iNumSteps) {
+                    throw std::runtime_error("number of load steps in sol."s + pSol->name + " is not consistent within sol");
+               }
+
+               iNumSteps = iNumStepsCurr;
+          }
+     }
+
+     const NDArray* pFindField(FieldTypeReal eFieldType, ElementTypes::TypeId eElemType) const {
+          auto iter = nodalFieldsReal.find(Key<FieldTypeReal>{eFieldType, eElemType});
+          
+          if (iter == nodalFieldsReal.end()) {
+               return nullptr;
+          }
+
+          return &iter->second;
+     }
+
+     const ComplexNDArray* pFindField(FieldTypeComplex eFieldType, ElementTypes::TypeId eElemType) const {
+          auto iter = nodalFieldsComplex.find(Key<FieldTypeComplex>{eFieldType, eElemType});
+
+          if (iter == nodalFieldsComplex.end()) {
+               return nullptr;
+          }
+
+          return &iter->second;
+     }
+     
+     NDArray& GetField(FieldTypeReal eFieldType, ElementTypes::TypeId eElemType) {
+          auto iter = nodalFieldsReal.find(Key<FieldTypeReal>{eFieldType, eElemType});
+
+          if (iter == nodalFieldsReal.end()) {
+               throw std::runtime_error("real field "s + szFieldName[eFieldType] + " not found in argument sol");
+          }
+
+          return iter->second; 
+     }
+
+     ComplexNDArray& GetField(FieldTypeComplex eFieldType, ElementTypes::TypeId eElemType) {
+          auto iter = nodalFieldsComplex.find(Key<FieldTypeComplex>{eFieldType, eElemType});
+
+          if (iter == nodalFieldsComplex.end()) {
+               throw std::runtime_error("complex field "s + szFieldName[eFieldType] + " not found in argument sol");
+          }
+
+          return iter->second;
+     }
+
+     void SetField(FieldTypeReal eFieldType, ElementTypes::TypeId eElemType, const NDArray& fieldData) {
+          nodalFieldsReal[Key<FieldTypeReal>{eFieldType, eElemType}] = fieldData;
+     }
+
+     void SetField(FieldTypeComplex eFieldType, ElementTypes::TypeId eElemType, const ComplexNDArray& fieldData) {
+          nodalFieldsComplex[Key<FieldTypeComplex>{eFieldType, eElemType}] = fieldData;
+     }
+
+     DofMap::DomainType GetDomain() const { return eDomain; }
+
+     octave_idx_type GetNumSteps() const { return iNumSteps; }
+
+     static bool bIsNodalField(FieldTypeReal fieldType) {
+          switch (fieldType) {
+          case VEC_NO_STRUCT_DISPLACEMENT_RE:
+          case SCA_NO_ACOUSTIC_PART_VEL_POT_RE:
+          case SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE:
+          case VEC_NO_ACOUSTIC_PART_VEL_RE:
+          case SCA_NO_ACOUSTIC_PRESSURE_RE:
+          case SCA_NO_THERMAL_TEMPERATURE_RE:
+          case VEC_G_STRUCT_INERTIA_M1_RE:
+          case MAT_G_STRUCT_INERTIA_J_RE:
+          case MAT_G_STRUCT_INERTIA_INV3_RE:
+          case MAT_G_STRUCT_INERTIA_INV4_RE:
+          case MAT_G_STRUCT_INERTIA_INV5_RE:
+          case MAT_G_STRUCT_INERTIA_INV8_RE:
+          case MAT_G_STRUCT_INERTIA_INV9_RE:               
+               return true;
+          default:
+               return false;
+          }          
+     }
+
+     static bool bIsNodalField(FieldTypeComplex fieldType) {
+          switch (fieldType) {
+          case VEC_NO_STRUCT_DISPLACEMENT_C:
+          case SCA_NO_ACOUSTIC_PART_VEL_POT_C:
+          case SCA_NO_ACOUSTIC_PART_VEL_POT_P_C:
+          case VEC_NO_ACOUSTIC_PART_VEL_C:
+          case SCA_NO_ACOUSTIC_PRESSURE_C:
+               return true;
+          default:
+               return false;
+          }          
+     }
+
+     static constexpr FieldTypeComplex ComplexFieldType(FieldTypeReal fieldType) {
+          const unsigned index = fieldType;
+          
+          if (!(index < FIELD_COUNT_C)) {
+               throw std::logic_error("requested complex postprocessing field does not exist");
+          }
+          
+          return static_cast<FieldTypeComplex>(fieldType);
+     }
+
+private:     
+     template <typename FieldType>
+     struct Key {
+          Key(FieldType fieldType, ElementTypes::TypeId elemType)
+               :field(fieldType), element(elemType) {
+
+               if (PostProcData::bIsNodalField(field)) {
+                    element = ElementTypes::ELEM_TYPE_UNKNOWN;
+               }
+          }
+
+          bool operator==(const Key& key) const {
+               return field == key.field && element == key.element;
+          }
+          
+          FieldType field;
+          ElementTypes::TypeId element;
+     };
+
+     template <typename FieldType>
+     struct Hash {
+          std::size_t operator()(const Key<FieldType>& key) const noexcept {
+               std::size_t h1 = std::hash<unsigned>{}(key.field);
+               std::size_t h2 = std::hash<unsigned>{}(key.element);
+               return h1 ^ (h2 << 1);
+          }
+     };
+
+     const DofMap::DomainType eDomain;
+     std::unordered_map<Key<FieldTypeReal>, NDArray, Hash<FieldTypeReal> > nodalFieldsReal;
+     std::unordered_map<Key<FieldTypeComplex>, ComplexNDArray, Hash<FieldTypeComplex> > nodalFieldsComplex;
+     octave_idx_type iNumSteps;
+     static constexpr char szFieldName[FIELD_COUNT_RE][8] = {"def",
+                                                             "Phi",
+                                                             "PhiP",
+                                                             "v",
+                                                             "p",
+                                                             "v",
+                                                             "vn",
+                                                             "tau",
+                                                             "epsilon",
+                                                             "theta",
+                                                             "M1",
+                                                             "J",
+                                                             "Inv3",
+                                                             "Inv4",
+                                                             "Inv5",
+                                                             "Inv8",
+                                                             "Inv9"};     
+};
+
+template <typename T>
+struct PostProcFieldHelper;
+
+template <>
+struct PostProcFieldHelper<double> {
+     static constexpr PostProcData::FieldTypeReal
+     ConvertFieldType(PostProcData::FieldTypeReal eFieldTypeReal) {
+          return eFieldTypeReal;
+     }
+
+     static constexpr Element::FemMatrixType
+     ConvertMatrixType(Element::FemMatrixType eMatType) {
+          return eMatType;
+     }
+};
+
+template <>
+struct PostProcFieldHelper<std::complex<double> > {
+     static constexpr PostProcData::FieldTypeComplex
+     ConvertFieldType(PostProcData::FieldTypeReal eFieldTypeReal) {
+          return PostProcData::ComplexFieldType(eFieldTypeReal);
+     }
+
+     static constexpr Element::FemMatrixType
+     ConvertMatrixType(Element::FemMatrixType eMatType) {
+          return Element::ComplexMatrixType(eMatType);
+     }
+};   
+
+constexpr char PostProcData::szFieldName[FIELD_COUNT_RE][8];
 
 class MatrixAss {
 public:
@@ -1487,7 +1878,7 @@ public:
           }
      }
 
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const final {
           void (Element3D::*pFunc)(Matrix&, MeshInfo&, FemMatrixType) const;
 
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
@@ -1583,18 +1974,18 @@ public:
      }
 
      octave_idx_type iGetNumDof(FemMatrixType eMatType) const {
-          switch (eMatType) {
-          case MAT_THERMAL_COND:
-          case MAT_HEAT_CAPACITY:
-          case MAT_MASS_ACOUSTICS:
-          case MAT_STIFFNESS_ACOUSTICS:
+          switch (eMatType & DofMap::DO_MASK) {
+          case DofMap::DO_STRUCTURAL:
+               return nodes.numel() * 3;               
+          case DofMap::DO_THERMAL:
+          case DofMap::DO_ACOUSTICS:
                return nodes.numel();
           default:
-               return nodes.numel() * 3;
+               throw std::runtime_error("domain not supported");
           }
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
           switch (eMatType) {
           case MAT_MASS:
           case MAT_STIFFNESS:
@@ -1628,42 +2019,50 @@ public:
           }
      }
 
-     virtual void PostProcElem(NDArray& mat, FemMatrixType eMatType, const NDArray& U) const {
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final {
           switch (eMatType) {
           case VEC_INERTIA_M1:
-               InertiaMoment1(mat, eMatType);
+               InertiaMoment1(oSolution.GetField(PostProcData::VEC_G_STRUCT_INERTIA_M1_RE, eltype), eMatType);
                break;
 
           case MAT_INERTIA_J:
-               InertiaMatrix(mat, eMatType);
+               InertiaMatrix(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_J_RE, eltype), eMatType);
                break;
 
           case MAT_INERTIA_INV3:
-               InertiaInv3(mat, eMatType, U);
+               InertiaInv3(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV3_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
                break;
 
           case MAT_INERTIA_INV4:
-               InertiaInv4(mat, eMatType, U);
+               InertiaInv4(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV4_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
                break;
 
           case MAT_INERTIA_INV5:
-               InertiaInv5(mat, eMatType, U);
+               InertiaInv5(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV5_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
                break;
 
-          case MAT_INERTIA_INV8:
-               InertiaInv8(mat, eMatType, U);
+          case MAT_INERTIA_INV8:               
+               InertiaInv8(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV8_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
                break;
 
           case MAT_INERTIA_INV9:
-               InertiaInv9(mat, eMatType, U);
+               InertiaInv9(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV9_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
                break;
 
           case VEC_STRESS_CAUCH:
-               StressNodalElem(mat, eMatType, U);
+               StressNodalElem(oSolution.GetField(PostProcData::VEC_EL_STRUCT_STRESS_CAUCH_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
                break;
 
           case VEC_STRAIN_TOTAL:
-               StrainNodalElem(mat, eMatType, U);
+               StrainNodalElem(oSolution.GetField(PostProcData::VEC_EL_STRUCT_STRAIN_TOTAL_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+               break;
+
+          case VEC_PARTICLE_VELOCITY:
+               ParticleVelocityNodalElem<double>(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE, eltype), eMatType, oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_RE, eltype));
+               break;
+
+          case VEC_PARTICLE_VELOCITY_C:
+               ParticleVelocityNodalElem<std::complex<double> >(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_C, eltype), eMatType, oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_C, eltype));
                break;
                
           default:
@@ -1694,7 +2093,7 @@ public:
           return dV;
      }
 
-     virtual double dGetMass() const {
+     virtual double dGetMass() const final {
           return dGetVolume() * material->Density();
      }
 
@@ -1704,6 +2103,7 @@ protected:
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& B) const=0;
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const=0;
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taun) const=0;
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
      virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& Bt) const=0;
      
@@ -2467,6 +2867,78 @@ protected:
           }
      }
 
+     template <typename T>
+     void ParticleVelocityNodalElem(typename PostProcTypeTraits<T>::NDArrayType& vn,
+                                    FemMatrixType eMatType,
+                                    const typename PostProcTypeTraits<T>::NDArrayType& Phi) const {
+          typedef typename PostProcTypeTraits<T>::ColumnVectorType TColumnVector;
+          typedef typename PostProcTypeTraits<T>::MatrixType TMatrix;
+          
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumLoads = Phi.dim2();
+          const octave_idx_type iNumNodes = nodes.numel();
+          constexpr octave_idx_type iNumComp = 3;
+          
+          ColumnVector rv(iNumDir);
+          const double rho = material->Density();
+
+          FEM_ASSERT(vn.ndims() >= 3);
+          FEM_ASSERT(id >= 1);
+          FEM_ASSERT(vn.dim1() >= id);
+          FEM_ASSERT(vn.dim2() == iNumNodes);
+          FEM_ASSERT(vn.dim3() == iNumComp);
+          FEM_ASSERT((iNumLoads == 1 && vn.ndims() == 3) || (vn.dims()(3) == iNumLoads));
+          FEM_ASSERT(Phi.ndims() >= 2);
+          FEM_ASSERT(Phi.dim2() >= 1);
+          FEM_ASSERT(iNumDof == X.columns());
+
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumComp, iNumDof);
+          TColumnVector Phie(iNumDof);
+          TMatrix vg(iNumGauss, iNumComp * iNumLoads);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               const double detJ = Jacobian(rv, J);
+
+               ScalarGradientMatrix(rv, J, detJ, invJ, B);
+
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                         Phie.xelem(j) = Phi.xelem(nodes.xelem(j).value() - 1, l);
+                    }
+
+                    for (octave_idx_type j = 0; j < iNumComp; ++j) {
+                         T vgj{};
+
+                         for (octave_idx_type k = 0; k < iNumDof; ++k) {
+                              vgj += B.xelem(j, k) * Phie.xelem(k);
+                         }
+
+                         vg.xelem(i, l * iNumComp + j) = vgj / rho;
+                    }
+               }
+          }
+
+          const TMatrix ven = InterpGaussToNodal(eMatType, vg);
+
+          FEM_ASSERT(ven.rows() == iNumNodes);
+          FEM_ASSERT(ven.columns() == vg.columns());
+
+          for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type j = 0; j < iNumComp; ++j) {
+                    for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                         vn.xelem(id - 1, i, j + k * iNumComp) = ven.xelem(i, k * iNumComp + j);
+                    }
+               }
+          }
+     }
+     
      void ThermalLoadVector(Matrix& R, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
@@ -3100,6 +3572,17 @@ protected:
      }
      
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
+     }
+
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }
+private:
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType,
+                           const typename PostProcTypeTraits<T>::MatrixType& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -3118,8 +3601,7 @@ protected:
 
           return H.solve(taug);
      }
-
-private:
+     
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 8);
@@ -3789,6 +4271,18 @@ protected:
      }
 
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
+     }
+
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }
+     
+private:
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType,
+                           const typename PostProcTypeTraits<T>::MatrixType& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -3807,8 +4301,7 @@ protected:
 
           return H.solve(taug);
      }
-
-private:
+     
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 20);
@@ -4519,6 +5012,17 @@ protected:
      }
      
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
+     }
+
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }     
+
+private:
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType, const typename PostProcTypeTraits<T>::MatrixType& taug) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -4537,8 +5041,7 @@ protected:
 
           return H.solve(taug);
      }
-
-private:
+     
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 15);
@@ -4668,6 +5171,8 @@ public:
           case VEC_STRESS_CAUCH:
           case VEC_STRAIN_TOTAL:
           case SCA_STRESS_VMIS:
+          case VEC_PARTICLE_VELOCITY:
+          case VEC_PARTICLE_VELOCITY_C:
                iIntegRule = R3;
                break;
 
@@ -5017,46 +5522,13 @@ protected:
      }
 
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
-          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-          const octave_idx_type iNumNodesCorner = 4;
-          ColumnVector rv(iNumDir);
-
-          Matrix H(iNumGauss, iNumNodesCorner);
-
-          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-               for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-               }
-
-               ScalarInterpMatrixCornerNodes(rv, H, i);
-          }
-
-          Matrix taun = H.solve(taug);
-
-          taun.resize(nodes.numel(), taun.columns());
-
-          static const struct {
-               octave_idx_type ico1, ico2, imid;
-          } idxint[] = {
-               {0, 1, 4},
-               {1, 2, 5},
-               {2, 0, 6},
-               {0, 3, 7},
-               {1, 3, 8},
-               {2, 3, 9}
-          };
-
-          for (octave_idx_type j = 0; j < taun.columns(); ++j) {
-               for (const auto& idx:idxint) {
-                    taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
-               }
-          }
-
-          return taun;
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
      }
 
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }
+     
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 10);
@@ -5128,6 +5600,50 @@ protected:
      }
      
 private:
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType,
+                           const typename PostProcTypeTraits<T>::MatrixType& taug) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumNodesCorner = 4;
+          ColumnVector rv(iNumDir);
+
+          Matrix H(iNumGauss, iNumNodesCorner);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               ScalarInterpMatrixCornerNodes(rv, H, i);
+          }
+
+          typename PostProcTypeTraits<T>::MatrixType taun = H.solve(taug);
+
+          taun.resize(nodes.numel(), taun.columns());
+
+          static const struct {
+               octave_idx_type ico1, ico2, imid;
+          } idxint[] = {
+               {0, 1, 4},
+               {1, 2, 5},
+               {2, 0, 6},
+               {0, 3, 7},
+               {1, 3, 8},
+               {2, 3, 9}
+          };
+
+          for (octave_idx_type j = 0; j < taun.columns(); ++j) {
+               for (const auto& idx:idxint) {
+                    taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
+               }
+          }
+
+          return taun;
+     }
+     
      void ScalarInterpMatrixCornerNodes(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(Hs.columns() == 4);
@@ -5168,6 +5684,8 @@ public:
           case VEC_LOAD_LUMPED:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS:
+          case VEC_PARTICLE_VELOCITY:
+          case VEC_PARTICLE_VELOCITY_C:               
                if (!oIntegStiff.iGetNumEvalPoints()) {
                     constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
                     constexpr double beta = (5. - sqrt(5.)) / 20.;
@@ -5657,45 +6175,12 @@ protected:
      }
 
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
-          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
-          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
-          const octave_idx_type iNumNodesCorner = 4;
-          ColumnVector rv(iNumDir);
-
-          Matrix H(iNumGauss, iNumNodesCorner);
-
-          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-               for (octave_idx_type j = 0; j < iNumDir; ++j) {
-                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
-               }
-
-               ScalarInterpMatrixCornerNodes(rv, H, i);
-          }
-
-          Matrix taun = H.solve(taug);
-
-          taun.resize(nodes.numel(), taun.columns());
-
-          static const struct {
-               octave_idx_type ico1, ico2, imid;
-          } idxint[] = {
-               {0, 1, 4},
-               {1, 2, 5},
-               {2, 0, 6},
-               {0, 3, 7},
-               {1, 3, 8},
-               {2, 3, 9}
-          };
-
-          for (octave_idx_type j = 0; j < taun.columns(); ++j) {
-               for (const auto& idx:idxint) {
-                    taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
-               }
-          }
-
-          return taun;
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
      }
+
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }     
 
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 4);
@@ -5721,6 +6206,50 @@ protected:
      }
      
 private:
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType,
+                           const typename PostProcTypeTraits<T>::MatrixType& taug) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumNodesCorner = 4;
+          ColumnVector rv(iNumDir);
+
+          Matrix H(iNumGauss, iNumNodesCorner);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               ScalarInterpMatrixCornerNodes(rv, H, i);
+          }
+
+          typename PostProcTypeTraits<T>::MatrixType taun = H.solve(taug);
+
+          taun.resize(nodes.numel(), taun.columns());
+
+          static const struct {
+               octave_idx_type ico1, ico2, imid;
+          } idxint[] = {
+               {0, 1, 4},
+               {1, 2, 5},
+               {2, 0, 6},
+               {0, 3, 7},
+               {1, 3, 8},
+               {2, 3, 9}
+          };
+
+          for (octave_idx_type j = 0; j < taun.columns(); ++j) {
+               for (const auto& idx:idxint) {
+                    taun.xelem(idx.imid, j) = 0.5 * (taun.xelem(idx.ico1, j) + taun.xelem(idx.ico2, j));
+               }
+          }
+
+          return taun;
+     }
+     
      void ScalarInterpMatrixCornerNodes(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
           FEM_ASSERT(rv.numel() == 4);
           FEM_ASSERT(Hs.columns() == 4);
@@ -5782,21 +6311,21 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
           FEM_ASSERT(rv.rows() == 3);
-          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.rows() > irow);
           FEM_ASSERT(HA.columns() == 6);
 
           const double Zeta1 = rv.xelem(0);
           const double Zeta2 = rv.xelem(1);
           const double Zeta3 = rv.xelem(2);
 
-          HA.xelem(0) = Zeta1*(2*Zeta1-1);
-          HA.xelem(1) = Zeta2*(2*Zeta2-1);
-          HA.xelem(2) = Zeta3*(2*Zeta3-1);
-          HA.xelem(3) = 4*Zeta1*Zeta2;
-          HA.xelem(4) = 4*Zeta2*Zeta3;
-          HA.xelem(5) = 4*Zeta1*Zeta3;
+          HA.xelem(irow, 0) = Zeta1*(2*Zeta1-1);
+          HA.xelem(irow, 1) = Zeta2*(2*Zeta2-1);
+          HA.xelem(irow, 2) = Zeta3*(2*Zeta3-1);
+          HA.xelem(irow, 3) = 4*Zeta1*Zeta2;
+          HA.xelem(irow, 4) = 4*Zeta2*Zeta3;
+          HA.xelem(irow, 5) = 4*Zeta1*Zeta3;
      }
 
      static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
@@ -6114,18 +6643,18 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
           FEM_ASSERT(rv.rows() == 2);
-          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.rows() > irow);
           FEM_ASSERT(HA.columns() == 4);
 
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
 
-          HA.xelem(0) = ((r+1)*(s+1))/4.0;
-          HA.xelem(1) = ((1-r)*(s+1))/4.0;
-          HA.xelem(2) = ((1-r)*(1-s))/4.0;
-          HA.xelem(3) = ((r+1)*(1-s))/4.0;
+          HA.xelem(irow, 0) = ((r+1)*(s+1))/4.0;
+          HA.xelem(irow, 1) = ((1-r)*(s+1))/4.0;
+          HA.xelem(irow, 2) = ((1-r)*(1-s))/4.0;
+          HA.xelem(irow, 3) = ((r+1)*(1-s))/4.0;
      }
 
      static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
@@ -6342,9 +6871,9 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
           FEM_ASSERT(rv.rows() == 2);
-          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.rows() > irow);
           FEM_ASSERT(HA.columns() == 8);
           
           const double r = rv.xelem(0);
@@ -6352,14 +6881,14 @@ public:
           const double r2 = r * r;
           const double s2 = s * s;
 
-          HA.xelem(0) = ((r+1)*(s+1))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
-          HA.xelem(1) = ((1-r)*(s+1))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
-          HA.xelem(2) = ((1-r)*(1-s))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
-          HA.xelem(3) = ((r+1)*(1-s))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
-          HA.xelem(4) = ((1-r2)*(s+1))/2.0E+0;
-          HA.xelem(5) = ((1-r)*(1-s2))/2.0E+0;
-          HA.xelem(6) = ((1-r2)*(1-s))/2.0E+0;
-          HA.xelem(7) = ((r+1)*(1-s2))/2.0E+0;
+          HA.xelem(irow, 0) = ((r+1)*(s+1))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+          HA.xelem(irow, 1) = ((1-r)*(s+1))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(s+1))/2.0E+0)/2.0E+0;
+          HA.xelem(irow, 2) = ((1-r)*(1-s))/4.0E+0-(((1-r)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+          HA.xelem(irow, 3) = ((r+1)*(1-s))/4.0E+0-(((r+1)*(1-s2))/2.0E+0+((1-r2)*(1-s))/2.0E+0)/2.0E+0;
+          HA.xelem(irow, 4) = ((1-r2)*(s+1))/2.0E+0;
+          HA.xelem(irow, 5) = ((1-r)*(1-s2))/2.0E+0;
+          HA.xelem(irow, 6) = ((1-r2)*(1-s))/2.0E+0;
+          HA.xelem(irow, 7) = ((r+1)*(1-s2))/2.0E+0;
      }
 
      static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
@@ -6685,20 +7214,20 @@ public:
           }
      }
 
-     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) {
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
           FEM_ASSERT(rv.rows() == 2);
-          FEM_ASSERT(HA.rows() == 1);
+          FEM_ASSERT(HA.rows() > irow);
           FEM_ASSERT(HA.columns() == 6);
           
           const double zeta = rv.xelem(0);
           const double eta = rv.xelem(1);
 
-          HA.xelem(0) = (1-2*((-zeta)-eta+1))*(zeta+eta-1);
-          HA.xelem(1) = -(1-2*zeta)*zeta;
-          HA.xelem(2) = -(1-2*eta)*eta;
-          HA.xelem(3) = 4*((-zeta)-eta+1)*zeta;
-          HA.xelem(4) = 4*eta*zeta;
-          HA.xelem(5) = 4*eta*((-zeta)-eta+1);
+          HA.xelem(irow, 0) = (1-2*((-zeta)-eta+1))*(zeta+eta-1);
+          HA.xelem(irow, 1) = -(1-2*zeta)*zeta;
+          HA.xelem(irow, 2) = -(1-2*eta)*eta;
+          HA.xelem(irow, 3) = 4*((-zeta)-eta+1)*zeta;
+          HA.xelem(irow, 4) = 4*eta*zeta;
+          HA.xelem(irow, 5) = 4*eta*((-zeta)-eta+1);
      }
 
      static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
@@ -6935,8 +7464,9 @@ protected:
      SurfaceElement(const SurfaceElement& oElem)
           :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes) {
      }
-
-     void SurfaceNormalVector(const Matrix& dHf, ColumnVector& n) const {
+     
+public:          
+     void SurfaceTangentVector(const Matrix& dHf, ColumnVector& n) const {
           FEM_ASSERT(n.rows() == 3);
           FEM_ASSERT(dHf.rows() == 3);
           FEM_ASSERT(dHf.columns() == nodes.numel() * 3);
@@ -6954,7 +7484,48 @@ protected:
           }
      }
 
+     static void SurfaceNormalVector(const ColumnVector& n1, const ColumnVector& n2, ColumnVector& n3) {
+          FEM_ASSERT(n1.rows() == 3);
+          FEM_ASSERT(n2.rows() == 3);
+          FEM_ASSERT(n3.rows() == 3);
+          
+          n3.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
+          n3.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
+          n3.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);          
+     }
+
+     static double SurfaceNormalVectorUnit(const ColumnVector& n1, const ColumnVector& n2, ColumnVector& n3) {
+          SurfaceNormalVector(n1, n2, n3);
+          
+          const double detJA = JacobianDet(n3);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               n3.xelem(i) /= detJA;
+          }
+
+          return detJA;
+     }
+     
+     static double JacobianDet(const ColumnVector& n_detJA) {
+          FEM_ASSERT(n_detJA.rows() == 3);
+          
+          double detJA_2 = 0.;
+
+          for (octave_idx_type l = 0; l < 3; ++l) {
+               detJA_2 += std::pow(n_detJA.xelem(l), 2);
+          }
+
+          if (detJA_2 < 0.) {
+               throw std::runtime_error("Jacobian of surface element is singular");
+          }          
+
+          return sqrt(detJA_2);
+     }
+     
      static double JacobianDet(const ColumnVector& n1, const ColumnVector& n2) {
+          FEM_ASSERT(n1.rows() == 3);
+          FEM_ASSERT(n2.rows() == 3);
+          
           double detJA = std::pow(n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1), 2)
                + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
                + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
@@ -6963,11 +7534,11 @@ protected:
                throw std::runtime_error("Jacobian of surface element is singular");
           }
 
-          return sqrt(detJA);               
+          return sqrt(detJA);
      }
      
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const=0;
-     virtual void ScalarInterpMatrix(const ColumnVector& r, Matrix& HA) const=0;
+     virtual void ScalarInterpMatrix(const ColumnVector& r, Matrix& HA, octave_idx_type irow = 0) const=0;
      virtual void DisplacementInterpMatrix(const ColumnVector& r, Matrix& Hf) const=0;
      virtual void DisplacementInterpMatrixDerR(const ColumnVector& r, Matrix& dHf_dr) const=0;
      virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;     
@@ -7027,20 +7598,11 @@ public:
                DisplacementInterpMatrixDerS(rv, dHf_ds);
                ScalarInterpMatrix(rv, HA);
 
-               SurfaceNormalVector(dHf_dr, n1);
-               SurfaceNormalVector(dHf_ds, n2);
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
+               SurfaceNormalVector(n1, n2, n_detJA);
 
-               n_detJA.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
-               n_detJA.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
-               n_detJA.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);
-
-               double detJA_2 = 0.;
-
-               for (octave_idx_type l = 0; l < 3; ++l) {
-                    detJA_2 += n_detJA.xelem(l) * n_detJA.xelem(l);
-               }
-
-               info.Add(MeshInfo::JACOBIAN_DET_A, sqrt(detJA_2));
+               info.Add(MeshInfo::JACOBIAN_DET_A, JacobianDet(n_detJA));
 
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     double HfT_nl_detJA = 0.;
@@ -7133,8 +7695,8 @@ public:
                DisplacementInterpMatrixDerS(rv, dHf_ds);
                ScalarInterpMatrix(rv, HA);
 
-               SurfaceNormalVector(dHf_dr, n1);
-               SurfaceNormalVector(dHf_ds, n2);
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
 
                const double detJA = JacobianDet(n1, n2);
                
@@ -7197,8 +7759,8 @@ public:
                DisplacementInterpMatrixDerS(rv, dHf_ds);
                ScalarInterpMatrix(rv, HA);
 
-               SurfaceNormalVector(dHf_dr, n1);
-               SurfaceNormalVector(dHf_ds, n2);
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
 
                const double detJA = JacobianDet(n1, n2);
                
@@ -7355,6 +7917,246 @@ private:
      const RowVector rho_z_re, rho_z_im;
 };
 
+class AcousticBoundary: public SurfaceElement {
+public:
+     AcousticBoundary(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :SurfaceElement(eltype, id, X, material, nodes) {
+
+          FEM_ASSERT(X.rows() == 3);
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
+          // unused
+     }
+     
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final {
+          switch (eMatType) {
+          case VEC_PARTICLE_VELOCITY:
+               ParticleVelocityNormal<double>(oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_PART_VEL_NORM_RE, eltype),
+                                              eMatType,
+                                              oSolution.GetField(PostProcData::VEC_NO_ACOUSTIC_PART_VEL_RE, eltype));
+               break;
+          case VEC_PARTICLE_VELOCITY_C:
+               ParticleVelocityNormal<std::complex<double> >(oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_PART_VEL_NORM_C, eltype),
+                                                             eMatType,
+                                                             oSolution.GetField(PostProcData::VEC_NO_ACOUSTIC_PART_VEL_C, eltype));
+               break;               
+          case SCA_ACOUSTIC_INTENSITY:
+               AcousticIntensity<double>(oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE, eltype),
+                                         oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE, eltype),
+                                         eMatType,
+                                         oSolution.GetField(PostProcData::VEC_NO_ACOUSTIC_PART_VEL_RE, eltype),
+                                         oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, eltype));
+               break;
+          case SCA_ACOUSTIC_INTENSITY_C:
+               AcousticIntensity<std::complex<double> >(oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE, eltype),
+                                                        oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE, eltype),
+                                                        eMatType,
+                                                        oSolution.GetField(PostProcData::VEC_NO_ACOUSTIC_PART_VEL_C, eltype),
+                                                        oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, eltype));
+               break;               
+          default:
+               break;
+          }
+     }
+
+     template <typename T>
+     void ParticleVelocityNormal(typename PostProcTypeTraits<T>::NDArrayType& vn,
+                                 FemMatrixType eMatType,
+                                 const typename PostProcTypeTraits<T>::NDArrayType& v) const {
+          typedef typename PostProcTypeTraits<T>::MatrixType TMatrix;
+          typedef typename PostProcTypeTraits<T>::ColumnVectorType TColumnVector;
+          
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumLoads = v.ndims() >= 3 ? v.dim3() : 1;
+
+          FEM_ASSERT(v.ndims() >= 2);
+          FEM_ASSERT(v.dim2() == 3);
+          FEM_ASSERT(vn.ndims() >= 2);
+          FEM_ASSERT(vn.dim2() == iNumNodes);
+          FEM_ASSERT(vn.ndims() >= 3 ? vn.dim3() == iNumLoads : iNumLoads == 1);
+          
+          TMatrix ve(iNumNodes, 3 * iNumLoads);
+          
+          for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                         const octave_idx_type inode = nodes.xelem(i).value() - 1;
+                         ve.xelem(i, k * 3 + j) = v.xelem(inode, j, k);
+                    }
+               }
+          }
+
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumEvalPoints = oIntegRule.iGetNumEvalPoints();
+          
+          ColumnVector rv(iNumDir);
+
+          Matrix HA(iNumEvalPoints, iNumNodes);
+          ColumnVector n1(3), n2(3), n(3);
+          TColumnVector vik(3);
+          Matrix dHf_dr(3, 3 * iNumNodes), dHf_ds(3, 3 * iNumNodes);
+          TMatrix vng(iNumEvalPoints, iNumLoads);
+
+          for (octave_idx_type i = 0; i < iNumEvalPoints; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA, i);
+
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
+               SurfaceNormalVectorUnit(n1, n2, n);
+
+               for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+                    for (octave_idx_type l = 0; l < 3; ++l) {
+                         T vikl{};
+                         
+                         for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                              vikl += HA.xelem(i, m) * ve.xelem(m, k * 3 + l);
+                         }
+
+                         vik.xelem(l) = vikl;
+                    }
+
+                    T vnik{};
+                    
+                    for (octave_idx_type l = 0; l < 3; ++l) {
+                         vnik += n.xelem(l) * vik.xelem(l);
+                    }
+
+                    vng.xelem(i, k) = vnik;
+               }
+          }
+
+          const TMatrix vne = HA.solve(vng);
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                    vn.xelem(id - 1, i, j) = vne.xelem(i, j);
+               }
+          }          
+     }     
+
+     template <typename T>
+     void AcousticIntensity(NDArray& I,
+                            NDArray& P,
+                            FemMatrixType eMatType,
+                            const typename PostProcTypeTraits<T>::NDArrayType& v,
+                            const typename PostProcTypeTraits<T>::NDArrayType& PhiP) const {
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumLoads = v.ndims() >= 3 ? v.dim3() : 1;
+
+          typedef typename PostProcTypeTraits<T>::MatrixType TMatrix;
+          typedef typename PostProcTypeTraits<T>::ColumnVectorType TColumnVector;
+          
+          FEM_ASSERT(v.ndims() >= 2);
+          FEM_ASSERT(v.dim2() == 3);
+          FEM_ASSERT(I.ndims() >= 2);
+          FEM_ASSERT(I.dim2() == iNumNodes);
+          FEM_ASSERT(I.ndims() >= 3 ? I.dim3() == iNumLoads : iNumLoads == 1);
+          FEM_ASSERT(P.dim2() == iNumLoads);
+          
+          TMatrix ve(iNumNodes, 3 * iNumLoads);
+          
+          for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                         const octave_idx_type inode = nodes.xelem(i).value() - 1;
+                         ve.xelem(i, k * 3 + j) = v.xelem(inode, j, k);
+                    }
+               }
+          }
+
+          TMatrix pe(iNumNodes, iNumLoads);
+
+          for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                    const octave_idx_type inode = nodes.xelem(i).value() - 1;
+                    pe.xelem(i, k) = -PhiP(inode, k);
+               }
+          }
+
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumEvalPoints = oIntegRule.iGetNumEvalPoints();
+          
+          ColumnVector rv(iNumDir);
+
+          Matrix HA(iNumEvalPoints, iNumNodes);
+          ColumnVector n1(3), n2(3), n(3);
+          TColumnVector vik(3);
+          Matrix dHf_dr(3, 3 * iNumNodes), dHf_ds(3, 3 * iNumNodes);
+          Matrix Ig(iNumEvalPoints, iNumLoads);
+          RowVector Pe(iNumLoads, 0.);
+
+          for (octave_idx_type i = 0; i < iNumEvalPoints; ++i) {
+               const double alphai = oIntegRule.dGetWeight(i);
+               
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA, i);
+
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
+               
+               const double detJA = SurfaceNormalVectorUnit(n1, n2, n);
+
+               for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+                    for (octave_idx_type l = 0; l < 3; ++l) {
+                         T vikl{};
+                         
+                         for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                              vikl += HA.xelem(i, m) * ve.xelem(m, k * 3 + l);
+                         }
+
+                         vik.xelem(l) = vikl;
+                    }
+
+                    T vnik{};
+                    
+                    for (octave_idx_type l = 0; l < 3; ++l) {
+                         vnik += n.xelem(l) * vik.xelem(l);
+                    }
+
+                    T pik{};
+
+                    for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                         pik += HA.xelem(i, m) * pe.xelem(m, k);
+                    }
+
+                    const double Iik = PostProcTypeTraits<T>::EffectiveAmplitude(pik, vnik);
+                    
+                    Ig.xelem(i, k) = Iik;
+                    Pe.xelem(k) += Iik * alphai * detJA;
+               }
+          }
+
+          const Matrix Ie = HA.solve(Ig);
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                    I.xelem(id - 1, i, j) = Ie.xelem(i, j);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               P.xelem(id - 1, j) = Pe.xelem(j);
+          }
+     }
+     
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
+          return 0;
+     }
+};
 
 class HeatSource: public SurfaceElement {
 public:
@@ -7410,8 +8212,8 @@ public:
                DisplacementInterpMatrixDerS(rv, dHf_ds);
                ScalarInterpMatrix(rv, HA);
 
-               SurfaceNormalVector(dHf_dr, n1);
-               SurfaceNormalVector(dHf_ds, n2);
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
 
                const double detJA = JacobianDet(n1, n2);
                
@@ -7470,8 +8272,8 @@ public:
      }
 
 protected:
-     virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA) const override final {
-          SHAPE_FUNC::ScalarInterpMatrix(rv, HA);
+     virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) const override final {
+          SHAPE_FUNC::ScalarInterpMatrix(rv, HA, irow);
      }
 
      virtual void DisplacementInterpMatrix(const ColumnVector& rv, Matrix& Hf) const override final {
@@ -7515,6 +8317,11 @@ typedef SurfaceElementImpl<ShapeIso4, AcousticImpedanceBC> AcousticImpedanceBCIs
 typedef SurfaceElementImpl<ShapeQuad8, AcousticImpedanceBC> AcousticImpedanceBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, AcousticImpedanceBC> AcousticImpedanceBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticImpedanceBC> AcousticImpedanceBCTria6H;
+
+typedef SurfaceElementImpl<ShapeIso4, AcousticBoundary> AcousticBoundaryIso4;
+typedef SurfaceElementImpl<ShapeQuad8, AcousticBoundary> AcousticBoundaryQuad8;
+typedef SurfaceElementImpl<ShapeTria6, AcousticBoundary> AcousticBoundaryTria6;
+typedef SurfaceElementImpl<ShapeTria6H, AcousticBoundary> AcousticBoundaryTria6H;
 
 class StructForce: public Element {
 public:
@@ -7576,7 +8383,7 @@ public:
 
      virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const=0;
      virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::FemMatrixType eMatType) const=0;
-     virtual void PostProcElem(NDArray& mat, Element::FemMatrixType eMatType, const NDArray& U) const=0;
+     virtual void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution) const=0;
      virtual double dGetMass() const=0;
      virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const=0;
 
@@ -7651,9 +8458,9 @@ public:
           }
      }
 
-     void PostProcElem(NDArray& mat, Element::FemMatrixType eMatType, const NDArray& U) const {
+     void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution) const {
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               i->ElementType::PostProcElem(mat, eMatType, U);
+               i->ElementType::PostProcElem(eMatType, oSolution);
 
                OCTAVE_QUIT;
           }
@@ -7967,7 +8774,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
           const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
           const Matrix thetak = theta.linear_slice(theta.rows() * theta.columns() * k, theta.rows() * theta.columns() * (k + 1)).reshape(dim_vector(theta.rows(), theta.columns()));
           
-          pElem->Insert(k,
+          pElem->Insert(k + 1,
                         Xk,
                         nullptr,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
@@ -8069,7 +8876,7 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
                for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
                     const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
           
-                    pElem->Insert(k,
+                    pElem->Insert(k + 1,
                                   Xk,
                                   nullptr,
                                   elnodes.index(idx_vector::make_range(k, 1, 1),
@@ -8245,7 +9052,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
           const RowVector rho(elnodes.columns(), materialk->Density());
 
-          pElem->Insert(k,
+          pElem->Insert(k + 1,
                         Xk,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
@@ -8381,13 +9188,110 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
                rho_z_im.xelem(i) = std::imag(zki);               
           }
 
-          pElem->Insert(k,
+          pElem->Insert(k + 1,
                         Xk,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
                         rho_z_re,
                         rho_z_im);
+     }
+     
+     rgElemBlocks.emplace_back(std::move(pElem));
+}
+
+template <typename BoundaryElemType>
+void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const std::vector<Material>& rgMaterials, const octave_scalar_map& materials, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_boundary = elements.seek("acoustic_boundary");
+
+     if (iter_boundary == elements.end()) {
+          return;
+     }
+     
+     const octave_value ov_boundary = elements.contents(iter_boundary);
+
+     if (!(ov_boundary.isstruct() && ov_boundary.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.acoustic_boundary must be a scalar struct");
+     }
+
+     const octave_scalar_map m_boundary = ov_boundary.scalar_map_value();
+     
+     const auto iter_elem_type = m_boundary.seek(pszElemName);
+
+     if (iter_elem_type == m_boundary.end()) {
+          return;
+     }
+
+     const octave_value ov_elnodes = m_boundary.contents(iter_elem_type);
+
+     if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
+          throw std::runtime_error("mesh.elements.acoustic_boundary."s + pszElemName + " must be an integer matrix");          
+     }
+
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
+     
+     NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
+               octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
+
+               if (inode < 0 || inode >= nodes.rows()) {
+                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_boundary."s + pszElemName);
+               }
+               
+               for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                    X.xelem(m, l, k) = nodes.xelem(inode, m);
+               }
+          }
+     }
+
+     const auto iter_bnd_mat = materials.seek("acoustic_boundary");
+
+     if (iter_bnd_mat == materials.end()) {
+          throw std::runtime_error("mesh.materials.acoustic_boundary is not defined");
+     }
+
+     const octave_scalar_map m_bnd_mat = materials.contents(iter_bnd_mat).scalar_map_value();
+
+     const auto iter_elem_type_mat = m_bnd_mat.seek(pszElemName);
+
+     if (iter_elem_type_mat == m_bnd_mat.end()) {
+          throw std::runtime_error("mesh.materials.acoustic_boundary."s + pszElemName + " is not defined");
+     }
+     
+     const int32NDArray elem_mat = m_bnd_mat.contents(iter_elem_type_mat).int32_array_value();
+
+     if (elem_mat.numel() != elnodes.rows()) {
+          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
+     }
+     
+     const octave_idx_type inum_materials = rgMaterials.size();
+     
+     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
+          const octave_idx_type imaterial = elem_mat.xelem(i);
+          
+          if (imaterial <= 0 || imaterial > inum_materials) {
+               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
+          }
+     }
+
+     std::unique_ptr<ElementBlock<BoundaryElemType> > pElem{new ElementBlock<BoundaryElemType>(eltype)};
+
+     pElem->Reserve(elnodes.rows());
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
+
+          FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
+          
+          const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
+
+          pElem->Insert(k + 1,
+                        Xk,
+                        materialk,
+                        elnodes.index(idx_vector::make_range(k, 1, 1),
+                                      idx_vector::make_range(0, 1, elnodes.columns())));
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
@@ -8561,7 +9465,7 @@ public:
           Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
           Matrix dHf_ds(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
           ColumnVector n1(iNumDimNode), n2(iNumDimNode);
-          RowVector n(iNumDimNode);
+          ColumnVector n(iNumDimNode);
           Matrix C(iNumDofNodeConstr, iNumDofNodeMax * (nidxmaster.columns() + 1));
           Matrix U(C.rows(), 0);
           RowVector nC(C.columns());
@@ -8665,7 +9569,7 @@ public:
                if (eDomain == DofMap::DO_STRUCTURAL) {
                     SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
                } else {
-                    SHAPE_FUNC::ScalarInterpMatrix(rvopt, Hf);
+                    SHAPE_FUNC::ScalarInterpMatrix(rvopt, Hf, 0);
                }
                
                C.make_unique();
@@ -8706,35 +9610,9 @@ public:
                     SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
                     SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
                     
-                    SurfaceNormalVector(Xe, dHf_dr, n1);
-                    SurfaceNormalVector(Xe, dHf_ds, n2);
-
-                    n.xelem(0) = n1.xelem(1) * n2.xelem(2) - n1.xelem(2) * n2.xelem(1);
-                    n.xelem(1) = n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2);
-                    n.xelem(2) = n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0);
-
-                    double norm_n = 0.;
-
-                    for (octave_idx_type l = 0; l < 3; ++l) {
-                         norm_n += n.xelem(l) * n(l);
-                    }
-
-                    if (norm_n <= 0) {
-                         std::ostringstream os;
-
-                         os << "Jacobian of sfncon"
-                            << SHAPE_FUNC::iGetNumNodes()
-                            << " element " << id << " is singular"
-                            << std::ends;
-
-                         throw std::runtime_error(os.str());
-                    }
-
-                    norm_n = sqrt(norm_n);
-
-                    for (octave_idx_type l = 0; l < 3; ++l) {
-                         n.xelem(l) /= norm_n;
-                    }
+                    SurfaceTangentVector(Xe, dHf_dr, n1);
+                    SurfaceTangentVector(Xe, dHf_ds, n2);
+                    SurfaceElement::SurfaceNormalVectorUnit(n1, n2, n);
 
                     nC.make_unique();
                     nC.fill(0.);
@@ -8759,7 +9637,7 @@ public:
      }
 
 private:
-     static void SurfaceNormalVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
+     static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
           for (octave_idx_type i = 0; i < 3; ++i) {
                double ni = 0.;
 
@@ -9288,6 +10166,190 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 }
 #endif
 
+template <typename T>
+octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
+                                   const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                                   const octave_scalar_map& elements,
+                                   const Matrix& nodes,
+                                   PostProcData& oSolution,
+                                   const Element::FemMatrixType eMatType) {
+     constexpr octave_idx_type iNumComp = 3;
+     const octave_idx_type iNumLoads = oSolution.GetNumSteps();
+     typedef typename PostProcTypeTraits<T>::NDArrayType TNDArray;
+     typedef PostProcFieldHelper<T> PPFH;
+     TNDArray oNodalVelocity(dim_vector(nodes.rows(), iNumComp, iNumLoads), 0.);
+     octave_scalar_map mapVelocityElemVec;
+
+     for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+          const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
+
+          if (!rgElemUse[oElemType.type]) {
+               continue;
+          }
+
+          switch (oElemType.type) {
+          case ElementTypes::ELEM_ISO8:
+          case ElementTypes::ELEM_ISO20:
+          case ElementTypes::ELEM_PENTA15:
+          case ElementTypes::ELEM_TET10H:
+          case ElementTypes::ELEM_TET10: {
+               const auto iter_elem = elements.seek(oElemType.name);
+
+               if (iter_elem == elements.end()) {
+                    continue;
+               }
+
+               const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
+
+               oSolution.SetField(PPFH::ConvertFieldType(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE),
+                                  oElemType.type,
+                                  TNDArray(dim_vector(elem_nodes.rows(),
+                                                     elem_nodes.columns(),
+                                                     iNumComp,
+                                                     iNumLoads),
+                                           T{}));
+
+                              
+               for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
+                    if ((*k)->GetElementType() == oElemType.type) {
+                         (*k)->PostProcElem(PPFH::ConvertMatrixType(Element::VEC_PARTICLE_VELOCITY), oSolution);
+                    }
+               }
+
+               const TNDArray oElemVelocity = oSolution.GetField(PPFH::ConvertFieldType(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE), oElemType.type);
+
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
+                    for (octave_idx_type k = 0; k < iNumComp; ++k) {
+                         for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
+                              for (octave_idx_type i = 0; i < elem_nodes.rows(); ++i) {
+                                   const octave_idx_type inode = elem_nodes.xelem(i, j).value() - 1;
+                                   oNodalVelocity.xelem(inode, k, l) = oElemVelocity.xelem(i, j, l * iNumComp + k);
+                              }
+                         }
+                    }
+               }
+                              
+               mapVelocityElemVec.assign(oElemType.name, oElemVelocity);
+          } break;
+
+          default:
+               break;
+          }
+     }
+
+     octave_scalar_map mapAcoustics;
+
+     mapAcoustics.assign("v", mapVelocityElemVec);
+                    
+     oSolution.SetField(PPFH::ConvertFieldType(PostProcData::VEC_NO_ACOUSTIC_PART_VEL_RE),
+                        ElementTypes::ELEM_TYPE_UNKNOWN,
+                        oNodalVelocity);
+                    
+     const auto iter_bound = elements.seek("acoustic_boundary");
+
+     if (iter_bound != elements.end()) {
+          octave_scalar_map mapVelocityElemNorm, mapAcousticIntensityElem, mapSoundPowerElem;                   
+          const octave_scalar_map mapAcousticBoundary = elements.contents(iter_bound).scalar_map_value();
+                         
+          for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+               const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
+
+               if (!rgElemUse[oElemType.type]) {
+                    continue;
+               }
+
+               switch (oElemType.type) {
+               case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
+               case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8:
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6:
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H: {
+                    const auto iter_elem = mapAcousticBoundary.seek(oElemType.name);
+
+                    if (iter_elem == mapAcousticBoundary.end()) {
+                         continue;
+                    }
+
+                    const int32NDArray elem_nodes = mapAcousticBoundary.contents(iter_elem).int32_array_value();
+
+                    switch (eMatType) {
+                    case Element::SCA_ACOUSTIC_INTENSITY:
+                    case Element::SCA_ACOUSTIC_INTENSITY_C:
+                         oSolution.SetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE,
+                                            oElemType.type,
+                                            NDArray(dim_vector(elem_nodes.rows(),
+                                                               elem_nodes.columns(),
+                                                               iNumLoads),
+                                                    0.));
+                         oSolution.SetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE,
+                                            oElemType.type,
+                                            NDArray(dim_vector(elem_nodes.rows(),
+                                                               iNumLoads),
+                                                    0.));
+                         break;
+                    case Element::VEC_PARTICLE_VELOCITY:
+                    case Element::VEC_PARTICLE_VELOCITY_C:
+                         oSolution.SetField(PPFH::ConvertFieldType(PostProcData::SCA_EL_ACOUSTIC_PART_VEL_NORM_RE),
+                                            oElemType.type,
+                                            TNDArray(dim_vector(elem_nodes.rows(),
+                                                                elem_nodes.columns(),
+                                                                iNumLoads),
+                                                     T{}));
+                         break;
+                    default:
+                         FEM_ASSERT(0);
+                    }                         
+
+                    for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
+                         if ((*k)->GetElementType() == oElemType.type) {
+                              (*k)->PostProcElem(eMatType, oSolution);
+                         }
+                    }
+
+                    switch (eMatType) {
+                    case Element::SCA_ACOUSTIC_INTENSITY:
+                    case Element::SCA_ACOUSTIC_INTENSITY_C:
+                         mapAcousticIntensityElem.assign(oElemType.name,
+                                                         oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE,
+                                                                            oElemType.type));
+                         mapSoundPowerElem.assign(oElemType.name,
+                                                  oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE,
+                                                                     oElemType.type));
+                         break;
+                    case Element::VEC_PARTICLE_VELOCITY:
+                    case Element::VEC_PARTICLE_VELOCITY_C:
+                         mapVelocityElemNorm.assign(oElemType.name,
+                                                    oSolution.GetField(PPFH::ConvertFieldType(PostProcData::SCA_EL_ACOUSTIC_PART_VEL_NORM_RE),
+                                                                       oElemType.type));
+                         break;
+                    default:
+                         FEM_ASSERT(0);
+                    };
+
+               } break;
+
+               default:
+                    break;
+               }
+          }
+
+          switch (eMatType) {
+          case Element::SCA_ACOUSTIC_INTENSITY:
+          case Element::SCA_ACOUSTIC_INTENSITY_C:
+               mapAcoustics.assign("I", mapAcousticIntensityElem);
+               mapAcoustics.assign("P", mapSoundPowerElem);
+               break;
+          case Element::VEC_PARTICLE_VELOCITY:
+          case Element::VEC_PARTICLE_VELOCITY_C:
+               mapAcoustics.assign("vn", mapVelocityElemNorm);
+               break;
+          default:
+               FEM_ASSERT(0);
+          }
+     }
+
+     return mapAcoustics;
+}
+
 // PKG_ADD: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("fem_pre_mesh_constr_surf_to_node", "__mboct_fem_pkg__.oct");
@@ -9325,6 +10387,10 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_ADD: autoload("FEM_MAT_DAMPING_ACOUSTICS_RE", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_DAMPING_ACOUSTICS_IM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_ACOUSTICS", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_PARTICLE_VELOCITY", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_PARTICLE_VELOCITY_C", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct");
@@ -9367,6 +10433,10 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 // PKG_DEL: autoload("FEM_MAT_DAMPING_ACOUSTICS_RE", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_DAMPING_ACOUSTICS_IM", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_LOAD_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_PARTICLE_VELOCITY", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_PARTICLE_VELOCITY_C", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
@@ -10313,16 +11383,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                }
           }
 
-          const auto iter_U = sol.seek("def");
-
-          const NDArray sol_U = (iter_U != sol.end()) ? sol.contents(iter_U).array_value() : NDArray();
-
-#if OCTAVE_MAJOR_VERSION < 6
-          if (error_state) {
-               throw std::runtime_error("field sol.def must be an array in argument sol");
-          }
-#endif
-
           const auto iter_edof = dof_map.seek("edof");
 
           array<int32NDArray, DofMap::ELEM_TYPE_COUNT> edof;
@@ -10507,6 +11567,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           DofMap oDof(eDomain, ndof, edof, inumdof);
 
+          PostProcData oSolution{oDof, sol};
+
           array<bool, ElementTypes::iGetNumTypes()> rgElemUse;
 
           std::fill(std::begin(rgElemUse), std::end(rgElemUse), false);
@@ -10629,13 +11691,21 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                case DofMap::DO_ACOUSTICS:
                     switch (eMatType) {
-                    case Element::MAT_MASS_ACOUSTICS:                  
+                    case Element::MAT_MASS_ACOUSTICS:
                     case Element::MAT_STIFFNESS_ACOUSTICS:
+                    case Element::VEC_PARTICLE_VELOCITY:
+                    case Element::VEC_PARTICLE_VELOCITY_C:
+                    case Element::SCA_ACOUSTIC_INTENSITY:
+                    case Element::SCA_ACOUSTIC_INTENSITY_C:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
-                         rgElemUse[ElementTypes::ELEM_TET10] = true;                         
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
                          break;
                          
                     case Element::VEC_LOAD_ACOUSTICS:
@@ -11304,6 +12374,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
+                    InsertAcousticBoundary<AcousticBoundaryIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8:
+                    InsertAcousticBoundary<AcousticBoundaryQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6:
+                    InsertAcousticBoundary<AcousticBoundaryTria6>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H:
+                    InsertAcousticBoundary<AcousticBoundaryTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;                    
                default:
                     FEM_ASSERT(false);
@@ -11401,7 +12483,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_INERTIA_INV5:
                case Element::MAT_INERTIA_INV8:
                case Element::MAT_INERTIA_INV9: {
-                    const octave_idx_type iNumModes = sol_U.ndims() == 3 ? sol_U.dim3() : 0;
+                    const octave_idx_type iNumModes = oSolution.GetNumSteps();
                     bool bNeedSolution = false;
                     dim_vector mat_dim;
 
@@ -11442,21 +12524,44 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          if (nargin <= 4) {
                               throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
                          }
-
-                         if (sol_U.rows() != nodes.rows() || sol_U.columns() != nodes.columns()) {
-                              throw std::runtime_error("dimensions of argument sol.def does not match dimension of mesh.nodes in argument mesh");
-                         }
-
-                         if (sol_U.ndims() != 3) {
-                              throw std::runtime_error("sol.def must be a three dimensional array in argument sol");
-                         }
                     }
 
-                    NDArray mat(mat_dim, 0.);
+                    PostProcData::FieldTypeReal eFieldType;
+                    
+                    switch (eMatType) {
+                    case Element::VEC_INERTIA_M1:
+                         eFieldType = PostProcData::VEC_G_STRUCT_INERTIA_M1_RE;
+                         break;
+                    case Element::MAT_INERTIA_J:
+                         eFieldType = PostProcData::MAT_G_STRUCT_INERTIA_J_RE;
+                         break;
+                    case Element::MAT_INERTIA_INV3:
+                         eFieldType = PostProcData::MAT_G_STRUCT_INERTIA_INV3_RE;
+                         break;
+                    case Element::MAT_INERTIA_INV4:
+                         eFieldType = PostProcData::MAT_G_STRUCT_INERTIA_INV4_RE;
+                         break;
+                    case Element::MAT_INERTIA_INV5:
+                         eFieldType = PostProcData::MAT_G_STRUCT_INERTIA_INV5_RE;
+                         break;
+                    case Element::MAT_INERTIA_INV8:
+                         eFieldType = PostProcData::MAT_G_STRUCT_INERTIA_INV8_RE;
+                         break;
+                    case Element::MAT_INERTIA_INV9:
+                         eFieldType = PostProcData::MAT_G_STRUCT_INERTIA_INV9_RE;
+                         break;
+                    default:
+                         FEM_ASSERT(0);
+                         throw std::logic_error("unexpected matrix type");
+                    }
+                    
+                    oSolution.SetField(eFieldType, ElementTypes::ELEM_TYPE_UNKNOWN, NDArray(mat_dim, 0.));
 
                     for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                         (*j)->PostProcElem(mat, eMatType, sol_U);
+                         (*j)->PostProcElem(eMatType, oSolution);
                     }
+
+                    NDArray mat = oSolution.GetField(eFieldType, ElementTypes::ELEM_TYPE_UNKNOWN);
 
                     switch (eMatType) {
                     case Element::MAT_INERTIA_J:
@@ -11484,16 +12589,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
                     }
 
-                    if (sol_U.rows() != nodes.rows() || sol_U.columns() != nodes.columns()) {
-                         throw std::runtime_error("dimensions of argument sol.def does not match dimension of mesh.nodes in argument mesh");
-                    }
-
-                    if (sol_U.ndims() < 2) {
-                         throw std::runtime_error("sol.def must be a three dimensional array in argument sol");
-                    }
-
                     constexpr octave_idx_type iNumStress = 6;
-                    const octave_idx_type iNumLoads = sol_U.ndims() >= 3 ? sol_U.dim3() : 1;
+                    const octave_idx_type iNumLoads = oSolution.GetNumSteps();
 
                     octave_scalar_map s_StressStrain, s_StressStrainm, s_vmis;
 
@@ -11519,14 +12616,31 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               const int32NDArray elem_nodes = elements.contents(iter_elem).int32_array_value();
 
                               const Element::FemMatrixType eMatTypeStressStrain = eMatType == Element::SCA_STRESS_VMIS ? Element::VEC_STRESS_CAUCH : eMatType;
-
-                              NDArray oElemStressStrain(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.);
+                              
+                              PostProcData::FieldTypeReal eFieldType;
+                              
+                              switch (eMatType) {
+                              case Element::VEC_STRESS_CAUCH:
+                              case Element::SCA_STRESS_VMIS:
+                                   eFieldType = PostProcData::VEC_EL_STRUCT_STRESS_CAUCH_RE;
+                                   break;
+                              case Element::VEC_STRAIN_TOTAL:
+                                   eFieldType = PostProcData::VEC_EL_STRUCT_STRAIN_TOTAL_RE;
+                                   break;
+                              default:
+                                   FEM_ASSERT(0);
+                                   throw std::logic_error("unexpected matrix type");
+                              }
+                              
+                              oSolution.SetField(eFieldType, oElemType.type, NDArray(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.));
 
                               for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
                                    if ((*k)->GetElementType() == oElemType.type) {
-                                        (*k)->PostProcElem(oElemStressStrain, eMatTypeStressStrain, sol_U);
+                                        (*k)->PostProcElem(eMatTypeStressStrain, oSolution);
                                    }
                               }
+
+                              const NDArray oElemStressStrain = oSolution.GetField(eFieldType, oElemType.type);
 
                               intNDArray<octave_idx_type> iStressStrain(dim_vector(nodes.rows(), 1), 0);
 
@@ -11617,7 +12731,30 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
 
                     retval.append(mapStressStrain);
+               } break;                    
+               case Element::VEC_PARTICLE_VELOCITY:
+               case Element::VEC_PARTICLE_VELOCITY_C:
+               case Element::SCA_ACOUSTIC_INTENSITY:
+               case Element::SCA_ACOUSTIC_INTENSITY_C:
+               {                    
+                    if (nargin <= 4) {
+                         throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
+                    }
+
+                    switch (eMatType) {
+                    case Element::VEC_PARTICLE_VELOCITY:
+                    case Element::SCA_ACOUSTIC_INTENSITY:
+                         retval.append(AcousticPostProc<double>(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType));
+                         break;
+                    case Element::VEC_PARTICLE_VELOCITY_C:
+                    case Element::SCA_ACOUSTIC_INTENSITY_C:
+                         retval.append(AcousticPostProc<std::complex<double> >(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType));
+                         break;
+                    default:
+                         FEM_ASSERT(false);
+                    }
                } break;
+                    
                default:
                     throw std::runtime_error("invalid value for argument matrix_type");
                }
@@ -11694,6 +12831,10 @@ DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_ACOUSTICS, "acoustic mass matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_ACOUSTICS_RE, "real part of acoustic damping matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_ACOUSTICS_IM, "imaginary part of acoustic damping matrix")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_ACOUSTICS, "acoustic load vector")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_PARTICLE_VELOCITY, "acoustic particle velocity")
+DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY, "acoustic intensity and sound power")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_PARTICLE_VELOCITY_C, "complex acoustic particle velocity")
+DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY_C, "acoustic intensity and sound power for complex solutions")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_ACOUSTICS, "acoustic domain")

@@ -67,19 +67,20 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
       endif
     endfor
     
-    field_type = {"stress", "strain"};
+    field_type = {"stress", "strain", "particle_velocity"};
 
     idxtens = int32([1, 4, 6, 4, 2, 5, 6, 5, 3]);
-    stress_type = {"discontinuous stress tensor", "continuous stress tensor", "van Mises stress", "discontinuous strain", "continuous strain"};
-    stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm"};
-    stress_comp = int32([9, 9, 1, 9, 9]);
+    stress_type = {"discontinuous stress tensor", "continuous stress tensor", ...
+                   "van Mises stress", "discontinuous strain", "continuous strain", ...
+                   "particle velocity vector", "particle velocity normal"};
+    stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm", "v", "vn"};
+    elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h"};
+    stress_comp = int32([9, 9, 1, 9, 9, 3, 1]);
     
     for n=1:numel(field_type)
       if (isfield(sol, field_type{n}))        
         for l=1:numel(stress_field)
           if (isfield(getfield(sol, field_type{n}), stress_field{l}))
-            elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h"};
-
             inumelem = int32(0);
             
             for i=1:numel(elem_stress)
@@ -100,6 +101,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                     idxnode = int32([1:3]);
                   case "iso4"
                     idxnode = int32([1:4]);
+                  case {"tria6", "tria6h"}
+                    idxnode = int32([1:6]);
 		  case "quad8"
 		    idxnode = int32([1:8]);
                   case "iso8"
@@ -110,6 +113,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
 		    idxnode =  int32([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]);
                   case {"tet10", "tet10h"}
                     idxnode = int32([1:8, 10, 9]);
+                  otherwise
+                    error("unknown element type \"%s\"", elem_stress{i});
                 endswitch
                 
                 tau = getfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i});
@@ -119,11 +124,14 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                 tauout(2, :) = numel(idxnode);
                 
                 for k=1:numel(idxnode)
-                  if (stress_comp(l) == 1)
-                    taukl = tau(:, idxnode(k), idx_sol);
-                  else
-                    taukl = tau(:, idxnode(k), idxtens, idx_sol);
-                  endif
+                  switch (stress_comp(l))
+                    case 1
+                      taukl = tau(:, idxnode(k), idx_sol);
+                    case 9
+                      taukl = tau(:, idxnode(k), idxtens, idx_sol);
+                    otherwise
+                      taukl = tau(:, idxnode(k), :, idx_sol);
+                  endswitch
                   
                   tauout(2 + (k - 1) * stress_comp(l) + (1:stress_comp(l)), :) = reshape(taukl, rows(tau), stress_comp(l)).';
                 endfor
