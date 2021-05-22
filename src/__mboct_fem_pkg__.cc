@@ -1922,14 +1922,22 @@ public:
                break;
                
           case MAT_THERMAL_COND:
+               pFunc = &Element3D::ThermalConductivityMatrix;
+               iNumRows = iNumCols = iNumDof;
+               break;
+               
           case MAT_STIFFNESS_ACOUSTICS:
-               pFunc = &Element3D::ScalarFieldStiffnessMatrix;
+               pFunc = &Element3D::AcousticStiffnessMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
 
           case MAT_HEAT_CAPACITY:
+               pFunc = &Element3D::HeatCapacityMatrix;
+               iNumRows = iNumCols = iNumDof;
+               break;
+               
           case MAT_MASS_ACOUSTICS:
-               pFunc = &Element3D::ScalarFieldMassMatrix;
+               pFunc = &Element3D::AcousticMassMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
                
@@ -3023,14 +3031,25 @@ protected:
           }
      }
 
-     void ScalarFieldStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+     void AcousticStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+          Matrix eye(3, 3, 0.);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               eye.xelem(i, i) = 1.;
+          }
+
+          ScalarFieldStiffnessMatrix(eye, Ke, info, eMatType);
+     }
+
+     void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+          ScalarFieldStiffnessMatrix(material->ThermalConductivity(), Ke, info, eMatType);
+     }
+     
+     void ScalarFieldStiffnessMatrix(const Matrix& k, Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
-          const Matrix k = eMatType == MAT_THERMAL_COND
-               ? material->ThermalConductivity()
-               : Matrix{DiagMatrix{3, 3, 1.}}; // Linear acoustics
           const octave_idx_type iNumStrains = k.rows();
 
           FEM_ASSERT(k.rows() == k.columns());
@@ -3102,15 +3121,19 @@ protected:
 #endif
      }
 
-     void ScalarFieldMassMatrix(Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
+     void AcousticMassMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+          ScalarFieldMassMatrix(1. / std::pow(material->SpeedOfSound(), 2), Ke, info, eMatType);
+     }
+
+     void HeatCapacityMatrix(Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
+          ScalarFieldMassMatrix(material->Density() * material->HeatCapacity(), Ce, info, eMatType);
+     }
+
+     void ScalarFieldMassMatrix(const double coef, Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           ColumnVector rv(iNumDir);
-          const double coef = eMatType == MAT_HEAT_CAPACITY
-               ? material->Density() * material->HeatCapacity()
-               : 1. / std::pow(material->SpeedOfSound(), 2); // Linear acoustics
-
           Matrix J(iNumDir, iNumDir), H(1, iNumDof);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
