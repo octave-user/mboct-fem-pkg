@@ -3032,13 +3032,15 @@ protected:
      }
 
      void AcousticStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
-          Matrix eye(3, 3, 0.);
+          const double coef = 1. / material->Density();
+          
+          Matrix k(3, 3, 0.);
 
           for (octave_idx_type i = 0; i < 3; ++i) {
-               eye.xelem(i, i) = 1.;
+               k.xelem(i, i) = coef;
           }
 
-          ScalarFieldStiffnessMatrix(eye, Ke, info, eMatType);
+          ScalarFieldStiffnessMatrix(k, Ke, info, eMatType);
      }
 
      void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
@@ -3122,7 +3124,7 @@ protected:
      }
 
      void AcousticMassMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
-          ScalarFieldMassMatrix(1. / std::pow(material->SpeedOfSound(), 2), Ke, info, eMatType);
+          ScalarFieldMassMatrix(1. / (material->Density() * std::pow(material->SpeedOfSound(), 2)), Ke, info, eMatType);
      }
 
      void HeatCapacityMatrix(Matrix& Ce, MeshInfo& info, FemMatrixType eMatType) const {
@@ -7871,8 +7873,8 @@ private:
 
 class ParticleVelocityBC: public ScalarFieldBC {
 public:
-     ParticleVelocityBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& vn, const RowVector& rho)
-          :ScalarFieldBC(eltype, id, X, material, nodes), vn(vn), rho(rho) {
+     ParticleVelocityBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& vn, const RowVector& ones)
+          :ScalarFieldBC(eltype, id, X, material, nodes), vn(vn), ones(ones) {
      }
 
      ParticleVelocityBC(const ParticleVelocityBC& oElem)=default;
@@ -7880,7 +7882,7 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
           case VEC_LOAD_ACOUSTICS:
-               RightHandSideVector(mat, info, dof, eMatType, vn, rho);
+               RightHandSideVector(mat, info, dof, eMatType, vn, ones);
                break;
 
           default:
@@ -7900,13 +7902,13 @@ public:
      
 private:
      const Matrix vn;
-     const RowVector rho;
+     const RowVector ones;
 };
 
 class AcousticImpedanceBC: public ScalarFieldBC {
 public:
-     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rho_z_re, const RowVector& rho_z_im)
-          :ScalarFieldBC(eltype, id, X, material, nodes), rho_z_re(rho_z_re), rho_z_im(rho_z_im) {
+     AcousticImpedanceBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& rec_z_re, const RowVector& rec_z_im)
+          :ScalarFieldBC(eltype, id, X, material, nodes), rec_z_re(rec_z_re), rec_z_im(rec_z_im) {
      }
 
      AcousticImpedanceBC(const AcousticImpedanceBC& oElem)=default;
@@ -7914,10 +7916,10 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
           case MAT_DAMPING_ACOUSTICS_RE:
-               CoefficientMatrix(mat, info, dof, eMatType, rho_z_re);
+               CoefficientMatrix(mat, info, dof, eMatType, rec_z_re);
                break;
           case MAT_DAMPING_ACOUSTICS_IM:
-               CoefficientMatrix(mat, info, dof, eMatType, rho_z_im);
+               CoefficientMatrix(mat, info, dof, eMatType, rec_z_im);
                break;
                
           default:
@@ -7937,7 +7939,7 @@ public:
      }
 
 private:
-     const RowVector rho_z_re, rho_z_im;
+     const RowVector rec_z_re, rec_z_im;
 };
 
 class AcousticBoundary: public SurfaceElement {
@@ -9066,6 +9068,8 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
 
      pElem->Reserve(elnodes.rows());
 
+     const RowVector ones(elnodes.columns(), 1.);
+
      for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
           const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
           const Matrix velk = vel.linear_slice(vel.rows() * vel.columns() * k, vel.rows() * vel.columns() * (k + 1)).reshape(dim_vector(vel.rows(), vel.columns()));
@@ -9073,7 +9077,6 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
           FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
           
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
-          const RowVector rho(elnodes.columns(), materialk->Density());
 
           pElem->Insert(k + 1,
                         Xk,
@@ -9081,7 +9084,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
                         velk,
-                        rho);
+                        ones);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
@@ -9202,13 +9205,12 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
           FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
           
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
-          const double rhok = materialk->Density();
-          RowVector rho_z_re(elnodes.columns()), rho_z_im(elnodes.columns());
+          RowVector rec_z_re(elnodes.columns()), rec_z_im(elnodes.columns());
 
           for (octave_idx_type i = 0; i < elnodes.columns(); ++i) {
-               auto zki = rhok / z.xelem(k, i);
-               rho_z_re.xelem(i) = std::real(zki);
-               rho_z_im.xelem(i) = std::imag(zki);               
+               std::complex<double> rec_zki = 1. / z.xelem(k, i);
+               rec_z_re.xelem(i) = std::real(rec_zki);
+               rec_z_im.xelem(i) = std::imag(rec_zki);               
           }
 
           pElem->Insert(k + 1,
@@ -9216,8 +9218,8 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
                         materialk,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())),
-                        rho_z_re,
-                        rho_z_im);
+                        rec_z_re,
+                        rec_z_im);
      }
      
      rgElemBlocks.emplace_back(std::move(pElem));
