@@ -32,8 +32,16 @@ jobs:
            sudo apt-get dist-upgrade
            sudo apt-get install octave liboctave-dev \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
-           libmetis-dev octave-nurbs gmsh libnlopt-dev \
+           libmetis-dev octave-nurbs libnlopt-dev \
            libmkl-full-dev coreutils
+
+      # Runs a single command using the runners shell
+      - name: Install Gmsh
+        run: |
+           wget http://www.gmsh.info/bin/Linux/gmsh-4.8.4-Linux64.tgz
+           tar -zxvf gmsh-4.8.4-Linux64.tgz
+           sudo install gmsh-4.8.4-Linux64/bin/gmsh /usr/local/bin
+           gmsh --version
 
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
