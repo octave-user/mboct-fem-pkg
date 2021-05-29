@@ -12097,7 +12097,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
 %! unwind_protect_cleanup
@@ -12209,7 +12209,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
 %! unwind_protect_cleanup
@@ -12315,7 +12315,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
 %! unwind_protect_cleanup
@@ -12420,7 +12420,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
 %! unwind_protect_cleanup
@@ -12526,7 +12526,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
 %! unwind_protect_cleanup
@@ -12629,7 +12629,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12733,7 +12733,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12837,7 +12837,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12947,7 +12947,7 @@ endfunction
 %! 				[FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
 %! 				load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -13053,7 +13053,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -13219,7 +13219,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -13397,7 +13397,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -13565,7 +13565,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -13729,7 +13729,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -13896,7 +13896,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -14744,7 +14744,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -14913,7 +14913,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -15082,7 +15082,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, 1e-3 * max(abs(thetae)));
@@ -15251,7 +15251,7 @@ endfunction
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(2000);
+%!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -21446,7 +21446,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -21603,7 +21603,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -21749,7 +21749,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -21900,7 +21900,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -22020,7 +22020,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -22164,7 +22164,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.6;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -22325,8 +22325,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -22536,8 +22536,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -22671,8 +22671,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -22807,8 +22807,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -22942,8 +22942,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23075,8 +23075,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23211,7 +23211,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23347,7 +23347,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23484,7 +23484,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23619,7 +23619,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23752,7 +23752,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -23881,7 +23881,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -24024,7 +24024,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -24169,7 +24169,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -24314,7 +24314,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -24459,7 +24459,7 @@ endfunction
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = int32(1);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
@@ -24639,7 +24639,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -24791,7 +24791,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -24936,7 +24936,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25081,7 +25081,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25227,7 +25227,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25374,7 +25374,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25521,7 +25521,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25647,7 +25647,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25798,7 +25798,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -25937,7 +25937,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26084,7 +26084,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26230,7 +26230,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26370,7 +26370,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26511,7 +26511,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26637,7 +26637,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26775,7 +26775,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -26912,9 +26912,9 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27049,9 +27049,9 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27195,9 +27195,9 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27346,7 +27346,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27490,9 +27490,9 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27651,9 +27651,9 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27816,7 +27816,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -27985,7 +27985,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -28148,7 +28148,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -28310,7 +28310,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -28481,8 +28481,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -28723,8 +28723,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -28966,8 +28966,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -29207,8 +29207,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -29452,7 +29452,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -29669,8 +29669,8 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -29979,7 +29979,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -30209,7 +30209,7 @@ endfunction
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(10);
+%!   opt_sol.refine_max_iter = int32(50);
 %!   omegai = linspace(sqrt(eps) * omegac, omegac, 1000);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   node_idx_inlet = mesh.groups.tria6h(grp_idx_inlet).nodes;
