@@ -321,13 +321,15 @@ private:
 class Material
 {
 public:
-     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c)
+     Material(const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c, double eta, double zeta)
           :rho(rho),
            alpha(alpha),
            beta(beta),
            gamma(gamma),
            cp(cp),
            c(c),
+           eta(eta),
+           zeta(zeta),
            C(C),
            k(k) {
           FEM_ASSERT(C.rows() == 6);
@@ -340,8 +342,8 @@ public:
           nu = (2 * b - 1) / (2 * b - 2);
      }
 
-     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c)
-          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), cp(cp), c(c), C(6, 6, 0.), k(k) {
+     Material(double E, double nu, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c, double eta, double zeta)
+          :E(E), nu(nu), rho(rho), alpha(alpha), beta(beta), gamma(gamma), cp(cp), c(c), eta(eta), zeta(zeta), C(6, 6, 0.), k(k) {
 
           const double a = nu / (1 - nu);
           const double b = (1 - 2 * nu) / (2 * (1 - nu));
@@ -390,9 +392,10 @@ public:
      double AlphaDamping() const { return alpha; }
      double BetaDamping() const { return beta; }
      double SpeedOfSound() const { return c; }
-     
+     double ShearViscosity() const { return eta; }
+     double VolumeViscosity() const { return zeta; }
 private:
-     double E, nu, rho, alpha, beta, gamma, cp, c;
+     double E, nu, rho, alpha, beta, gamma, cp, c, eta, zeta;
      Matrix C, k;
 };
 
@@ -1931,6 +1934,11 @@ public:
                iNumRows = iNumCols = iNumDof;
                break;
 
+          case MAT_DAMPING_ACOUSTICS_RE:
+               pFunc = &Element3D::AcousticDampingMatrix;
+               iNumRows = iNumCols = iNumDof;
+               break;
+
           case MAT_HEAT_CAPACITY:
                pFunc = &Element3D::HeatCapacityMatrix;
                iNumRows = iNumCols = iNumDof;
@@ -2001,7 +2009,8 @@ public:
           case MAT_THERMAL_COND:
           case MAT_HEAT_CAPACITY:
           case MAT_MASS_ACOUSTICS:
-          case MAT_STIFFNESS_ACOUSTICS: {
+          case MAT_STIFFNESS_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE: {
                const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
                return iNumDof * iNumDof;
@@ -2066,11 +2075,17 @@ public:
                break;
 
           case VEC_PARTICLE_VELOCITY:
-               ParticleVelocityNodalElem<double>(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE, eltype), eMatType, oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_RE, eltype));
+               ParticleVelocityNodalElem<double>(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE, eltype),
+                                                 eMatType,
+                                                 oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_RE, eltype),
+                                                 oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, eltype));
                break;
 
           case VEC_PARTICLE_VELOCITY_C:
-               ParticleVelocityNodalElem<std::complex<double> >(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_C, eltype), eMatType, oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_C, eltype));
+               ParticleVelocityNodalElem<std::complex<double> >(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_C, eltype),
+                                                                eMatType,
+                                                                oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_C, eltype),
+                                                                oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, eltype));
                break;
                
           default:
@@ -2878,7 +2893,8 @@ protected:
      template <typename T>
      void ParticleVelocityNodalElem(typename PostProcTypeTraits<T>::NDArrayType& vn,
                                     FemMatrixType eMatType,
-                                    const typename PostProcTypeTraits<T>::NDArrayType& Phi) const {
+                                    const typename PostProcTypeTraits<T>::NDArrayType& Phi,
+                                    const typename PostProcTypeTraits<T>::NDArrayType& PhiP) const {
           typedef typename PostProcTypeTraits<T>::ColumnVectorType TColumnVector;
           typedef typename PostProcTypeTraits<T>::MatrixType TMatrix;
           
@@ -2891,7 +2907,6 @@ protected:
           constexpr octave_idx_type iNumComp = 3;
           
           ColumnVector rv(iNumDir);
-          const double rho = material->Density();
 
           FEM_ASSERT(vn.ndims() >= 3);
           FEM_ASSERT(id >= 1);
@@ -2903,8 +2918,14 @@ protected:
           FEM_ASSERT(Phi.dim2() >= 1);
           FEM_ASSERT(iNumDof == X.columns());
 
+          const double rho = material->Density();
+          const double eta = material->ShearViscosity();
+          const double zeta = material->VolumeViscosity();
+          const double c = material->SpeedOfSound();
+          const double tau = (4./3. * eta + zeta) / (rho * std::pow(c, 2));
+               
           Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumComp, iNumDof);
-          TColumnVector Phie(iNumDof);
+          TColumnVector Phie(iNumDof), PhiPe(iNumDof);
           TMatrix vg(iNumGauss, iNumComp * iNumLoads);
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
@@ -2918,17 +2939,22 @@ protected:
 
                for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     for (octave_idx_type j = 0; j < iNumNodes; ++j) {
-                         Phie.xelem(j) = Phi.xelem(nodes.xelem(j).value() - 1, l);
+                         const octave_idx_type idof = nodes.xelem(j).value() - 1;
+                         
+                         Phie.xelem(j) = Phi.xelem(idof, l);
+                         PhiPe.xelem(j) = PhiP.xelem(idof, l);
                     }
 
                     for (octave_idx_type j = 0; j < iNumComp; ++j) {
-                         T vgj{};
+                         T vgj{}, vgPj{};
 
                          for (octave_idx_type k = 0; k < iNumDof; ++k) {
-                              vgj += B.xelem(j, k) * Phie.xelem(k);
+                              const double Bjk = B.xelem(j, k);
+                              vgj += Bjk * Phie.xelem(k);
+                              vgPj += Bjk * PhiPe.xelem(k);
                          }
 
-                         vg.xelem(i, l * iNumComp + j) = vgj / rho;
+                         vg.xelem(i, l * iNumComp + j) = (vgj + tau * vgPj) / rho;
                     }
                }
           }
@@ -3041,6 +3067,22 @@ protected:
           }
 
           ScalarFieldStiffnessMatrix(k, Ke, info, eMatType);
+     }
+
+     void AcousticDampingMatrix(Matrix& De, MeshInfo& info, FemMatrixType eMatType) const {
+          const double eta = material->ShearViscosity();
+          const double zeta = material->VolumeViscosity();
+          const double rho = material->Density();
+          const double c = material->SpeedOfSound();
+          const double coef = (4./3. * eta + zeta) / std::pow(rho * c, 2);
+          
+          Matrix k(3, 3, 0.);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               k.xelem(i, i) = coef;
+          }
+
+          ScalarFieldStiffnessMatrix(k, De, info, eMatType);
      }
 
      void ThermalConductivityMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
@@ -5173,6 +5215,7 @@ public:
           case VEC_LOAD_LUMPED:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE:
                iIntegRule = R1;
                break;
 
@@ -5709,6 +5752,7 @@ public:
           case VEC_LOAD_LUMPED:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS:
+          case MAT_DAMPING_ACOUSTICS_RE:
           case VEC_PARTICLE_VELOCITY:
           case VEC_PARTICLE_VELOCITY_C:               
                if (!oIntegStiff.iGetNumEvalPoints()) {
@@ -11476,6 +11520,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const auto iterk = material_data.seek("k");
           const auto itercp = material_data.seek("cp");
           const auto iterc = material_data.seek("c");
+          const auto itereta = material_data.seek("eta");
+          const auto iterzeta = material_data.seek("zeta");
           
           if (iterC == material_data.end() && (iterE == material_data.end() || iternu == material_data.end())) {
                throw std::runtime_error("field \"C\" not found in mesh.material_data in argument mesh");
@@ -11495,6 +11541,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const Cell cellk = iterk != material_data.end() ? material_data.contents(iterk) : Cell();
           const Cell cellcp = itercp != material_data.end() ? material_data.contents(itercp) : Cell();
           const Cell cellc = iterc != material_data.end() ? material_data.contents(iterc) : Cell();
+          const Cell celleta = itereta != material_data.end() ? material_data.contents(itereta) : Cell();
+          const Cell cellzeta = iterzeta != material_data.end() ? material_data.contents(iterzeta) : Cell();
           
           vector<Material> rgMaterials;
 
@@ -11503,11 +11551,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           Matrix C;
 
           for (octave_idx_type i = 0; i < material_data.numel(); ++i) {
-               const bool buseC = iterC != material_data.end() && !cellC(i).isempty();
+               const bool buseC = iterC != material_data.end() && !cellC.xelem(i).isempty();
                double E, nu;
 
                if (buseC) {
-                    C = cellC(i).matrix_value();
+                    C = cellC.xelem(i).matrix_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
@@ -11518,15 +11566,15 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
                     }
 
-                    if ((iterE != material_data.end() && !cellE(i).isempty()) || (iternu != material_data.end() && !cellnu(i).isempty())) {
+                    if ((iterE != material_data.end() && !cellE.xelem(i).isempty()) || (iternu != material_data.end() && !cellnu.xelem(i).isempty())) {
                          throw std::runtime_error("redundant material properties in field material_data in argument mesh");
                     }
                } else {
-                    if (iterE == material_data.end() || cellE(i).isempty() || iternu == material_data.end() || cellnu(i).isempty()) {
+                    if (iterE == material_data.end() || cellE.xelem(i).isempty() || iternu == material_data.end() || cellnu.xelem(i).isempty()) {
                          throw std::runtime_error("fields \"E\" and \"nu\" not found in mesh.material_data in argument mesh");
                     }
 
-                    E = cellE(i).scalar_value();
+                    E = cellE.xelem(i).scalar_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
@@ -11534,7 +11582,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
 #endif
 
-                    nu = cellnu(i).scalar_value();
+                    nu = cellnu.xelem(i).scalar_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
@@ -11542,12 +11590,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
 #endif
 
-                    if (iterC != material_data.end() && !cellC(i).isempty()) {
+                    if (iterC != material_data.end() && !cellC.xelem(i).isempty()) {
                          throw std::runtime_error("redundant material properties in field material_data in argument mesh");
                     }
                }
 
-               const double rho = cellRho(i).scalar_value();
+               const double rho = cellRho.xelem(i).scalar_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
@@ -11555,7 +11603,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                }
 #endif
 
-               const double alpha = iterAlpha != material_data.end() && !cellAlpha(i).isempty() ? cellAlpha(i).scalar_value() : 0.;
+               const double alpha = iterAlpha != material_data.end() && !cellAlpha.xelem(i).isempty() ? cellAlpha.xelem(i).scalar_value() : 0.;
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
@@ -11563,7 +11611,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                }
 #endif
 
-               const double beta = iterBeta != material_data.end() && !cellBeta(i).isempty() ? cellBeta(i).scalar_value() : 0.;
+               const double beta = iterBeta != material_data.end() && !cellBeta.xelem(i).isempty() ? cellBeta.xelem(i).scalar_value() : 0.;
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
@@ -11571,7 +11619,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                }
 #endif
 
-               const double gamma = iterGamma != material_data.end() && !cellGamma(i).isempty() ? cellGamma(i).scalar_value() : 0.;
+               const double gamma = iterGamma != material_data.end() && !cellGamma.xelem(i).isempty() ? cellGamma.xelem(i).scalar_value() : 0.;
 
                const Matrix k = iterk != material_data.end() && !cellk(i).isempty() ? cellk(i).matrix_value() : Matrix(3, 3, 0.);
 
@@ -11579,14 +11627,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     throw std::runtime_error("mesh.material_data.k must be a real 3x3 matrix");
                }
 
-               const double cp = itercp != material_data.end() && !cellcp(i).isempty() ? cellcp(i).scalar_value() : 0.;
+               const double cp = itercp != material_data.end() && !cellcp.xelem(i).isempty() ? cellcp.xelem(i).scalar_value() : 0.;
 
-               const double c = iterc != material_data.end() && !cellc(i).isempty() ? cellc(i).scalar_value() : 0.;
-               
+               const double c = iterc != material_data.end() && !cellc.xelem(i).isempty() ? cellc.xelem(i).scalar_value() : 0.;
+
+               const double eta = itereta != material_data.end() && !celleta.xelem(i).isempty() ? celleta.xelem(i).scalar_value() : 0.;
+
+               const double zeta = iterzeta != material_data.end() && !cellzeta.xelem(i).isempty() ? cellzeta.xelem(i).scalar_value() : 0.;
+
                if (buseC) {
-                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k, cp, c);
+                    rgMaterials.emplace_back(C, rho, alpha, beta, gamma, k, cp, c, eta, zeta);
                } else {
-                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k, cp, c);
+                    rgMaterials.emplace_back(E, nu, rho, alpha, beta, gamma, k, cp, c, eta, zeta);
                }
           }
 
