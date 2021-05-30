@@ -30259,12 +30259,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ### TEST 182 - 1D wave equation
-%! ####################################################
-%! ## Jont Allen
-%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
-%! ## Chapter 5
-%! ####################################################
+%! ### TEST 182 - 1D wave equation with energy dissipation
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -30279,10 +30274,10 @@ endfunction
 %!     error("failed to open file \"%s.geo\"", filename);
 %!   endif
 %!   l = 100e-3;
-%!   c = 340;
-%!   rho = 1.25;
-%!   k = 100;
-%!   eta = 18e-6;
+%!   c = 1400;
+%!   rho = 840;
+%!   k = 400;
+%!   eta = 2e2;
 %!   zeta = 0;
 %!   omega = k * c;
 %!   f = omega / (2 * pi);
@@ -30291,7 +30286,6 @@ endfunction
 %!   w = dx;
 %!   h = dx;
 %!   pinput = 50 - 100j;
-%!   poutput = pinput * exp(-1j * k * l);
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -30315,6 +30309,7 @@ endfunction
 %!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp[1]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -30333,61 +30328,80 @@ endfunction
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   e1 = [0.5; -0.3; 0.7];
+%!   e2 = [0.1; 0.6; 0.4];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   R = [e1, e2, e3];
+%!   for i=1:columns(R)
+%!     R(:, i) /= norm(R(:, i));
+%!   endfor
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
-%!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
-%!   node_idx_output = mesh.groups.tria6h(grp_idx_output).nodes;
-%!   node_idx_constr = [node_idx_input, node_idx_output];
-%!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
-%!               repmat(poutput, 1, numel(node_idx_output))];
-%!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_constr)), 1, ones(1, numel(node_idx_constr))), ...
-%!                                          "nodes", mat2cell(node_idx_constr, 1, ones(1, numel(node_idx_constr))));
-%!   load_case = struct("acoustic_constr", cell(1, 2));
-%!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
-%!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
 %!   mesh.material_data.E = 0;
 %!   mesh.material_data.nu = 0;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   mesh.material_data.eta = eta;
 %!   mesh.material_data.zeta = zeta;
+%!   elno_input = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_input).elements, :);
+%!   elno_output = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_output).elements, :);
+%!   mesh.elements.particle_velocity.tria6h.nodes = [elno_input; elno_output];
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_output).elements, :);
+%!   mesh.elements.acoustic_impedance.tria6h.z = repmat(rho * c, size(mesh.elements.acoustic_impedance.tria6h.nodes));
+%!   mesh.materials.acoustic_impedance.tria6h = ones(rows(mesh.elements.acoustic_impedance.tria6h.nodes), 1, "int32");
+%!   v_input = ones(size(elno_input));
+%!   v_output = zeros(size(elno_output));
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6h.vn = real([v_input; v_output]);
+%!   load_case(2).particle_velocity.tria6h.vn = imag([v_input; v_output]);
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra, ...
+%!    mat_ass.n, ...
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
 %!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
-%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS, ...
+%!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
-%!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
+%!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
 %!   Psi = linspace(0, 2 * pi, 37);
-%!   x = mesh.nodes(:, 1);
+%!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   sol.p = real(-1j * omega * Phi(dof_map.ndof, :) * exp(1j * Psi));
 %!   sol.t = Psi / omega;
-%!   pref = real(pinput * exp(1j * (omega * sol.t - k * x)));
-%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   [x, idx] = sort(x);
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
 %!     plot(x, sol.p(idx, i), "-;p;1");
-%!     plot(x, pref(idx, i), "-;pref;0");
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
-%!   tol = 1e-3;
-%!   assert(sol.p, pref, tol * max(max(abs(pref))));
+%!   for i=1:rows(elno_input)
+%!     for j=1:columns(elno_input)
+%!       assert(mat_ass.n.tria6h(i, j, :)(:), -R(:, 1), sqrt(eps));
+%!     endfor
+%!   endfor
+%!   for i=1:rows(elno_output)
+%!     for j=1:columns(elno_output)
+%!       assert(mat_ass.n.tria6h(i + rows(elno_input), j, :)(:), R(:, 1), sqrt(eps));
+%!     endfor
+%!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

@@ -621,46 +621,47 @@ public:
      static_assert((MAT_TYPE_MASK & MAT_UPDATE_INFO_ALWAYS) == 0u);
      
      enum FemMatrixType: unsigned {
-          MAT_UNKNOWN              = 0u,
-          MAT_STIFFNESS            = ( 1u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
-          MAT_STIFFNESS_SYM        =           MAT_STIFFNESS | MAT_SYM_UPPER,
-          MAT_STIFFNESS_SYM_L      =           MAT_STIFFNESS | MAT_SYM_LOWER,
-          MAT_MASS                 = ( 2u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
-          MAT_MASS_SYM             =           MAT_MASS | MAT_SYM_UPPER,
-          MAT_MASS_SYM_L           =           MAT_MASS | MAT_SYM_LOWER,
-          MAT_MASS_LUMPED          =           MAT_MASS | MAT_SYM_DIAG,
-          MAT_DAMPING              = ( 3u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
-          MAT_DAMPING_SYM          =           MAT_DAMPING | MAT_SYM_UPPER,
-          MAT_DAMPING_SYM_L        =           MAT_DAMPING | MAT_SYM_LOWER,
-          SCA_TOT_MASS             = ( 4u << MAT_ID_SHIFT) | MAT_TYPE_SCALAR | DofMap::DO_STRUCTURAL,
-          VEC_INERTIA_M1           = ( 5u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_J            = ( 6u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV3         = ( 7u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV4         = ( 8u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV5         = ( 9u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV8         = (10u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV9         = (11u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_ACCEL_LOAD           = (12u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
-          VEC_LOAD_CONSISTENT      = (13u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
-          VEC_LOAD_LUMPED          = (14u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
-          VEC_STRESS_CAUCH         = (15u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          VEC_STRAIN_TOTAL         = (16u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          SCA_STRESS_VMIS          = (17u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_THERMAL_COND         = (18u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
-          MAT_HEAT_CAPACITY        = (19u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
-          VEC_LOAD_THERMAL         = (20u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
-          MAT_MASS_ACOUSTICS       = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          MAT_STIFFNESS_ACOUSTICS  = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
-          MAT_DAMPING_ACOUSTICS_RE = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          MAT_DAMPING_ACOUSTICS_IM = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          VEC_LOAD_ACOUSTICS       = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
-          VEC_PARTICLE_VELOCITY    = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          VEC_PARTICLE_VELOCITY_C  = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          SCA_ACOUSTIC_INTENSITY   = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          SCA_ACOUSTIC_INTENSITY_C = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS
+          MAT_UNKNOWN               = 0u,
+          MAT_STIFFNESS             = ( 1u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_STIFFNESS_SYM         =           MAT_STIFFNESS | MAT_SYM_UPPER,
+          MAT_STIFFNESS_SYM_L       =           MAT_STIFFNESS | MAT_SYM_LOWER,
+          MAT_MASS                  = ( 2u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_MASS_SYM              =           MAT_MASS | MAT_SYM_UPPER,
+          MAT_MASS_SYM_L            =           MAT_MASS | MAT_SYM_LOWER,
+          MAT_MASS_LUMPED           =           MAT_MASS | MAT_SYM_DIAG,
+          MAT_DAMPING               = ( 3u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_DAMPING_SYM           =           MAT_DAMPING | MAT_SYM_UPPER,
+          MAT_DAMPING_SYM_L         =           MAT_DAMPING | MAT_SYM_LOWER,
+          SCA_TOT_MASS              = ( 4u << MAT_ID_SHIFT) | MAT_TYPE_SCALAR | DofMap::DO_STRUCTURAL,
+          VEC_INERTIA_M1            = ( 5u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_J             = ( 6u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV3          = ( 7u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV4          = ( 8u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV5          = ( 9u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV8          = (10u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV9          = (11u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_ACCEL_LOAD            = (12u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_LOAD_CONSISTENT       = (13u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_LOAD_LUMPED           = (14u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_STRESS_CAUCH          = (15u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          VEC_STRAIN_TOTAL          = (16u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          SCA_STRESS_VMIS           = (17u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_THERMAL_COND          = (18u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
+          MAT_HEAT_CAPACITY         = (19u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
+          VEC_LOAD_THERMAL          = (20u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
+          MAT_MASS_ACOUSTICS        = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_STIFFNESS_ACOUSTICS   = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
+          MAT_DAMPING_ACOUSTICS_RE  = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_DAMPING_ACOUSTICS_IM  = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          VEC_LOAD_ACOUSTICS        = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY     = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY_C   = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          SCA_ACOUSTIC_INTENSITY    = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          SCA_ACOUSTIC_INTENSITY_C  = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_SURFACE_NORMAL_VECTOR = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 29u;
+     static constexpr unsigned MAT_TYPE_COUNT = 30u;
      
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -742,6 +743,7 @@ public:
           MAT_G_STRUCT_INERTIA_INV5_RE,      // MBDyn's modal invariant 5
           MAT_G_STRUCT_INERTIA_INV8_RE,      // MBDyn's modal invariant 8
           MAT_G_STRUCT_INERTIA_INV9_RE,      // MBDyn's modal invariant 9
+          VEC_EL_SURFACE_NORMAL_VECTOR_RE,   // surface normal vector at elements
           FIELD_COUNT_RE,
           UNKNOWN_FIELD_RE = ~0u
      };
@@ -7534,7 +7536,66 @@ protected:
           :Element(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes) {
      }
      
-public:          
+public:
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const {
+          switch (eMatType) {
+          case VEC_SURFACE_NORMAL_VECTOR:
+               SurfaceNormalVectorElem(oSolution.GetField(PostProcData::VEC_EL_SURFACE_NORMAL_VECTOR_RE, eltype), eMatType);
+               break;
+               
+          default:
+               break;
+          }
+     }
+
+     void SurfaceNormalVectorElem(NDArray& nel, FemMatrixType eMatType) const {
+          FEM_ASSERT(nel.ndims() == 3);
+          FEM_ASSERT(nel.dim1() >= id);
+          FEM_ASSERT(nel.dim2() == nodes.numel());
+          FEM_ASSERT(nel.dim3() == 3);
+          
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumDof = iNumNodes * 3;
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumEvalPoints = oIntegRule.iGetNumEvalPoints();
+          
+          ColumnVector rv(iNumDir);
+
+          Matrix HA(iNumEvalPoints, iNumNodes);
+          ColumnVector n1(3), n2(3), n3(3);
+          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof);
+          Matrix ng(iNumEvalPoints, 3);
+
+          for (octave_idx_type i = 0; i < iNumEvalPoints; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               ScalarInterpMatrix(rv, HA, i);
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
+               
+               SurfaceNormalVectorUnit(n1, n2, n3);
+
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    ng.xelem(i, j) = n3.xelem(j);
+               }
+          }
+
+          const Matrix nn = HA.solve(ng);
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                    nel.xelem(id - 1, i, j) = nn.xelem(i, j);
+               }
+          }
+     }
+     
      void SurfaceTangentVector(const Matrix& dHf, ColumnVector& n) const {
           FEM_ASSERT(n.rows() == 3);
           FEM_ASSERT(dHf.rows() == 3);
@@ -10235,6 +10296,95 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 }
 #endif
 
+octave_scalar_map
+SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
+                            const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                            const octave_scalar_map& elements,
+                            const Matrix& nodes,
+                            PostProcData& oSolution) {
+     constexpr octave_idx_type iNumComp = 3;
+     octave_scalar_map mapSurfaceNormalVectorElem;
+
+     const auto iterPartVel = elements.seek("particle_velocity");
+
+     if (iterPartVel == elements.end()) {
+          return mapSurfaceNormalVectorElem;
+     }
+
+     const octave_value ovPartVel = elements.contents(iterPartVel);
+
+     if (!ovPartVel.isstruct()) {
+          throw std::runtime_error("mesh.elements.particle_velocity must be a scalar struct");
+     }
+     
+     const octave_scalar_map mapPartVel = ovPartVel.scalar_map_value();
+
+     for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+          const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
+
+          if (!rgElemUse[oElemType.type]) {
+               continue;
+          }
+
+          switch (oElemType.type) {
+          case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
+          case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
+          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H: {
+               const auto iterElem = mapPartVel.seek(oElemType.name);
+
+               if (iterElem == mapPartVel.end()) {
+                    continue;
+               }
+
+               const octave_value ovElem = mapPartVel.contents(iterElem);
+
+               if (!(ovElem.isstruct() && ovElem.numel() == 1)) {
+                    throw std::runtime_error("mesh.elements.particle_velocity."s + oElemType.name + " must be a scalar struct");
+               }
+               
+               const octave_scalar_map mapElem = ovElem.scalar_map_value();
+               
+               const auto iterNodes = mapElem.seek("nodes");
+
+               if (iterNodes == mapElem.end()) {
+                    throw std::runtime_error("field mesh.elements.particle_velocity."s + oElemType.name + ".nodes not found");
+               }
+               const octave_value ovNodes = mapElem.contents(iterNodes);
+
+               if (!(ovNodes.is_matrix_type() && ovNodes.isinteger() && ovNodes.columns() == oElemType.min_nodes)) {
+                    throw std::runtime_error("number of columns does not match for field mesh.elements.particle_velocity."s + oElemType.name + ".nodes");
+               }
+               
+               const int32NDArray elemNodes = ovNodes.int32_array_value();
+
+               oSolution.SetField(PostProcData::VEC_EL_SURFACE_NORMAL_VECTOR_RE,
+                                  oElemType.type,
+                                  NDArray(dim_vector(elemNodes.rows(),
+                                                     elemNodes.columns(),
+                                                     iNumComp),
+                                          0.));
+
+                              
+               for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
+                    if ((*k)->GetElementType() == oElemType.type) {
+                         (*k)->PostProcElem(Element::VEC_SURFACE_NORMAL_VECTOR, oSolution);
+                    }
+               }
+
+               const NDArray nel = oSolution.GetField(PostProcData::VEC_EL_SURFACE_NORMAL_VECTOR_RE, oElemType.type);
+                              
+               mapSurfaceNormalVectorElem.assign(oElemType.name, nel);
+          } break;
+
+          default:
+               break;
+          }
+     }
+
+     return mapSurfaceNormalVectorElem;
+}
+
 template <typename T>
 octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
                                    const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
@@ -10460,6 +10610,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_VEC_PARTICLE_VELOCITY_C", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_SURFACE_NORMAL_VECTOR", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct");
@@ -10506,6 +10657,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_VEC_PARTICLE_VELOCITY_C", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_SURFACE_NORMAL_VECTOR", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
@@ -11784,12 +11936,19 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
                          break;
+
+                    case Element::VEC_SURFACE_NORMAL_VECTOR:
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;                         
+                         break;
                          
                     case Element::VEC_LOAD_ACOUSTICS:
                          if (load_case.numel() == 0) {
                               throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_ACOUSTICS");
                          }
-
+                         
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
@@ -12831,7 +12990,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          FEM_ASSERT(false);
                     }
                } break;
-                    
+               case Element::VEC_SURFACE_NORMAL_VECTOR:
+                    retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution));
+                    break;
                default:
                     throw std::runtime_error("invalid value for argument matrix_type");
                }
@@ -12912,6 +13073,7 @@ DEFINE_GLOBAL_CONSTANT(Element, VEC_PARTICLE_VELOCITY, "acoustic particle veloci
 DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY, "acoustic intensity and sound power")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_PARTICLE_VELOCITY_C, "complex acoustic particle velocity")
 DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY_C, "acoustic intensity and sound power for complex solutions")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_SURFACE_NORMAL_VECTOR, "surface normal vector at elements")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_ACOUSTICS, "acoustic domain")
