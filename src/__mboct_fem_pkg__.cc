@@ -790,6 +790,10 @@ public:
           ELEM_ACOUSTIC_BND_QUAD8,
           ELEM_ACOUSTIC_BND_TRIA6,
           ELEM_ACOUSTIC_BND_TRIA6H,
+          ELEM_FLUID_STRUCT_ISO4,
+          ELEM_FLUID_STRUCT_QUAD8,
+          ELEM_FLUID_STRUCT_TRIA6,
+          ELEM_FLUID_STRUCT_TRIA6H,          
           ELEM_TYPE_COUNT,
           ELEM_TYPE_UNKNOWN = -1
      };
@@ -855,7 +859,11 @@ const ElementTypes::TypeInfo ElementTypes::rgElemTypes[ElementTypes::ELEM_TYPE_C
      {ElementTypes::ELEM_ACOUSTIC_BND_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_BND_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
      {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
-     {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF}
+     {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_FLUID_STRUCT_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_FLUID_STRUCT_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_FLUID_STRUCT_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
+     {ElementTypes::ELEM_FLUID_STRUCT_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF}     
 };
 
 class Element
@@ -888,47 +896,52 @@ public:
      static_assert((MAT_TYPE_MASK & MAT_UPDATE_INFO_ALWAYS) == 0u);
      
      enum FemMatrixType: unsigned {
-          MAT_UNKNOWN               = 0u,
-          MAT_STIFFNESS             = ( 1u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
-          MAT_STIFFNESS_SYM         =           MAT_STIFFNESS | MAT_SYM_UPPER,
-          MAT_STIFFNESS_SYM_L       =           MAT_STIFFNESS | MAT_SYM_LOWER,
-          MAT_MASS                  = ( 2u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
-          MAT_MASS_SYM              =           MAT_MASS | MAT_SYM_UPPER,
-          MAT_MASS_SYM_L            =           MAT_MASS | MAT_SYM_LOWER,
-          MAT_MASS_LUMPED           =           MAT_MASS | MAT_SYM_DIAG,
-          MAT_DAMPING               = ( 3u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
-          MAT_DAMPING_SYM           =           MAT_DAMPING | MAT_SYM_UPPER,
-          MAT_DAMPING_SYM_L         =           MAT_DAMPING | MAT_SYM_LOWER,
-          SCA_TOT_MASS              = ( 4u << MAT_ID_SHIFT) | MAT_TYPE_SCALAR | DofMap::DO_STRUCTURAL,
-          VEC_INERTIA_M1            = ( 5u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_J             = ( 6u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV3          = ( 7u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV4          = ( 8u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV5          = ( 9u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV8          = (10u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_INERTIA_INV9          = (11u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_ACCEL_LOAD            = (12u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
-          VEC_LOAD_CONSISTENT       = (13u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
-          VEC_LOAD_LUMPED           = (14u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
-          VEC_STRESS_CAUCH          = (15u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          VEC_STRAIN_TOTAL          = (16u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          SCA_STRESS_VMIS           = (17u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_THERMAL_COND          = (18u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
-          MAT_HEAT_CAPACITY         = (19u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
-          VEC_LOAD_THERMAL          = (20u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
-          MAT_MASS_ACOUSTICS        = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          MAT_STIFFNESS_ACOUSTICS   = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
-          MAT_DAMPING_ACOUSTICS_RE  = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          MAT_DAMPING_ACOUSTICS_IM  = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          VEC_LOAD_ACOUSTICS        = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
-          VEC_PARTICLE_VELOCITY     = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          VEC_PARTICLE_VELOCITY_C   = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          SCA_ACOUSTIC_INTENSITY    = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          SCA_ACOUSTIC_INTENSITY_C  = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          VEC_SURFACE_NORMAL_VECTOR = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS
+          MAT_UNKNOWN                 = 0u,
+          MAT_STIFFNESS               = ( 1u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_STIFFNESS_SYM           =           MAT_STIFFNESS | MAT_SYM_UPPER,
+          MAT_STIFFNESS_SYM_L         =           MAT_STIFFNESS | MAT_SYM_LOWER,
+          MAT_MASS                    = ( 2u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_MASS_SYM                =           MAT_MASS | MAT_SYM_UPPER,
+          MAT_MASS_SYM_L              =           MAT_MASS | MAT_SYM_LOWER,
+          MAT_MASS_LUMPED             =           MAT_MASS | MAT_SYM_DIAG,
+          MAT_DAMPING                 = ( 3u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_DAMPING_SYM             =           MAT_DAMPING | MAT_SYM_UPPER,
+          MAT_DAMPING_SYM_L           =           MAT_DAMPING | MAT_SYM_LOWER,
+          SCA_TOT_MASS                = ( 4u << MAT_ID_SHIFT) | MAT_TYPE_SCALAR | DofMap::DO_STRUCTURAL,
+          VEC_INERTIA_M1              = ( 5u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_J               = ( 6u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV3            = ( 7u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV4            = ( 8u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV5            = ( 9u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV8            = (10u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_INERTIA_INV9            = (11u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_ACCEL_LOAD              = (12u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_LOAD_CONSISTENT         = (13u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_LOAD_LUMPED             = (14u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          VEC_STRESS_CAUCH            = (15u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          VEC_STRAIN_TOTAL            = (16u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          SCA_STRESS_VMIS             = (17u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
+          MAT_THERMAL_COND            = (18u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
+          MAT_HEAT_CAPACITY           = (19u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
+          VEC_LOAD_THERMAL            = (20u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
+          MAT_MASS_ACOUSTICS          = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_STIFFNESS_ACOUSTICS     = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
+          MAT_DAMPING_ACOUSTICS_RE    = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_DAMPING_ACOUSTICS_IM    = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          VEC_LOAD_ACOUSTICS          = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY       = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY_C     = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          SCA_ACOUSTIC_INTENSITY      = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          SCA_ACOUSTIC_INTENSITY_C    = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_SURFACE_NORMAL_VECTOR   = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          MAT_MASS_FLUID_STRUCT       = (31u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          MAT_STIFFNESS_FLUID_STRUCT  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          MAT_DAMPING_FLUID_STRUCT_RE = (33u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          MAT_DAMPING_FLUID_STRUCT_IM = (34u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          VEC_LOAD_FLUID_STRUCT       = (35u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 30u;
+     static constexpr unsigned MAT_TYPE_COUNT = 35u;
      
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -1522,6 +1535,7 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
                eMatTypeScale = MAT_STIFFNESS;
@@ -1533,10 +1547,11 @@ public:
                break;
                
           case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
           case VEC_LOAD_ACOUSTICS:
                eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
                break;
-               
+
           default:
                eMatTypeScale = MAT_UNKNOWN;
           }
@@ -1546,7 +1561,18 @@ public:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_THERMAL_COND:
-          case MAT_DAMPING_ACOUSTICS_RE: {
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_FLUID_STRUCT:              
+          {
+               if (eMatType == MAT_STIFFNESS_FLUID_STRUCT && eNodalDofType != DofMap::NDOF_DISPLACEMENT) {
+                    return;
+               }
+
+               if (eMatType == MAT_DAMPING_FLUID_STRUCT_RE && eNodalDofType != DofMap::NDOF_VELOCITY_POT) {
+                    return;
+               }
+               
                int32NDArray ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
@@ -1574,7 +1600,8 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
-          case VEC_LOAD_ACOUSTICS: {
+          case VEC_LOAD_ACOUSTICS:
+          case VEC_LOAD_FLUID_STRUCT: {
                int32NDArray edofidx(dim_vector(C.rows(), 1));
 
                for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
@@ -1598,8 +1625,10 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
                return 2 * C.rows() * C.columns();
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
@@ -1619,8 +1648,10 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
@@ -1690,6 +1721,7 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
                break;
 
           default:
@@ -1850,6 +1882,7 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_FLUID_STRUCT:
                return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
@@ -1862,6 +1895,7 @@ public:
      static constexpr bool bNeedMatrixInfo(Element::FemMatrixType eMatType) {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
                return true;
@@ -1959,12 +1993,14 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
                pfn = &ElemBeam2::StiffnessMatrix;
                break;
 
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT:
                pfn = &ElemBeam2::MassMatrix;
                break;
 
@@ -2229,6 +2265,11 @@ public:
                iNumRows = iNumCols = iNumDof;
                break;
                
+          case MAT_HEAT_CAPACITY:
+               pFunc = &Element3D::HeatCapacityMatrix;
+               iNumRows = iNumCols = iNumDof;
+               break;
+               
           case MAT_STIFFNESS_ACOUSTICS:
                pFunc = &Element3D::AcousticStiffnessMatrix;
                iNumRows = iNumCols = iNumDof;
@@ -2238,16 +2279,56 @@ public:
                pFunc = &Element3D::AcousticDampingMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
-
-          case MAT_HEAT_CAPACITY:
-               pFunc = &Element3D::HeatCapacityMatrix;
-               iNumRows = iNumCols = iNumDof;
-               break;
                
           case MAT_MASS_ACOUSTICS:
                pFunc = &Element3D::AcousticMassMatrix;
                iNumRows = iNumCols = iNumDof;
                break;
+
+          case MAT_STIFFNESS_FLUID_STRUCT:
+               switch (eMaterial) {
+               case Material::MAT_TYPE_SOLID:
+                    pFunc = &Element3D::StiffnessMatrix;
+                    break;
+               case Material::MAT_TYPE_FLUID:
+                    pFunc = &Element3D::AcousticStiffnessMatrix;
+                    break;
+               default:
+                    throw std::logic_error("material not supported");
+               }
+               
+               iNumRows = iNumCols = iNumDof;
+               break;
+               
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+               switch (eMaterial) {
+               case Material::MAT_TYPE_SOLID:
+                    pFunc = &Element3D::DampingMatrix;
+                    break;
+               case Material::MAT_TYPE_FLUID:
+                    pFunc = &Element3D::AcousticDampingMatrix;
+                    break;
+               default:
+                    throw std::logic_error("material not supported");
+               }
+               
+               iNumRows = iNumCols = iNumDof;
+               break;
+               
+          case MAT_MASS_FLUID_STRUCT:
+               switch (eMaterial) {
+               case Material::MAT_TYPE_SOLID:
+                    pFunc = &Element3D::MassMatrix;
+                    break;
+               case Material::MAT_TYPE_FLUID:
+                    pFunc = &Element3D::AcousticMassMatrix;
+                    break;
+               default:
+                    throw std::logic_error("material not supported");
+               }
+               
+               iNumRows = iNumCols = iNumDof;
+               break;              
                
           default:
                return;
@@ -2260,7 +2341,7 @@ public:
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
           constexpr unsigned uScalarFieldMask = DofMap::DO_THERMAL | DofMap::DO_ACOUSTICS;
-          const octave_idx_type inodemaxdof = (eMatType & uScalarFieldMask) ? 1 : 3;
+          const octave_idx_type inodemaxdof = ((eMatType & uScalarFieldMask) == 0u || eMaterial == Material::MAT_TYPE_FLUID) ? 1 : 3;
           
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < inodemaxdof; ++idof) {
@@ -2296,16 +2377,28 @@ public:
           case DofMap::DO_THERMAL:
           case DofMap::DO_ACOUSTICS:
                return nodes.numel();
+          case DofMap::DO_FLUID_STRUCT:
+               switch (material->GetMaterialType()) {
+               case Material::MAT_TYPE_SOLID:
+                    return nodes.numel() * 3;
+               case Material::MAT_TYPE_FLUID:
+                    return nodes.numel();
+               default:
+                    throw std::logic_error("material not supported");
+               }
           default:
-               throw std::runtime_error("domain not supported");
+               throw std::logic_error("domain not supported");
           }
      }
 
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
           switch (eMatType) {
           case MAT_MASS:
+          case MAT_MASS_FLUID_STRUCT:
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case MAT_DAMPING:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
           case MAT_THERMAL_COND:
           case MAT_HEAT_CAPACITY:
           case MAT_MASS_ACOUSTICS:
@@ -5512,17 +5605,20 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS:
           case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
                iIntegRule = R1;
                break;
 
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT:
           case VEC_INERTIA_M1:
           case MAT_INERTIA_J:
           case MAT_INERTIA_INV3:
@@ -6047,6 +6143,7 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
           case VEC_STRESS_CAUCH:
           case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
@@ -6054,6 +6151,7 @@ public:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS:
           case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
           case VEC_PARTICLE_VELOCITY:
           case VEC_PARTICLE_VELOCITY_C:               
                if (!oIntegStiff.iGetNumEvalPoints()) {
@@ -6076,6 +6174,7 @@ public:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT:
           case VEC_INERTIA_M1:
           case MAT_INERTIA_J:
           case MAT_INERTIA_INV3:
@@ -7973,29 +8072,17 @@ public:
      virtual void DisplacementInterpMatrixDerS(const ColumnVector& r, Matrix& dHf_ds) const=0;     
 };
 
-class PressureLoad: public SurfaceElement {
+class PressureElemBase: public SurfaceElement {
 public:
-     PressureLoad(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
-          :SurfaceElement(eltype, id, X, material, nodes), p(p), colidx(colidx) {
+protected:     
+     PressureElemBase(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :SurfaceElement(eltype, id, X, material, nodes) {
 
           FEM_ASSERT(X.rows() == 3);
-          FEM_ASSERT(X.columns() == p.columns());
           FEM_ASSERT(X.columns() == nodes.numel());
      }
 
-     PressureLoad(const PressureLoad& oElem)
-          :SurfaceElement(oElem.eltype, oElem.id, oElem.X, oElem.material, oElem.nodes), p(oElem.p), colidx(oElem.colidx) {
-     }
-
-     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
-          switch (eMatType) {
-          case VEC_LOAD_CONSISTENT:
-          case VEC_LOAD_LUMPED:
-               break;
-          default:
-               return;
-          }
-
+     void AssembleVectors(Matrix& fA, MeshInfo& info, FemMatrixType eMatType, const Matrix& p) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumDof = iGetNumDof();
@@ -8003,17 +8090,9 @@ public:
           const octave_idx_type iNumLoads = p.rows();
 
           ColumnVector rv(iNumDir);
-          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
-
-          for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
-               for (octave_idx_type idof = 0; idof < 3; ++idof) {
-                    dofidx(inode * 3 + idof) = dof.GetNodeDofIndex(nodes(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
-               }
-          }
-
           Matrix HA(1, iNumNodes), HA_p(1, iNumLoads);
           ColumnVector n1(3), n2(3), n_detJA(3), HfT_n_dA(iNumDof);
-          Matrix Hf(3, iNumDof), dHf_dr(3, iNumDof), dHf_ds(3, iNumDof), fA(iNumDof, iNumLoads, 0.);
+          Matrix Hf(3, iNumDof), dHf_dr(3, iNumDof), dHf_ds(3, iNumDof);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
                const double alpha = oIntegRule.dGetWeight(i);
@@ -8059,10 +8138,53 @@ public:
                     }
                }
           }
+     }
 
+     octave_idx_type iGetNumDof() const {
+          return nodes.numel() * 3;
+     }     
+};
+
+class PressureLoad: public PressureElemBase {
+public:
+     PressureLoad(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& p, octave_idx_type colidx)
+          :PressureElemBase(eltype, id, X, material, nodes), p(p), colidx(colidx) {
+
+          FEM_ASSERT(X.rows() == 3);
+          FEM_ASSERT(X.columns() == p.columns());
+          FEM_ASSERT(X.columns() == nodes.numel());
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+               break;
+          default:
+               return;
+          }
+
+          const octave_idx_type iNumDof = iGetNumDof();
+          const octave_idx_type iNumLoads = p.rows();
+          const octave_idx_type iNumNodes = nodes.numel();
+          
+          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+
+          for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
+               const octave_idx_type inodeidx = nodes.xelem(inode).value() - 1;
+               
+               for (octave_idx_type idof = 0; idof < 3; ++idof) {
+                    dofidx.xelem(inode * 3 + idof) = dof.GetNodeDofIndex(inodeidx, DofMap::NDOF_DISPLACEMENT, idof);
+               }
+          }
+
+          Matrix fA(iNumDof, iNumLoads, 0.);
+
+          AssembleVectors(fA, info, eMatType, p);
+          
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
                for (octave_idx_type i = 0; i < iNumDof; ++i) {
-                    mat.Insert(fA.xelem(i, j), dofidx.xelem(i), colidx + j);
+                    mat.Insert(fA.xelem(i, j), dofidx.xelem(i).value(), colidx + j);
                }
           }
      }
@@ -8077,13 +8199,70 @@ public:
           }
      }
 
-     octave_idx_type iGetNumDof() const {
-          return nodes.numel() * 3;
-     }
-
 private:
      const Matrix p;
      const octave_idx_type colidx;
+};
+
+class FluidStructInteract: public PressureElemBase {
+public:
+     FluidStructInteract(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :PressureElemBase(eltype, id, X, material, nodes) {
+
+          FEM_ASSERT(X.rows() == 3);
+          FEM_ASSERT(X.columns() == nodes.numel());
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+               break;
+          default:
+               return;
+          }
+
+          const octave_idx_type iNumDofStruct = iGetNumDof();
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumDofFluid = iNumNodes;
+          
+          int32NDArray dofidx_s(dim_vector(iNumDofStruct, 1), 0);
+          int32NDArray dofidx_f(dim_vector(iNumDofFluid, 1), 0);
+
+          for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
+               const octave_idx_type inodeidx = nodes(inode).value() - 1;
+               
+               for (octave_idx_type idof = 0; idof < 3; ++idof) {
+                    dofidx_s.xelem(inode * 3 + idof) = dof.GetNodeDofIndex(inodeidx, DofMap::NDOF_DISPLACEMENT, idof);
+               }
+
+               dofidx_f.xelem(inode) = dof.GetNodeDofIndex(inodeidx, DofMap::NDOF_VELOCITY_POT, 0);
+          }
+
+          Matrix A(iNumDofStruct, iNumDofFluid, 0.);
+          Matrix p(iNumDofFluid, iNumDofFluid, 0.);
+
+          for (octave_idx_type i = 0; i < iNumDofFluid; ++i) {
+               p.xelem(i, i) = 1.; // Assume, that the mesh is oriented using the solid element volume
+          }
+          
+          AssembleVectors(A, info, eMatType, p);
+          
+          for (octave_idx_type j = 0; j < iNumDofFluid; ++j) {
+               for (octave_idx_type i = 0; i < iNumDofStruct; ++i) {
+                    mat.Insert(A.xelem(i, j), dofidx_s.xelem(i).value(), dofidx_f.xelem(j).value());
+                    mat.Insert(A.xelem(i, j), dofidx_f.xelem(j).value(), dofidx_s.xelem(i).value());
+               }
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+               return 2 * iGetNumDof() * nodes.numel();
+          default:
+               return 0;
+          }
+     }
 };
 
 class ScalarFieldBC: public SurfaceElement {
@@ -8106,7 +8285,7 @@ public:
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
-               dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, eDofType, 0);
+               dofidx.xelem(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, eDofType, 0);
           }
 
           Matrix HA(1, iNumDof);
@@ -8170,7 +8349,7 @@ public:
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
-               dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, eDofType, 0);
+               dofidx.xelem(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, eDofType, 0);
           }
 
           Matrix HA(1, iNumDof), HA_Thetae(1, iNumLoads);
@@ -8320,9 +8499,11 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
           case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
                CoefficientMatrix(mat, info, dof, eMatType, DofMap::NDOF_VELOCITY_POT, rec_z_re);
                break;
           case MAT_DAMPING_ACOUSTICS_IM:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
                CoefficientMatrix(mat, info, dof, eMatType, DofMap::NDOF_VELOCITY_POT, rec_z_im);
                break;
                
@@ -8335,6 +8516,8 @@ public:
           switch (eMatType) {          
           case MAT_DAMPING_ACOUSTICS_RE:
           case MAT_DAMPING_ACOUSTICS_IM:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
                return iGetNumDof() * iGetNumDof();
                
           default:
@@ -8623,7 +8806,7 @@ public:
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
-               dofidx(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, DofMap::NDOF_TEMPERATURE, 0);
+               dofidx.xelem(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, DofMap::NDOF_TEMPERATURE, 0);
           }
 
           Matrix HA(1, iNumDof), HA_qe(1, iNumLoads);
@@ -8751,6 +8934,11 @@ typedef SurfaceElementImpl<ShapeIso4, AcousticBoundary> AcousticBoundaryIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticBoundary> AcousticBoundaryQuad8;
 typedef SurfaceElementImpl<ShapeTria6, AcousticBoundary> AcousticBoundaryTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticBoundary> AcousticBoundaryTria6H;
+
+typedef SurfaceElementImpl<ShapeIso4, FluidStructInteract> FluidStructInteractIso4;
+typedef SurfaceElementImpl<ShapeQuad8, FluidStructInteract> FluidStructInteractQuad8;
+typedef SurfaceElementImpl<ShapeTria6, FluidStructInteract> FluidStructInteractTria6;
+typedef SurfaceElementImpl<ShapeTria6H, FluidStructInteract> FluidStructInteractTria6H;
 
 class StructForce: public Element {
 public:
@@ -9719,6 +9907,69 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
           pElem->Insert(k + 1,
                         Xk,
                         materialk,
+                        elnodes.index(idx_vector::make_range(k, 1, 1),
+                                      idx_vector::make_range(0, 1, elnodes.columns())));
+     }
+     
+     rgElemBlocks.emplace_back(std::move(pElem));
+}
+
+template <typename FluidStructElemType>
+void InsertFluidStructElem(ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const char* pszElemName, octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const auto iter_fluid_struct = elements.seek("fluid_struct_interface");
+
+     if (iter_fluid_struct == elements.end()) {
+          return;
+     }
+     
+     const octave_value ov_fluid_struct = elements.contents(iter_fluid_struct);
+
+     if (!(ov_fluid_struct.isstruct() && ov_fluid_struct.numel() == 1)) {
+          throw std::runtime_error("mesh.elements.fluid_struct_interface must be a scalar struct");
+     }
+
+     const octave_scalar_map m_fluid_struct = ov_fluid_struct.scalar_map_value();
+     
+     const auto iter_elem_type = m_fluid_struct.seek(pszElemName);
+
+     if (iter_elem_type == m_fluid_struct.end()) {
+          return;
+     }
+
+     const octave_value ov_elnodes = m_fluid_struct.contents(iter_elem_type);
+
+     if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
+          throw std::runtime_error("mesh.elements.fluid_struct_interface."s + pszElemName + " must be an integer matrix");
+     }
+
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
+     
+     NDArray X(dim_vector(3, iNumNodesElem, elnodes.rows()));
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          for (octave_idx_type l = 0; l < elnodes.columns(); ++l) {
+               octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
+
+               if (inode < 0 || inode >= nodes.rows()) {
+                    throw std::runtime_error("node index out of range in mesh.elements.fluid_struct_interface."s + pszElemName + ".nodes");
+               }
+               
+               for (octave_idx_type m = 0; m < X.rows(); ++m) {
+                    X.xelem(m, l, k) = nodes.xelem(inode, m);
+               }
+          }
+     }
+     
+     std::unique_ptr<ElementBlock<FluidStructElemType> > pElem{new ElementBlock<FluidStructElemType>{eltype}};
+
+     pElem->Reserve(elnodes.rows());
+
+     for (octave_idx_type k = 0; k < elnodes.rows(); ++k) {
+          const Matrix Xk = X.linear_slice(X.rows() * X.columns() * k, X.rows() * X.columns() * (k + 1)).reshape(dim_vector(X.rows(), X.columns()));
+
+          pElem->Insert(k + 1,
+                        Xk,
+                        nullptr,
                         elnodes.index(idx_vector::make_range(k, 1, 1),
                                       idx_vector::make_range(0, 1, elnodes.columns())));
      }
@@ -10932,7 +11183,11 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct");
-
+// PKG_ADD: autoload("FEM_MAT_MASS_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_STIFFNESS_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_IM", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_LOAD_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
 
 // PKG_DEL: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct", "remove");
@@ -10979,6 +11234,11 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_MASS_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_STIFFNESS_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_IM", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_LOAD_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
@@ -12093,7 +12353,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_ACCEL_LOAD:
                          rgElemUse[ElementTypes::ELEM_BEAM2] = true;
                          [[fallthrough]];
-                  
+                         
                     case Element::VEC_STRESS_CAUCH:
                     case Element::VEC_STRAIN_TOTAL:
                     case Element::SCA_STRESS_VMIS:
@@ -12208,6 +12468,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          [[fallthrough]];
                          
                     case Element::MAT_DAMPING_ACOUSTICS_RE:
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;                         
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
@@ -12227,9 +12492,71 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
                     break;
                     
+               case DofMap::DO_FLUID_STRUCT:
+                    switch (eMatType) {
+                    case Element::MAT_STIFFNESS_FLUID_STRUCT:
+                         rgElemUse[ElementTypes::ELEM_RBE3] = true;
+                         rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         [[fallthrough]];
+                         
+                    case Element::MAT_MASS_FLUID_STRUCT:
+                         rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         break;
+
+                    case Element::VEC_LOAD_FLUID_STRUCT:
+                         if (load_case.numel() == 0) {
+                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_FLUID_STRUCT");
+                         }
+
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;                    
+                         rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         // Needed for thermal stress only
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;                         
+                         break;
+                         
+                    case Element::MAT_DAMPING_FLUID_STRUCT_RE:
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
+                         [[fallthrough]];
+                         
+                    case Element::MAT_DAMPING_FLUID_STRUCT_IM:
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
+                         break;
+                         
+                    default:
+                         break;
+                    }
+                    break;
+                    
                default:
                     throw std::runtime_error("invalid value for dof_map.domain");
-               }              
+               }
           }
 
           vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
@@ -12745,6 +13072,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_PRESSURE_TRIA6H:
                     InsertPressureElem<PressureLoadTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
+                    InsertFluidStructElem<FluidStructInteractIso4>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
+                    InsertFluidStructElem<FluidStructInteractQuad8>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
+                    InsertFluidStructElem<FluidStructInteractTria6>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
+                    InsertFluidStructElem<FluidStructInteractTria6H>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;                    
                case ElementTypes::ELEM_STRUCT_FORCE: {
                     const auto iter_loads = load_case.seek("loads");
@@ -12912,13 +13251,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_STIFFNESS:
                case Element::MAT_STIFFNESS_SYM:
                case Element::MAT_STIFFNESS_SYM_L:
+               case Element::MAT_STIFFNESS_FLUID_STRUCT:
                case Element::MAT_MASS:
                case Element::MAT_MASS_SYM:
                case Element::MAT_MASS_SYM_L:
                case Element::MAT_MASS_LUMPED:
+               case Element::MAT_MASS_FLUID_STRUCT:
                case Element::MAT_DAMPING:
                case Element::MAT_DAMPING_SYM:
                case Element::MAT_DAMPING_SYM_L:
+               case Element::MAT_DAMPING_FLUID_STRUCT_RE:
+               case Element::MAT_DAMPING_FLUID_STRUCT_IM:
                case Element::VEC_LOAD_CONSISTENT:
                case Element::VEC_LOAD_LUMPED:
                case Element::MAT_ACCEL_LOAD:
@@ -13326,6 +13669,12 @@ DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY, "acoustic intensity and 
 DEFINE_GLOBAL_CONSTANT(Element, VEC_PARTICLE_VELOCITY_C, "complex acoustic particle velocity")
 DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY_C, "acoustic intensity and sound power for complex solutions")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_SURFACE_NORMAL_VECTOR, "surface normal vector at elements")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_FLUID_STRUCT, "fluid-structure interaction stiffness matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_FLUID_STRUCT, "fluid-structure interaction mass matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_FLUID_STRUCT_RE, "real part of fluid-structure interaction damping matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_FLUID_STRUCT_IM, "imaginary part of fluid-structure interaction damping matrix")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_LOAD_FLUID_STRUCT, "fluid-structure interaction load vector")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_ACOUSTICS, "acoustic domain")
+DEFINE_GLOBAL_CONSTANT(DofMap, DO_FLUID_STRUCT, "fluid-structure interaction domain")
