@@ -15947,6 +15947,7 @@ endfunction
 %!   endif
 %!   mesh.material_data.gamma = 1.26e-5;
 %!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.cp = 465;
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.k = eye(3) * lambda;
@@ -16067,6 +16068,7 @@ endfunction
 %!   endif
 %!   mesh.material_data.gamma = 1.26e-5;
 %!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.cp = 490;
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.k = eye(3) * lambda;
@@ -16183,6 +16185,7 @@ endfunction
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.gamma = 1.26e-5;
 %!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.cp = 465;
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.k = eye(3) * lambda;
@@ -16299,6 +16302,7 @@ endfunction
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.gamma = 1.26e-5;
 %!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.cp = 465;
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.k = eye(3) * lambda;
@@ -16418,6 +16422,7 @@ endfunction
 %!   endif
 %!   mesh.material_data.gamma = 1.26e-5;
 %!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.cp = 465;
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.k = eye(3) * lambda;
@@ -16529,6 +16534,7 @@ endfunction
 %!   nu = 0.3;
 %!   mesh.material_data.gamma = 1.26e-5;
 %!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.cp = 465;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
