@@ -2341,7 +2341,7 @@ public:
           int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
 
           constexpr unsigned uScalarFieldMask = DofMap::DO_THERMAL | DofMap::DO_ACOUSTICS;
-          const octave_idx_type inodemaxdof = ((eMatType & uScalarFieldMask) == 0u || eMaterial == Material::MAT_TYPE_FLUID) ? 1 : 3;
+          const octave_idx_type inodemaxdof = ((eMatType & uScalarFieldMask) != 0u || eMaterial == Material::MAT_TYPE_FLUID) ? 1 : 3;
           
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < inodemaxdof; ++idof) {
