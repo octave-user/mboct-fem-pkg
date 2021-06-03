@@ -29327,7 +29327,7 @@ endfunction
 %!   load_case = struct("particle_velocity", cell(1, 2));
 %!   load_case(1).particle_velocity.quad8.vn = repmat(-real(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
 %!   load_case(2).particle_velocity.quad8.vn = repmat(-imag(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
-%!   mesh.material_data = struct("E", {0,0}, "nu", {0,0}, "rho", {rho1, rho2}, "c", {c1, c2});
+%!   mesh.material_data = struct("rho", {rho1, rho2}, "c", {c1, c2});
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
@@ -29545,7 +29545,7 @@ endfunction
 %!   load_case = struct("particle_velocity", cell(1, 2));
 %!   load_case(1).particle_velocity.iso4.vn = repmat(-real(vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
 %!   load_case(2).particle_velocity.iso4.vn = repmat(-imag(vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
-%!   mesh.material_data = struct("E", {0,0}, "nu", {0,0}, "rho", {rho1, rho2}, "c", {c1, c2});
+%!   mesh.material_data = struct("rho", {rho1, rho2}, "c", {c1, c2});
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
@@ -29833,7 +29833,7 @@ endfunction
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(1).elements) = 2;
 %!   mesh.materials.tet10(mesh.groups.tet10(2).elements) = 1;
-%!   mesh.material_data = struct("E", {0, 0}, "nu", {0, 0}, "rho", {rho, rho1}, "c", {c, c1});
+%!   mesh.material_data = struct("rho", {rho, rho1}, "c", {c, c1});
 %!   mesh.elements.particle_velocity.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(2).elements, :);
 %!   mesh.materials.particle_velocity.tria6 = repmat(int32(1), rows(mesh.elements.particle_velocity.tria6.nodes), 1);
 %!   mesh.elements.acoustic_impedance.tria6.nodes = mesh.elements.tria6([[mesh.groups.tria6([1,3,4])].elements], :);
