@@ -383,14 +383,19 @@ public:
            zeta(zeta),
            C(C),
            k(k) {
-          FEM_ASSERT(C.rows() == 6);
-          FEM_ASSERT(C.columns() == 6);
+          
+          if (eMatType == MAT_TYPE_SOLID) {
+               FEM_ASSERT(C.rows() == 6);
+               FEM_ASSERT(C.columns() == 6);
 
-          const double a = C.xelem(0, 0);
-          const double b = C.xelem(5, 5) / a;
+               const double a = C.xelem(0, 0);
+               const double b = C.xelem(5, 5) / a;
 
-          E = ((4 * b * b - 3 * b) * a) / (b - 1);
-          nu = (2 * b - 1) / (2 * b - 2);
+               E = ((4 * b * b - 3 * b) * a) / (b - 1);
+               nu = (2 * b - 1) / (2 * b - 2);
+          } else {
+               E = nu = -1.;
+          }               
      }
 
      static vector<Material> ExtractMaterialData(const octave_map& material_data, const enum DofMap::DomainType eDomain) {
