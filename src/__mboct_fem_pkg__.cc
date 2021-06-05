@@ -1692,7 +1692,7 @@ public:
 
      static octave_idx_type iGetNumDofNodeMax(ElementTypes::TypeId eltype) {
           switch (eltype) {
-          case ELEM_JOINT:
+          case ElementTypes::ELEM_JOINT:
                return 6;
           default:
                return 1;
