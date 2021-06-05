@@ -1071,6 +1071,15 @@ public:
                {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, "PhiP"}
           };
 
+          static constexpr SolField fluidStructFields[] = {
+               {VEC_NO_STRUCT_DISPLACEMENT_RE, DT_REAL, "def"},
+               {VEC_NO_STRUCT_DISPLACEMENT_C, DT_COMPLEX, "def"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, "PhiP"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, "PhiP"}               
+          };
+          
           struct DomainField {
                DofMap::DomainType domain;
                const SolField* begin;
@@ -1078,9 +1087,10 @@ public:
           };
 
           static constexpr DomainField domainFields[] = {
-               {DofMap::DO_STRUCTURAL, std::begin(structFields),   std::end(structFields)},
-               {DofMap::DO_THERMAL,    std::begin(thermalFields),  std::end(thermalFields)},
-               {DofMap::DO_ACOUSTICS,  std::begin(acousticFields), std::end(acousticFields)}
+               {DofMap::DO_STRUCTURAL,   std::begin(structFields),      std::end(structFields)},
+               {DofMap::DO_THERMAL,      std::begin(thermalFields),     std::end(thermalFields)},
+               {DofMap::DO_ACOUSTICS,    std::begin(acousticFields),    std::end(acousticFields)},
+               {DofMap::DO_FLUID_STRUCT, std::begin(fluidStructFields), std::end(fluidStructFields)}
           };
 
           constexpr octave_idx_type numDomainFields = sizeof(domainFields) / sizeof(domainFields[0]);
