@@ -1562,7 +1562,11 @@ public:
           case VEC_LOAD_ACOUSTICS:
                eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
                break;
-
+               
+          case VEC_LOAD_FLUID_STRUCT:
+               eMatTypeScale = MAT_STIFFNESS_FLUID_STRUCT;
+               break;
+               
           default:
                eMatTypeScale = MAT_UNKNOWN;
           }
@@ -1667,7 +1671,8 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
-          case VEC_LOAD_ACOUSTICS:    
+          case VEC_LOAD_ACOUSTICS:
+          case VEC_LOAD_FLUID_STRUCT:
                return true;
           default:
                return false;
@@ -8482,6 +8487,7 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
           case VEC_LOAD_ACOUSTICS:
+          case VEC_LOAD_FLUID_STRUCT:
                RightHandSideVector(mat, info, dof, eMatType, DofMap::NDOF_VELOCITY_POT, vn, coef);
                break;
 
@@ -8493,6 +8499,7 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const final {
           switch (eMatType) {          
           case VEC_LOAD_ACOUSTICS:
+          case VEC_LOAD_FLUID_STRUCT:
                return iGetNumDof() * vn.rows();
                
           default:
