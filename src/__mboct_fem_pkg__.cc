@@ -2366,7 +2366,8 @@ public:
           switch (eMatType) {
           case MAT_ACCEL_LOAD:
           case VEC_LOAD_CONSISTENT:
-          case VEC_LOAD_LUMPED: {
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT: {
                int32NDArray dofidxcol(dim_vector(iNumCols, 1));
 
                for (octave_idx_type i = 0; i < iNumCols; ++i) {
