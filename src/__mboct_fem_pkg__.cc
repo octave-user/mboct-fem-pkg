@@ -1597,7 +1597,7 @@ public:
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
 
-               const double coef = (eMatType == MAT_STIFFNESS_FLUID_STRUCT && eNodalDofType == DofMap::NDOF_VELOCITY_POT) : -1. : 1.;
+               const double coef = (eMatType == MAT_STIFFNESS_FLUID_STRUCT && eNodalDofType == DofMap::NDOF_VELOCITY_POT) ? -1. : 1.;
                const double beta = coef * mat.GetMatrixInfo(eMatTypeScale).beta;
 
                for (octave_idx_type j = 0; j < C.columns(); ++j) {
@@ -8472,8 +8472,8 @@ private:
 
 class ParticleVelocityBC: public ScalarFieldBC {
 public:
-     ParticleVelocityBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& vn, const RowVector& ones)
-          :ScalarFieldBC(eltype, id, X, material, nodes), vn(vn), ones(ones) {
+     ParticleVelocityBC(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& vn, const RowVector& coef)
+          :ScalarFieldBC(eltype, id, X, material, nodes), vn(vn), coef(coef) {
      }
 
      ParticleVelocityBC(const ParticleVelocityBC& oElem)=default;
@@ -8481,7 +8481,7 @@ public:
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const final {
           switch (eMatType) {
           case VEC_LOAD_ACOUSTICS:
-               RightHandSideVector(mat, info, dof, eMatType, DofMap::NDOF_VELOCITY_POT, vn, ones);
+               RightHandSideVector(mat, info, dof, eMatType, DofMap::NDOF_VELOCITY_POT, vn, coef);
                break;
 
           default:
@@ -8501,7 +8501,7 @@ public:
      
 private:
      const Matrix vn;
-     const RowVector ones;
+     const RowVector coef;
 };
 
 class AcousticImpedanceBC: public ScalarFieldBC {
@@ -13215,28 +13215,28 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     InsertHeatSourceElem<HeatSourceTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
-                    InsertParticleVelocityBC<ParticleVelocityBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertParticleVelocityBC<ParticleVelocityBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
-                    InsertParticleVelocityBC<ParticleVelocityBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertParticleVelocityBC<ParticleVelocityBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
-                    InsertParticleVelocityBC<ParticleVelocityBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertParticleVelocityBC<ParticleVelocityBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
-                    InsertParticleVelocityBC<ParticleVelocityBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertParticleVelocityBC<ParticleVelocityBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
-                    InsertAcousticImpedanceBC<AcousticImpedanceBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
-                    InsertAcousticImpedanceBC<AcousticImpedanceBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
-                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria6>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
-                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDofMap.GetDomain());
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
                case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
                     InsertAcousticBoundary<AcousticBoundaryIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
