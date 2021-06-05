@@ -30482,7 +30482,7 @@ endfunction
 %!     sol.def(idxU1, j, :) = real(Z(idxU, :) * exp(1j * omega * sol.t));
 %!   endfor
 %!   node_idx = mesh.groups.iso20(grp_idx_volume2).nodes;
-%!   tol = 1e-6;
+%!   tol = 1e-5;
 %!   for i=1:numel(node_idx)
 %!     assert(reshape(sol.def(node_idx(i), 1, :), 1, numel(sol.t)), real(Uref * exp(1j * omega * sol.t)), tol * abs(Uref));
 %!   endfor
