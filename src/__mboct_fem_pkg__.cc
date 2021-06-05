@@ -1602,8 +1602,8 @@ public:
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
 
-               const double coef = (eMatType == MAT_STIFFNESS_FLUID_STRUCT && eNodalDofType == DofMap::NDOF_VELOCITY_POT) ? -1. : 1.;
-               const double beta = coef * mat.GetMatrixInfo(eMatTypeScale).beta;
+               //const double coef = (eMatType == MAT_STIFFNESS_FLUID_STRUCT && eNodalDofType == DofMap::NDOF_VELOCITY_POT) ? -1. : 1.;
+               const double beta = mat.GetMatrixInfo(eMatTypeScale).beta;
 
                for (octave_idx_type j = 0; j < C.columns(); ++j) {
                     for (octave_idx_type i = 0; i < C.rows(); ++i) {
