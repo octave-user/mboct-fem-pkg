@@ -2371,7 +2371,7 @@ public:
 
           (this->*pFunc)(Ae, info, eMatType);
 
-          std::cout << "\nid:" << id << "\n" << ((eMaterial == Material::MAT_TYPE_SOLID) ? "solid" : "fluid") << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n";
+          FEM_TRACE("\nid:" << id << "\n" << ((eMaterial == Material::MAT_TYPE_SOLID) ? "solid" : "fluid") << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n");
           
           switch (eMatType) {
           case MAT_ACCEL_LOAD:
