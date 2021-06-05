@@ -11454,23 +11454,25 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    return retval;
                               }
 
-                              octave_idx_type iNodeDof;
+                              octave_idx_type iNodeDofMin = 1, iNodeDofMax = -1;
 
                               switch (eDomain) {
                               case DofMap::DO_STRUCTURAL:
-                                   iNodeDof = 3;
+                                   iNodeDofMin = 0;
+                                   iNodeDofMax = 2;
                                    break;
                               case DofMap::DO_THERMAL:
                               case DofMap::DO_ACOUSTICS:
-                                   iNodeDof = 1;
+                                   iNodeDofMin = iNodeDofMax = 0;
                                    break;
                               case DofMap::DO_FLUID_STRUCT:
                                    switch (eMatType) {
                                    case Material::MAT_TYPE_SOLID:
-                                        iNodeDof = 3;
+                                        iNodeDofMin = 0;
+                                        iNodeDofMax = 2;
                                         break;                                        
                                    case Material::MAT_TYPE_FLUID:
-                                        iNodeDof = 1;
+                                        iNodeDofMin = iNodeDofMax = 5;
                                         break;
                                    default:
                                         throw std::logic_error("invalid material type for fluid structure interaction");
@@ -11480,7 +11482,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    throw std::runtime_error("unknown value for dof_map.domain");
                               }
                          
-                              for (octave_idx_type l = 0; l < iNodeDof; ++l) {
+                              for (octave_idx_type l = iNodeDofMin; l <= iNodeDofMax; ++l) {
                                    dof_in_use.xelem(idxnode - 1, l) = true;
                               }
                          }
