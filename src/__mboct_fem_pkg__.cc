@@ -1690,10 +1690,9 @@ public:
           ++idx;
      }
 
-     static octave_idx_type iGetNumDofNodeMax(DofMap::DomainType eDomain) {
-          switch (eDomain) {
-          case DofMap::DO_STRUCTURAL:
-          case DofMap::DO_FLUID_STRUCT:
+     static octave_idx_type iGetNumDofNodeMax(ElementTypes::TypeId eltype) {
+          switch (eltype) {
+          case ELEM_JOINT:
                return 6;
           default:
                return 1;
@@ -13006,7 +13005,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               }
 #endif
 
-                              const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oDof.GetDomain());
+                              const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oElemType.type);
                               
                               if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != iNumDofNodeMax * elem_nodes.columns() || C.rows() > C.columns()) {
                                    throw std::runtime_error("invalid size for field elements."s + oElemType.name + ".C");
