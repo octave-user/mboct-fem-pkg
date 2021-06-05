@@ -11180,14 +11180,15 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_SURFACE_NORMAL_VECTOR", "__mboct_fem_pkg__.oct");
-// PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
-// PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
-// PKG_ADD: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_MASS_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_IM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_DO_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
 
 // PKG_DEL: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct", "remove");
@@ -11231,14 +11232,15 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_SURFACE_NORMAL_VECTOR", "__mboct_fem_pkg__.oct", "remove");
-// PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
-// PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
-// PKG_DEL: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_MASS_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_STIFFNESS_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_DAMPING_FLUID_STRUCT_IM", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_LOAD_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_DO_THERMAL", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_DO_STRUCTURAL", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_DO_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_DO_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
