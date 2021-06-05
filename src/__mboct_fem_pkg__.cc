@@ -1546,7 +1546,6 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
-          case MAT_STIFFNESS_FLUID_STRUCT:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
                eMatTypeScale = MAT_STIFFNESS;
@@ -1558,11 +1557,12 @@ public:
                break;
                
           case MAT_DAMPING_ACOUSTICS_RE:
-          case MAT_DAMPING_FLUID_STRUCT_RE:
           case VEC_LOAD_ACOUSTICS:
                eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
                break;
-               
+
+          case MAT_STIFFNESS_FLUID_STRUCT:
+          case MAT_DAMPING_FLUID_STRUCT_RE:                              
           case VEC_LOAD_FLUID_STRUCT:
                eMatTypeScale = MAT_STIFFNESS_FLUID_STRUCT;
                break;
