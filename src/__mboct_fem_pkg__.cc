@@ -11472,7 +11472,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         iNodeDofMax = 2;
                                         break;                                        
                                    case Material::MAT_TYPE_FLUID:
-                                        iNodeDofMin = iNodeDofMax = 5;
+                                        iNodeDofMin = iNodeDofMax = 6;
                                         break;
                                    default:
                                         throw std::logic_error("invalid material type for fluid structure interaction");
@@ -11594,7 +11594,21 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         return retval;
                                    }
 
-                                   dof_in_use.xelem(idxnode - 1, 0) = true;
+                                   octave_idx_type iDofIndex = -1;
+
+                                   switch (eDomain) {
+                                   case DofMap::DO_ACOUSTICS:
+                                   case DofMap::DO_THERMAL:
+                                        iDofIndex = 0;
+                                        break;
+                                   case DofMap::DO_FLUID_STRUCT:
+                                        iDofIndex = 6;
+                                        break;
+                                   default:
+                                        throw std::logic_error("domain not supported");
+                                   }
+                                   
+                                   dof_in_use.xelem(idxnode - 1, iDofIndex) = true;
                               }
                          }
                     } break;
@@ -11645,7 +11659,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    }
 
                                    for (octave_idx_type k = 0; k < 6; ++k) {
-                                        dof_in_use(idxnode - 1, k) = true;
+                                        dof_in_use.xelem(idxnode - 1, k) = true;
                                    }
                               }
                          }
@@ -11694,7 +11708,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                               }
 
                               for (octave_idx_type k = 0; k < 6; ++k) {
-                                   dof_in_use(idxnode - 1, k) = true;
+                                   dof_in_use.xelem(idxnode - 1, k) = true;
                               }
                          }
                     } break;
