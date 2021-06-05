@@ -12309,7 +12309,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           for (auto k = std::begin(edof); k != std::end(edof); ++k) {
                for (octave_idx_type j = 0; j < k->columns(); ++j) {
                     for (octave_idx_type i = 0; i < k->rows(); ++i) {
-                         if ((*k)(i, j).value() > inumdof) {
+                         if ((*k).xelem(i, j).value() > inumdof) {
                               throw std::runtime_error("dof_map.edof dof index out of range in argument dof_map");
                          }
                     }
@@ -12615,7 +12615,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
                          for (octave_idx_type i = 0; i < elem_nodes.rows(); ++i) {
-                              octave_idx_type inode = elem_nodes(i, j);
+                              octave_idx_type inode = elem_nodes.xelem(i, j);
                               if (inode < 1 || inode > nodes.rows()) {
                                    throw std::runtime_error(std::string("invalid node index for element type ")
                                                             + oElemType.name + " in argument mesh");
@@ -13276,6 +13276,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_DAMPING_FLUID_STRUCT_IM:
                case Element::VEC_LOAD_CONSISTENT:
                case Element::VEC_LOAD_LUMPED:
+               case Element::VEC_LOAD_FLUID_STRUCT:
                case Element::MAT_ACCEL_LOAD:
                case Element::MAT_THERMAL_COND:
                case Element::MAT_HEAT_CAPACITY:
