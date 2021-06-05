@@ -1442,6 +1442,7 @@ public:
           case Element::VEC_LOAD_LUMPED:
           case Element::VEC_LOAD_THERMAL:
           case Element::VEC_LOAD_ACOUSTICS:
+          case Element::VEC_LOAD_FLUID_STRUCT:
                iNumCols = iNumLoads;
                break;
 
