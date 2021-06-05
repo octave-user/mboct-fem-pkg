@@ -12583,6 +12583,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          [[fallthrough]];
                          
