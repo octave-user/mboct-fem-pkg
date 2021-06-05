@@ -2354,8 +2354,9 @@ public:
           const octave_idx_type inodemaxdof = ((eMatType & uScalarFieldMask) != 0u || eMaterial == Material::MAT_TYPE_FLUID) ? 1 : 3;
           
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+               const octave_idx_type inodeidx = nodes.xelem(inode).value() - 1;
                for (octave_idx_type idof = 0; idof < inodemaxdof; ++idof) {
-                    dofidx.xelem(inode * inodemaxdof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, eDofType, idof);
+                    dofidx.xelem(inode * inodemaxdof + idof) = dof.GetNodeDofIndex(inodeidx, eDofType, idof);
                }
           }
 
@@ -2363,6 +2364,8 @@ public:
 
           (this->*pFunc)(Ae, info, eMatType);
 
+          std::cout << "\nid:" << id << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n";
+          
           switch (eMatType) {
           case MAT_ACCEL_LOAD:
           case VEC_LOAD_CONSISTENT:
