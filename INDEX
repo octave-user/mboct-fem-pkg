@@ -13,7 +13,7 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-toolbox >> MBDyn/Octave Finite Element package for linear statics and dynamics
+toolbox >> MBDyn/Octave Finite Element package for linear structural, thermal and acoustic analysis
 
 Preprocessing
         fem_pre_geo_export

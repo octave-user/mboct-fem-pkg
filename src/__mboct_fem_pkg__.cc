@@ -179,7 +179,7 @@ public:
           NDOF_VELOCITY_POT,
           NDOF_COUNT
      };
-
+     
      enum ElementType {
           ELEM_RBE3 = 0,
           ELEM_JOINT,
@@ -1530,7 +1530,11 @@ class ElemJoint: public Element
 {
 public:
      ElemJoint(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U, DofMap::DomainType eDomain)
-          :Element(eltype, id, X, material, nodes), C(C), U(U), iNumNodeDof(eltype == ElementTypes::ELEM_JOINT ? 6 : 1), eNodalDofType(GetNodalDofType(eltype)) {
+          :Element(eltype, id, X, material, nodes),
+           C(C),
+           U(U),
+           iNumNodeDof(eltype == ElementTypes::ELEM_JOINT ? 6 : 1),
+           eNodalDofType(GetNodalDofType(eltype)) {
           FEM_ASSERT(C.columns() == nodes.numel() * iNumNodeDof);
           FEM_ASSERT(C.rows() <= C.columns());
           FEM_ASSERT(C.rows() >= 1);
@@ -10060,7 +10064,16 @@ public:
      }
 
      static octave_idx_type iGetNumDof(ConstraintType eType, DofMap::DomainType eDomain) {
-          return (eDomain == DofMap::DO_STRUCTURAL && eType == CT_FIXED) ? 3 : 1;
+          switch (eDomain) {
+          case DofMap::DO_STRUCTURAL:
+          case DofMap::DO_FLUID_STRUCT:
+               return eType == CT_FIXED ? 3 : 1;
+          case DofMap::DO_THERMAL:
+          case DofMap::DO_ACOUSTICS:
+               return 1;
+          default:
+               throw std::logic_error("unknown value for dof_map.domain");
+          }
      }
 
      static octave_idx_type iGetNumDof(const Cell& ov, octave_idx_type j, DofMap::DomainType eDomain) {
@@ -10088,7 +10101,7 @@ const char SurfToNodeConstrBase::szErrCompileWithNlopt[] = "__mboct_fem_pkg__ mu
 template <typename SHAPE_FUNC>
 class SurfToNodeConstr: public SurfToNodeConstrBase {
 public:
-     static ElemBlockPtr
+     static void
      BuildJoints(octave_idx_type& id,
                  const Matrix& X,
                  const int32NDArray& nidxmaster,
@@ -10096,37 +10109,28 @@ public:
                  const ColumnVector& maxdist,
                  const ConstraintType eType,
                  const unsigned uConstraintFlags,
-                 const DofMap::DomainType eDomain) {
+                 const DofMap::DomainType eDomain,
+                 vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
           
-          ElementTypes::TypeId eElemType = ElementTypes::ELEM_TYPE_UNKNOWN;
-          octave_idx_type iNumDofNodeMax = -1;
-          octave_idx_type iNumDofNodeConstr = -1;
+          ElementTypes::TypeId eElemType;
           
           switch (eDomain) {
           case DofMap::DO_STRUCTURAL:
+          case DofMap::DO_FLUID_STRUCT:
                eElemType = ElementTypes::ELEM_JOINT;
-               iNumDofNodeMax = 6;
-               iNumDofNodeConstr = 3;
                break;
           case DofMap::DO_THERMAL:
                eElemType = ElementTypes::ELEM_THERM_CONSTR;
-               iNumDofNodeMax = 1;
-               iNumDofNodeConstr = 1;
                break;
           case DofMap::DO_ACOUSTICS:
                eElemType = ElementTypes::ELEM_ACOUSTIC_CONSTR;
-               iNumDofNodeMax = 1;
-               iNumDofNodeConstr = 1;
                break;
           default:
-               // FIXME: add support for fluid structure interaction
                throw std::logic_error("unsupported value for dof_map.domain");
           }
-
-          FEM_ASSERT(eElemType != ElementTypes::ELEM_TYPE_UNKNOWN);
           
-          ElemBlockPtr pElemBlock(new ElementBlock<ElemJoint>(eElemType, nidxslave.numel()));
-
+          ElemBlockPtr pElemBlock{new ElementBlock<ElemJoint>{eElemType, nidxslave.numel()}};
+          
           FEM_ASSERT(X.columns() >= iNumDimNode);
           FEM_ASSERT(X.columns() == 6);
           FEM_ASSERT(nidxmaster.columns() == iNumNodesElem);
@@ -10161,19 +10165,8 @@ public:
           }
           
           ColumnVector Xm(iNumDimNode * iNumNodesElem);
-          Matrix Xe(6, nidxmaster.columns() + 1);
           ColumnVector rv(iNumDir), rvopt(iNumDir, 0.);
           ColumnVector Xi(iNumDimNode), Xiopt(iNumDimNode, 0.);
-          Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
-          Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
-          Matrix dHf_ds(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
-          ColumnVector n1(iNumDimNode), n2(iNumDimNode);
-          ColumnVector n(iNumDimNode);
-          Matrix C(iNumDofNodeConstr, iNumDofNodeMax * (nidxmaster.columns() + 1));
-          Matrix U(C.rows(), 0);
-          RowVector nC(C.columns());
-          Matrix nU(1, 0);
-          int32NDArray enodes(dim_vector(nidxmaster.columns() + 1, 1));
 
           for (size_t i = 0; i < eidxmaster.size(); ++i) {
                for (octave_idx_type j = 0; j < Xs.rows(); ++j) {
@@ -10269,87 +10262,129 @@ public:
 
                FEM_TRACE("nlopt: i=" << i << " l=" << lopt << " rc=" << rcopt << " f=" << fopt << " maxdist=" << maxdist(i) << std::endl);
 
-               switch (eDomain) {
-               case DofMap::DO_STRUCTURAL:
-                    SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
-                    break;
-               case DofMap::DO_THERMAL:
-               case DofMap::DO_ACOUSTICS:
-                    SHAPE_FUNC::ScalarInterpMatrix(rvopt, Hf, 0);
-                    break;
-               default:
-                    throw std::logic_error("unsupported value for dof_map.domain");
-               }
-               
-               C.make_unique();
-               C.fill(0.);
-
-               for (octave_idx_type j = 0; j < iNumDofNodeConstr; ++j) {
-                    for (octave_idx_type k = 0; k < C.rows(); ++k) {
-                         C.xelem(k, j) = (k == j);
-                    }
-               }
-
-               for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                    for (octave_idx_type k = 0; k < iNumDofNodeConstr; ++k) {
-                         for (octave_idx_type l = 0; l < C.rows(); ++l) {
-                              C.xelem(l, (j + 1) * iNumDofNodeMax + k) = -Hf.xelem(l, j * iNumDofNodeConstr + k);
-                         }
-                    }
-               }
-
-               enodes.make_unique();
-               enodes.xelem(0) = nidxslave.xelem(i);
-
-               for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                    enodes.xelem(j + 1) = nidxmaster.xelem(eidxmaster[i][lopt].eidx, j).value();
-               }
-
-               for (octave_idx_type j = 0; j < X.columns(); ++j) {
-                    Xe.xelem(j, 0) = X.xelem(nidxslave.xelem(i).value() - 1, j);
-               }
-
-               for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
-                    for (octave_idx_type k = 0; k < X.columns(); ++k) {
-                         Xe.xelem(k, j + 1) = X.xelem(nidxmaster.xelem(eidxmaster[i][lopt].eidx, j).value() - 1, k);
-                    }
-               }
-
-               if (eType == CT_SLIDING) {
-                    if (eDomain == DofMap::DO_STRUCTURAL) {
-                         SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
-                         SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
-                    
-                         SurfaceTangentVector(Xe, dHf_dr, n1);
-                         SurfaceTangentVector(Xe, dHf_ds, n2);
-                         SurfaceElement::SurfaceNormalVectorUnit(n1, n2, n);
-
-                         nC.make_unique();
-                         nC.fill(0.);
-
-                         for (octave_idx_type j = 0; j < C.columns(); ++j) {
-                              for (octave_idx_type k = 0; k < C.rows(); ++k) {
-                                   nC.xelem(j) += n.xelem(k) * C.xelem(k, j);
-                              }
-                         }
-
-                         FEM_TRACE("n=" << n << std::endl);
-                         FEM_TRACE("C=" << C << std::endl);
-                         FEM_TRACE("n.'*C=" << nC << std::endl);
-
-                         pElemBlock->Insert(++id, Xe, nullptr, enodes, nC, nU, eDomain);
-                    } else {
-                         throw std::logic_error("unsupported value for dof_map.domain");
-                    }
-               } else {
-                    pElemBlock->Insert(++id, Xe, nullptr, enodes, C, U, eDomain);
-               }
+               InsertConstraint(++id,
+                                X,
+                                nidxmaster,
+                                nidxslave,
+                                eType,
+                                uConstraintFlags,
+                                eDomain,
+                                i,
+                                pElemBlock,
+                                eElemType,
+                                eidxmaster[i][lopt].eidx,
+                                rvopt);
           }
 
-          return pElemBlock;
+          rgElemBlocks.emplace_back(std::move(pElemBlock));
      }
 
 private:
+     static void InsertConstraint(const octave_idx_type id,
+                                  const Matrix& X,
+                                  const int32NDArray& nidxmaster,
+                                  const int32NDArray& nidxslave,
+                                  const ConstraintType eType,
+                                  const unsigned uConstraintFlags,
+                                  const DofMap::DomainType eDomain,
+                                  const octave_idx_type iSlaveNode,
+                                  const ElemBlockPtr& pElemBlock,
+                                  const ElementTypes::TypeId eElemType,
+                                  const octave_idx_type eidxmaster,
+                                  const ColumnVector& rvopt) {
+          octave_idx_type iNumDofNodeMax = -1;
+          octave_idx_type iNumDofNodeConstr = -1;
+
+          switch (eElemType) {
+          case ElementTypes::ELEM_JOINT:
+               iNumDofNodeMax = 6;
+               iNumDofNodeConstr = 3;
+               break;
+          default:
+               iNumDofNodeMax = 1;
+               iNumDofNodeConstr = 1;
+          }
+
+          Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
+                    
+          switch (eElemType) {
+          case ElementTypes::ELEM_JOINT:
+               SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
+               break;
+          default:
+               SHAPE_FUNC::ScalarInterpMatrix(rvopt, Hf, 0);
+          }
+
+          Matrix C(iNumDofNodeConstr, iNumDofNodeMax * (nidxmaster.columns() + 1), 0.);
+          
+          for (octave_idx_type j = 0; j < iNumDofNodeConstr; ++j) {
+               for (octave_idx_type k = 0; k < C.rows(); ++k) {
+                    C.xelem(k, j) = (k == j);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+               for (octave_idx_type k = 0; k < iNumDofNodeConstr; ++k) {
+                    for (octave_idx_type l = 0; l < C.rows(); ++l) {
+                         C.xelem(l, (j + 1) * iNumDofNodeMax + k) = -Hf.xelem(l, j * iNumDofNodeConstr + k);
+                    }
+               }
+          }
+
+          int32NDArray enodes(dim_vector(nidxmaster.columns() + 1, 1));
+          
+          enodes.xelem(0) = nidxslave.xelem(iSlaveNode).value();
+
+          for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+               enodes.xelem(j + 1) = nidxmaster.xelem(eidxmaster, j).value();
+          }
+
+          Matrix Xe(6, nidxmaster.columns() + 1);
+          
+          for (octave_idx_type j = 0; j < X.columns(); ++j) {
+               Xe.xelem(j, 0) = X.xelem(nidxslave.xelem(iSlaveNode).value() - 1, j);
+          }
+
+          for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+               for (octave_idx_type k = 0; k < X.columns(); ++k) {
+                    Xe.xelem(k, j + 1) = X.xelem(nidxmaster.xelem(eidxmaster, j).value() - 1, k);
+               }
+          }
+
+          if (eType == CT_SLIDING) {
+               if (eElemType != ElementTypes::ELEM_JOINT) {
+                    throw std::logic_error("unsupported value for dof_map.domain");
+               }
+               
+               Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+               Matrix dHf_ds(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+               ColumnVector n1(iNumDimNode), n2(iNumDimNode);
+               ColumnVector n(iNumDimNode);
+               RowVector nC(C.columns(), 0.);
+                    
+               SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
+               SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
+                    
+               SurfaceTangentVector(Xe, dHf_dr, n1);
+               SurfaceTangentVector(Xe, dHf_ds, n2);
+               SurfaceElement::SurfaceNormalVectorUnit(n1, n2, n);
+
+               for (octave_idx_type j = 0; j < C.columns(); ++j) {
+                    for (octave_idx_type k = 0; k < C.rows(); ++k) {
+                         nC.xelem(j) += n.xelem(k) * C.xelem(k, j);
+                    }
+               }
+
+               FEM_TRACE("n=" << n << std::endl);
+               FEM_TRACE("C=" << C << std::endl);
+               FEM_TRACE("n.'*C=" << nC << std::endl);
+
+               pElemBlock->Insert(id, Xe, nullptr, enodes, nC, Matrix{1, 0}, eDomain);
+          } else {
+               pElemBlock->Insert(id, Xe, nullptr, enodes, C, Matrix{C.rows(), 0}, eDomain);
+          }
+     }
+     
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
           for (octave_idx_type i = 0; i < 3; ++i) {
                double ni = 0.;
@@ -10821,48 +10856,50 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                }
           }
 
-          std::unique_ptr<ElementBlock<ElemJoint> > pElem;
-
           switch (oElemType.type) {
           case ElementTypes::ELEM_SFNCON4:
-               pElem = SurfToNodeConstr<ShapeIso4>::BuildJoints(dofelemid[oElemType.dof_type],
-                                                                nodes,
-                                                                nidxmaster,
-                                                                nidxslave,
-                                                                maxdist,
-                                                                eConstrType,
-                                                                uConstraintFlags,
-                                                                eDomain);
+               SurfToNodeConstr<ShapeIso4>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                        nodes,
+                                                        nidxmaster,
+                                                        nidxslave,
+                                                        maxdist,
+                                                        eConstrType,
+                                                        uConstraintFlags,
+                                                        eDomain,
+                                                        rgElemBlocks);
                break;
           case ElementTypes::ELEM_SFNCON6:
-               pElem = SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
-                                                                 nodes,
-                                                                 nidxmaster,
-                                                                 nidxslave,
-                                                                 maxdist,
-                                                                 eConstrType,
-                                                                 uConstraintFlags,
-                                                                 eDomain);
+               SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                         nodes,
+                                                         nidxmaster,
+                                                         nidxslave,
+                                                         maxdist,
+                                                         eConstrType,
+                                                         uConstraintFlags,
+                                                         eDomain,
+                                                         rgElemBlocks);
                break;
           case ElementTypes::ELEM_SFNCON6H:
-               pElem = SurfToNodeConstr<ShapeTria6H>::BuildJoints(dofelemid[oElemType.dof_type],
-                                                                  nodes,
-                                                                  nidxmaster,
-                                                                  nidxslave,
-                                                                  maxdist,
-                                                                  eConstrType,
-                                                                  uConstraintFlags,
-                                                                  eDomain);
+               SurfToNodeConstr<ShapeTria6H>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                          nodes,
+                                                          nidxmaster,
+                                                          nidxslave,
+                                                          maxdist,
+                                                          eConstrType,
+                                                          uConstraintFlags,
+                                                          eDomain,
+                                                          rgElemBlocks);
                break;               
           case ElementTypes::ELEM_SFNCON8:
-               pElem = SurfToNodeConstr<ShapeQuad8>::BuildJoints(dofelemid[oElemType.dof_type],
-                                                                 nodes,
-                                                                 nidxmaster,
-                                                                 nidxslave,
-                                                                 maxdist,
-                                                                 eConstrType,
-                                                                 uConstraintFlags,
-                                                                 eDomain);
+               SurfToNodeConstr<ShapeQuad8>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                         nodes,
+                                                         nidxmaster,
+                                                         nidxslave,
+                                                         maxdist,
+                                                         eConstrType,
+                                                         uConstraintFlags,
+                                                         eDomain,
+                                                         rgElemBlocks);
                break;
           default:
                FEM_ASSERT(false);
@@ -10871,10 +10908,6 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           if ((uConstraintFlags & CF_ELEM_DOF_PRE_ALLOCATED) && dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
                throw std::runtime_error("dof_map.edof is not consistent with elements");
           }
-
-          FEM_ASSERT(pElem != nullptr);
-
-          rgElemBlocks.emplace_back(std::move(pElem));
      }
 }
 #endif
@@ -11324,11 +11357,10 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                return retval;
           }
 #endif
-          
+          DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
+               
           const auto it_domain = m_load_case.seek("domain");
 
-          DofMap::DomainType eDomain = DofMap::DO_STRUCTURAL;
-     
           if (it_domain != m_load_case.end()) {
                eDomain = static_cast<DofMap::DomainType>(m_load_case.contents(it_domain).int_value());
           }
@@ -11613,7 +11645,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          }
                     } break;
                case ElementTypes::ELEM_BEAM2:
-                    if (eDomain == DofMap::DO_STRUCTURAL) {
+                    if (eDomain == DofMap::DO_STRUCTURAL || eDomain == DofMap::DO_FLUID_STRUCT) {
                          const octave_map m_beam2 = m_elements.contents(iter_elem_type).map_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
@@ -11665,7 +11697,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          }
                     } break;
                case ElementTypes::ELEM_RBE3:
-                    if (eDomain == DofMap::DO_STRUCTURAL) {
+                    if (eDomain == DofMap::DO_STRUCTURAL || eDomain == DofMap::DO_FLUID_STRUCT) {
                          const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
