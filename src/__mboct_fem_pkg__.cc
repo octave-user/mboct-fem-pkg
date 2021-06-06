@@ -163,10 +163,10 @@ struct PostProcTypeTraits<std::complex<double> > {
 class DofMap {
 public:
      enum DomainType: unsigned {
-          DO_STRUCTURAL   = 0x00000000u,
-          DO_THERMAL      = 0x01000000u,
-          DO_ACOUSTICS    = 0x02000000u,
-          DO_FLUID_STRUCT = 0x04000000u
+          DO_STRUCTURAL   = 0x01000000u,
+          DO_THERMAL      = 0x02000000u,
+          DO_ACOUSTICS    = 0x04000000u,
+          DO_FLUID_STRUCT = 0x08000000u
      };
 
      enum: unsigned {
