@@ -2389,23 +2389,14 @@ public:
      }
 
      octave_idx_type iGetNumDof(FemMatrixType eMatType) const {
-          switch (eMatType & DofMap::DO_MASK) {
-          case DofMap::DO_STRUCTURAL:
-               return nodes.numel() * 3;               
-          case DofMap::DO_THERMAL:
-          case DofMap::DO_ACOUSTICS:
+          switch (material->GetMaterialType()) {
+          case Material::MAT_TYPE_SOLID:
+               return nodes.numel() * 3;
+          case Material::MAT_TYPE_THERMAL:
+          case Material::MAT_TYPE_FLUID:
                return nodes.numel();
-          case DofMap::DO_FLUID_STRUCT:
-               switch (material->GetMaterialType()) {
-               case Material::MAT_TYPE_SOLID:
-                    return nodes.numel() * 3;
-               case Material::MAT_TYPE_FLUID:
-                    return nodes.numel();
-               default:
-                    throw std::logic_error("material not supported");
-               }
           default:
-               throw std::logic_error("domain not supported");
+               throw std::logic_error("material not supported");
           }
      }
 
@@ -11509,7 +11500,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
-                    if (eDomain == DofMap::DO_THERMAL || eDomain == DofMap::DO_ACOUSTICS) {
+                    if (eDomain == DofMap::DO_THERMAL || eDomain == DofMap::DO_ACOUSTICS || eDomain == DofMap::DO_FLUID_STRUCT) {
                          static constexpr char elem_name[][19] = {"convection", "particle_velocity", "acoustic_impedance"};
                          
                          enum {
