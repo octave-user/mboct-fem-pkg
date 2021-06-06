@@ -933,7 +933,7 @@ public:
           VEC_PARTICLE_VELOCITY_C     = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
           SCA_ACOUSTIC_INTENSITY      = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
           SCA_ACOUSTIC_INTENSITY_C    = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          VEC_SURFACE_NORMAL_VECTOR   = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_SURFACE_NORMAL_VECTOR   = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           MAT_MASS_FLUID_STRUCT       = (31u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           MAT_STIFFNESS_FLUID_STRUCT  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           MAT_DAMPING_FLUID_STRUCT_RE = (33u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
@@ -12359,7 +12359,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
                const auto eMatType = static_cast<Element::FemMatrixType>(matrix_type(i).value());
 
-               if ((eMatType & eDomain) != eDomain) {
+               if (!(eMatType & eDomain)) {
                     throw std::runtime_error("matrix type is not valid for selected dof_map.domain");
                }
 
@@ -12594,7 +12594,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
                          break;
-                         
+
+                    case Element::VEC_SURFACE_NORMAL_VECTOR:
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;                         
+                         break;                         
                     default:
                          break;
                     }
