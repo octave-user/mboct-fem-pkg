@@ -929,10 +929,10 @@ public:
           MAT_DAMPING_ACOUSTICS_RE    = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
           MAT_DAMPING_ACOUSTICS_IM    = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
           VEC_LOAD_ACOUSTICS          = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
-          VEC_PARTICLE_VELOCITY       = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          VEC_PARTICLE_VELOCITY_C     = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          SCA_ACOUSTIC_INTENSITY      = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
-          SCA_ACOUSTIC_INTENSITY_C    = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS,
+          VEC_PARTICLE_VELOCITY       = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
+          VEC_PARTICLE_VELOCITY_C     = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
+          SCA_ACOUSTIC_INTENSITY      = (28u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
+          SCA_ACOUSTIC_INTENSITY_C    = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           VEC_SURFACE_NORMAL_VECTOR   = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           MAT_MASS_FLUID_STRUCT       = (31u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           MAT_STIFFNESS_FLUID_STRUCT  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
@@ -1052,32 +1052,33 @@ public:
           struct SolField {
                unsigned id;
                DataType type;
+               octave_idx_type cols;
                char name[6];
           };
 
           static constexpr SolField structFields[] = {
-               {VEC_NO_STRUCT_DISPLACEMENT_RE, DT_REAL, "def"},
-               {VEC_NO_STRUCT_DISPLACEMENT_C, DT_COMPLEX, "def"}
+               {VEC_NO_STRUCT_DISPLACEMENT_RE, DT_REAL, 6, "def"},
+               {VEC_NO_STRUCT_DISPLACEMENT_C, DT_COMPLEX, 6, "def"}
           };
 
           static constexpr SolField thermalFields[] = {
-               {SCA_NO_THERMAL_TEMPERATURE_RE, DT_REAL, "theta"}
+               {SCA_NO_THERMAL_TEMPERATURE_RE, DT_REAL, 1, "theta"}
           };
 
           static constexpr SolField acousticFields[] = {
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, "Phi"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, "Phi"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, "PhiP"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, "PhiP"}
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, 1, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, 1, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, 1, "PhiP"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, 1, "PhiP"}
           };
 
           static constexpr SolField fluidStructFields[] = {
-               {VEC_NO_STRUCT_DISPLACEMENT_RE, DT_REAL, "def"},
-               {VEC_NO_STRUCT_DISPLACEMENT_C, DT_COMPLEX, "def"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, "Phi"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, "Phi"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, "PhiP"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, "PhiP"}               
+               {VEC_NO_STRUCT_DISPLACEMENT_RE, DT_REAL, 6, "def"},
+               {VEC_NO_STRUCT_DISPLACEMENT_C, DT_COMPLEX, 6, "def"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, 1, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, 1, "Phi"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, 1, "PhiP"},
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, 1, "PhiP"}               
           };
           
           struct DomainField {
@@ -1110,8 +1111,6 @@ public:
           
           const DomainField& oDomain = domainFields[iDomain];
 
-          const octave_idx_type iMaxDofNode = oDofMap.iGetNodeMaxDofIndex();
-
           for (const SolField* pSol = oDomain.begin; pSol != oDomain.end; ++pSol) {
                const auto iterSol = sol.seek(pSol->name);
 
@@ -1128,11 +1127,11 @@ public:
                dim_vector dimSol;
 
                if (ovSol.isreal() && pSol->type == DT_REAL) {
-                    NDArray solArrayRe = ovSol.array_value();
+                    const NDArray solArrayRe = ovSol.array_value();
                     dimSol = solArrayRe.dims();
                     SetField(static_cast<FieldTypeReal>(pSol->id), ElementTypes::ELEM_TYPE_UNKNOWN, solArrayRe);
                } else if (ovSol.iscomplex() && pSol->type == DT_COMPLEX) {
-                    ComplexNDArray solArrayC = ovSol.complex_array_value();
+                    const ComplexNDArray solArrayC = ovSol.complex_array_value();
                     dimSol = solArrayC.dims();
                     SetField(static_cast<FieldTypeComplex>(pSol->id), ElementTypes::ELEM_TYPE_UNKNOWN, solArrayC);
                } else {
@@ -1141,16 +1140,16 @@ public:
 
                octave_idx_type iNumCols, iNumStepsCurr;
                
-               if (iMaxDofNode == 1) {
-                    iNumCols = iMaxDofNode;
+               if (pSol->cols == 1) {
+                    iNumCols = pSol->cols;
                     iNumStepsCurr = dimSol(1);
                } else {
                     iNumCols = dimSol(1);
                     iNumStepsCurr = dimSol.ndims() > 2 ? dimSol(2) : 1;
                }
 
-               if (iNumCols != iMaxDofNode) {
-                    throw std::runtime_error("columns of sol."s + pSol->name + " is not consistent with dof_map.ndof");
+               if (iNumCols != pSol->cols) {
+                    throw std::runtime_error("columns of sol."s + pSol->name + " is not valid");
                }
 
                if (iNumSteps > 0 && iNumStepsCurr != iNumSteps) {
