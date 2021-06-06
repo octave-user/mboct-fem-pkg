@@ -12473,21 +12473,23 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                case DofMap::DO_ACOUSTICS:
                     switch (eMatType) {
-                    case Element::MAT_MASS_ACOUSTICS:
-                    case Element::MAT_STIFFNESS_ACOUSTICS:
                     case Element::VEC_PARTICLE_VELOCITY:
                     case Element::VEC_PARTICLE_VELOCITY_C:
                     case Element::SCA_ACOUSTIC_INTENSITY:
                     case Element::SCA_ACOUSTIC_INTENSITY_C:
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
+                         [[fallthrough]];
+                         
+                    case Element::MAT_MASS_ACOUSTICS:
+                    case Element::MAT_STIFFNESS_ACOUSTICS:                         
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
-                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
                          break;
 
                     case Element::VEC_SURFACE_NORMAL_VECTOR:
@@ -12505,8 +12507,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
-                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;                         
-                         [[fallthrough]];
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
+                         break;
                          
                     case Element::MAT_DAMPING_ACOUSTICS_RE:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
@@ -12538,6 +12541,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_STIFFNESS_FLUID_STRUCT:
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
                          
                     case Element::MAT_MASS_FLUID_STRUCT:
@@ -12585,6 +12589,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
+                         // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
                          
                     case Element::MAT_DAMPING_FLUID_STRUCT_IM:
@@ -12599,7 +12604,23 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;                         
-                         break;                         
+                         break;
+
+                    case Element::VEC_PARTICLE_VELOCITY:
+                    case Element::VEC_PARTICLE_VELOCITY_C:
+                    case Element::SCA_ACOUSTIC_INTENSITY:
+                    case Element::SCA_ACOUSTIC_INTENSITY_C:
+                         rgElemUse[ElementTypes::ELEM_ISO8] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10H] = true;
+                         rgElemUse[ElementTypes::ELEM_TET10] = true;                         
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
+                         break;
+                         
                     default:
                          break;
                     }
