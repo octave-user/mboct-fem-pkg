@@ -30301,6 +30301,7 @@ endfunction
 
 %!test
 %! ### TEST 183
+%! ### rigid body motion of a solid domain between two fluid domains with prescribed pressure within the fluid
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -30314,28 +30315,33 @@ endfunction
 %!   if (fd == -1)
 %!     error("failed to open file \"%s.geo\"", filename);
 %!   endif
-%!   l1 = 100e-3;
-%!   l2 = 10e-3;
-%!   l3 = 100e-3;
-%!   c1 = 1400;
-%!   rho1 = 1000;
-%!   eta1 = 1e-3;
-%!   zeta1 = 0;
-%!   E2 = 210000e6;
-%!   rho2 = 7850;
+%!   unit_meters = 1e-3;
+%!   unit_second = 1e2;
+%!   unit_kilograms = 1e3;
+%!   unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!   unit_pascal = unit_newton / unit_meters^2;
+%!   l1 = 100e-3 / unit_meters;
+%!   l2 = 10e-3 / unit_meters;
+%!   l3 = 100e-3 / unit_meters;
+%!   c1 = 1400 / (unit_meters / unit_second);
+%!   rho1 = 1000 / (unit_kilograms / unit_meters^3);
+%!   eta1 = 1e-3 / (unit_pascal * unit_second);
+%!   zeta1 = 0 / (unit_pascal * unit_second);
+%!   E2 = 210000e6 / unit_pascal;
+%!   rho2 = 7850 / (unit_kilograms / unit_meters^3);
 %!   nu2 = 0.3;
-%!   alpha2 = 1e-6;
-%!   beta2 = 1e-8;
-%!   c3 = 1400;
-%!   rho3 = 1000;
-%!   eta3 = 1e-3;
-%!   zeta3 = 0;
-%!   dx = 1e-3;
+%!   alpha2 = 1e-6 / (unit_second^-1);
+%!   beta2 = 1e-8 / unit_second;
+%!   c3 = 1400 / (unit_meters / unit_second);
+%!   rho3 = 1000 / (unit_kilograms / unit_meters^3);
+%!   eta3 = 1e-3 / (unit_pascal * unit_second);
+%!   zeta3 = 0 / (unit_pascal * unit_second);
+%!   dx = 1e-3 / unit_meters;
 %!   w = dx;
 %!   h = dx;
-%!   omega = 100;
-%!   pinput = 2 + 1j;
-%!   poutput = 2 - 1j;
+%!   omega = 100 / (1 / unit_second);
+%!   pinput = (2 + 1j) / unit_pascal;
+%!   poutput = (2 - 1j) / unit_pascal;
 %!   Uref = -(pinput - poutput) / (omega^2 * rho2 * l2);
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l1=%g;\n", l1);
@@ -30450,9 +30456,9 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
+%!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
-%!   opt_sol.verbose=int32(1);
+%!   opt_sol.verbose = int32(0);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
 %!   Z = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -30480,8 +30486,8 @@ endfunction
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1), sol.p(idx, i), "-;p;1");
-%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     plot(mesh.nodes(idx, 1) * unit_second, sol.p(idx, i) * unit_pascal, "-;p;1");
+%!     ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
@@ -30513,25 +30519,29 @@ endfunction
 %!   if (fd == -1)
 %!     error("failed to open file \"%s.geo\"", filename);
 %!   endif
-%!   l1 = 100e-3;
-%!   l2 = 10e-3;
-%!   l3 = 100e-3;
-%!   c1 = 340;
-%!   rho1 = 1.25;
-%!   eta1 = 0;
-%!   zeta1 = 0;
-%!   E2 = 210000e6;
-%!   rho2 = 7850;
+%!   unit_meters = 1e-3;
+%!   unit_second = 1e3;
+%!   unit_kilograms = 1e3;
+%!   unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!   unit_pascal = unit_newton / unit_meters^2;
+%!   l1 = 100e-3 / unit_meters;
+%!   l2 = 10e-3 / unit_meters;
+%!   l3 = 100e-3 / unit_meters;
+%!   c1 = 340 / (unit_meters / unit_second);
+%!   rho1 = 1.25 / (unit_kilograms / unit_meters^3);
+%!   eta1 = 0 / (unit_pascal * unit_second);
+%!   zeta1 = 0 / (unit_pascal * unit_second);
+%!   E2 = 210000e6 / unit_pascal;
+%!   rho2 = 7850 / (unit_kilograms / unit_meters^3);
 %!   nu2 = 0.3;
 %!   K2 = E2 / (3 * (1 - 2 * nu2));
 %!   c2 = sqrt(K2 / rho2);
-%!   alpha2 = 0;
-%!   beta2 = 0;
-%!   c3 = 1400;
-%!   rho3 = 1000;
-%!   eta3 = 0;
-%!   zeta3 = 0;
-%!   dx = 1e-3;
+%!   alpha2 = 0 / (unit_second^-1);
+%!   beta2 = 0 / unit_second;
+%!   c3 = 1400 / (unit_meters / unit_second);
+%!   rho3 = 1000 / (unit_kilograms / unit_meters^3);
+%!   eta3 = 0 / (unit_pascal * unit_second);
+%!   zeta3 = 0 / (unit_pascal * unit_second);
 %!   k1 = 2 * pi / l1;
 %!   omega = k1 * c1;
 %!   k3 = omega / c3;
@@ -30545,7 +30555,7 @@ endfunction
 %!   dx = mean([dx1, dx3]);
 %!   w = dx;
 %!   h = dx;
-%!   vx0 = 2 + 1j;
+%!   vx0 = (2 + 1j) / (unit_meters / unit_second);
 %!   pI = (c1*e^((2*1i*l1*omega)/c1)*rho1*(c3*rho3+c1*rho1+1i*l2*omega*rho2)*vx0)/(c3*e^((2*1i*l1*omega)/c1)*rho3-c3*rho3+c1*e^((2*1i*l1*omega)/c1)*rho1+c1*rho1+1i*l2*omega*e^((2*1i*l1*omega)/c1)*rho2-1i*l2*omega*rho2);
 %!   pR = (c1*rho1*(c3*rho3-c1*rho1+1i*l2*omega*rho2)*vx0)/(c3*e^((2*1i*l1*omega)/c1)*rho3-c3*rho3+c1*e^((2*1i*l1*omega)/c1)*rho1+c1*rho1+1i*l2*omega*e^((2*1i*l1*omega)/c1)*rho2-1i*l2*omega*rho2);
 %!   pT = (2*c1*c3*e^((1i*l2*omega)/c3+(1i*l1*omega)/c3+(1i*l1*omega)/c1)*rho1*rho3*vx0)/(c3*e^((2*1i*l1*omega)/c1)*rho3-c3*rho3+c1*e^((2*1i*l1*omega)/c1)*rho1+c1*rho1+1i*l2*omega*e^((2*1i*l1*omega)/c1)*rho2-1i*l2*omega*rho2);
@@ -30667,9 +30677,9 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
-%!   opt_sol.solver = "umfpack";
-%!   opt_sol.refine_max_iter = int32(250);
-%!   opt_sol.verbose = int32(1);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
+%!   opt_sol.verbose = int32(0);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
 %!   Z = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -30691,21 +30701,32 @@ endfunction
 %!   node_idx = mesh.groups.iso20(grp_idx_volume2).nodes;
 %!   tol = 1e-5;
 %!   [~, idx] = sort(mesh.nodes(:, 1));
+%!   pref = real(p(mesh.nodes(idx, 1), sol.t));
+%!   Uref = real(U * exp(1j * omega * sol.t));
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1), sol.p(idx, i), "-;p;1");
-%!     plot(mesh.nodes(idx, 1), p(mesh.nodes(idx, 1), sol.t(i)), "-;pref;3");
-%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     plot(mesh.nodes(idx, 1) * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;1");
+%!     plot(mesh.nodes(idx, 1) * unit_meters, pref(:, i) * unit_pascal, "-;pref;0");
+%!     ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
+%!   figure("visible", "off");
+%!   hold on;
+%!   plot(sol.t * unit_second, reshape(mean(sol.def(node_idx, 1, :), 1), 1, numel(sol.t)) * unit_meters, "-;U;1");
+%!   plot(sol.t * unit_second, Uref * unit_meters, "-;Uref;0");
+%!   xlabel("t [s]");
+%!   ylabel("Ux [m]");
+%!   grid on;
+%!   grid minor on;
+%!   title("displacement of solid domain");
 %!   tol = 1e-3;
-%!   pref = real(p(mesh.nodes(idx, 1), sol.t));
 %!   assert(sol.p(idx, :), pref, tol * max(max(abs(pref))));
+%!   assert(reshape(mean(sol.def(node_idx, 1, :), 1), 1, numel(sol.t)), Uref, tol * max(abs(Uref)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
