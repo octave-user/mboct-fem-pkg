@@ -30527,19 +30527,19 @@ endfunction
 %!   l1 = 100e-3 / unit_meters;
 %!   l2 = 10e-3 / unit_meters;
 %!   l3 = 100e-3 / unit_meters;
-%!   c1 = 340 / (unit_meters / unit_second);
-%!   rho1 = 1.25 / (unit_kilograms / unit_meters^3);
+%!   c1 = 1400 / (unit_meters / unit_second);
+%!   rho1 = 1000 / (unit_kilograms / unit_meters^3);
 %!   eta1 = 0 / (unit_pascal * unit_second);
 %!   zeta1 = 0 / (unit_pascal * unit_second);
-%!   E2 = 210000e6 / unit_pascal;
-%!   rho2 = 7850 / (unit_kilograms / unit_meters^3);
+%!   E2 = 80000e6 / unit_pascal;
+%!   rho2 = 1700 / (unit_kilograms / unit_meters^3);
 %!   nu2 = 0.3;
 %!   K2 = E2 / (3 * (1 - 2 * nu2));
 %!   c2 = sqrt(K2 / rho2);
 %!   alpha2 = 0 / (unit_second^-1);
 %!   beta2 = 0 / unit_second;
-%!   c3 = 1400 / (unit_meters / unit_second);
-%!   rho3 = 1000 / (unit_kilograms / unit_meters^3);
+%!   c3 = 220 / (unit_meters / unit_second);
+%!   rho3 = 2.1 / (unit_kilograms / unit_meters^3);
 %!   eta3 = 0 / (unit_pascal * unit_second);
 %!   zeta3 = 0 / (unit_pascal * unit_second);
 %!   k1 = 2 * pi / l1;
@@ -30550,12 +30550,12 @@ endfunction
 %!   lambda2 = c2 / f;
 %!   lambda3 = c3 / f;
 %!   dx1 = lambda1 / 100;
-%!   dx2 = lambda2 / 100;
+%!   dx2 = lambda2 / 1000;
 %!   dx3 = lambda3 / 100;
 %!   dx = mean([dx1, dx3]);
 %!   w = dx;
 %!   h = dx;
-%!   vx0 = (2 + 1j) / (unit_meters / unit_second);
+%!   vx0 = 1e-6 * (1 + 2j) / (unit_meters / unit_second);
 %!   pI = (c1*e^((2*1i*l1*omega)/c1)*rho1*(c3*rho3+c1*rho1+1i*l2*omega*rho2)*vx0)/(c3*e^((2*1i*l1*omega)/c1)*rho3-c3*rho3+c1*e^((2*1i*l1*omega)/c1)*rho1+c1*rho1+1i*l2*omega*e^((2*1i*l1*omega)/c1)*rho2-1i*l2*omega*rho2);
 %!   pR = (c1*rho1*(c3*rho3-c1*rho1+1i*l2*omega*rho2)*vx0)/(c3*e^((2*1i*l1*omega)/c1)*rho3-c3*rho3+c1*e^((2*1i*l1*omega)/c1)*rho1+c1*rho1+1i*l2*omega*e^((2*1i*l1*omega)/c1)*rho2-1i*l2*omega*rho2);
 %!   pT = (2*c1*c3*e^((1i*l2*omega)/c3+(1i*l1*omega)/c3+(1i*l1*omega)/c1)*rho1*rho3*vx0)/(c3*e^((2*1i*l1*omega)/c1)*rho3-c3*rho3+c1*e^((2*1i*l1*omega)/c1)*rho1+c1*rho1+1i*l2*omega*e^((2*1i*l1*omega)/c1)*rho2-1i*l2*omega*rho2);
@@ -30563,7 +30563,9 @@ endfunction
 %!   p1 = @(x, t) pR*exp(1i*((omega*x)/c1+omega*t))+pI*exp(1i*(omega*t-(omega*x)/c1));
 %!   p3 = @(x, t) pT*exp(1i*(omega*t-(omega*x)/c3));
 %!   p = @(x, t) (p1(x, t) .* (x <= l1)) + (p3(x, t) .* (x >= l1 + l2));
-%!
+%!   vx1 = @(x, t) ((pI*exp(1i*(omega*t-(omega*x)/c1)))/c1-(pR*exp(1i*((omega*x)/c1+omega*t)))/c1)/rho1;
+%!   vx3 = @(x, t) (pT*exp(1i*(omega*t-(omega*x)/c3)))/(c3*rho3);
+%!   v = @(x, t) (vx1(x, t) .* (x <= l1)) + (vx3(x, t) .* (x >= l1 + l2)) + (1j * omega * U * exp(1i * omega * t)) .* ((x > l1) & (x < l1 + l2));
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l1=%g;\n", l1);
 %!   fprintf(fd, "l2=%g;\n", l2);
@@ -30605,7 +30607,7 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
 %!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp2[1]};\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp1[1],tmp2[1]};\n");
 %!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
@@ -30641,18 +30643,22 @@ endfunction
 %!   mesh.materials.iso20(mesh.groups.iso20(grp_idx_volume3).elements) = 3;
 %!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_input, grp_idx_output])].elements], :);
 %!   mesh.materials.acoustic_boundary.quad8 = zeros(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
-%!   mesh.materials.acoustic_boundary.quad8(mesh.groups.quad8(grp_idx_input).elements) = 1;
-%!   mesh.materials.acoustic_boundary.quad8(mesh.groups.quad8(grp_idx_output).elements) = 3;
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_input).elements, :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
-
+%!   mesh.materials.acoustic_boundary.quad8(1:numel(mesh.groups.quad8(grp_idx_input).elements)) = 1;
+%!   mesh.materials.acoustic_boundary.quad8(numel(mesh.groups.quad8(grp_idx_output).elements)+1:end) = 3;
+%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.quad8 = zeros(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.materials.particle_velocity.quad8(1:numel(mesh.groups.quad8(grp_idx_input).elements)) = int32(1);
+%!   mesh.materials.particle_velocity.quad8(numel(mesh.groups.quad8(grp_idx_input).elements) + 1:end) = int32(3);
 %!   mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_output).elements, :);
 %!   mesh.elements.acoustic_impedance.quad8.z = repmat(rho3 * c3, size(mesh.elements.acoustic_impedance.quad8.nodes));
 %!   mesh.materials.acoustic_impedance.quad8 = repmat(int32(3), rows(mesh.elements.acoustic_impedance.quad8.nodes), 1);
 %!   mesh.elements.fluid_struct_interface.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_fsi1, grp_idx_fsi2])].elements], :);
 %!   load_case = struct("particle_velocity", cell(1, 2));
-%!   load_case(1).particle_velocity.quad8.vn = repmat(-real(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
-%!   load_case(2).particle_velocity.quad8.vn = repmat(-imag(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!   for i=1:numel(load_case)
+%!     load_case(i).particle_velocity.quad8.vn = zeros(size(mesh.elements.particle_velocity.quad8.nodes));
+%!   endfor
+%!   load_case(1).particle_velocity.quad8.vn(1:numel(mesh.groups.quad8(grp_idx_input).elements), :) = -real(vx0);
+%!   load_case(2).particle_velocity.quad8.vn(1:numel(mesh.groups.quad8(grp_idx_input).elements), :) = -imag(vx0);
 %!   mesh.material_data = struct("E", {[], E2, []}, ...
 %!                               "rho", {rho1, rho2, rho3}, ...
 %!                               "nu", {[], nu2, []}, ...
@@ -30667,6 +30673,7 @@ endfunction
 %!    mat_ass.Dfs_re, ...
 %!    mat_ass.Dfs_im, ...
 %!    mat_ass.Rfs, ...
+%!    mat_ass.n, ...
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
@@ -30674,7 +30681,8 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
-%!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
+%!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
+%!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
@@ -30690,18 +30698,35 @@ endfunction
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
-%!   sol.def = zeros(rows(mesh.nodes), 6, numel(sol.t));
+%!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
+%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
+%!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
+%!   [sol.particle_velocity, ...
+%!    sol.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                             dof_map, ...
+%!                                             [FEM_VEC_PARTICLE_VELOCITY, ...
+%!                                              FEM_SCA_ACOUSTIC_INTENSITY], ...
+%!                                             load_case, ...
+%!                                             sol);
 %!   for j=1:6
 %!     idxU = dof_map.ndof(:, j);
 %!     idxU1 = find(idxU > 0);
 %!     idxU = idxU(idxU1);
 %!     sol.def(idxU1, j, :) = real(Z(idxU, :) * exp(1j * omega * sol.t));
+%!     sol.vel(idxU1, j, :) = real(1j * omega * Z(idxU, :) * exp(1j * omega * sol.t));
 %!   endfor
+%!   vx = zeros(rows(mesh.nodes), numel(sol.t));
+%!   for i=1:columns(mesh.elements.iso20)
+%!     vx(mesh.elements.iso20(:, i), :) = reshape(sol.particle_velocity.v.iso20(:, i, 1, :), rows(mesh.elements.iso20), numel(sol.t));
+%!   endfor
+%!   vx(mesh.groups.iso20(grp_idx_volume2).nodes, :) = sol.vel(mesh.groups.iso20(grp_idx_volume2).nodes, 1, :);
 %!   node_idx = mesh.groups.iso20(grp_idx_volume2).nodes;
 %!   tol = 1e-5;
 %!   [~, idx] = sort(mesh.nodes(:, 1));
 %!   pref = real(p(mesh.nodes(idx, 1), sol.t));
+%!   vxref = real(v(mesh.nodes(idx, 1), sol.t));
 %!   Uref = real(U * exp(1j * omega * sol.t));
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
@@ -30715,6 +30740,18 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(mesh.nodes(idx, 1) * unit_meters, vx(idx, i) * unit_meters / unit_second, "-;vx;1");
+%!     plot(mesh.nodes(idx, 1) * unit_meters, vxref(:, i) * unit_meters / unit_second, "-;vxref;0");
+%!     ylim([min(min(vxref)), max(max(vxref))] * unit_meters / unit_second);
+%!     xlabel("x [m]");
+%!     ylabel("vx [m/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
 %!   figure("visible", "off");
 %!   hold on;
 %!   plot(sol.t * unit_second, reshape(mean(sol.def(node_idx, 1, :), 1), 1, numel(sol.t)) * unit_meters, "-;U;1");
@@ -30724,7 +30761,8 @@ endfunction
 %!   grid on;
 %!   grid minor on;
 %!   title("displacement of solid domain");
-%!   tol = 1e-3;
+%!   tol = 1e-2;
+%!   assert(vx(idx, :), vxref, tol * max(max(abs(vxref))));
 %!   assert(sol.p(idx, :), pref, tol * max(max(abs(pref))));
 %!   assert(reshape(mean(sol.def(node_idx, 1, :), 1), 1, numel(sol.t)), Uref, tol * max(abs(Uref)));
 %! unwind_protect_cleanup
