@@ -30607,7 +30607,8 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
 %!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp1[1],tmp2[1]};\n");
+%!   fputs(fd, "ReverseMesh Surface{6};\n");
+%!   fputs(fd, "ReverseMesh Surface{tmp1[0]};\n");
 %!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
@@ -30878,7 +30879,8 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
 %!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp1[1],tmp2[1]};\n");
+%!   fputs(fd, "ReverseMesh Surface{6};\n");
+%!   fputs(fd, "ReverseMesh Surface{tmp1[0]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -31144,7 +31146,8 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
 %!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp1[1],tmp2[1]};\n");
+%!   fputs(fd, "ReverseMesh Surface{6};\n");
+%!   fputs(fd, "ReverseMesh Surface{tmp1[0]};\n");
 %!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
@@ -31412,7 +31415,8 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
 %!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp1[1],tmp2[1]};\n");
+%!   fputs(fd, "ReverseMesh Surface{6};\n");
+%!   fputs(fd, "ReverseMesh Surface{tmp1[0]};\n");
 %!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
@@ -31680,7 +31684,8 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
 %!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
 %!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp1[1],tmp2[1]};\n");
+%!   fputs(fd, "ReverseMesh Surface{6};\n");
+%!   fputs(fd, "ReverseMesh Surface{tmp1[0]};\n");
 %!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
