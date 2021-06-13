@@ -31909,6 +31909,7 @@ endfunction
 %!   unit_kilograms = 1e3;
 %!   unit_newton = unit_kilograms * unit_meters / unit_second^2;
 %!   unit_pascal = unit_newton / unit_meters^2;
+%!   unit_watt = unit_newton * unit_meters / unit_second;
 %!   r0 = 200e-3 / unit_meters;
 %!   r1 = 300e-3 / unit_meters;
 %!   r2 = 310e-3 / unit_meters;
@@ -31935,11 +31936,12 @@ endfunction
 %!   lambda1 = c1 / f;
 %!   lambda2 = c2 / f;
 %!   lambda3 = c3 / f;
-%!   dx1 = lambda1 / 30;
-%!   dx2 = lambda2 / 30;
-%!   dx3 = lambda3 / 30;
+%!   dx1 = lambda1 / 50;
+%!   dx2 = lambda2 / 50;
+%!   dx3 = lambda3 / 50;
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
+%!   beta = atan(dx / r0);
 %!   v0 = 1e-3 / (unit_meters / unit_second);
 %!   ## See Jont Allen 
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
@@ -31960,12 +31962,14 @@ endfunction
 %!   v3 = @(r, t) (A3*(k3*r-1i).*exp(1i*omega*t-1i*k3*r))./(omega*r.^2*rho3);
 %!   v = @(r, t) (r < r1) .* v1(r, t) + (r > r2) .* v3(r, t) + (r >= r1 & r <= r2) .* (1j * omega * U2) * exp(1j * omega * t);
 %!   p = @(r, t) (r <= r1) .* p1(r, t) + (r >= r2) .* p3(r, t);
+%!   P = @(r, t) real(p(r, t)) .* real(v(r, t)) .* r^2 * alpha * beta;
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "r0=%g;\n", r0);
 %!   fprintf(fd, "r1=%g;\n", r1);
 %!   fprintf(fd, "r2=%g;\n", r2);
 %!   fprintf(fd, "r3=%g;\n", r3);
 %!   fprintf(fd, "alpha=%g;\n", alpha);
+%!   fprintf(fd, "beta=%g;\n", beta);
 %!   fprintf(fd, "dx = %g;\n", dx);
 %!   fputs(fd, "Point(1) = {0,0,0,dx};\n");
 %!   fputs(fd, "Point(2) = {r0*Cos(-alpha/2),r0*Sin(-alpha/2),0,dx};\n");
@@ -31994,11 +31998,11 @@ endfunction
 %!   fputs(fd, "Plane Surface(16) = {13};\n");
 %!   fputs(fd, "Plane Surface(17) = {14};\n");
 %!   fputs(fd, "Plane Surface(18) = {15};\n");
-%!   fputs(fd, "tmp1[] = Extrude{{0,1,0},{0,0,0},-alpha/2} {\n");
-%!   fputs(fd, "  Surface{16,17,18}; Layers{Ceil(alpha/2 * r2 / dx)}; Recombine;\n");
+%!   fputs(fd, "tmp1[] = Extrude{{0,1,0},{0,0,0},-beta/2} {\n");
+%!   fputs(fd, "  Surface{16,17,18}; Layers{Ceil(beta/2 * r2 / dx)}; Recombine;\n");
 %!   fputs(fd, "};\n");
-%!   fputs(fd, "tmp2[] = Extrude{{0,1,0},{0,0,0},alpha/2} {\n");
-%!   fputs(fd, "  Surface{16,17,18}; Layers{Ceil(alpha/2 * r2 / dx)}; Recombine;\n");
+%!   fputs(fd, "tmp2[] = Extrude{{0,1,0},{0,0,0},beta/2} {\n");
+%!   fputs(fd, "  Surface{16,17,18}; Layers{Ceil(beta/2 * r2 / dx)}; Recombine;\n");
 %!   fputs(fd, "};\n");
 %!   fputs(fd, "Coherence;\n");
 %!   fputs(fd, "Recombine Surface{16,23};\n");
@@ -32062,6 +32066,8 @@ endfunction
 %!   mesh.material_data(2).rho = rho2;
 %!   mesh.material_data(3).c = c3;
 %!   mesh.material_data(3).rho = rho3;
+%!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_s1, grp_idx_s4])].elements], :);
+%!   mesh.materials.acoustic_boundary.quad8 = ones(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
 %!   mesh.elements.fluid_struct_interface.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_s2, grp_idx_s3])].elements], :);
 %!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s1).elements, :);
 %!   mesh.materials.particle_velocity.quad8 = repmat(int32(1), rows(mesh.elements.particle_velocity.quad8.nodes), 1);
@@ -32213,10 +32219,25 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
-%!   tol = 2e-2;
+%!   figure("visible", "off");
+%!   hold on;
+%!   plot(sol.t * unit_second, sum(sol.acoustic_intensity.P.quad8(1:numel(mesh.groups.quad8(grp_idx_s1).elements), :), 1) * unit_watt, "-;P(r0);1");
+%!   plot(sol.t * unit_second, -P(r0, sol.t) * unit_watt, "-;-Pref(r0);0");
+%!   plot(sol.t * unit_second, sum(sol.acoustic_intensity.P.quad8(numel(mesh.groups.quad8(grp_idx_s1).elements)+1:end, :), 1) * unit_watt, "-;P(r3);3");
+%!   plot(sol.t * unit_second, P(r3, sol.t) * unit_watt, "-;Pref(r3);2");
+%!   xlabel("t [s]");
+%!   ylabel("P [W]");
+%!   grid on;
+%!   grid minor on;
+%!   title("sound power versus time");
+%!   xlabel("t [s]");
+%!   ylabel("P [W]");
+%!   tol = 2.5e-2;
 %!   idx2 = find(r < r1 | r > r2);
 %!   assert(vr(idx, :), vref, tol * max(max(abs(vref))));
 %!   assert(sol.p(idx(idx2), :), pref(idx2,:), tol * max(max(abs(pref))));
+%!   assert(sum(sol.acoustic_intensity.P.quad8(1:numel(mesh.groups.quad8(grp_idx_s1).elements), :), 1), -P(r0, sol.t), tol * max(max(abs(P(r0,sol.t)))));
+%!   assert(sum(sol.acoustic_intensity.P.quad8(numel(mesh.groups.quad8(grp_idx_s1).elements)+1:end, :), 1), P(r3, sol.t), tol * max(max(abs(P(r0,sol.t)))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
