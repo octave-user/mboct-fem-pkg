@@ -935,7 +935,7 @@ public:
           SCA_ACOUSTIC_INTENSITY_C    = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           VEC_SURFACE_NORMAL_VECTOR   = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           MAT_MASS_FLUID_STRUCT       = (31u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
-          MAT_STIFFNESS_FLUID_STRUCT  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          MAT_STIFFNESS_FLUID_STRUCT  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_UPDATE_INFO_ALWAYS,
           MAT_DAMPING_FLUID_STRUCT_RE = (33u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           MAT_DAMPING_FLUID_STRUCT_IM = (34u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           VEC_LOAD_FLUID_STRUCT       = (35u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT
@@ -1529,12 +1529,13 @@ private:
 class ElemJoint: public Element
 {
 public:
-     ElemJoint(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U, DofMap::DomainType eDomain)
+     ElemJoint(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& C, const Matrix& U, DofMap::DomainType eDomain, double dScale)
           :Element(eltype, id, X, material, nodes),
            C(C),
            U(U),
            iNumNodeDof(eltype == ElementTypes::ELEM_JOINT ? 6 : 1),
-           eNodalDofType(GetNodalDofType(eltype)) {
+           eNodalDofType(GetNodalDofType(eltype)),
+           dScale(dScale) {
           FEM_ASSERT(C.columns() == nodes.numel() * iNumNodeDof);
           FEM_ASSERT(C.rows() <= C.columns());
           FEM_ASSERT(C.rows() >= 1);
@@ -1543,7 +1544,7 @@ public:
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
-          FemMatrixType eMatTypeScale;
+          double beta;
           
           switch (eMatType) {
           case MAT_STIFFNESS:
@@ -1551,28 +1552,30 @@ public:
           case MAT_STIFFNESS_SYM_L:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
-               eMatTypeScale = MAT_STIFFNESS;
+               beta = mat.GetMatrixInfo(MAT_STIFFNESS).beta;
                break;
                
           case MAT_THERMAL_COND:
           case VEC_LOAD_THERMAL:
-               eMatTypeScale = MAT_THERMAL_COND;
+               beta = mat.GetMatrixInfo(MAT_THERMAL_COND).beta;
                break;
                
           case MAT_DAMPING_ACOUSTICS_RE:
           case VEC_LOAD_ACOUSTICS:
-               eMatTypeScale = MAT_STIFFNESS_ACOUSTICS;
+               beta = mat.GetMatrixInfo(MAT_STIFFNESS_ACOUSTICS).beta;
                break;
 
           case MAT_STIFFNESS_FLUID_STRUCT:
           case MAT_DAMPING_FLUID_STRUCT_RE:                              
           case VEC_LOAD_FLUID_STRUCT:
-               eMatTypeScale = MAT_STIFFNESS_FLUID_STRUCT;
+               beta = mat.GetMatrixInfo(MAT_STIFFNESS_FLUID_STRUCT).beta;
                break;
                
           default:
-               eMatTypeScale = MAT_UNKNOWN;
+               beta = 1.;
           }
+
+          beta *= dScale;
           
           switch (eMatType) {
           case MAT_STIFFNESS:
@@ -1605,8 +1608,6 @@ public:
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
 
-               const double beta = mat.GetMatrixInfo(eMatTypeScale).beta;
-
                for (octave_idx_type j = 0; j < C.columns(); ++j) {
                     for (octave_idx_type i = 0; i < C.rows(); ++i) {
                          const double Cij = beta * C.xelem(i, j);
@@ -1626,8 +1627,9 @@ public:
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
                }
 
-               const double coef = (eNodalDofType == DofMap::NDOF_VELOCITY_POT) ? -1. : 1.;
-               const double beta = coef * mat.GetMatrixInfo(eMatTypeScale).beta;
+               if (eNodalDofType == DofMap::NDOF_VELOCITY_POT) {
+                    beta = -beta;
+               }
 
                for (octave_idx_type j = 0; j < U.columns(); ++j) {
                     for (octave_idx_type i = 0; i < U.rows(); ++i) {
@@ -1720,6 +1722,7 @@ private:
      const Matrix C, U;
      const octave_idx_type iNumNodeDof;     
      const DofMap::NodalDofType eNodalDofType;
+     const double dScale;
 };
 
 class ElemRBE3: public Element
@@ -10110,7 +10113,8 @@ public:
                  const ConstraintType eType,
                  const unsigned uConstraintFlags,
                  const DofMap::DomainType eDomain,
-                 vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+                 vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                 const double dScale) {
           
           ElementTypes::TypeId eElemType;
           
@@ -10273,7 +10277,8 @@ public:
                                 pElemBlock,
                                 eElemType,
                                 eidxmaster[i][lopt].eidx,
-                                rvopt);
+                                rvopt,
+                                dScale);
           }
 
           rgElemBlocks.emplace_back(std::move(pElemBlock));
@@ -10291,7 +10296,8 @@ private:
                                   const ElemBlockPtr& pElemBlock,
                                   const ElementTypes::TypeId eElemType,
                                   const octave_idx_type eidxmaster,
-                                  const ColumnVector& rvopt) {
+                                  const ColumnVector& rvopt,
+                                  const double dScale) {
           octave_idx_type iNumDofNodeMax = -1;
           octave_idx_type iNumDofNodeConstr = -1;
 
@@ -10379,9 +10385,9 @@ private:
                FEM_TRACE("C=" << C << std::endl);
                FEM_TRACE("n.'*C=" << nC << std::endl);
 
-               pElemBlock->Insert(id, Xe, nullptr, enodes, nC, Matrix{1, 0}, eDomain);
+               pElemBlock->Insert(id, Xe, nullptr, enodes, nC, Matrix{1, 0}, eDomain, dScale);
           } else {
-               pElemBlock->Insert(id, Xe, nullptr, enodes, C, Matrix{C.rows(), 0}, eDomain);
+               pElemBlock->Insert(id, Xe, nullptr, enodes, C, Matrix{C.rows(), 0}, eDomain, dScale);
           }
      }
      
@@ -10773,11 +10779,20 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           ov_constr = s_elem.contents(iter_constr);
      }
 
+     Cell ov_Scale;
+
+     const auto iter_Scale = s_elem.seek("scale");
+
+     if (iter_Scale != s_elem.end()) {
+          ov_Scale = s_elem.contents(iter_Scale);
+     }
+
      FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
      FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
      FEM_ASSERT(ov_maxdist.numel() == s_elem.numel());
      FEM_ASSERT(ov_constr.numel() == 0 || ov_constr.numel() == s_elem.numel());
-
+     FEM_ASSERT(ov_Scale.numel() == 0 || ov_Scale.numel() == s_elem.numel());
+     
      for (octave_idx_type l = 0; l < s_elem.numel(); ++l) {
           const int32NDArray nidxmaster = ov_nidxmaster(l).int32_array_value();
 
@@ -10856,6 +10871,14 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                }
           }
 
+          const double dScale = ov_Scale.numel() ? ov_Scale.xelem(l).scalar_value() : 1.;
+
+#if OCTAVE_MAJOR_VERSION < 6
+          if (error_state) {
+               throw std::runtime_error("mesh.elements.sfncon{4|6|8}.scale must be a real scalar");
+          }
+#endif
+          
           switch (oElemType.type) {
           case ElementTypes::ELEM_SFNCON4:
                SurfToNodeConstr<ShapeIso4>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -10866,7 +10889,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                         eConstrType,
                                                         uConstraintFlags,
                                                         eDomain,
-                                                        rgElemBlocks);
+                                                        rgElemBlocks,
+                                                        dScale);
                break;
           case ElementTypes::ELEM_SFNCON6:
                SurfToNodeConstr<ShapeTria6>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -10877,7 +10901,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                          eConstrType,
                                                          uConstraintFlags,
                                                          eDomain,
-                                                         rgElemBlocks);
+                                                         rgElemBlocks,
+                                                         dScale);
                break;
           case ElementTypes::ELEM_SFNCON6H:
                SurfToNodeConstr<ShapeTria6H>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -10888,7 +10913,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                           eConstrType,
                                                           uConstraintFlags,
                                                           eDomain,
-                                                          rgElemBlocks);
+                                                          rgElemBlocks,
+                                                          dScale);
                break;               
           case ElementTypes::ELEM_SFNCON8:
                SurfToNodeConstr<ShapeQuad8>::BuildJoints(dofelemid[oElemType.dof_type],
@@ -10899,7 +10925,8 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                          eConstrType,
                                                          uConstraintFlags,
                                                          eDomain,
-                                                         rgElemBlocks);
+                                                         rgElemBlocks,
+                                                         dScale);
                break;
           default:
                FEM_ASSERT(false);
@@ -12814,7 +12841,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          FEM_ASSERT(ov_e2.numel() == s_elem.numel());
                     }
 
-                    Cell ov_C;
+                    Cell ov_C, ov_Scale;
 
                     if (oElemType.type == ElementTypes::ELEM_JOINT ||
                         oElemType.type == ElementTypes::ELEM_THERM_CONSTR ||
@@ -12828,6 +12855,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          ov_C = s_elem.contents(iter_C);
 
                          FEM_ASSERT(ov_C.numel() == s_elem.numel());
+
+                         const auto iter_Scale = s_elem.seek("scale");
+
+                         if (iter_Scale != s_elem.end()) {
+                              ov_Scale = s_elem.contents(iter_Scale);
+                         }
                     }
 
                     Cell ov_weight;
@@ -13053,6 +13086,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               }
 #endif
 
+                              const double dScale = ov_Scale.numel() ? ov_Scale.xelem(i).scalar_value() : 1.;
+
+#if OCTAVE_MAJOR_VERSION < 6
+                              if (error_state) {
+                                   throw std::runtime_error("mesh.elements."s + oElemType.name + ".scale must be a real scalar in argument mesh");
+                              }
+#endif
+                              
                               const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oElemType.type);
                               
                               if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != iNumDofNodeMax * elem_nodes.columns() || C.rows() > C.columns()) {
@@ -13132,7 +13173,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                    }
                               }
 
-                              pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U, oDof.GetDomain());
+                              pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U, oDof.GetDomain(), dScale);
                          } break;
                          default:
                               FEM_ASSERT(false);
@@ -13381,7 +13422,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               bMatInfo = true;
                          }
 
-                         FEM_TRACE("i=" << i << " beta=" << oMatInfo.beta << "\nalpha=" << oMatInfo.alpha << "\n");
+                         FEM_TRACE("i=" << i << " beta=" << oMatInfo.beta << "\n");
 
                          (*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
                     }
