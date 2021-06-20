@@ -3048,7 +3048,6 @@
 %! else
 %!   mesh.elements.beam2.nodes = int32([2, 1]);
 %! endif
-%! mesh.elements.beam2.material = int32(1);
 %! mesh.elements.beam2.section.A = A;
 %! mesh.elements.beam2.section.Ay = Ay;
 %! mesh.elements.beam2.section.Az = Az;
@@ -3104,9 +3103,8 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
-%! beam1.material = int32(1);
 %! beam1.section.A = A;
 %! beam1.section.Ay = Ay;
 %! beam1.section.Az = Az;
@@ -3114,7 +3112,7 @@
 %! beam1.section.Iy = Iy;
 %! beam1.section.Iz = Iz;
 %! beam1.e2 = R * [0; 1; 0];
-%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! mesh.elements.beam2 = repmat(beam1, N - 1, 1);
 %! for i=1:N - 1
 %!   mesh.elements.beam2(i).nodes = int32(i:i+1);
 %! endfor
@@ -3161,7 +3159,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3171,7 +3169,7 @@
 %! beam1.section.Iy = Iy;
 %! beam1.section.Iz = Iz;
 %! beam1.e2 = R * [0; 1; 0];
-%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! mesh.elements.beam2 = repmat(beam1, N - 1, 1);
 %! for i=1:N - 1
 %!   mesh.elements.beam2(i).nodes = int32(i:i+1);
 %! endfor
@@ -3221,7 +3219,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3281,7 +3279,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3344,9 +3342,8 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
-%! beam1.material = int32(1);
 %! beam1.section.A = A;
 %! beam1.section.Ay = Ay;
 %! beam1.section.Az = Az;
@@ -3429,7 +3426,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -4443,6 +4440,187 @@
 %!   assert(sol(j).theta(:, 10:end), sol(j).theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! endfor
 
+%!test
+%! ## TEST 54
+%! m = 1.5;
+%! J = diag([1e-3, 2e-3, 3e-3]);
+%! e1 = [1; 0.5; 0.3];
+%! e2 = [0.2; 1; 0.2];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R = [e1, e2, e3];
+%! R *= diag(1 ./ norm(R, "cols"));
+%! J = R * J * R.';
+%! J = 0.5 * (J + J.');
+%! lcg = [2e-2; 3e-2; 4e-2];
+%! mesh.nodes = zeros(1, 6);
+%! mesh.materials = struct();
+%! mesh.material_data = struct()([]);
+%! mesh.elements.bodies.nodes = int32(1);
+%! mesh.elements.bodies.m = m;
+%! mesh.elements.bodies.J = J;
+%! mesh.elements.bodies.lcg = lcg;
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [M, MU, ML] = fem_ass_matrix(mesh, ...
+%!                              dof_map, [FEM_MAT_MASS, ...
+%!                                        FEM_MAT_MASS_SYM, ...
+%!                                        FEM_MAT_MASS_SYM_L], ...
+%!                              load_case);
+%! Mref = [      m * eye(3), -m * skew(lcg);
+%!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
+%! assert(issymmetric(M));
+%! assert(isdefinite(M));
+%! assert(full(M), Mref);
+%! assert(full(MU + ML - diag(diag(ML))), Mref);
+%! assert(full(MU + ML - diag(diag(MU))), Mref);
+%! assert(full(ML - MU.'), zeros(6, 6));
+
+%!test
+%! ## TEST 55
+%! ## Robert Gasch, Klaus Knothe
+%! ## Strukturdynamik Band 1
+%! ## Diskrete Systeme
+%! ## 1987
+%! ## page 102, figure 2.5a
+%!
+%! a = 1800e-3;
+%! b = 4000e-3;
+%! c = 2200e-3;
+%! m1 = 2.2e-1;
+%! m2 = 4.1e-1;
+%! J1 = 0.1e-3;
+%! J2 = 0.5e-3;
+%! d1 = 5e-3;
+%! d2 = 8e-3;
+%! d3 = 7e-3;
+%! E = 210000e6;
+%! nu = 0.3;
+%! rho = 0;
+%! X = [0,         0,   0;
+%!      a,         0,   0;
+%!      a + b,     0,   0;
+%!      a + b + c, 0,   0];
+%!
+%! mesh.nodes = [X, zeros(rows(X), 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = ones(3, 1, "int32");
+%! mesh.elements.beam2(1).nodes = int32([1, 2]);
+%! mesh.elements.beam2(2).nodes = int32([2, 3]);
+%! mesh.elements.beam2(3).nodes = int32([3, 4]);
+%! mesh.elements.beam2(1).section.A = d1^2 * pi / 4;
+%! mesh.elements.beam2(1).section.Ay = 9/10 * d1^2 * pi / 4;
+%! mesh.elements.beam2(1).section.Az = 9/10 * d1^2 * pi / 4;
+%! mesh.elements.beam2(1).section.Iy = d1^4 * pi / 64;
+%! mesh.elements.beam2(1).section.Iz = d1^4 * pi / 64;
+%! mesh.elements.beam2(1).section.It = d1^4 * pi / 32;
+%! mesh.elements.beam2(1).e2 = [0; 1; 0];
+%! mesh.elements.beam2(2).section.A = d2^2 * pi / 4;
+%! mesh.elements.beam2(2).section.Ay = 9/10 * d2^2 * pi / 4;
+%! mesh.elements.beam2(2).section.Az = 9/10 * d2^2 * pi / 4;
+%! mesh.elements.beam2(2).section.Iy = d2^4 * pi / 64;
+%! mesh.elements.beam2(2).section.Iz = d2^4 * pi / 64;
+%! mesh.elements.beam2(2).section.It = d2^4 * pi / 32;
+%! mesh.elements.beam2(2).e2 = [0; 1; 0];
+%! mesh.elements.beam2(3).section.A = d3^2 * pi / 4;
+%! mesh.elements.beam2(3).section.Ay = 9/10 * d3^2 * pi / 4;
+%! mesh.elements.beam2(3).section.Az = 9/10 * d3^2 * pi / 4;
+%! mesh.elements.beam2(3).section.Iy = d3^4 * pi / 64;
+%! mesh.elements.beam2(3).section.Iz = d3^4 * pi / 64;
+%! mesh.elements.beam2(3).section.It = d3^4 * pi / 32;
+%! mesh.elements.beam2(3).e2 = [0; 1; 0];
+%! mesh.elements.bodies(1).nodes = int32(2);
+%! mesh.elements.bodies(2).nodes = int32(3);
+%! mesh.elements.bodies(1).m = m1;
+%! mesh.elements.bodies(1).J = diag([0, J1, 0]);
+%! mesh.elements.bodies(1).lcg = zeros(3, 1);
+%! mesh.elements.bodies(2).m = m2;
+%! mesh.elements.bodies(2).J = diag([0, J2, 0]);
+%! mesh.elements.bodies(2).lcg = zeros(3, 1);
+
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.locked_dof(:, [1,2,4,6]) = true;
+%! load_case.locked_dof(1, 1:3) = true;
+%! load_case.locked_dof(4, 2:3) = true;
+
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.M, ...
+%!  mat_ass.K] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_MASS, ...
+%!                               FEM_MAT_STIFFNESS], ...
+%!                              load_case);
+%!  Ia = d1^4 * pi / 64;
+%!  Ib = d2^4 * pi / 64;
+%!  Ic = d3^4 * pi / 64;
+%!  Mref = diag([m1, J1, m2, J2]);
+%!  Kref = [3 * E * Ia / a^3 + 12 * E * Ib / b^3, 3 * E * Ia / a^2 - 6 * E * Ib / b^2, -12 * E * Ib / b^3, -6 * E * Ib / b^2;
+%!          3 * E * Ia / a^2 - 6 * E * Ib / b^2, 3 * E * Ia / a + 4 * E * Ib / b, 6 * E * Ib / b^2, 2 * E * Ib / b;
+%!          -12 * E * Ib / b^3, 6 * E * Ib / b^2, 3 * E * Ic / c^3 + 12 * E * Ib / b^3, -3 * E * Ic / c^2 + 6 * E * Ib / b^2;
+%!          -6 * E * Ib / b^2, 2 * E * Ib / b, -3 * E * Ic / c^2 + 6 * E * Ib / b^2, 3 * E * Ic / c + 4 * E * Ib / b];
+%!  lambdaref = eig(Kref, Mref);
+%!  lambda = eig(mat_ass.K, mat_ass.M);
+%!  lambdaref = sort(lambdaref);
+%!  lambda = sort(lambda)(1:4);
+%!  tol = 1e-5;
+%!  assert(lambda, lambdaref, tol * max(lambdaref));
+
+%!test
+%! ## TEST 56
+%! a = 0.2;
+%! b = 0.4;
+%! c = 0.3;
+%! rho = 7850;
+%! m = rho * a * b * c;
+%! Jx = m * (b^2 + c^2) / 12;
+%! Jy = m * (a^2 + c^2) / 12;
+%! Jz = m * (a^2 + b^2) / 12;
+%! m1_2 = rho * (a / 2) * b * c;
+%! Jx1_2 = m1_2 * (b^2 + c^2) / 12;
+%! Jy1_2 = m1_2 * ((a / 2)^2 + c^2) / 12;
+%! Jz1_2 = m1_2 * ((a / 2)^2 + b^2) / 12;
+%! J = diag([Jx, Jy, Jz]);
+%! J1_2 = diag([Jx1_2, Jy1_2, Jz1_2]);
+%! e1 = [1; 0.5; 0.3];
+%! e2 = [0.2; 1; 0.2];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R = [e1, e2, e3];
+%! R *= diag(1 ./ norm(R, "cols"));
+%! J = R * J * R.';
+%! J = 0.5 * (J + J.');
+%! J1_2 = R * J1_2 * R.';
+%! J1_2 = 0.5 * (J1_2 + J1_2.');
+%! lcg = R * [12e-2; 23e-2; 34e-2];
+%! lcg1 = lcg + R * [0.25 * a; 0; 0];
+%! lcg2 = lcg - R * [0.25 * a; 0; 0];
+%! mesh.nodes = zeros(1, 6);
+%! mesh.materials = struct();
+%! mesh.material_data = struct()([]);
+%! mesh.elements.bodies(1).nodes = int32(1);
+%! mesh.elements.bodies(1).m = m / 2;
+%! mesh.elements.bodies(1).J = J1_2;
+%! mesh.elements.bodies(1).lcg = lcg1;
+%! mesh.elements.bodies(2).nodes = int32(1);
+%! mesh.elements.bodies(2).m = m / 2;
+%! mesh.elements.bodies(2).J = J1_2;
+%! mesh.elements.bodies(2).lcg = lcg2;
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [M] = fem_ass_matrix(mesh, ...
+%!                      dof_map, ...
+%!                      [FEM_MAT_MASS, ...
+%!                       FEM_MAT_MASS_SYM, ...
+%!                       FEM_MAT_MASS_SYM_L], ...
+%!                      load_case);
+%! Mref = [      m * eye(3), -m * skew(lcg);
+%!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
+%! assert(issymmetric(M));
+%! assert(isdefinite(M));
+%! assert(full(M), Mref, eps * norm(Mref));
+
 %!demo
 %! ## DEMO 1
 %! ## Cantilever beam with rectangular cross section and lateral load
@@ -4935,8 +5113,7 @@
 %! section.Iz = Iz;
 %! mesh.elements.beam2 = struct("nodes", mat2cell(elnodes, ones(numel(Phi) - 1, 1, "int32"), 2), ...
 %!                              "section", mat2cell(repmat(section, numel(Phi) - 1, 1), ones(numel(Phi) - 1, 1, "int32")), ...
-%!                              "e2", mat2cell(e2, ones(numel(Phi) - 1, 1, "int32"), 3), ...
-%!                              "material", mat2cell(ones(numel(Phi) - 1, 1, "int32"), ones(numel(Phi) - 1, 1, "int32"), 1));
+%!                              "e2", mat2cell(e2, ones(numel(Phi) - 1, 1, "int32"), 3));
 %! mesh.elements.joints = struct("nodes", {1, numel(Phi)}, "C", {eye(6), eye(6)});
 %! U1 = zeros(6, 6);
 %! U2 = eye(6);
@@ -4949,7 +5126,7 @@
 %! mesh.material_data.rho = rho;
 %! mesh.material_data.alpha = alpha;
 %! mesh.material_data.beta = beta;
-%! mesh.materials = struct();
+%! mesh.materials.beam2 = ones(numel(Phi) - 1, 1, "int32");
 %! load_case_dof.locked_dof = false(size(mesh.nodes));
 %! [dof_map] = fem_ass_dof_map(mesh, load_case_dof);
 %! [mat_ass.K, ...
