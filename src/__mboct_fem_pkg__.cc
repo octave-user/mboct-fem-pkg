@@ -2024,7 +2024,14 @@ public:
           case MAT_MASS_FLUID_STRUCT:
                pfn = &ElemBeam2::MassMatrix;
                break;
-
+               
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+               pfn = &ElemBeam2::DampingMatrix;
+               break;
+               
           default:
                return;
           }
@@ -2159,6 +2166,21 @@ public:
           Me.xelem(11,11) = ((l*(5040*ky2*rhoIz+210*ky*rhoIz+14*rhoIz+126*ky2*l2*rhoA+21*ky*l2*rhoA+l2*rhoA))/a1)/1.05E+2;
      }
 
+     void DampingMatrix(Matrix& De) const {
+          const double alpha = material->AlphaDamping();
+          const double beta = material->BetaDamping();
+          
+          Matrix Me(12, 12, 0.);
+          
+          MassMatrix(Me);
+          StiffnessMatrix(De);
+
+          for (octave_idx_type j = 0; j < 12; ++j) {
+               for (octave_idx_type i = 0; i < 12; ++i) {
+                    De.xelem(i, j) = alpha * Me.xelem(i, j) + beta * De.xelem(i, j);
+               }
+          }
+     }
 private:
      Matrix R;
      double l, ky, kz, EA, GAy, GAz, GIt, EIy, EIz, rhoA, rhoIp, rhoIy, rhoIz;
