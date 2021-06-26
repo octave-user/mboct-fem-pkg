@@ -917,7 +917,6 @@ public:
           MAT_INERTIA_INV5            = ( 9u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
           MAT_INERTIA_INV8            = (10u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
           MAT_INERTIA_INV9            = (11u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
-          MAT_ACCEL_LOAD              = (12u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
           VEC_LOAD_CONSISTENT         = (13u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
           VEC_LOAD_LUMPED             = (14u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
           VEC_STRESS_CAUCH            = (15u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY | DofMap::DO_STRUCTURAL,
@@ -1446,10 +1445,6 @@ public:
           case Element::VEC_LOAD_FLUID_STRUCT:
                iNumCols = iNumLoads;
                break;
-
-          case Element::MAT_ACCEL_LOAD:
-               iNumCols = 3;
-               break;
 #if DEBUG > 0
           case Element::MAT_UNKNOWN:
                FEM_ASSERT(0);
@@ -1938,13 +1933,14 @@ struct BeamCrossSection {
 class ElemBeam2: public Element
 {
 public:
-     ElemBeam2(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const BeamCrossSection& oSect, const ColumnVector& e2)
-          :Element(eltype, id, X, material, nodes), R(3, 3) {
+     ElemBeam2(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const BeamCrossSection& oSect, const ColumnVector& e2, const Matrix& g)
+          :Element(eltype, id, X, material, nodes), R(3, 3), g(g) {
 
           FEM_ASSERT(X.rows() == 6);
           FEM_ASSERT(X.columns() == 2);
           FEM_ASSERT(nodes.numel() == 2);
           FEM_ASSERT(e2.numel() == 3);
+          FEM_ASSERT(g.rows() == 3);
 
           l = 0;
 
@@ -2010,38 +2006,79 @@ public:
      virtual ~ElemBeam2()=default;
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
-          void (ElemBeam2::*pfn)(Matrix&) const;
+          void (ElemBeam2::*pfn)(MatrixAss&, const DofMap&) const;
 
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_STIFFNESS_FLUID_STRUCT:
-               pfn = &ElemBeam2::StiffnessMatrix;
+               pfn = &ElemBeam2::GlobalStiffnessMatrix;
                break;
 
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
           case MAT_MASS_FLUID_STRUCT:
-               pfn = &ElemBeam2::MassMatrix;
+               pfn = &ElemBeam2::GlobalMassMatrix;
                break;
                
           case MAT_DAMPING:
           case MAT_DAMPING_SYM:
           case MAT_DAMPING_SYM_L:
           case MAT_DAMPING_FLUID_STRUCT_RE:
-               pfn = &ElemBeam2::DampingMatrix;
+               pfn = &ElemBeam2::GlobalDampingMatrix;
+               break;
+
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               pfn = &ElemBeam2::GlobalLoadVector;
                break;
                
           default:
                return;
           }
 
-          Matrix A(12, 12, 0.), RA(12, 12);
+          (this->*pfn)(mat, dof);
+     }
 
-          (this->*pfn)(A);
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT:
+          case MAT_MASS:
+          case MAT_MASS_SYM:
+          case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT:
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+               return 12 * 12;
+               
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               return 12 * g.columns();
+               
+          default:
+               return 0;
+          }
+     }
 
+     virtual double dGetMass() const {
+          return rhoA * l;
+     }
+
+     void LocalMatToGlobalMat(Matrix& A) const {
+          FEM_ASSERT(A.rows() == 12);
+          FEM_ASSERT(A.columns() == 12);
+          
+          Matrix RA(12, 12);
+          
           for (octave_idx_type i0 = 0; i0 < 4; ++i0) {
                for (octave_idx_type j0 = 0; j0 < 4; ++j0) {
                     for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
@@ -2078,8 +2115,30 @@ public:
                for (octave_idx_type i = 0; i < j; ++i) {
                     A.xelem(j, i) = A.xelem(i, j);
                }
-          }
+          }          
+     }
 
+     void LocalVecToGlobalVec(const Matrix& A, Matrix& RA) const {
+          FEM_ASSERT(A.rows() == 12);
+          FEM_ASSERT(RA.rows() == 12);
+          FEM_ASSERT(A.columns() == RA.columns());
+          
+          for (octave_idx_type j = 0; j < A.columns(); ++j) {
+               for (octave_idx_type i0 = 0; i0 < 4; ++i0) {
+                    for (octave_idx_type i1 = 0; i1 < 3; ++i1) {
+                         double RAij = 0;
+
+                         for (octave_idx_type k = 0; k < 3; ++k) {
+                              RAij += R.xelem(i1, k) * A.xelem(3 * i0 + k, j);
+                         }
+
+                         RA.xelem(3 * i0 + i1, j) = RAij;
+                    }
+               }
+          }
+     }
+     
+     void AssembleMatrix(MatrixAss& mat, const Matrix& A, const DofMap& dof) const {
           int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
 
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
@@ -2091,15 +2150,59 @@ public:
           mat.Insert(A, ndofidx, ndofidx);
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
-          return 12 * 12;
+     void AssembleVector(MatrixAss& mat, const Matrix& A, const DofMap& dof) const {
+          FEM_ASSERT(A.rows() == nodes.numel() * 6);
+          
+          int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          
+          for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+               for (octave_idx_type idof = 0; idof < 6; ++idof) {
+                    ndofidx.xelem(inode * 6 + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
+               }
+          }
+
+          int32NDArray colidx(dim_vector(A.columns(), 1), -1);
+
+          for (octave_idx_type j = 0; j < A.columns(); ++j) {
+               colidx.xelem(j) = j + 1;
+          }
+
+          mat.Insert(A, ndofidx, colidx);
+     }
+     
+     void GlobalStiffnessMatrix(MatrixAss& mat, const DofMap& dof) const {
+          Matrix Ke(12, 12, 0.);
+
+          LocalStiffnessMatrix(Ke);
+          LocalMatToGlobalMat(Ke);
+          AssembleMatrix(mat, Ke, dof);
      }
 
-     virtual double dGetMass() const {
-          return rhoA * l;
+     void GlobalMassMatrix(MatrixAss& mat, const DofMap& dof) const {
+          Matrix Me(12, 12, 0.);
+
+          LocalMassMatrix(Me);
+          LocalMatToGlobalMat(Me);
+          AssembleMatrix(mat, Me, dof);
      }
 
-     void StiffnessMatrix(Matrix& Ke) const {
+     void GlobalDampingMatrix(MatrixAss& mat, const DofMap& dof) const {
+          Matrix De(12, 12, 0.);
+
+          LocalDampingMatrix(De);
+          LocalMatToGlobalMat(De);
+          AssembleMatrix(mat, De, dof);          
+     }
+
+     void GlobalLoadVector(MatrixAss& mat, const DofMap& dof) const {
+          Matrix Re(12, g.columns(), 0.), Rg(12, g.columns());
+          
+          LocalLoadVector(Re);
+          LocalVecToGlobalVec(Re, Rg);
+          AssembleVector(mat, Rg, dof);
+     }
+     
+     void LocalStiffnessMatrix(Matrix& Ke) const {
           const double l2 = l * l;
           const double l3 = l2 * l;
 
@@ -2131,7 +2234,7 @@ public:
           Ke.xelem(11,11) = (4*EIz*(3*ky+1))/((12*ky+1)*l);
      }
 
-     void MassMatrix(Matrix& Me) const {
+     void LocalMassMatrix(Matrix& Me) const {
           const double l2 = l * l;
           const double ky2 = ky * ky;
           const double kz2 = kz * kz;
@@ -2168,14 +2271,14 @@ public:
           Me.xelem(11,11) = ((l*(5040*ky2*rhoIz+210*ky*rhoIz+14*rhoIz+126*ky2*l2*rhoA+21*ky*l2*rhoA+l2*rhoA))/a1)/1.05E+2;
      }
 
-     void DampingMatrix(Matrix& De) const {
+     void LocalDampingMatrix(Matrix& De) const {
           const double alpha = material->AlphaDamping();
           const double beta = material->BetaDamping();
           
           Matrix Me(12, 12, 0.);
           
-          MassMatrix(Me);
-          StiffnessMatrix(De);
+          LocalMassMatrix(Me);
+          LocalStiffnessMatrix(De);
 
           for (octave_idx_type j = 0; j < 12; ++j) {
                for (octave_idx_type i = 0; i < 12; ++i) {
@@ -2183,16 +2286,44 @@ public:
                }
           }
      }
+
+     void LocalLoadVector(Matrix& Pe) const {
+          FEM_ASSERT(Pe.columns() == g.columns());
+          FEM_ASSERT(Pe.rows() == 12);
+          
+          const double l2 = l * l;
+          ColumnVector pe(3);
+          
+          for (octave_idx_type i = 0; i < g.columns(); ++i) {
+               pe.xelem(0) = (g.xelem(2, i)*R.xelem(2,0)+g.xelem(1, i)*R.xelem(1,0)+g.xelem(0, i)*R.xelem(0,0))*rhoA;
+               pe.xelem(1) = (g.xelem(2, i)*R.xelem(2,1)+g.xelem(1, i)*R.xelem(1,1)+g.xelem(0, i)*R.xelem(0,1))*rhoA;
+               pe.xelem(2) = (g.xelem(2, i)*R.xelem(2,2)+g.xelem(1, i)*R.xelem(1,2)+g.xelem(0, i)*R.xelem(0,2))*rhoA;
+          
+               Pe.xelem(0, i) = (pe.xelem(0)*l)/2.0E+0;
+               Pe.xelem(1) = (pe.xelem(1)*l)/2.0E+0;
+               Pe.xelem(2) = (pe.xelem(2)*l)/2.0E+0;
+               Pe.xelem(3) = 0;
+               Pe.xelem(4) = -(pe.xelem(2)*l2)/1.2E+1;
+               Pe.xelem(5) = (pe.xelem(1)*l2)/1.2E+1;
+               Pe.xelem(6) = (pe.xelem(0)*l)/2.0E+0;
+               Pe.xelem(7) = (pe.xelem(1)*l)/2.0E+0;
+               Pe.xelem(8) = (pe.xelem(2)*l)/2.0E+0;
+               Pe.xelem(9) = 0;
+               Pe.xelem(10) = (pe.xelem(2)*l2)/1.2E+1;
+               Pe.xelem(11) = -(pe.xelem(1)*l2)/1.2E+1;
+          }
+     }
 private:
      Matrix R;
+     const Matrix g;
      double l, ky, kz, EA, GAy, GAz, GIt, EIy, EIz, rhoA, rhoIp, rhoIy, rhoIz;
 };
 
 class ElemRigidBody: public Element
 {
 public:
-     ElemRigidBody(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, double m, const Matrix& J, const ColumnVector& lcg)
-          :Element(eltype, id, X, material, nodes), m(m), J(J), skew_lcg(3, 3, 0.) {
+     ElemRigidBody(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, double m, const Matrix& J, const ColumnVector& lcg, const Matrix& g)
+          :Element(eltype, id, X, material, nodes), m(m), J(J), skew_lcg(3, 3, 0.), g(g) {
 
           skew_lcg.xelem(0, 1) = -lcg.xelem(2);
           skew_lcg.xelem(1, 0) = lcg.xelem(2);
@@ -2211,23 +2342,55 @@ public:
      virtual ~ElemRigidBody()=default;
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, FemMatrixType eMatType) const {
-          void (ElemRigidBody::*pfn)(Matrix&) const;
+          void (ElemRigidBody::*pfn)(MatrixAss& mat, const DofMap& dof) const;
 
           switch (eMatType) {
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
           case MAT_MASS_FLUID_STRUCT:
-               pfn = &ElemRigidBody::MassMatrix;
+               pfn = &ElemRigidBody::GlobalMassMatrix;
+               break;
+               
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               pfn = &ElemRigidBody::GlobalLoadVector;
                break;
                
           default:
                return;
           }
 
+          (this->*pfn)(mat, dof);
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
+          switch (eMatType) {
+          case MAT_MASS:
+          case MAT_MASS_SYM:
+          case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT:               
+               return 6 * 6;
+               
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               return 6 * g.columns();
+
+          default:
+               return 0;
+          }
+     }
+
+     virtual double dGetMass() const {
+          return m;
+     }
+
+     void GlobalMassMatrix(MatrixAss& mat, const DofMap& dof) const {
           Matrix A(6, 6, 0.);
 
-          (this->*pfn)(A);
+          LocalMassMatrix(A);
 
           int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
           
@@ -2240,15 +2403,29 @@ public:
           mat.Insert(A, ndofidx, ndofidx);
      }
 
-     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const {
-          return 6 * 6;
-     }
+     void GlobalLoadVector(MatrixAss& mat, const DofMap& dof) const {
+          Matrix Re(6, g.columns());
 
-     virtual double dGetMass() const {
-          return m;
-     }
+          LocalLoadVector(Re);
 
-     void MassMatrix(Matrix& Me) const {
+          int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          
+          const octave_idx_type inode = nodes.xelem(0).value() - 1;
+          
+          for (octave_idx_type idof = 0; idof < 6; ++idof) {
+               ndofidx.xelem(idof) = dof.GetNodeDofIndex(inode, DofMap::NDOF_DISPLACEMENT, idof);
+          }
+
+          int32NDArray colidx(dim_vector(g.columns(), 1), -1);
+
+          for (octave_idx_type j = 0; j < g.columns(); ++j) {
+               colidx.xelem(j) = j + 1;
+          }
+
+          mat.Insert(Re, ndofidx, colidx);
+     }
+     
+     void LocalMassMatrix(Matrix& Me) const {
           for (octave_idx_type i = 0; i < 3; ++i) {
                Me.xelem(i, i) = m;
           }
@@ -2272,17 +2449,38 @@ public:
           }
      }
 
+     void LocalLoadVector(Matrix& Re) const {
+          FEM_ASSERT(Re.rows() == 6);
+          FEM_ASSERT(Re.columns() == g.columns());
+
+          for (octave_idx_type j = 0; j < g.columns(); ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    Re.xelem(i, j) = g.xelem(i, j) * m;
+               }
+
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    double Mij = 0.;
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         Mij += skew_lcg.xelem(i, k) * Re.xelem(k, j);
+                    }
+
+                    Re.xelem(i + 3, j) = Mij;
+               }
+          }
+     }
 private:
      double m;
      Matrix J;
      Matrix skew_lcg;
+     const Matrix g;
 };
 
 class Element3D: public Element
 {
 public:
-     Element3D(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element(eltype, id, X, material, nodes), eMaterial(material->GetMaterialType()) {
+     Element3D(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain, const Matrix& g)
+          :Element(eltype, id, X, material, nodes), eMaterial(material->GetMaterialType()), g(g) {
 
           FEM_ASSERT(X.rows() == 3);
 
@@ -2290,7 +2488,7 @@ public:
           const octave_idx_type iNumLoadsTemp = oRefStrain.rgTemperature.numel();
           const octave_idx_type iNumLoadsStrain = oRefStrain.rgRefStrain.numel();
           
-          iNumPreLoads = std::max(iNumLoadsTemp, iNumLoadsStrain);
+          iNumPreLoads = std::max(std::max(iNumLoadsTemp, iNumLoadsStrain), g.columns());
           
           FEM_ASSERT(iNumLoadsTemp && iNumLoadsStrain ? iNumLoadsTemp == iNumLoadsStrain : true);
           
@@ -2384,17 +2582,12 @@ public:
 
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
-               pFunc = &Element3D::ThermalLoadVector;
+          case VEC_LOAD_FLUID_STRUCT:
+               pFunc = &Element3D::StructuralLoadVector;
                iNumRows = iNumDof;
                iNumCols = iNumPreLoads;
                break;
 
-          case MAT_ACCEL_LOAD:
-               pFunc = &Element3D::AccelerationLoad;
-               iNumRows = iNumDof;
-               iNumCols = 3;
-               break;
-               
           case MAT_THERMAL_COND:
                pFunc = &Element3D::ThermalConductivityMatrix;
                iNumRows = iNumCols = iNumDof;
@@ -2492,7 +2685,6 @@ public:
           FEM_TRACE("\nid:" << id << "\n" << ((eMaterial == Material::MAT_TYPE_SOLID) ? "solid" : "fluid") << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n");
           
           switch (eMatType) {
-          case MAT_ACCEL_LOAD:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_FLUID_STRUCT: {
@@ -2551,8 +2743,10 @@ public:
           case MAT_MASS_LUMPED:
                return iGetNumDof(eMatType);
 
-          case MAT_ACCEL_LOAD:
-               return iGetNumDof(eMatType) * 3;
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               return iGetNumDof(eMatType) * iNumPreLoads;
 
           default:
                return 0;
@@ -2814,7 +3008,7 @@ protected:
           }
      }
 
-     void AccelerationLoad(Matrix& C1, MeshInfo& info, FemMatrixType eMatType) const {
+     void GravityLoadVector(Matrix& R, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -2822,9 +3016,10 @@ protected:
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
 
-          FEM_ASSERT(C1.rows() == iNumDof);
-          FEM_ASSERT(C1.columns() == iNumDisp);
-
+          FEM_ASSERT(R.rows() == iNumDof);
+          FEM_ASSERT(R.columns() == g.columns());
+          FEM_ASSERT(g.rows() == iNumDisp);
+          
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
@@ -2842,14 +3037,30 @@ protected:
 
                const double dm = alpha * rho * detJ;
 
-               for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+               for (octave_idx_type l = 0; l < g.columns(); ++l) {                    
                     for (octave_idx_type j = 0; j < iNumDof; ++j) {
-                         C1.xelem(j, k) += H.xelem(k, j) * dm;
+                         double Rijl = 0.;
+                         
+                         for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+                              Rijl += H.xelem(k, j) * dm * g.xelem(k, l);
+                         }
+                         
+                         R.xelem(j, l) += Rijl;
                     }
                }
           }
      }
 
+     void StructuralLoadVector(Matrix& R, MeshInfo& info, FemMatrixType eMatType) const {
+          if (g.columns()) {
+               GravityLoadVector(R, info, eMatType);
+          }
+
+          if (epsilonRef.columns() || dTheta.columns()) {
+               ThermalLoadVector(R, info, eMatType);
+          }
+     }
+     
      void InertiaMoment1(NDArray& S, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
@@ -3791,13 +4002,14 @@ private:
      octave_idx_type iNumPreLoads;
      Matrix dTheta;
      NDArray epsilonRef;
+     const Matrix g;
 };
 
 class Iso8: public Element3D
 {
 public:
-     Iso8(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
+     Iso8(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain, const Matrix& g)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain, g) {
           FEM_ASSERT(nodes.numel() == 8);
      }
 
@@ -4219,8 +4431,8 @@ private:
 class Iso20: public Element3D
 {
 public:
-     Iso20(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
+     Iso20(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain, const Matrix& g)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain, g) {
           FEM_ASSERT(nodes.numel() == 20);
      }
 
@@ -5012,8 +5224,8 @@ private:
 class Penta15: public Element3D
 {
 public:
-     Penta15(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
+     Penta15(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain, const Matrix& g)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain, g) {
           FEM_ASSERT(nodes.numel() == 15);
      }
 
@@ -5666,8 +5878,8 @@ private:
 class Tet10h: public Element3D
 {
 public:
-     Tet10h(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
+     Tet10h(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain, const Matrix& g)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain, g) {
           FEM_ASSERT(nodes.numel() == 10);
      }
 
@@ -5757,7 +5969,6 @@ public:
           case MAT_INERTIA_INV5:
           case MAT_INERTIA_INV8:
           case MAT_INERTIA_INV9:
-          case MAT_ACCEL_LOAD:
           case SCA_TOT_MASS:
           case MAT_HEAT_CAPACITY:
           case MAT_MASS_ACOUSTICS:
@@ -6262,8 +6473,8 @@ class Tet10: public Element3D
      static constexpr double gamma = 1. / 6.;
 
 public:
-     Tet10(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain)
-          :Element3D(eltype, id, X, material, nodes, oRefStrain) {
+     Tet10(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const StrainField& oRefStrain, const Matrix& g)
+          :Element3D(eltype, id, X, material, nodes, oRefStrain, g) {
           FEM_ASSERT(nodes.numel() == 10);
      }
 
@@ -6313,7 +6524,6 @@ public:
           case MAT_INERTIA_INV5:
           case MAT_INERTIA_INV8:
           case MAT_INERTIA_INV9:
-          case MAT_ACCEL_LOAD:
           case MAT_HEAT_CAPACITY:
           case MAT_MASS_ACOUSTICS:
                if (!oIntegMass.iGetNumEvalPoints()) {
@@ -11347,7 +11557,6 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_MAT_INERTIA_INV5", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_INERTIA_INV8", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_INERTIA_INV9", "__mboct_fem_pkg__.oct");
-// PKG_ADD: autoload("FEM_MAT_ACCEL_LOAD", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_CONSISTENT", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_LOAD_LUMPED", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_STRESS_CAUCH", "__mboct_fem_pkg__.oct");
@@ -11399,7 +11608,6 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_MAT_INERTIA_INV5", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_INERTIA_INV8", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_INERTIA_INV9", "__mboct_fem_pkg__.oct", "remove");
-// PKG_DEL: autoload("FEM_MAT_ACCEL_LOAD", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_LOAD_CONSISTENT", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_LOAD_LUMPED", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_STRESS_CAUCH", "__mboct_fem_pkg__.oct", "remove");
@@ -12391,6 +12599,32 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const StrainField oRefStrain(load_case, nodes);
 
+          Matrix g;
+
+          const auto iterg = load_case.seek("g");
+
+          if (iterg != load_case.end()) {
+               const Cell cellg = load_case.contents(iterg);
+
+               FEM_ASSERT(cellg.numel() == load_case.numel());
+               
+               g.resize(3, load_case.numel(), 0.);
+
+               for (octave_idx_type j = 0; j < load_case.numel(); ++j) {
+                    const octave_value ovg = cellg.xelem(j);
+                    
+                    if (!(ovg.isreal() && ovg.is_matrix_type() && ovg.rows() == 3 && ovg.columns() == 1)) {
+                         throw std::runtime_error("load_case.g must be a real 3x1 vector");
+                    }
+
+                    const ColumnVector gj = ovg.column_vector_value();
+
+                    for (octave_idx_type i = 0; i < 3; ++i) {
+                         g.xelem(i, j) = gj.xelem(i);
+                    }
+               }
+          }
+          
           const octave_scalar_map sol(nargin > 4 ? args(4).scalar_map_value() : octave_scalar_map());
 
 #if OCTAVE_MAJOR_VERSION < 6
@@ -12556,7 +12790,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_INERTIA_INV5:
                     case Element::MAT_INERTIA_INV8:
                     case Element::MAT_INERTIA_INV9:
-                    case Element::MAT_ACCEL_LOAD:
                          rgElemUse[ElementTypes::ELEM_BEAM2] = true;
                          rgElemUse[ElementTypes::ELEM_RIGID_BODY] = true;
                          [[fallthrough]];
@@ -12577,6 +12810,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
                          }
 
+                         rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+                         rgElemUse[ElementTypes::ELEM_RIGID_BODY] = true;                         
                          rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
@@ -12872,23 +13107,23 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     switch (oElemType.type) {
                     case ElementTypes::ELEM_ISO8:
-                         rgElemBlocks.emplace_back(new ElementBlock<Iso8>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
+                         rgElemBlocks.emplace_back(new ElementBlock<Iso8>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain, g));
                          break;
 
                     case ElementTypes::ELEM_ISO20:
-                         rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
+                         rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain, g));
                          break;
 
                     case ElementTypes::ELEM_PENTA15:
-                         rgElemBlocks.emplace_back(new ElementBlock<Penta15>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
+                         rgElemBlocks.emplace_back(new ElementBlock<Penta15>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain, g));
                          break;
 
                     case ElementTypes::ELEM_TET10H:
-                         rgElemBlocks.emplace_back(new ElementBlock<Tet10h>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
+                         rgElemBlocks.emplace_back(new ElementBlock<Tet10h>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain, g));
                          break;
 
                     case ElementTypes::ELEM_TET10:
-                         rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain));
+                         rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oRefStrain, g));
                          break;
 
                     default:
@@ -13210,7 +13445,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                    throw std::runtime_error("mesh.elements.beam2.e2 must be 3x1 matrix");
                               }
 
-                              pElem->Insert<ElemBeam2>(i + 1, X, material, elem_nodes, section, e2);
+                              pElem->Insert<ElemBeam2>(i + 1, X, material, elem_nodes, section, e2, g);
                          } break;
                          case ElementTypes::ELEM_RIGID_BODY: {
                               const octave_value ov_m = cell_m.xelem(i);
@@ -13241,7 +13476,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const ColumnVector lcg = ov_lcg.column_vector_value();
                               
-                              pElem->Insert<ElemRigidBody>(i + 1, X, nullptr, elem_nodes, m, J, lcg);
+                              pElem->Insert<ElemRigidBody>(i + 1, X, nullptr, elem_nodes, m, J, lcg, g);
                          } break;
                          case ElementTypes::ELEM_RBE3: {
                               RowVector weight;
@@ -13590,7 +13825,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_LOAD_CONSISTENT:
                case Element::VEC_LOAD_LUMPED:
                case Element::VEC_LOAD_FLUID_STRUCT:
-               case Element::MAT_ACCEL_LOAD:
                case Element::MAT_THERMAL_COND:
                case Element::MAT_HEAT_CAPACITY:
                case Element::VEC_LOAD_THERMAL:
@@ -13956,7 +14190,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
      return octave_value(octave_int32(NAMESPACE::CONST));       \
      }
 
-DEFINE_GLOBAL_CONSTANT(Element, MAT_ACCEL_LOAD, "acceleration load matrix (e.g. for gravity loads)")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING, "complete damping matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_SYM, "upper triangular part of the damping matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_SYM_L, "lower triangular part of the damping matrix")
