@@ -2754,58 +2754,68 @@ public:
      }
 
      virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final {
-          switch (eMatType) {
-          case VEC_INERTIA_M1:
-               InertiaMoment1(oSolution.GetField(PostProcData::VEC_G_STRUCT_INERTIA_M1_RE, eltype), eMatType);
-               break;
+          switch (eMaterial) {
+          case Material::MAT_TYPE_SOLID:
+               switch (eMatType) {
+               case VEC_INERTIA_M1:
+                    InertiaMoment1(oSolution.GetField(PostProcData::VEC_G_STRUCT_INERTIA_M1_RE, eltype), eMatType);
+                    break;
 
-          case MAT_INERTIA_J:
-               InertiaMatrix(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_J_RE, eltype), eMatType);
-               break;
+               case MAT_INERTIA_J:
+                    InertiaMatrix(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_J_RE, eltype), eMatType);
+                    break;
 
-          case MAT_INERTIA_INV3:
-               InertiaInv3(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV3_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
-               break;
+               case MAT_INERTIA_INV3:
+                    InertiaInv3(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV3_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
 
-          case MAT_INERTIA_INV4:
-               InertiaInv4(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV4_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
-               break;
+               case MAT_INERTIA_INV4:
+                    InertiaInv4(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV4_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
 
-          case MAT_INERTIA_INV5:
-               InertiaInv5(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV5_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
-               break;
+               case MAT_INERTIA_INV5:
+                    InertiaInv5(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV5_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
 
-          case MAT_INERTIA_INV8:               
-               InertiaInv8(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV8_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
-               break;
+               case MAT_INERTIA_INV8:               
+                    InertiaInv8(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV8_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
 
-          case MAT_INERTIA_INV9:
-               InertiaInv9(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV9_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
-               break;
+               case MAT_INERTIA_INV9:
+                    InertiaInv9(oSolution.GetField(PostProcData::MAT_G_STRUCT_INERTIA_INV9_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
 
-          case VEC_STRESS_CAUCH:
-               StressNodalElem(oSolution.GetField(PostProcData::VEC_EL_STRUCT_STRESS_CAUCH_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
-               break;
+               case VEC_STRESS_CAUCH:
+                    StressNodalElem(oSolution.GetField(PostProcData::VEC_EL_STRUCT_STRESS_CAUCH_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
 
-          case VEC_STRAIN_TOTAL:
-               StrainNodalElem(oSolution.GetField(PostProcData::VEC_EL_STRUCT_STRAIN_TOTAL_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+               case VEC_STRAIN_TOTAL:
+                    StrainNodalElem(oSolution.GetField(PostProcData::VEC_EL_STRUCT_STRAIN_TOTAL_RE, eltype), eMatType, oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_RE, eltype));
+                    break;
+               default:
+                    break;
+               }     
                break;
+          case Material::MAT_TYPE_FLUID:
+               switch (eMatType) {
+               case VEC_PARTICLE_VELOCITY:
+                    ParticleVelocityNodalElem<double>(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE, eltype),
+                                                      eMatType,
+                                                      oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_RE, eltype),
+                                                      oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, eltype));
+                    break;
 
-          case VEC_PARTICLE_VELOCITY:
-               ParticleVelocityNodalElem<double>(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_RE, eltype),
-                                                 eMatType,
-                                                 oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_RE, eltype),
-                                                 oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, eltype));
+               case VEC_PARTICLE_VELOCITY_C:
+                    ParticleVelocityNodalElem<std::complex<double> >(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_C, eltype),
+                                                                     eMatType,
+                                                                     oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_C, eltype),
+                                                                     oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, eltype));
+                    break;
+               default:
+                    break;
+               }
                break;
-
-          case VEC_PARTICLE_VELOCITY_C:
-               ParticleVelocityNodalElem<std::complex<double> >(oSolution.GetField(PostProcData::VEC_EL_ACOUSTIC_PART_VEL_C, eltype),
-                                                                eMatType,
-                                                                oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_C, eltype),
-                                                                oSolution.GetField(PostProcData::SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, eltype));
-               break;
-               
-          default:
+          case Material::MAT_TYPE_THERMAL:
                break;
           }
      }
