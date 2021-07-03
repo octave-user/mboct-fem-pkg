@@ -87,7 +87,7 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
     endif
 
     nodes = zeros(0, 4);
-    elements = zeros(0, 15, "int32");
+    elements = zeros(0, 0, "int32");
     p_name = {};
     p_dim = [];
     p_id = [];
@@ -132,7 +132,7 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
 
           elem_type = zeros(num_elements, 1, "int32");
           elem_tags = zeros(num_elements, 2, "int32");
-          elements = zeros(num_elements, 10, "int32");
+          elements = zeros(num_elements, 20, "int32");
 
           for i=1:num_elements
             line = fgetl(fd);
@@ -180,7 +180,16 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
 	    endswitch
 	  endfor
 
+          idx_elem = find(use_elem_type);
+          idx_promote(idx_elem) = 1:numel(idx_elem);
+          
 	  eltype = eltype(use_elem_type);
+
+          for i=1:numel(eltype)
+            if (eltype(i).promote > 0)
+              eltype(i).promote = idx_promote(eltype(i).promote);
+            endif
+          endfor
 
           for i=1:numel(eltype)
             if (eltype(i).promote > 0)
