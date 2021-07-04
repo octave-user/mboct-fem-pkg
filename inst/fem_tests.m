@@ -4476,12 +4476,12 @@
 %!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
 %! tol = eps;
 %! assert(full(R), [m * load_case.g; cross(lcg, load_case.g) * m], tol * norm(m * load_case.g));
-%! assert(issymmetric(M));
-%! assert(isdefinite(M));
-%! assert(full(M), Mref);
-%! assert(full(MU + ML - diag(diag(ML))), Mref);
-%! assert(full(MU + ML - diag(diag(MU))), Mref);
-%! assert(full(ML - MU.'), zeros(6, 6));
+%! assert(issymmetric(M, tol));
+%! assert(isdefinite(M, tol));
+%! assert(full(M), Mref, tol * norm(Mref));
+%! assert(full(MU + ML - diag(diag(ML))), Mref, tol * norm(Mref));
+%! assert(full(MU + ML - diag(diag(MU))), Mref, tol * norm(Mref));
+%! assert(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
 
 %!test
 %! ## TEST 55
@@ -4632,8 +4632,9 @@
 %!                      load_case);
 %! Mref = [      m * eye(3), -m * skew(lcg);
 %!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
-%! assert(issymmetric(M));
-%! assert(isdefinite(M));
+%! tol = eps;
+%! assert(issymmetric(M, tol));
+%! assert(isdefinite(M, tol));
 %! assert(full(M), Mref, eps * norm(Mref));
 
 %!test
@@ -4745,7 +4746,7 @@
 %! Phiref = -m1 * gz * l2 * l1 / (E * Iy) * [-1/6, 1/3];
 %! tol = 1e-4;
 %! for i=1:2
-%! assert(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
+%!   assert(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
 %! endfor
 
 %!demo
