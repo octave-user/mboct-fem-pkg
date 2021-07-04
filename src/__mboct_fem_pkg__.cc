@@ -12609,7 +12609,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
           const StrainField oRefStrain(load_case, nodes);
 
-          Matrix g;
+          Matrix g(3, 0);
 
           const auto iterg = load_case.seek("g");
 
