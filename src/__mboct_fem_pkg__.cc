@@ -10751,7 +10751,8 @@ private:
           FuncData oFuncData(Xm, Xs);
 
           nlopt_set_min_objective(oFuncData.opt, &SurfToNodeConstr::Objective, &oFuncData);
-
+          nlopt_set_maxtime(oFuncData.opt, -1.);
+          
           if (SHAPE_FUNC::iGetNumEqualityConstr()) {
               if (nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX) < 0) {
                   throw std::runtime_error("nlopt_add_equality_constraint failed");
