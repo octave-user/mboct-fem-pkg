@@ -4690,7 +4690,7 @@
 %!                                     FEM_VEC_LOAD_CONSISTENT], ...
 %!                                    load_case);
 %!       [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%!       tol = 1e-3;
+%!       tol = 2e-3;
 %!       assert(R(:, 3).' * sol_stat.def(:, 1:3).', wz, tol * max(abs(wz)));
 %!     endfor
 %!   endfor
