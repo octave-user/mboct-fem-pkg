@@ -1854,7 +1854,7 @@ endfunction
 %!   [mesh] = fem_post_mesh_merge(data);
 %!   mesh.elements.sfncon6.slave = mesh.groups.tria6(find([[mesh.groups.tria6].id] == 2)).nodes(:);
 %!   mesh.elements.sfncon6.master = mesh.elements.tria6(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 101)).elements, :);
-%!   mesh.elements.sfncon6.maxdist = sqrt(eps) * max(abs([a,b,c]));
+%!   mesh.elements.sfncon6.maxdist = eps^0.4 * max(abs([a,b,c]));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 1)).nodes, :) = true;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
@@ -2240,7 +2240,7 @@ endfunction
 %!     grp_idx_master = mesh.groups.tria6(find([[mesh.groups.tria6].id] == (i - 1) * 100 + 2)).elements;
 %!     mesh.elements.sfncon6(i).slave = mesh.groups.tria6(grp_idx_slave).nodes(:);
 %!     mesh.elements.sfncon6(i).master = mesh.elements.tria6(grp_idx_master, :);
-%!     mesh.elements.sfncon6(i).maxdist = sqrt(eps) * max(abs([a,b,c]));
+%!     mesh.elements.sfncon6(i).maxdist = eps^0.4 * max(abs([a,b,c]));
 %!   endfor
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 1)).nodes, :) = true;
@@ -2424,7 +2424,7 @@ endfunction
 %!   [mesh] = fem_post_mesh_merge(data);
 %!   mesh.elements.sfncon6.slave = mesh.groups.tria6(find([[mesh.groups.tria6].id] == 2)).nodes(:);
 %!   mesh.elements.sfncon6.master = mesh.elements.tria6(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 101)).elements, :);
-%!   mesh.elements.sfncon6.maxdist = sqrt(eps) * max(abs([a,b,c]));
+%!   mesh.elements.sfncon6.maxdist = eps^0.4 * max(abs([a,b,c]));
 %!   mesh.elements.sfncon6.constraint = FEM_CT_SLIDING;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 1)).nodes, :) = true;
