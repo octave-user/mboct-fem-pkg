@@ -15,7 +15,7 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {Function File} @var{groups} = fem_pre_mesh_groups_create(@var{mesh}, @var{group_defs}, @var{tol_rel})
-## @deftypefnx {} @dots{} = fem_pre_mesh_groups_create(@dots{}, @var{tol_abs})
+## @deftypefnx {} @dots{} = fem_pre_mesh_groups_create(@dots{}, @var{tol_abs}, @var{elem_type})
 ## Create groups of elements or nodes which are located within geometrical limits defined by simple shapes like boxes or cylinders
 ##
 ## @var{mesh} @dots{} Finite element mesh data structure
@@ -51,6 +51,8 @@
 ## @var{tol_rel} @dots{} relative tolerance for node positions
 ##
 ## @var{tol_abs} @dots{} absolute tolerance for node positions
+##
+## @var{elem_type} @dots{} selected element type
 ##
 ## @end deftypefn
 
