@@ -47,39 +47,56 @@ Postprocessing
         fem_post_stress_import
 
 Assembly of global matrices
-	FEM_CT_FIXED
-	FEM_CT_SLIDING
-	FEM_DO_STRUCTURAL
-	FEM_DO_THERMAL
-	FEM_MAT_DAMPING
-	FEM_MAT_DAMPING_SYM
-	FEM_MAT_DAMPING_SYM_L
-	FEM_MAT_HEAT_CAPACITY
-	FEM_MAT_INERTIA_INV3
-	FEM_MAT_INERTIA_INV4
-	FEM_MAT_INERTIA_INV5
-	FEM_MAT_INERTIA_INV8
-	FEM_MAT_INERTIA_INV9
-	FEM_MAT_INERTIA_J
-	FEM_MAT_MASS
-	FEM_MAT_MASS_LUMPED
-	FEM_MAT_MASS_SYM
-	FEM_MAT_MASS_SYM_L
-	FEM_MAT_STIFFNESS
-	FEM_MAT_STIFFNESS_SYM
-	FEM_MAT_STIFFNESS_SYM_L
-	FEM_MAT_THERMAL_COND
-	FEM_SCA_STRESS_VMIS
-	FEM_SCA_TOT_MASS
-	FEM_VEC_INERTIA_M1
-	FEM_VEC_LOAD_CONSISTENT
-	FEM_VEC_LOAD_LUMPED
-	FEM_VEC_LOAD_THERMAL
-	FEM_VEC_STRAIN_TOTAL
-	FEM_VEC_STRESS_CAUCH
-	fem_ass_dof_map
-	fem_ass_matrix
-        
+        FEM_CT_FIXED
+        FEM_CT_SLIDING
+        FEM_DO_ACOUSTICS
+        FEM_DO_FLUID_STRUCT
+        FEM_DO_STRUCTURAL
+        FEM_DO_THERMAL
+        FEM_MAT_DAMPING
+        FEM_MAT_DAMPING_ACOUSTICS_IM
+        FEM_MAT_DAMPING_ACOUSTICS_RE
+        FEM_MAT_DAMPING_FLUID_STRUCT_IM
+        FEM_MAT_DAMPING_FLUID_STRUCT_RE
+        FEM_MAT_DAMPING_SYM
+        FEM_MAT_DAMPING_SYM_L
+        FEM_MAT_HEAT_CAPACITY
+        FEM_MAT_INERTIA_INV3
+        FEM_MAT_INERTIA_INV4
+        FEM_MAT_INERTIA_INV5
+        FEM_MAT_INERTIA_INV8
+        FEM_MAT_INERTIA_INV9
+        FEM_MAT_INERTIA_J
+        FEM_MAT_MASS
+        FEM_MAT_MASS_ACOUSTICS
+        FEM_MAT_MASS_FLUID_STRUCT
+        FEM_MAT_MASS_LUMPED
+        FEM_MAT_MASS_SYM
+        FEM_MAT_MASS_SYM_L
+        FEM_MAT_STIFFNESS
+        FEM_MAT_STIFFNESS_ACOUSTICS
+        FEM_MAT_STIFFNESS_FLUID_STRUCT
+        FEM_MAT_STIFFNESS_SYM
+        FEM_MAT_STIFFNESS_SYM_L
+        FEM_MAT_THERMAL_COND
+        FEM_SCA_ACOUSTIC_INTENSITY
+        FEM_SCA_ACOUSTIC_INTENSITY_C
+        FEM_SCA_STRESS_VMIS
+        FEM_SCA_TOT_MASS
+        FEM_VEC_INERTIA_M1
+        FEM_VEC_LOAD_ACOUSTICS
+        FEM_VEC_LOAD_CONSISTENT
+        FEM_VEC_LOAD_FLUID_STRUCT
+        FEM_VEC_LOAD_LUMPED
+        FEM_VEC_LOAD_THERMAL
+        FEM_VEC_PARTICLE_VELOCITY
+        FEM_VEC_PARTICLE_VELOCITY_C
+        FEM_VEC_STRAIN_TOTAL
+        FEM_VEC_STRESS_CAUCH
+        FEM_VEC_SURFACE_NORMAL_VECTOR
+        fem_ass_dof_map
+        fem_ass_matrix
+
 Solvers
         @fem_fact/eigs_func
         @fem_fact/eigs_post
@@ -111,14 +128,16 @@ Solvers
         @fem_fact_umfpack/eigs_sym
         @fem_fact_umfpack/fem_fact_umfpack
         @fem_fact_umfpack/mldivide
-	fem_sol_check_func
-	fem_sol_factor
-	fem_sol_select
+        fem_sol_check_func
         fem_sol_eigs
+        fem_sol_factor
         fem_sol_linsolve
         fem_sol_modal
+        fem_sol_select
         fem_sol_static
-	
+        fem_sol_transient_init
+        fem_sol_transient_step
+
 Substructuring
         fem_cms_constr_elim
         fem_cms_constr_mat
@@ -129,12 +148,12 @@ Substructuring
         fem_cms_red_guyan
 
 Elastohydrodynamic bearings
-	fem_ehd_pre_comp_mat_export
-	fem_ehd_pre_comp_mat_load_case
-	fem_ehd_pre_comp_mat_load_case2
-	fem_ehd_pre_comp_mat_plot
-	fem_ehd_pre_comp_mat_struct
-	fem_ehd_pre_comp_mat_unstruct
+        fem_ehd_pre_comp_mat_export
+        fem_ehd_pre_comp_mat_load_case
+        fem_ehd_pre_comp_mat_load_case2
+        fem_ehd_pre_comp_mat_plot
+        fem_ehd_pre_comp_mat_struct
+        fem_ehd_pre_comp_mat_unstruct
 
 Tests
         fem_tests
