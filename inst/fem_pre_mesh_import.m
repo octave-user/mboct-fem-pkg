@@ -30492,8 +30492,8 @@ endfunction
 %!   grp_idx_slider1 = find([mesh.groups.quad8.id] == 8);
 %!   grp_idx_slider2 = find([mesh.groups.quad8.id] == 9);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_slider1).nodes, [1,3]) = true;
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_slider2).nodes, [2,3]) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_slider1).nodes, 3) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_slider2).nodes, 2) = true;
 %!   load_case_dof.domain = FEM_DO_FLUID_STRUCT;
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.materials.iso20(mesh.groups.iso20(grp_idx_volume1).elements) = 1;
