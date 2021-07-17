@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,12 +14,20 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{X} = mldivide(@var{Afact}, @var{B})
-## Solve @var{Afact} * @var{X} = @var{B} by using the factor object @var{Afact}.
+## @deftypefn {} @var{Afact} = fem_fact_scale(@var{A}, @var{opts})
+## Create a factor object to solve @var{A} * @var{x} = @var{b}
 ## @end deftypefn
 
-function x = mldivide(fact, b)
-  narginchk(2, 2);
+function Afact = fem_fact_scale(A, opts)
+  if (~(nargin == 2 && ismatrix(A) && issquare(A) && isstruct(opts)))
+    print_usage();
+  endif
 
-  x = fem_sol_real_complex(fact.umfpackobj, @umfpack, b);
+  [AS, Afact.D1, Afact.D2] = fem_sol_matrix_scale(A, opts.scale_tol, opts.scale_max_iter);
+  
+  opts.pre_scaling = false; ## avoid infinite recursion
+  
+  Afact.ASfact = fem_sol_factor(AS, opts);
+
+  Afact = class(Afact, "fem_fact_scale");
 endfunction

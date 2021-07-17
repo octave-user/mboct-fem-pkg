@@ -11690,7 +11690,7 @@ endfunction
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
-%!   assert(sol.theta, theta_ref, eps^0.9 * max(abs(thetae)));
+%!   assert(sol.theta, theta_ref, eps^0.7 * max(abs(thetae)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -21456,6 +21456,8 @@ endfunction
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
+%!   opt_sol.pre_scaling = true;
+%!   opt_sol.verbose = int32(0);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
 %!   Reff = mat_ass.Ra(:, 1) + 1j * mat_ass.Ra(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -29134,7 +29136,8 @@ endfunction
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
-%!    mat_ass.Da, ...
+%!    mat_ass.Da_re, ...
+%!    mat_ass.Da_im, ...
 %!    mat_ass.Ra, ...
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
@@ -29142,12 +29145,13 @@ endfunction
 %!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
-%!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
 %!   Psi = linspace(0, 2 * pi, 37);
@@ -30542,7 +30546,8 @@ endfunction
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
-%!   opt_sol.verbose = int32(0);
+%!   opt_sol.verbose = int32(1);
+%!   opt_sol.pre_scaling = true;
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
 %!   Z = fem_sol_factor(Keff, opt_sol) \ Reff;

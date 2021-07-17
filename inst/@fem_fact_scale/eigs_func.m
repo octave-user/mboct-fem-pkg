@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,12 +14,15 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{X} = mldivide(@var{Afact}, @var{B})
-## Solve @var{Afact} * @var{X} = @var{B} by using the factor object @var{Afact}.
+## @deftypefn {Function File} @var{f} = eigs_func(@var{Kfact}, @var{M}, @var{x})
+## Callback function for fem_sol_eigs.
+## @seealso{fem_sol_eigs}
 ## @end deftypefn
 
-function x = mldivide(fact, b)
-  narginchk(2, 2);
+function f = eigs_func(Afact, M, x)
+  narginchk(3, 3);
 
-  x = fem_sol_real_complex(fact.umfpackobj, @umfpack, b);
+  B = diag(Afact.D1) * M * diag(Afact.D2);
+
+  f = eigs_func(Afact.ASfact, B, x);
 endfunction

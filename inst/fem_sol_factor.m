@@ -69,82 +69,106 @@ function Afact = fem_sol_factor(A, options)
     options.number_of_threads = int32(1);
   endif
 
-  blambda = full(any(diag(A) <= 0));
-  
-  options.solver = fem_sol_select(blambda, options.solver);
-  
-  switch (options.solver)
-    case {"pastix", "pastix_ref"}
-      if (~isfield(options, "matrix_type"))
-        options.matrix_type = PASTIX_API_SYM_YES;
-      endif
+  if (~isfield(options, "pre_scaling"))
+    options.pre_scaling = true;
+  endif
 
-      if (~isfield(options, "factorization"))
-        options.factorization = PASTIX_API_FACT_LDLT;
-      endif
+  if (~isfield(options, "scale_tol"))
+    options.scale_tol = sqrt(eps);
+  endif
 
-      if (~isfield(options, "verbose"))
-        options.verbose = PASTIX_API_VERBOSE_NOT;
-      endif
+  if (~isfield(options, "scale_max_iter"))
+    options.scale_max_iter = int32(100);
+  endif
 
-      if (~isfield(options, "bind_thread_mode"))
-        options.bind_thread_mode = PASTIX_API_BIND_NO;
-      endif
+  if (options.pre_scaling)
+    Afact = fem_fact_scale(A, options);
+  else
+    blambda = full(any(diag(A) <= 0));
 
-      switch (options.solver)
-	case "pastix"
-	  linear_solver = @fem_fact_pastix;
-	case "pastix_ref"
-	  linear_solver = @fem_fact_pastix_ref;
-      endswitch
-    case "pardiso"
-      if (~isfield(options, "symmetric"))
-        options.symmetric = true;
-      endif
+    options.solver = fem_sol_select(blambda, options.solver);
 
-      if (~isfield(options, "verbose"))
-        options.verbose = false;
-      endif
+    switch (options.solver)
+      case {"pastix", "pastix_ref"}
+        if (~isfield(options, "matrix_type"))
+          if (isfield(options, "symmetric"))
+            if (options.symmetric)
+              options.matrix_type = PASTIX_API_SYM_YES;
+            else
+              options.matrix_type = PASTIX_API_SYM_NO;
+            endif
+          else
+            options.matrix_type = PASTIX_API_SYM_YES;
+          endif
+        endif
 
-      if (~isfield(options, "scaling"))
-        options.scaling = blambda;
-      endif
+        if (~isfield(options, "factorization"))
+          options.factorization = PASTIX_API_FACT_LDLT;
+        endif
 
-      if (~isfield(options, "weighted_matching"))
-        options.weighted_matching = blambda;
-      endif
-      
-      linear_solver = @fem_fact_pardiso;
-    case "mumps"
-      if (blambda)
-        options.matrix_type = MUMPS_MAT_SYM;
-      else
-        options.matrix_type = MUMPS_MAT_DEF;
-      endif
+        if (~isfield(options, "verbose"))
+          options.verbose = PASTIX_API_VERBOSE_NOT;
+        endif
 
-      if (~isfield(options, "workspace_inc"))
-        options.workspace_inc = int32(50);
-      endif
+        if (~isfield(options, "bind_thread_mode"))
+          options.bind_thread_mode = PASTIX_API_BIND_NO;
+        endif
 
-      if (~isfield(options, "verbose"))
-        options.verbose = MUMPS_VER_ERR;
-      endif
-      
-      linear_solver = @fem_fact_mumps;
-    case "umfpack"
-      linear_solver = @fem_fact_umfpack;
-    case "chol"
-      ## If we are using Lagrange multipliers, there will be always zeros at the main diagonal
-      linear_solver = @fem_fact_chol;
-    case "lu"
-      linear_solver = @fem_fact_lu;
-    case "mldivide"
-      linear_solver = @fem_fact;
-    otherwise
-      error("unknown linear solver: \"%s\"", options.solver);
-  endswitch
+        switch (options.solver)
+          case "pastix"
+            linear_solver = @fem_fact_pastix;
+          case "pastix_ref"
+            linear_solver = @fem_fact_pastix_ref;
+        endswitch
+      case "pardiso"
+        if (~isfield(options, "symmetric"))
+          options.symmetric = true;
+        endif
 
-  Afact = linear_solver(A, options);
+        if (~isfield(options, "verbose"))
+          options.verbose = false;
+        endif
+
+        if (~isfield(options, "scaling"))
+          options.scaling = blambda;
+        endif
+
+        if (~isfield(options, "weighted_matching"))
+          options.weighted_matching = blambda;
+        endif
+
+        linear_solver = @fem_fact_pardiso;
+      case "mumps"
+        if (blambda)
+          options.matrix_type = MUMPS_MAT_SYM;
+        else
+          options.matrix_type = MUMPS_MAT_DEF;
+        endif
+
+        if (~isfield(options, "workspace_inc"))
+          options.workspace_inc = int32(50);
+        endif
+
+        if (~isfield(options, "verbose"))
+          options.verbose = MUMPS_VER_ERR;
+        endif
+
+        linear_solver = @fem_fact_mumps;
+      case "umfpack"
+        linear_solver = @fem_fact_umfpack;
+      case "chol"
+        ## If we are using Lagrange multipliers, there will be always zeros at the main diagonal
+        linear_solver = @fem_fact_chol;
+      case "lu"
+        linear_solver = @fem_fact_lu;
+      case "mldivide"
+        linear_solver = @fem_fact;
+      otherwise
+        error("unknown linear solver: \"%s\"", options.solver);
+    endswitch
+
+    Afact = linear_solver(A, options);
+  endif
 endfunction
 
 %!test
@@ -156,16 +180,19 @@ endfunction
 %!   options.refine_max_iter = 10;
 %!   options.number_of_threads = int32(4);
 %!   tol = sqrt(eps);
-%!   for N=2.^(1:8)
-%!     A = gallery("poisson", N);
-%!     A += A.';
-%!     b = rand(columns(A), M);
-%!     for i=1:numel(solvers)
-%!       options.solver = solvers{i};
-%!       Afact = fem_sol_factor(A, options);
-%!       x = Afact \ b;
-%!       f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
-%!       assert(f < tol);
+%!   for s=[false, true]
+%!     options.pre_scaling = s;
+%!     for N=2.^(1:8)
+%!       A = gallery("poisson", N);
+%!       A += A.';
+%!       b = rand(columns(A), M);
+%!       for i=1:numel(solvers)
+%!         options.solver = solvers{i};
+%!         Afact = fem_sol_factor(A, options);
+%!         x = Afact \ b;
+%!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
+%!         assert(f < tol);
+%!       endfor
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup

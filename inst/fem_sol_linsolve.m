@@ -52,6 +52,7 @@ endfunction
 %!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
 %!   tol = sqrt(eps);
 %!   max_f = 0;
+%!   for s=[false,true]
 %!   for N=[2,10,100,200,300]
 %!     for i=1:10
 %!       A = 2 * rand(N, N) - 1;
@@ -61,9 +62,11 @@ endfunction
 %!         options.solver = solvers{i};
 %!         options.refine_max_iter = int32(10);
 %!         options.number_of_threads = int32(1);
+%!         options.pre_scaling = s;
 %!         x = fem_sol_linsolve(A, b, options);
 %!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
 %!         max_f = max(f, max_f);
+%!         endfor
 %!       endfor
 %!     endfor
 %!   endfor
@@ -76,6 +79,7 @@ endfunction
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
+%!   for s=[false, true]
 %!   for N=[2,10,100,200,300]
 %!     K = gallery("Poisson", N);
 %!     R = rand(columns(K), 10);
@@ -84,11 +88,101 @@ endfunction
 %!     for i=1:numel(solvers)
 %!       options.solver = solvers{i};
 %!       options.refine_max_iter = int32(10);
+%!       options.pre_scaling = s;
 %!       U = fem_sol_linsolve(K, R, options);
 %!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
 %!       assert(f < tol);
 %!     endfor
 %!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   for s=[false, true]
+%!   for N=[2,10,100,200,300]
+%!     K = gallery("Poisson", N);
+%!     K = complex(K, rand() * K);
+%!     K += K';
+%!     R = complex(rand(columns(K), 10), rand(columns(K), 10));
+%!     solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
+%!     tol = sqrt(eps);
+%!     for i=1:numel(solvers)
+%!       options.solver = solvers{i};
+%!       options.refine_max_iter = int32(30);
+%!       options.verbose = int32(0);
+%!       options.pre_scaling = s;
+%!       options.symmetric = false;
+%!       options.factorization = PASTIX_API_FACT_LU;
+%!       U = fem_sol_linsolve(K, R, options);
+%!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
+%!       assert(f < tol);
+%!     endfor
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   for s=[false, true]
+%!   for N=[2,10,100,200,300]
+%!     K = gallery("Poisson", N);
+%!     R = complex(rand(columns(K), 10), rand(columns(K), 10));
+%!     solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
+%!     tol = sqrt(eps);
+%!     for i=1:numel(solvers)
+%!       options.solver = solvers{i};
+%!       options.refine_max_iter = int32(10);
+%!       options.pre_scaling = s;
+%!       U = fem_sol_linsolve(K, R, options);
+%!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
+%!       assert(f < tol);
+%!     endfor
+%!   endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   solvers = {"pastix", "mumps", "pardiso", "umfpack", "chol", "lu"};
+%!   tol = sqrt(eps);
+%!   max_f = 0;
+%!   for s=[false, true]
+%!   for N=[2,10,100,200,300]
+%!     for i=1:10
+%!       A = 2 * rand(N, N) - 1;
+%!       A += 2j * rand(N, N) - 1;
+%!       A += A';
+%!       b = complex(2 * rand(N, 20) - 1, 2 * rand(N, 20) - 1);
+%!       for i=1:numel(solvers)
+%!         options.solver = solvers{i};
+%!         options.refine_max_iter = int32(100);
+%!         options.number_of_threads = int32(1);
+%!         options.pre_scaling = s;
+%!         options.factorization = PASTIX_API_FACT_LU;
+%!         options.symmetric = false;
+%!         options.verbose = int32(0);
+%!         x = fem_sol_linsolve(A, b, options);
+%!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
+%!         assert(f < tol);
+%!         max_f = max(f, max_f);
+%!       endfor
+%!     endfor
+%!   endfor
+%!   endfor
+%!   assert(max_f < tol);
 %! unwind_protect_cleanup
 %!   rand("state", state);
 %! end_unwind_protect

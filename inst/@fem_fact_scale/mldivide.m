@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
 ## Solve @var{Afact} * @var{X} = @var{B} by using the factor object @var{Afact}.
 ## @end deftypefn
 
-function x = mldivide(fact, b)
+function X = mldivide(Afact, B)
   narginchk(2, 2);
 
-  x = fem_sol_real_complex(fact.umfpackobj, @umfpack, b);
+  X = diag(Afact.D2) * (Afact.ASfact \ (diag(Afact.D1) * B));
 endfunction

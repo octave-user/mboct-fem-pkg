@@ -262,6 +262,10 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   opt_sol.solver = cms_opt.solver;
   opt_sol.verbose = cms_opt.verbose;
   
+  if (mat_type_stiffness == FEM_MAT_STIFFNESS_SYM_L || mat_type_mass == FEM_MAT_MASS_SYM_L)
+    opt_sol.pre_scaling = false;
+  endif
+  
   Kfact = fem_sol_factor(mat_ass.K, opt_sol);
   
   for i=1:columns(R_itf)
@@ -319,7 +323,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
                   break;
                 endif
 
-                ## If PHI_d is not real, call eigs again with a new random starting vector
+                ## If PHI_d is not real, call eigs again with a new real starting vector
 
                 if (++iter_eig > max_iter_eig)
                   error("eigs returned complex eigenvectors");
@@ -364,7 +368,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
         endif
 
         if (any(err > cms_opt.tol))
-          warning("eigs failed to converge max(err)=%g", max(err));
+          warning("eigs algorithm %s failed to converge max(err)=%g", cms_opt.algorithm, max(err));
         endif
         
         mat_ass.Tred(:, 1:cms_opt.modes.number) = PHI_d(dof_map.idx_node, :);

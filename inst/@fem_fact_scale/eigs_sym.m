@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,12 +14,13 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{X} = mldivide(@var{Afact}, @var{B})
-## Solve @var{Afact} * @var{X} = @var{B} by using the factor object @var{Afact}.
+## @deftypefn {Function File} @var{bsym} = eigs_sym(@var{Afact})
+## Return true if the function eigs_func(@var{Afact}, @var{M}, @var{x}) defines a symmetric problem.
+## Currently only fem_fact_chol defines a symmetric problem.
+## @seealso{fem_sol_eigs}
 ## @end deftypefn
 
-function x = mldivide(fact, b)
-  narginchk(2, 2);
-
-  x = fem_sol_real_complex(fact.umfpackobj, @umfpack, b);
+function bsym = eigs_sym(Afact)
+  narginchk(1, 1);
+  bsym = eigs_sym(Afact.ASfact);
 endfunction

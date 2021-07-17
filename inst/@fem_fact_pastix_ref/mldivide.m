@@ -26,7 +26,7 @@ function X = mldivide(fact, B)
   R = B;
   
   do
-    X += pastix(fact.pasobj, R);
+    X += fem_sol_real_complex(fact.pasobj, @pastix, R);
     AX = fact.A * X;
     R = B - AX;
     f = max(norm(R, "cols") ./ norm(B + AX, "cols"));

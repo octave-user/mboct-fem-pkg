@@ -21,5 +21,5 @@
 function x = mldivide(fact, b)
   narginchk(2, 2);
 
-  x = mumps(fact.mumpsobj, b);
+  x = fem_sol_real_complex(fact.mumpsobj, @mumps, b);
 endfunction

@@ -97,7 +97,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
             break;
           endif
 
-          ## If U is not real, call eigs again with a new random starting vector
+          ## If U is not real, call eigs again with a new real starting vector
 
           if (++iter_eig > max_iter_eig)
             error("eigs returned complex eigenvectors");
