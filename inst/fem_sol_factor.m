@@ -70,7 +70,7 @@ function Afact = fem_sol_factor(A, options)
   endif
 
   if (~isfield(options, "pre_scaling"))
-    options.pre_scaling = true;
+    options.pre_scaling = false;
   endif
 
   if (~isfield(options, "scale_tol"))
