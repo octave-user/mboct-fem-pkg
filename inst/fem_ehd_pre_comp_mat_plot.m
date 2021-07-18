@@ -310,32 +310,32 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
         endif
       endfor
     endfor
-
-    if (isfield(comp_mat, "D"))
-      for j=1:columns(comp_mat.D)
-        w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
-        for l=1:rows(w)
-          w(l, :) = comp_mat.D((l - 1) * columns(w) + (1:columns(w)), j);
-        endfor
-        zrange = 1e6 * linspace(min(min(w)), max(max(w)), options.contour_levels);
-        hnd = figure("visible", "off");
-        colormap jet;
-        contourf(1e3 * comp_mat.bearing_surf.grid_x, 1e3 * comp_mat.bearing_surf.grid_z, 1e6 * w.', zrange);
-        xlabel("x [mm]");
-        ylabel("z [mm]");
-        grid on;
-        grid minor on;
-        colorbar();
-        title(sprintf("contribution of mode (%d) min(w)=%.2fum, max(w)=%.2fum, w [um]", ...
-                      j, ...
-                      1e6 * min(min(w)), ...
-                      1e6 * max(max(w))));
-        
-        if (isfield(options, "output_file"))
-          output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
-        endif
+  endif
+  
+  if (isfield(comp_mat, "D") && ~isempty(comp_mat.D))
+    for j=1:columns(comp_mat.D)
+      w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
+      for l=1:rows(w)
+        w(l, :) = comp_mat.D((l - 1) * columns(w) + (1:columns(w)), j);
       endfor
-    endif
+      zrange = 1e6 * linspace(min(min(w)), max(max(w)), options.contour_levels);
+      hnd = figure("visible", "off");
+      colormap jet;
+      contourf(1e3 * comp_mat.bearing_surf.grid_x, 1e3 * comp_mat.bearing_surf.grid_z, 1e6 * w.', zrange);
+      xlabel("x [mm]");
+      ylabel("z [mm]");
+      grid on;
+      grid minor on;
+      colorbar();
+      title(sprintf("contribution of mode (%d) min(w)=%.2fum, max(w)=%.2fum, w [um]", ...
+                    j, ...
+                    1e6 * min(min(w)), ...
+                    1e6 * max(max(w))));
+      
+      if (isfield(options, "output_file"))
+        output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
+      endif
+    endfor
   endif
 endfunction
 
@@ -389,10 +389,10 @@ endfunction
 
 function [t] = line_intersection(X0, n)
   A = [-n(:, 1).' * n(:, 1),  n(:, 1).' * n(:, 2);
-        n(:, 2).' * n(:, 1), -n(:, 2).' * n(:, 2)];
+       n(:, 2).' * n(:, 1), -n(:, 2).' * n(:, 2)];
 
   b = [ n(:, 1).' * (X0(:, 1) - X0(:, 2));
-       -n(:, 2).' * (X0(:, 1) - X0(:, 2))];
+        -n(:, 2).' * (X0(:, 1) - X0(:, 2))];
   
   t = A \ b;
 endfunction
