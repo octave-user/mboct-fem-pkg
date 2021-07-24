@@ -38240,7 +38240,7 @@ endfunction
 %!test
 %! ### TEST 213
 %! ## Code_Aster
-%! ## SDLS502 - Square plate “solid” simply supported
+%! ## SDLS502 - Square plate "solid" simply supported
 %! ## KUDAWOO Ayaovi-Dzifa
 %! ## 03/08/2011
 %! ## V2.03.502
@@ -38305,7 +38305,6 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   #spawn_wait(spawn("gmsh", {[filename, ".geo"]}));
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
