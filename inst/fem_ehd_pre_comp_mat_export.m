@@ -34,6 +34,10 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
     print_usage();
   endif
 
+  if (~(isstruct(comp_mat) && isscalar(comp_mat)))
+    error("argument comp_mat must be a scalar struct");
+  endif
+  
   if (nargin < 2)
     options = struct();
   endif
@@ -129,6 +133,17 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
     warning("error", "Octave:singular-matrix", "local");
     warning("error", "Octave:nearly-singular-matrix", "local");
 
+    fprintf(fd, "\nbearing center:\t");
+    fprintf(fd, "%.16g\t", comp_mat.dX);
+    fprintf(fd, "\n");
+
+    fprintf(fd, "\nbearing orientation:\t");
+    
+    for i=1:3
+      fprintf(fd, "%.16g\t", comp_mat.dR(i, :));
+      fprintf(fd, "\n\t\t\t");
+    endfor
+    
     switch (options.matrix_type)
       case "nodal"
         if (~isfield(comp_mat, "C"))
@@ -362,35 +377,43 @@ endfunction
 %!   opt_mesh.output_file = [output_file, "_msh"];
 %!   options.geo_tol = sqrt(eps);
 %!   options_mbdyn.mbdyn_command = "mbdyn";
+%!   empty_cell = cell(1, 2);
+%!   group_defs = struct("id", empty_cell, ...
+%!                       "name", empty_cell, ...
+%!                       "R", empty_cell, ...
+%!                       "X0", empty_cell, ...
+%!                       "Xi", empty_cell, ...
+%!                       "type", empty_cell, ...
+%!                       "geometry", empty_cell, ...
+%!                       "compliance_matrix", empty_cell);
+%!   group_defs(1).id = 1;
+%!   group_defs(1).name = "node_id_shell_support";
+%!   group_defs(1).R = eye(3);
+%!   group_defs(1).X0 = zeros(3, 1);
+%!   group_defs(1).Xi = zeros(3, 1);
+%!   group_defs(1).type = "cylinder";
+%!   group_defs(1).geometry.rmin = 0.5 * param.Do;
+%!   group_defs(1).geometry.rmax = 0.5 * param.Do;
+%!   group_defs(1).geometry.zmin = -0.5 * param.Wo;
+%!   group_defs(1).geometry.zmax = 0.5 * param.Wo;
+%!   group_defs(1).compliance_matrix.matrix_type = "none";
 
-%!   group_defs(end + 1).id = 1;
-%!   group_defs(end).name = "node_id_shell_support";
-%!   group_defs(end).R = eye(3);
-%!   group_defs(end).X0 = zeros(3, 1);
-%!   group_defs(end).Xi = zeros(3, 1);
-%!   group_defs(end).type = "cylinder";
-%!   group_defs(end).geometry.rmin = 0.5 * param.Do;
-%!   group_defs(end).geometry.rmax = 0.5 * param.Do;
-%!   group_defs(end).geometry.zmin = -0.5 * param.Wo;
-%!   group_defs(end).geometry.zmax = 0.5 * param.Wo;
-%!   group_defs(end).compliance_matrix.matrix_type = "none";
-
-%!   group_defs(end + 1).id = 2;
-%!   group_defs(end).name = "node_id_shell_bearing";
-%!   group_defs(end).R = eye(3);
-%!   group_defs(end).X0 = zeros(3, 1);
-%!   group_defs(end).Xi = zeros(3, 1);
-%!   group_defs(end).type = "cylinder";
-%!   group_defs(end).geometry.rmin = 0.5 * param.Di;
-%!   group_defs(end).geometry.rmax = 0.5 * param.Di;
-%!   group_defs(end).geometry.zmin = -0.5 * param.Wo;
-%!   group_defs(end).geometry.zmax = 0.5 * param.Wo;
-%!   group_defs(end).compliance_matrix.matrix_type = "nodal substruct";
-%!   group_defs(end).compliance_matrix.bearing_type = "shell";
-%!   group_defs(end).compliance_matrix.bearing_model = "EHD/FD";
-%!   group_defs(end).compliance_matrix.reference_pressure = param.pref;
-%!   group_defs(end).compliance_matrix.mesh_size = param.h;
-%!   group_defs(end).bearing = "elem_id_bearing";
+%!   group_defs(2).id = 2;
+%!   group_defs(2).name = "node_id_shell_bearing";
+%!   group_defs(2).R = eye(3);
+%!   group_defs(2).X0 = zeros(3, 1);
+%!   group_defs(2).Xi = zeros(3, 1);
+%!   group_defs(2).type = "cylinder";
+%!   group_defs(2).geometry.rmin = 0.5 * param.Di;
+%!   group_defs(2).geometry.rmax = 0.5 * param.Di;
+%!   group_defs(2).geometry.zmin = -0.5 * param.Wo;
+%!   group_defs(2).geometry.zmax = 0.5 * param.Wo;
+%!   group_defs(2).compliance_matrix.matrix_type = "nodal substruct";
+%!   group_defs(2).compliance_matrix.bearing_type = "shell";
+%!   group_defs(2).compliance_matrix.bearing_model = "EHD/FD";
+%!   group_defs(2).compliance_matrix.reference_pressure = param.pref;
+%!   group_defs(2).compliance_matrix.mesh_size = param.h;
+%!   group_defs(2).bearing = "elem_id_bearing";
 %!   fd = -1;
 %!   unwind_protect
 %!     fd = fopen([output_file, ".geo"], "w");
