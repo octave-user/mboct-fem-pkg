@@ -2,7 +2,7 @@
 
 name: CI
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
@@ -46,38 +46,40 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
-          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git && \
-          pushd mbdyn && \
+          wget https://public.gitlab.polimi.it/DAER/mbdyn/-/archive/develop/mbdyn-develop.tar.bz2 && \
+          tar -jxvf mbdyn-develop.tar.gz && \
+          pushd mbdyn-develop && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
           --enable-octave --enable-sparse_autodiff --enable-autodiff \
           --disable-Werror CXXFLAGS="-O3 -Wall -march=native" CPPFLAGS=-I/usr/include/suitesparse \
           --with-arpack --with-umfpack --without-metis && \
           make -j4 && sudo make install && popd
+
       - name: Install mboct-octave-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-octave-pkg.git && \
            pushd mboct-octave-pkg && \
            make install_local && popd
-           
+
       - name: Install mboct-numerical-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git && \
            pushd mboct-numerical-pkg && \
            make install_local && popd
-           
+
       - name: Install mboct-mbdyn-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
-           make install_local && popd           
-           
+           make install_local && popd
+
       - name: Create distribution
         run: make -C $GITHUB_WORKSPACE dist
-        
+
       - name: Install the package
         run: make -C $GITHUB_WORKSPACE install_local
-        
+
       - name: Run all tests
         run: |
              make -C $GITHUB_WORKSPACE check_installed

@@ -9313,6 +9313,7 @@ public:
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
                break;
           default:
                return;
@@ -9331,6 +9332,7 @@ public:
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
                return loads.rows() * loads.columns();
           default:
                return 0;
