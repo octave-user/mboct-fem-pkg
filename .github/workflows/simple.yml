@@ -47,7 +47,7 @@ jobs:
       - name: Install MBDyn
         run: |
           wget https://public.gitlab.polimi.it/DAER/mbdyn/-/archive/develop/mbdyn-develop.tar.bz2 && \
-          tar -jxvf mbdyn-develop.tar.gz && \
+          tar -jxvf mbdyn-develop.tar.bz2 && \
           pushd mbdyn-develop && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
