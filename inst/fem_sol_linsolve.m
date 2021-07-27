@@ -46,6 +46,7 @@ function U = fem_sol_linsolve(K, R, options)
 endfunction
 
 %!test
+%! ### TEST 1
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -76,6 +77,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST 2
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -100,6 +102,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST 3
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -117,7 +120,9 @@ endfunction
 %!       options.verbose = int32(0);
 %!       options.pre_scaling = s;
 %!       options.symmetric = false;
-%!       options.factorization = PASTIX_API_FACT_LU;
+%!       if (exist("PASTIX_API_FACT_LU", "file"))
+%!         options.factorization = PASTIX_API_FACT_LU;
+%!       endif
 %!       U = fem_sol_linsolve(K, R, options);
 %!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
 %!       assert(f < tol);
@@ -129,6 +134,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST 4
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -153,6 +159,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST 5
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -171,7 +178,9 @@ endfunction
 %!         options.refine_max_iter = int32(100);
 %!         options.number_of_threads = int32(1);
 %!         options.pre_scaling = s;
-%!         options.factorization = PASTIX_API_FACT_LU;
+%!         if (exist("PASTIX_API_FACT_LU", "file"))
+%!           options.factorization = PASTIX_API_FACT_LU;
+%!         endif
 %!         options.symmetric = false;
 %!         options.verbose = int32(0);
 %!         x = fem_sol_linsolve(A, b, options);
