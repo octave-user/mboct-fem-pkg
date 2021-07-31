@@ -51,27 +51,25 @@ endfunction
 %! unwind_protect
 %!   rand("seed", 0);
 %!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
-%!   tol = sqrt(eps);
-%!   max_f = 0;
 %!   for s=[false,true]
-%!   for N=[2,10,100,200,300]
-%!     for i=1:10
-%!       A = 2 * rand(N, N) - 1;
-%!       A *= A.';
-%!       b = 2 * rand(N, 20) - 1;
-%!       for i=1:numel(solvers)
-%!         options.solver = solvers{i};
-%!         options.refine_max_iter = int32(10);
-%!         options.number_of_threads = int32(1);
-%!         options.pre_scaling = s;
-%!         x = fem_sol_linsolve(A, b, options);
-%!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
-%!         max_f = max(f, max_f);
+%!     for N=[2,10,20,50,100]
+%!       for i=1:10
+%!         A = gallery("Poisson", N);
+%!         b = 2 * rand(rows(A), 3) - 1;
+%!         for i=1:numel(solvers)
+%!           options.solver = solvers{i};
+%!           options.refine_max_iter = int32(10);
+%!           options.number_of_threads = int32(1);
+%!           options.pre_scaling = s;
+%!           options.epsilon_refinement = eps^0.9;
+%!           options.verbose = true;
+%!           x = fem_sol_linsolve(A, b, options);
+%!           f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
+%!           assert(f <= options.epsilon_refinement);
 %!         endfor
 %!       endfor
 %!     endfor
 %!   endfor
-%!   assert(max_f < tol);
 %! unwind_protect_cleanup
 %!   rand("state", state);
 %! end_unwind_protect
@@ -186,6 +184,65 @@ endfunction
 %!   endfor
 %!   endfor
 %!   assert(max_f < tol);
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST 6
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   func={"mldivide", ...
+%!         "lu" , ...
+%!         "chol", ...
+%!         "umfpack",  ...
+%!         "pastix", ...
+%!         "mumps", ...
+%!         "pardiso"};
+%!   classes={@fem_fact, ...
+%!            @fem_fact_lu, ...
+%!            @fem_fact_chol, ...
+%!            @fem_fact_umfpack, ...
+%!            @fem_fact_pastix, ...
+%!            @fem_fact_mumps, ...
+%!            @fem_fact_pardiso};
+%!   warnfunc = false(size(func));
+%!   options.refine_max_iter = int32(100);
+%!   options.verbose = int32(0);
+%!   for k=1:2
+%!     for j=1:numel(func)
+%!       for i=1:100
+%!         switch (k)
+%!           case 1
+%!             A = rand(10,10);
+%!             M = rand(10, 10);
+%!           case 2
+%!             A = sprand(100,100,0.05) + 5*diag(rand(100,1));
+%!             M = sprand(100,100,0.05) + 5*diag(rand(100,1));
+%!         endswitch
+%!         A *= A.';
+%!         M *= M.';
+%!         Q = symrcm(A);
+%!         A = A(Q, Q);
+%!         M = M(Q, Q);
+%!         b = rand(columns(A), 5);
+%!         if (~fem_sol_check_func(func{j}))
+%!           if (~warnfunc(j))
+%!             warning("function \"%s\" not found", func{j});
+%!             warnfunc(j) = true;
+%!           endif
+%!           continue;
+%!         endif
+%!         Afact = feval(classes{j}, A, options);
+%!         x1 = A \ b;
+%!         x2 = Afact \ b;
+%!         tol = eps^0.4;
+%!         assert(x2, x1, tol * norm(x1));
+%!         assert(A * x2, b, tol * norm(A*x2 + b));
+%!       endfor
+%!     endfor
+%!   endfor
 %! unwind_protect_cleanup
 %!   rand("state", state);
 %! end_unwind_protect

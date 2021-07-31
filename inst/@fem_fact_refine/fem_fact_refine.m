@@ -48,7 +48,15 @@ function fact = fem_fact_refine(A, opts)
 
   opts.refine_max_iter = int32(0);
 
-  if (opts.symmetric && ~issymmetric(A))
+  istri = false;
+
+  if (opts.symmetric)
+    [r, c] = find(A);
+
+    istri = all(r >= c) || all(r <= c);
+  endif
+  
+  if (istri)
     fact.A = fem_mat_sym(A);
   else
     fact.A = A;

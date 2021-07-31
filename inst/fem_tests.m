@@ -2080,53 +2080,6 @@
 
 %!test
 %! ## TEST 23
-%! state = rand("state");
-%! unwind_protect
-%!   rand("seed", 0);
-%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps", "pardiso"};
-%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_mumps, @fem_fact_pardiso};
-%!   warnfunc = false(size(func));
-%!   options.refine_max_iter = int32(100);
-%!   options.verbose = int32(0);
-%!   for k=1:2
-%!     for j=1:numel(func)
-%!       for i=1:100
-%!         switch (k)
-%!           case 1
-%!             A = rand(10,10);
-%!             M = rand(10, 10);
-%!           case 2
-%!             A = sprand(100,100,0.05) + 5*diag(rand(100,1));
-%!             M = sprand(100,100,0.05) + 5*diag(rand(100,1));
-%!         endswitch
-%!         A *= A.';
-%!         M *= M.';
-%!         Q = symrcm(A);
-%!         A = A(Q, Q);
-%!         M = M(Q, Q);
-%!         b = rand(columns(A), 5);
-%!         if (~fem_sol_check_func(func{j}))
-%!           if (~warnfunc(j))
-%!             warning("function \"%s\" not found", func{j});
-%!             warnfunc(j) = true;
-%!           endif
-%!           continue;
-%!         endif
-%!         Afact = feval(classes{j}, A, options);
-%!         x1 = A \ b;
-%!         x2 = Afact \ b;
-%!         tol = eps^0.4;
-%!         assert(x2, x1, tol * norm(x1));
-%!         assert(A * x2, b, tol * norm(A*x2 + b));
-%!       endfor
-%!     endfor
-%!   endfor
-%! unwind_protect_cleanup
-%!   rand("state", state);
-%! end_unwind_protect
-
-%!test
-%! ## TEST 24
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -2179,7 +2132,7 @@
 %! assert(all(abs(sol_stat.stress.tau.iso8(:, :, 2:end) / tauxx_a) < sqrt(eps)));
 
 %!test
-%! ## TEST 25
+%! ## TEST 24
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -2233,7 +2186,7 @@
 %! assert(all(abs(sol_stat.stress.tau.iso8(:, :, [1,3:end]) / tauyy_a) < sqrt(eps)));
 
 %!test
-%! ## TEST 26
+%! ## TEST 25
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -2288,7 +2241,7 @@
 
 
 %!test
-%! ## TEST 27
+%! ## TEST 26
 %! close all;
 %! a = 20e-3;
 %! b = 20e-3;
@@ -2332,7 +2285,7 @@
 
 
 %!test
-%! ## TEST 28
+%! ## TEST 27
 %! close all;
 %! a = 20e-3;
 %! b = 20e-3;
@@ -2375,7 +2328,7 @@
 %! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauyz_a - 1) < sqrt(eps) * abs(tauyz_a)));
 
 %!test
-%! ## TEST 29
+%! ## TEST 28
 %! close all;
 %! a = 20e-3;
 %! b = 20e-3;
@@ -2419,7 +2372,7 @@
 
 
 %!test
-%! ## TEST 30
+%! ## TEST 29
 %! close all;
 %! a = 40e-3;
 %! b = 10e-3;
@@ -2495,7 +2448,7 @@
 
 %!test
 %! close all;
-%! ## TEST 31
+%! ## TEST 30
 %! ###############################################
 %! ## Stress and strain of 10 node tetrahedrons
 %! ###############################################
@@ -2605,7 +2558,7 @@
 %! endfor
 
 %!test
-%! ## TEST 32
+%! ## TEST 31
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -2681,7 +2634,7 @@
 %! assert(tau(1, 7, :)(:), tau_a_0(:, 4), tol);
 
 %!test
-%! ## TEST 33
+%! ## TEST 32
 %! close all;
 %! scale_stat = 1;
 
@@ -2766,7 +2719,7 @@
 
 %!test
 %! ##########################################################################################
-%! ## TEST 34: Test case for sfncon4 using joints
+%! ## TEST 33: Test case for sfncon4 using joints
 %! ##########################################################################################
 %! close all;
 %! Fx = 1250;
@@ -2961,7 +2914,7 @@
 %! endif
 
 %!test
-%! ## TEST 35
+%! ## TEST 34
 %! ## Cantilever beam with rectangular cross section and lateral load
 %! ## W.Beitz, K.-H.Grothe, 1997, Dubbel, section 2.4.6, page C17, figure 23
 %! close all;
@@ -3010,7 +2963,7 @@
 %! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
 
 %!test
-%! ## TEST 36
+%! ## TEST 35
 %! state = rand("state");
 %! unwind_protect
 %! rand("seed", 0);
@@ -3078,7 +3031,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 37
+%! ## TEST 36
 %! for L=2000e-3:1000e-3:50000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3134,7 +3087,7 @@
 %! endfor
 
 %!test
-%! ## TEST 38
+%! ## TEST 37
 %! for L = 8000e-3:1000e-3:50000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3191,7 +3144,7 @@
 %! endfor
 
 %!test
-%! ## TEST 39
+%! ## TEST 38
 %! for L = 200e-3:1000e-3:5000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3251,7 +3204,7 @@
 %! endfor
 
 %!test
-%! ## TEST 40
+%! ## TEST 39
 %! for L = 40e-3:1000e-3:5000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3311,7 +3264,7 @@
 %! endfor
 
 %!test
-%! ## TEST 41
+%! ## TEST 40
 %! ## Robert Gasch, Klaus Knothe 1989
 %! ## Strukturdynamik Band 2
 %! ## Kontinua und ihre Diskretisierung
@@ -3395,7 +3348,7 @@
 %! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!test
-%! ## TEST 42
+%! ## TEST 41
 %! ## Robert Gasch, Klaus Knothe 1989
 %! ## Strukturdynamik Band 2
 %! ## Kontinua und ihre Diskretisierung
@@ -3480,7 +3433,7 @@
 %! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!test
-%! ## TEST 43
+%! ## TEST 42
 %! close all;
 %! scale_stat = 1;
 %! scale_eig = 250e-3;
@@ -3593,7 +3546,7 @@
 %! endif
 
 %!test
-%! ## TEST 44
+%! ## TEST 43
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3685,7 +3638,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 45
+%! ## TEST 44
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3761,7 +3714,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 46
+%! ## TEST 45
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3835,7 +3788,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 47
+%! ## TEST 46
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3909,7 +3862,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 48
+%! ## TEST 47
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3983,7 +3936,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 49
+%! ## TEST 48
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4067,7 +4020,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 50
+%! ## TEST 49
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4154,7 +4107,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 51
+%! ## TEST 50
 %! close all;
 %! elem_types = {"iso8", "iso20"};
 %! for k=1:numel(elem_types)
@@ -4259,7 +4212,7 @@
 %! endfor
 
 %!test
-%! ## TEST 52
+%! ## TEST 51
 %! ## The 1-D Heat Equation
 %! ## 18.303 Linear Partial Differential Equations
 %! ## Matthew J. Hancock
@@ -4401,7 +4354,7 @@
 %! endfor
 
 %!test
-%! ## TEST 53
+%! ## TEST 52
 %! m = 1.5;
 %! J = diag([1e-3, 2e-3, 3e-3]);
 %! e1 = [1; 0.5; 0.3];
@@ -4441,7 +4394,7 @@
 %! assert(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
 
 %!test
-%! ## TEST 54
+%! ## TEST 53
 %! ## Robert Gasch, Klaus Knothe
 %! ## Strukturdynamik Band 1
 %! ## Diskrete Systeme
@@ -4540,7 +4493,7 @@
 %! assert(lambda, lambdaref, tol * max(lambdaref));
 
 %!test
-%! ## TEST 55
+%! ## TEST 54
 %! a = 0.2;
 %! b = 0.4;
 %! c = 0.3;
@@ -4595,7 +4548,7 @@
 %! assert(full(M), Mref, eps * norm(Mref));
 
 %!test
-%! ## TEST 56
+%! ## TEST 55
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4656,7 +4609,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 57
+%! ## TEST 56
 %! l1 = 1000;
 %! l2 = 800;
 %! d = 10;

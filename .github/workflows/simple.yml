@@ -82,5 +82,7 @@ jobs:
 
       - name: Run all tests
         run: |
-             make -C $GITHUB_WORKSPACE check_installed
+             make -C $GITHUB_WORKSPACE check_installed >& fntests.out
+             awk -F ' ' 'BEGIN{ failed=9999; } /^  FAIL/{ failed = $2; } END { if (failed != 0) exit 1; }' fntests.out
              cat ${GITHUB_WORKSPACE}/fntests.log
+             tail -n 12 fntests.out
