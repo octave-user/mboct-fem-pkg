@@ -120,9 +120,6 @@ endfunction
 %!       options.verbose = int32(0);
 %!       options.pre_scaling = s;
 %!       options.symmetric = false;
-%!       if (fem_sol_check_func("pastix"))
-%!         options.factorization = PASTIX_API_FACT_LU;
-%!       endif
 %!       U = fem_sol_linsolve(K, R, options);
 %!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
 %!       assert(f < tol);
@@ -178,9 +175,6 @@ endfunction
 %!         options.refine_max_iter = int32(100);
 %!         options.number_of_threads = int32(1);
 %!         options.pre_scaling = s;
-%!         if (fem_sol_check_func("pastix"))
-%!           options.factorization = PASTIX_API_FACT_LU;
-%!         endif
 %!         options.symmetric = false;
 %!         options.verbose = int32(0);
 %!         x = fem_sol_linsolve(A, b, options);

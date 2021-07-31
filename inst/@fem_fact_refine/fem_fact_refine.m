@@ -15,38 +15,46 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {} @var{fact} = fem_fact_pastix(@var{A}, @var{opts})
-## Create a factor object which uses PaStiX solve @var{A} * x = b via @var{x} = @var{Afact} \ @var{b}
+## Create a factor object with iterative refinement
 ## @seealso{pastix}
 ## @end deftypefn
 
-function fact = fem_fact_pastix_ref(A, opts)
+function fact = fem_fact_refine(A, opts)
   if (~(nargin == 2 && ismatrix(A) && issquare(A) && isstruct(opts)))
     print_usage();
   endif
 
   if (~isfield(opts, "refine_max_iter"))
-    opts.refine_max_iter = int32(0);
+    opts.refine_max_iter = int32(3);
   endif
 
-  if (~isfield(opts, "epsilon_refine"))
-    opts.epsilon_refine = eps^0.8;
+  if (~isfield(opts, "epsilon_refinement"))
+    opts.epsilon_refinement = -1;
+  endif
+
+  if (opts.epsilon_refinement <= 0)
+    opts.epsilon_refinement = eps^0.8;
   endif
 
   if (~isfield(opts, "symmetric"))
-    opts.symmetric = false;
+    opts.symmetric = true;
   endif
   
-  fact.opts = opts;
+  if (~isfield(opts, "verbose"))
+    opts.verbose = false;
+  endif
+
+  fact.opts = opts; ## Do not overwrite fact.opts
 
   opts.refine_max_iter = int32(0);
 
-  if (opts.symmetric)
+  if (opts.symmetric && ~issymmetric(A))
     fact.A = fem_mat_sym(A);
   else
     fact.A = A;
   endif
   
-  fact.pasobj = pastix(A, opts);
+  fact.Afact = fem_sol_factor(A, opts);
 
-  fact = class(fact, "fem_fact_pastix_ref");
+  fact = class(fact, "fem_fact_refine");
 endfunction

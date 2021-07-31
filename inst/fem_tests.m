@@ -2084,7 +2084,7 @@
 %! unwind_protect
 %!   rand("seed", 0);
 %!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps", "pardiso"};
-%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_pastix_ref, @fem_fact_mumps, @fem_fact_pardiso};
+%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_mumps, @fem_fact_pardiso};
 %!   warnfunc = false(size(func));
 %!   options.refine_max_iter = int32(100);
 %!   options.verbose = int32(0);
@@ -3593,7 +3593,7 @@
 %! endif
 
 %!test
-%! ## TEST44
+%! ## TEST 44
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3685,7 +3685,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST45
+%! ## TEST 45
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3761,7 +3761,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST46
+%! ## TEST 46
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4155,49 +4155,6 @@
 
 %!test
 %! ## TEST 51
-%! if (~fem_sol_check_func("pastix"))
-%!   return;
-%! endif
-%! s = rand("state");
-%! unwind_protect
-%!   rand("seed", 0);
-%!   N = 1000;
-%!   for i=1:100
-%!     for j=1:3
-%!       A = sprand(N, N, 0.01) + diag(rand(N, 1));
-%!       A += A.';
-%!       opts.factorization = PASTIX_API_FACT_LDLT;
-%!       opts.refine_max_iter = int32(100);
-%!       opts.matrix_type = PASTIX_API_SYM_YES;
-%!       opts.epsilon_refine = eps^0.7;
-%!       opts.verbose = PASTIX_API_VERBOSE_NOT;
-%!       switch (j)
-%!         case 1
-%!           Asym = A;
-%!           opts.symmetric = false;
-%!         case {2, 3}
-%!           [r, c, d] = find(A);
-%!           switch (j)
-%!             case 2
-%!               idx = find(r >= c);
-%!             case 3
-%!               idx = find(r <= c);
-%!           endswitch
-%!           Asym = sparse(r(idx), c(idx), d(idx), rows(A), columns(A));
-%!           opts.symmetric = true;
-%!       endswitch
-%!       Afact = fem_fact_pastix_ref(Asym, opts);
-%!       B = rand(rows(A), 30);
-%!       X = Afact \ B;
-%!       assert(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) < opts.epsilon_refine);
-%!     endfor
-%!   endfor
-%! unwind_protect_cleanup
-%!   rand("state", s);
-%! end_unwind_protect
-
-%!test
-%! ## TEST 52
 %! close all;
 %! elem_types = {"iso8", "iso20"};
 %! for k=1:numel(elem_types)
@@ -4302,7 +4259,7 @@
 %! endfor
 
 %!test
-%! ## TEST 53
+%! ## TEST 52
 %! ## The 1-D Heat Equation
 %! ## 18.303 Linear Partial Differential Equations
 %! ## Matthew J. Hancock
@@ -4444,7 +4401,7 @@
 %! endfor
 
 %!test
-%! ## TEST 54
+%! ## TEST 53
 %! m = 1.5;
 %! J = diag([1e-3, 2e-3, 3e-3]);
 %! e1 = [1; 0.5; 0.3];
@@ -4484,7 +4441,7 @@
 %! assert(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
 
 %!test
-%! ## TEST 55
+%! ## TEST 54
 %! ## Robert Gasch, Klaus Knothe
 %! ## Strukturdynamik Band 1
 %! ## Diskrete Systeme
@@ -4583,7 +4540,7 @@
 %! assert(lambda, lambdaref, tol * max(lambdaref));
 
 %!test
-%! ## TEST 56
+%! ## TEST 55
 %! a = 0.2;
 %! b = 0.4;
 %! c = 0.3;
@@ -4638,7 +4595,7 @@
 %! assert(full(M), Mref, eps * norm(Mref));
 
 %!test
-%! ## TEST 57
+%! ## TEST 56
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4699,7 +4656,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 58
+%! ## TEST 57
 %! l1 = 1000;
 %! l2 = 800;
 %! d = 10;

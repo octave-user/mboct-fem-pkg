@@ -24,9 +24,11 @@ function X = mldivide(fact, B)
   i = int32(0);  
   X = zeros(columns(fact.A), columns(B));
   R = B;
+
+  fconverged = false;
   
   do
-    X += fem_sol_real_complex(fact.pasobj, @pastix, R);
+    X += fact.Afact \ R;
     AX = fact.A * X;
     R = B - AX;
     f = max(norm(R, "cols") ./ norm(B + AX, "cols"));
@@ -35,8 +37,13 @@ function X = mldivide(fact, B)
       fprintf(stderr, "iteration %d: %.4e\n", i, f);
     endif
     
-    if (f < fact.opts.epsilon_refine)
+    if (f <= fact.opts.epsilon_refinement)
+      fconverged = true;
       break;
     endif
   until (++i > fact.opts.refine_max_iter)
+
+  if (~fconverged)
+    warning("iterative refinement did not converge after %d iterations f=%.3e tol=%.3e", i, f, fact.opts.epsilon_refinement);
+  endif
 endfunction
