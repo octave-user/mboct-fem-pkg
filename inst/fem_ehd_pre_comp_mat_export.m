@@ -55,6 +55,10 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
       endif
   endswitch
 
+  if (~isfield(options, "modal_threshold"))
+    options.modal_threshold = sqrt(eps);
+  endif
+  
   owns_fd = false;
   fd = -1;
   
@@ -186,13 +190,13 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         C = comp_mat.C(1:end - numel(z), 1:end - numel(z));
 
-        D = comp_mat.D(1:end - numel(z), :);
-        E = comp_mat.E(:, 1:end - numel(z));
+        [mode_index, D, E] = extract_modes(D, E, z, options.modal_threshold);
 
         print_matrix(fd, C, "compliance matrix substruct");
 
         fprintf(fd, "\n\n## cond(C)=%e\n", cond(C));
 
+        print_index_vector(fd, mode_index, "modal subset vector");
         print_matrix(fd, D, "substruct contrib matrix");
         print_matrix(fd, E, "substruct residual matrix");
       case {"nodal substruct total", "modal substruct total"}
@@ -212,9 +216,9 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
           error("invalid size for comp_mat.E");
         endif
 
-        D = comp_mat.D(1:end - numel(z), :);
-        E = comp_mat.E(:, 1:end - numel(z));
-	
+        [mode_index, D, E] = extract_modes(D, E, z, options.modal_threshold);
+        
+        print_index_vector(fd, mode_index, "modal subset vector");
         print_matrix(fd, D, "substruct total contrib matrix");
         print_matrix(fd, E, "substruct total residual matrix");
       case "modal"
@@ -264,6 +268,17 @@ function print_matrix(fd, C, C_name)
     fprintf(fd, "%.16e\t", C(i, :));
     fprintf(fd, "\n");
   endfor
+endfunction
+
+function print_index_vector(fd, mode_index, name)
+  fprintf(fd, "\n%s:\t%d\n", name, numel(mode_index));
+  fprintf(fd, "%d\n", mode_index);
+endfunction
+
+function [mode_index, D, E] = extract_modes(D, E, z, threshold)
+  mode_index = find((norm(D, "cols")(:) / norm(D) < threshold) & (norm(E, "rows") / norm(E) < threshold));
+  D = comp_mat.D(1:end - numel(z), mode_index);
+  E = comp_mat.E(mode_index, 1:end - numel(z));
 endfunction
 
 %!demo
