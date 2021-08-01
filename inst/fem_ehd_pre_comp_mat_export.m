@@ -190,13 +190,14 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
 
         C = comp_mat.C(1:end - numel(z), 1:end - numel(z));
 
-        [mode_index, D, E] = extract_modes(D, E, z, options.modal_threshold);
+        [mode_index, D, E] = extract_modes(comp_mat.D, comp_mat.E, z, options.modal_threshold);
 
+        print_index_vector(fd, mode_index, "modal subset vector");
+        
         print_matrix(fd, C, "compliance matrix substruct");
 
         fprintf(fd, "\n\n## cond(C)=%e\n", cond(C));
 
-        print_index_vector(fd, mode_index, "modal subset vector");
         print_matrix(fd, D, "substruct contrib matrix");
         print_matrix(fd, E, "substruct residual matrix");
       case {"nodal substruct total", "modal substruct total"}
@@ -216,7 +217,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
           error("invalid size for comp_mat.E");
         endif
 
-        [mode_index, D, E] = extract_modes(D, E, z, options.modal_threshold);
+        [mode_index, D, E] = extract_modes(comp_mat.D, comp_mat.E, z, options.modal_threshold);
         
         print_index_vector(fd, mode_index, "modal subset vector");
         print_matrix(fd, D, "substruct total contrib matrix");
@@ -276,9 +277,9 @@ function print_index_vector(fd, mode_index, name)
 endfunction
 
 function [mode_index, D, E] = extract_modes(D, E, z, threshold)
-  mode_index = find((norm(D, "cols")(:) / norm(D) < threshold) & (norm(E, "rows") / norm(E) < threshold));
-  D = comp_mat.D(1:end - numel(z), mode_index);
-  E = comp_mat.E(mode_index, 1:end - numel(z));
+  mode_index = find((norm(D, "cols")(:) / norm(D) >= threshold) | (norm(E, "rows") / norm(E) >= threshold));
+  D = D(1:end - numel(z), mode_index);
+  E = E(mode_index, 1:end - numel(z));
 endfunction
 
 %!demo
