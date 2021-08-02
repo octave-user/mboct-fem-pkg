@@ -38376,12 +38376,13 @@ endfunction
 %!     d1 = 800e-3 / unit_meters;
 %!     d2 = 120e-3 / unit_meters;
 %!     d3 = 60e-3 / unit_meters;
-%!     t = 30e-3 / unit_meters;
+%!     t = 75e-3 / unit_meters;
+%!     tref = 3e-3 / unit_meters;
 %!     r = 500e-3 / unit_meters;
-%!     h1 = 30e-3 / unit_meters;
+%!     h1 = t;
 %!     h2 = 75e-3 / unit_meters;
-%!     E1 = 210000e6 / unit_pascal;
-%!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
+%!     E1 = (tref / t)^3 * 210000e6 / unit_pascal;
+%!     rho1 = (tref / t) * 7800 / (unit_kilograms / unit_meters^3);
 %!     nu1 = 0.3;
 %!     alpha1 = 0.1826 / (unit_second^-1);
 %!     beta1 = 5.0125e-6 / unit_second;
@@ -38412,14 +38413,9 @@ endfunction
 %!     fputs(fd, "Physical Surface(\"clamp\", 3) = {14, 15};\n");
 %!     fputs(fd, "Physical Point(\"load\", 1) = {9};\n");
 %!     fputs(fd, "ReverseMesh Surface{7,11,12,13,14,15};\n");
-%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
-%!     fputs(fd, "Field[1] = Cylinder;\n");
-%!     fputs(fd, "Field[1].Radius = 0.51 * d1;\n");
-%!     fputs(fd, "Field[1].VIn = h1;\n");
-%!     fputs(fd, "Field[1].VOut = h2;\n");
-%!     fputs(fd, "Background Field = 1;\n");
-%!     fputs(fd, "Field[1].ZAxis = 1 * t;\n");
-%!     fputs(fd, "Field[1].ZCenter = -1 * t;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{7,8}; } } = h2;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{9,10}; } } = h1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -38477,32 +38473,42 @@ endfunction
 %!   f = (1:2:200) / (unit_second^-1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   P = zeros(1, numel(f));
-%!   for i=1:numel(f)
-%!     omega = 2 * pi * f(i);
-%!     k2 = omega / c2;
-%!     z = rho2 * c2 * k2 * r .* exp(1j * acot(k2 * r)) ./ sqrt(1 + (k2 * r).^2); ## according Jont Allen equation 5.11.9
-%!     mesh.elements.acoustic_impedance.tria6.z = repmat(z, size(mesh.elements.acoustic_impedance.tria6.nodes));
+%!   ITER = repmat(intmax(), 1, 2);
+%!   MAXITER = 50;
+%!   TOL = sqrt(eps);
+%!   RESTART = [];
 %!     [mat_ass.Kfs, ...
 %!      mat_ass.Mfs, ...
-%!      mat_ass.Dfs_re, ...
-%!      mat_ass.Dfs_im, ...
 %!      mat_ass.Rfs, ...
 %!      mat_ass.mat_info, ...
 %!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                          dof_map, ...
 %!                                          [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
 %!                                           FEM_MAT_MASS_FLUID_STRUCT, ...
-%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
-%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
 %!                                           FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
-%!     opt_sol.solver = "pardiso";
-%!     opt_sol.refine_max_iter = int32(250);
-%!     Keff = complex(-omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs);
-%!     Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
-%!     Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
-%!     fprintf(stderr, "%d/%d %.2fHz r=%.2e\n", i, numel(f), f(i) * unit_second^-1, norm(Keff * Phi - Reff) / norm(Keff * Phi + Reff));
+%!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
+%!   Phi = zeros(dof_map.totdof, 1);
+%!   for i=1:numel(f)
+%!     omega = 2 * pi * f(i);
+%!     k2 = omega / c2;
+%!     z = rho2 * c2 * k2 * r .* exp(1j * acot(k2 * r)) ./ sqrt(1 + (k2 * r).^2); ## according Jont Allen equation 5.11.9
+%!     mesh.elements.acoustic_impedance.tria6.z = repmat(z, size(mesh.elements.acoustic_impedance.tria6.nodes));
+%!     [mat_ass.Dfs_re, ...
+%!      mat_ass.Dfs_im] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
+%!                                        FEM_MAT_DAMPING_FLUID_STRUCT_IM], ...
+%!                                        load_case);
+%!     Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
+%!     if (ITER(2) >= MAXITER / 2)
+%!       opt_sol.number_of_threads = int32(4);
+%!       opt_sol.solver = "pardiso";
+%!       opt_sol.refine_max_iter = int32(0);
+%!       Kfact = fem_sol_factor(Keff, opt_sol);
+%!     endif
+%!     [Phi, FLAG, RELRES, ITER] = gmres(@(X) Kfact \ (Keff * X), Kfact \ Reff, RESTART, TOL, MAXITER, [], [], Phi);
+%!     fprintf(stderr, "%d/%d %.2fHz r=%.2e iter=%d/%d\n", i, numel(f), f(i) * unit_second^-1, norm(Keff * Phi - Reff) / norm(Keff * Phi + Reff), ITER(1), ITER(2));
 %!     sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), 1);
 %!     idx = dof_map.ndof(:, 7);
 %!     iact = find(idx > 0);
