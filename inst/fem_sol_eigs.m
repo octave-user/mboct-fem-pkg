@@ -14,7 +14,7 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{U}, @var{lambda}, @var{err}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{alg}, @var{solver}, @var{num_threads})
+## @deftypefn {Function File} [@var{U}, @var{lambda}, @var{err}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{tol}, @var{alg}, @var{solver}, @var{num_threads})
 ## Solve the general eigenvalue problem K * U = lambda^2 * M * U.
 ##
 ## @var{K} @dots{} Assembled stiffness matrix. @var{K} is allowed to be singular provided that @var{K} - @var{rho} * @var{M} is regular.
@@ -22,6 +22,8 @@
 ## @var{M} @dots{} Assembled mass matrix. @var{M} is allowed to be singular.
 ##
 ## @var{N} @dots{} Number of modes to compute
+##
+## @var{tol} @dots{} Tolerance for verification of modes
 ##
 ## @var{rho} @dots{} Shift for eigenvalues (e.g. needed if @var{K} is singular)
 ##
