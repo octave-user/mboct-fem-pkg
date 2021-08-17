@@ -38182,7 +38182,6 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   #spawn_wait(spawn("gmsh", {[filename, ".geo"]}));
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
@@ -38385,9 +38384,9 @@ endfunction
 %!     deltaPML = 1700e-3 / unit_meters;
 %!     alphaPML = 1;
 %!     nPML = 1;
-%!     h1 = 5 * t;
-%!     h2 = 200e-3 / unit_meters;
-%!     h3 = 400e-3 / unit_meters;
+%!     h1 = 10 * t;
+%!     h2 = 400e-3 / unit_meters;
+%!     h3 = 800e-3 / unit_meters;
 %!     E1 = 210000e6 / unit_pascal;
 %!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
 %!     nu1 = 0.3;
