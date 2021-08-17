@@ -62,7 +62,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
       if (isfield(sol, nodal_fields(i).name))
         x = nodal_fields(i).value(getfield(sol, nodal_fields(i).name));
         fprintf(fd, "$NodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
-        fprintf(fd, "%d %e\n", [1:size(x, 1); x.']);
+        fprintf(fd, "%d %.16e\n", [1:size(x, 1); x.']);
         fputs(fd, "$EndNodeData\n");
       endif
     endfor
@@ -138,7 +138,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
 
                 inumelem += rows(tau);
                 
-                format = ["%d %d", repmat(" %e", 1, numel(idxnode) * stress_comp(l)), "\n"];
+                format = ["%d %d", repmat(" %.16e", 1, numel(idxnode) * stress_comp(l)), "\n"];
 
                 fprintf(fd, format, tauout);
               endif

@@ -20953,7 +20953,7 @@ endfunction
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS], ...
 %!                                 load_case);
 %!   N = 5;
@@ -21044,7 +21044,7 @@ endfunction
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS], ...
 %!                                 load_case);
 %!   N = 5;
@@ -21141,7 +21141,7 @@ endfunction
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS], ...
 %!                                 load_case);
 %!   N = 5;
@@ -21233,7 +21233,7 @@ endfunction
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS], ...
 %!                                 load_case);
 %!   N = 5;
@@ -21324,7 +21324,7 @@ endfunction
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS], ...
 %!                                 load_case);
 %!   N = 5;
@@ -21448,7 +21448,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -21605,7 +21605,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -21749,7 +21749,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -21898,7 +21898,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22016,7 +22016,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22159,7 +22159,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22320,7 +22320,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22529,7 +22529,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22662,7 +22662,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22796,7 +22796,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -22929,7 +22929,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23060,7 +23060,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23194,7 +23194,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23329,7 +23329,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23465,7 +23465,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23599,7 +23599,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23731,7 +23731,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -23858,7 +23858,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24000,7 +24000,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24144,7 +24144,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24288,7 +24288,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24432,7 +24432,7 @@ endfunction
 %!    mat_ass.Da, ...
 %!    mat_ass.Ra] = fem_ass_matrix(mesh, ...
 %!                                 dof_map, ...
-%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                 [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                  FEM_MAT_MASS_ACOUSTICS, ...
 %!                                  FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                  FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24611,7 +24611,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24762,7 +24762,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -24906,7 +24906,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25050,7 +25050,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25195,7 +25195,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25341,7 +25341,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25487,7 +25487,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25612,7 +25612,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25762,7 +25762,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -25900,7 +25900,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26046,7 +26046,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26191,7 +26191,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26330,7 +26330,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26470,7 +26470,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26595,7 +26595,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26732,7 +26732,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -26870,7 +26870,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -27006,7 +27006,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -27151,7 +27151,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -27298,7 +27298,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -27442,7 +27442,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -27601,7 +27601,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -27762,7 +27762,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -27929,7 +27929,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -28090,7 +28090,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -28250,7 +28250,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -28421,7 +28421,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -28661,7 +28661,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -28902,7 +28902,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -29142,7 +29142,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -29386,7 +29386,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -29604,7 +29604,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -29913,7 +29913,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -30142,7 +30142,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
@@ -30305,7 +30305,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -30537,7 +30537,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -30546,7 +30546,7 @@ endfunction
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
-%!   opt_sol.verbose = int32(1);
+%!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
@@ -30767,7 +30767,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -31037,7 +31037,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -31306,7 +31306,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -31575,7 +31575,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -31844,7 +31844,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -32188,7 +32188,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -32574,7 +32574,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -32905,7 +32905,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -33236,7 +33236,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -33571,7 +33571,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -33912,7 +33912,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -34104,7 +34104,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -34424,7 +34424,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -34762,7 +34762,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -35098,7 +35098,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -35433,7 +35433,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -35637,7 +35637,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -35820,7 +35820,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -36004,7 +36004,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -36186,7 +36186,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -36372,7 +36372,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -36556,7 +36556,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -36739,7 +36739,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -36922,7 +36922,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -37105,7 +37105,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_MASS_ACOUSTICS, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
@@ -37406,7 +37406,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -37741,7 +37741,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -38040,7 +38040,7 @@ endfunction
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
+%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
@@ -38376,13 +38376,18 @@ endfunction
 %!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
 %!     unit_pascal = unit_newton / unit_meters^2;
 %!     unit_watt = unit_newton * unit_meters / unit_second;
+%!     P0 = 1e-12 / unit_watt;
 %!     d1 = 800e-3 / unit_meters;
 %!     d2 = 120e-3 / unit_meters;
 %!     d3 = 60e-3 / unit_meters;
 %!     t = 3.5e-3 / unit_meters;
-%!     r = 3000e-3 / unit_meters;
-%!     h1 = 10 * t;
+%!     r = 1500e-3 / unit_meters;
+%!     deltaPML = 1700e-3 / unit_meters;
+%!     alphaPML = 1;
+%!     nPML = 1;
+%!     h1 = 5 * t;
 %!     h2 = 200e-3 / unit_meters;
+%!     h3 = 400e-3 / unit_meters;
 %!     E1 = 210000e6 / unit_pascal;
 %!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
 %!     nu1 = 0.3;
@@ -38391,15 +38396,21 @@ endfunction
 %!     c2 = 340 / (unit_meters / unit_second);
 %!     rho2 = 1.225 / (unit_kilograms / unit_meters^3);
 %!     Fz = (1 + 0j) / unit_newton;
+%!     sigmax0 = alphaPML * c2 / deltaPML;
+%!     f = (100) / (unit_second^-1);
 %!     solver = "precond";
+%!     f_enable_PML = true;
+%!     f_enable_plot = false;
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "d1 = %g;\n", d1);
 %!     fprintf(fd, "d2 = %g;\n", d2);
 %!     fprintf(fd, "d3 = %g;\n", d3);
 %!     fprintf(fd, "t = %g;\n", t);
 %!     fprintf(fd, "r = %g;\n", r);
+%!     fprintf(fd, "deltaPML = %g;\n", deltaPML);
 %!     fprintf(fd, "h1 = %g;\n", h1);
 %!     fprintf(fd, "h2 = %g;\n", h2);
+%!     fprintf(fd, "h3 = %g;\n", h3);
 %!     fputs(fd, "v1 = newv;\n");
 %!     fputs(fd, "Cylinder(v1) = {0, 0, -0.5 * t, 0, 0, t, 0.5 * d1};\n");
 %!     fputs(fd, "v2 = newv;\n");
@@ -38408,16 +38419,21 @@ endfunction
 %!     fputs(fd, "Cylinder(v3) = {0, 0, -0.5 * t, 0, 0, t, 0.5 * d3};\n");
 %!     fputs(fd, "v4 = newv;\n");
 %!     fputs(fd, "Sphere(v4) = {0, 0, 0, r};\n");
-%!     fputs(fd, "v5 = BooleanFragments{Volume{v4};Delete;}{Volume{v1,v2,v3};Delete;};\n");
+%!     fputs(fd, "v5 = newv;\n");
+%!     fputs(fd, "Sphere(v5) = {0, 0, 0, r + deltaPML};\n");
+%!     fputs(fd, "v6 = BooleanFragments{Volume{v5};Delete;}{Volume{v1,v2,v3,v4};Delete;};\n");
 %!     fputs(fd, "Physical Volume(\"solid\", 1) = {9, 10};\n");
-%!     fputs(fd, "Physical Volume(\"fluid\", 2) = {7, 8};\n");
-%!     fputs(fd, "Physical Surface(\"fluid_struct\", 1) = {12, 13, 11, 14, 15, 7};\n");
-%!     fputs(fd, "Physical Surface(\"impedance\", 2) = {10};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\", 3) = {14, 15};\n");
-%!     fputs(fd, "Physical Point(\"load\", 1) = {9};\n");
-%!     fputs(fd, "ReverseMesh Surface{7,11,12,13,14,15};\n");
+%!     fputs(fd, "Physical Volume(\"fluid\", 2) = {7, 11};\n");
+%!     fputs(fd, "Physical Volume(\"PML\", 3) = {8};\n");
+%!     fputs(fd, "Physical Surface(\"fluid_struct\", 1) = {7, 12, 13, 14, 16, 17};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\", 2) = {16, 17};\n");
+%!     fputs(fd, "Physical Surface(\"fluid-boundary\", 3) = {11};\n");
+%!     fputs(fd, "Physical Surface(\"PML-boundary\", 4) = {10};\n");
+%!     fputs(fd, "Physical Point(\"load\", 1) = {12};\n");
+%!     fputs(fd, "ReverseMesh Surface{7,11,15};\n");
 %!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
-%!     fputs(fd, "MeshSize{PointsOf{Volume{7,8}; } } = h2;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{8}; } } = h3;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{7,11}; } } = h2;\n");
 %!     fputs(fd, "MeshSize{PointsOf{Volume{9,10}; } } = h1;\n");
 %!     fputs(fd, "Mesh.HighOrderIterMax = 100;\n");
 %!     fputs(fd, "Mesh.HighOrderPassMax = 100;\n");
@@ -38436,9 +38452,12 @@ endfunction
 %!   unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);
+%!   grp_idx_v_PML = find([mesh.groups.tet10.id] == 3);
 %!   grp_idx_s_fsi = find([mesh.groups.tria6.id] == 1);
-%!   grp_idx_s_impe = find([mesh.groups.tria6.id] == 2);
-%!   grp_idx_s_clamp = find([mesh.groups.tria6.id] == 3);
+%!   grp_idx_s_clamp = find([mesh.groups.tria6.id] == 2);
+%!   grp_idx_s_boundary = find([mesh.groups.tria6.id] == 3);
+%!   grp_idx_s_boundaryPML = find([mesh.groups.tria6.id] == 4);
+%!   node_idx_constr = mesh.groups.tria6(grp_idx_s_boundaryPML).nodes;
 %!   empty_cell = cell(1, 2);
 %!   mesh.material_data = struct("E", empty_cell, ...
 %!                               "nu", empty_cell, ...
@@ -38456,13 +38475,15 @@ endfunction
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_v_solid).elements) = 1;
 %!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_v_fluid).elements) = 2;
+%!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_v_PML).elements) = 2;
 %!   mesh.elements.fluid_struct_interface.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_fsi).elements, :);
-%!   mesh.elements.acoustic_impedance.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_impe).elements, :);
-%!   mesh.materials.acoustic_impedance.tria6 = repmat(int32(2), rows(mesh.elements.acoustic_impedance.tria6.nodes), 1);
-%!   mesh.elements.acoustic_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_impe).elements, :);
+%!   mesh.elements.acoustic_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_boundary).elements, :);
 %!   mesh.materials.acoustic_boundary.tria6 = repmat(int32(2), rows(mesh.elements.acoustic_boundary.tria6), 1);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
 %!   load_case_dof.locked_dof(mesh.groups.tria6(grp_idx_s_clamp).nodes, 1:3) = true;
+%!   if (f_enable_PML)
+%!     load_case_dof.locked_dof(mesh.groups.tria6(grp_idx_s_boundaryPML).nodes, 7) = true;
+%!   endif
 %!   load_case_dof.domain = FEM_DO_FLUID_STRUCT;
 %!   empty_cell = cell(1, 2);
 %!   load_case = struct("loads", empty_cell, "loaded_nodes", empty_cell);
@@ -38475,121 +38496,170 @@ endfunction
 %!   load_case(1).loads = [zeros(1, 2), real(Fz), zeros(1, 3)];
 %!   load_case(2).loaded_nodes = node_id_load;
 %!   load_case(2).loads = [zeros(1, 2), imag(Fz), zeros(1, 3)];
-%!   f = (2:2:200) / (unit_second^-1);
+%!
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
-%!   P = zeros(1, numel(f));
+%!
+%!   if (f_enable_PML)
+%!     mat_ass.colloc_points = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_VEC_COLL_STIFF_FLUID_STRUCT_RE], ...
+%!                                            load_case);
+%!
+%!     mesh.elements.perfectly_matched_layers.tet10.sigma = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!     mesh.elements.perfectly_matched_layers.tet10.e1 = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!     mesh.elements.perfectly_matched_layers.tet10.e2 = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!     xi = mat_ass.colloc_points.tet10(:, :, 1).';
+%!     yi = mat_ass.colloc_points.tet10(:, :, 2).';
+%!     zi = mat_ass.colloc_points.tet10(:, :, 3).';
+%!     ri = sqrt(xi.^2 + yi.^2 + zi.^2) - r;
+%!     sigmax_omega = (ri >= 0) .* (1 ./ (1 - ri / deltaPML).^nPML - 1) * (2 * pi * alphaPML * c2 / deltaPML);
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(1, :, :) = xi;
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(2, :, :) = yi;
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(3, :, :) = zi;
+%!     mesh.elements.perfectly_matched_layers.tet10.e2(1, :, :) = 1;
+%!   endif
+%!   P = T = zeros(1, numel(f));
 %!   ITER = repmat(intmax(), 1, 2);
-%!   MAXITER = 100;
-%!   TOL = eps^0.9;
-%!   RESTART = 20;
+%!   MAXITER = 20;
+%!   TOL = eps^0.5;
+%!   RESTART = 10;
 %!   MAXITERS = int32(100);
 %!   TOLS = eps^0.5;
 %!   perm = [];
-%!   [mat_ass.Kfs, ...
-%!    mat_ass.Mfs, ...
-%!    mat_ass.Rfs, ...
-%!    mat_ass.mat_info, ...
-%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT, ...
-%!                                         FEM_MAT_MASS_FLUID_STRUCT, ...
-%!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
-%!                                        load_case);
-%!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
 %!   Phi = zeros(dof_map.totdof, 1);
 %!   cpu_factor = 0;
 %!   cpu_solve = 0;
 %!   FLAG = -1;
-%!   alpha = 3;
-%!   for i=1:numel(f)
-%!     omega = 2 * pi * f(i);
-%!     k2 = omega / c2;
-%!     z = rho2 * c2 * k2 * r .* exp(1j * acot(k2 * r)) ./ sqrt(1 + (k2 * r).^2); ## according Jont Allen equation 5.11.9
-%!     mesh.elements.acoustic_impedance.tria6.z = repmat(z, size(mesh.elements.acoustic_impedance.tria6.nodes));
-%!     [mat_ass.Dfs_re, ...
-%!      mat_ass.Dfs_im] = fem_ass_matrix(mesh, ...
-%!                                       dof_map, ...
-%!                                       [FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
-%!                                        FEM_MAT_DAMPING_FLUID_STRUCT_IM], ...
-%!                                        load_case);
-%!
-%!     Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
-%!
-%!     opt_sol.number_of_threads = int32(4);
-%!     opt_sol.solver = "pastix";
-%!     opt_sol.compress_when = int32(0);
-%!     opt_sol.compress_min_ratio = 1;
-%!     opt_sol.compress_tolerance = 1e-2;
-%!     opt_sol.verbose = int32(0);
-%!     switch (solver)
-%!     case "direct"
-%!       opt_sol.refine_max_iter = int32(100);
-%!       opt_sol.epsilon_refinement = eps^0.7;
-%!       opt_sol.pre_scaling = true;
-%!       Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
-%!     case "precond"
-%!       opt_sol.refine_max_iter = int32(0);
-%!       opt_sol.pre_scaling = false;
-%!       if (isempty(perm))
-%!         perm = csymamd(Keff);
+%!   alpha = 0.75;
+%!   unwind_protect
+%!     for i=1:numel(f)
+%!       omega = 2 * pi * f(i);
+%!       if (f_enable_PML)
+%!         mesh.elements.perfectly_matched_layers.tet10.sigma(1, :, :) = sigmax_omega / omega;
 %!       endif
-%!       do
-%!         do_fact = (FLAG ~= 0 || cpu_solve > alpha * cpu_factor);
-%!         if (do_fact)
-%!           start = cputime();
-%!           [KS, D1, D2] = fem_sol_matrix_scale(Keff(perm, perm), TOLS, MAXITERS);
-%!           KSfact = fem_sol_factor(KS, opt_sol);
-%!           cpu_factor = cputime() - start;
-%!           cpu_solve = 0;
-%!         else
-%!           KS = diag(D1) * Keff(perm, perm) * diag(D2);
-%!         endif
-%!         start = cputime();
-%!         Z0 = KSfact \ (diag(D1) * Reff(perm));
-%!         [Z, FLAG, RELRES, ITER] = gmres(@(Z) KSfact \ (KS * Z), Z0, RESTART, TOL, MAXITER, [], [], Z0);
-%!         Phi(perm) = diag(D2) * Z;
-%!         cpu_solve += cputime() - start;
-%!       until (FLAG == 0 || do_fact)
-%!     otherwise
-%!       error("unknown solver: \"%s\"", solver);
-%!     endswitch
-%!     KeffPhi = Keff * Phi;
-%!     f1 = norm(KeffPhi - Reff);
-%!     f2 = norm(KeffPhi + Reff);
-%!     fprintf(stderr, "%d/%d %.2fHz r=%.2e/%.2e iter=%d/%d\n", i, numel(f), f(i) * unit_second^-1, f1, f1 / f2, ITER(1), ITER(2));
-%!     sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), 1);
-%!     idx = dof_map.ndof(:, 7);
-%!     iact = find(idx > 0);
-%!     sol.Phi(iact) = Phi(idx(iact));
-%!     sol.PhiP(iact) = 1j * omega * Phi(idx(iact));
-%!     [sol.particle_velocity, ...
-%!      sol.acoustic_intensity] = fem_ass_matrix(mesh, ...
-%!                                               dof_map, ...
-%!                                               [FEM_VEC_PARTICLE_VELOCITY_C, ...
-%!                                                FEM_SCA_ACOUSTIC_INTENSITY_C], ...
-%!                                               load_case, ...
-%!                                               sol);
-%!     P(i) = sum(sol.acoustic_intensity.P.tria6);
-%!     solt.t = linspace(0, 2 * pi / omega, 36);
-%!     solt.p = real(-sol.PhiP .* exp(1j * omega * solt.t));
-%!     solt.def = zeros(rows(mesh.nodes), 6, numel(solt.t));
-%!     solt.v = zeros(rows(mesh.nodes), 3, numel(solt.t));
-%!     for j=1:6
-%!       idx = dof_map.ndof(:, j);
+%!       [mat_ass.Mfs, ...
+%!        mat_ass.Kfs_re, ...
+%!        mat_ass.Kfs_im, ...
+%!        mat_ass.Dfs_re, ...
+%!        mat_ass.Dfs_im, ...
+%!        mat_ass.Rfs, ...
+%!        mat_ass.mat_info, ...
+%!        mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                         dof_map, ...
+%!                                         [FEM_MAT_MASS_FLUID_STRUCT, ...
+%!                                          FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
+%!                                          FEM_MAT_STIFFNESS_FLUID_STRUCT_IM, ...
+%!                                          FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
+%!                                          FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
+%!                                          FEM_VEC_LOAD_FLUID_STRUCT], ...
+%!                                         load_case);
+%!       Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
+%!       Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
+%!       opt_sol.number_of_threads = int32(4);
+%!       opt_sol.solver = "pastix";
+%!       opt_sol.compress_when = int32(0);
+%!       opt_sol.compress_min_ratio = 1;
+%!       opt_sol.compress_tolerance = 1e-2;
+%!       opt_sol.verbose = int32(0);
+%!       switch (solver)
+%!         case "direct"
+%!           opt_sol.refine_max_iter = MAXITER;
+%!           opt_sol.epsilon_refinement = TOL;
+%!           opt_sol.pre_scaling = true;
+%!           Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!         case "precond"
+%!           opt_sol.refine_max_iter = int32(0);
+%!           opt_sol.pre_scaling = false;
+%!           if (isempty(perm))
+%!             perm = csymamd(Keff);
+%!           endif
+%!           do
+%!             do_fact = (FLAG ~= 0 || cpu_solve > alpha * cpu_factor);
+%!             if (do_fact)
+%!               start = cputime();
+%!               [KS, D1, D2] = fem_sol_matrix_scale(Keff(perm, perm), TOLS, MAXITERS);
+%!               clear KSfact;
+%!               KSfact = fem_sol_factor(KS, opt_sol);
+%!               cpu_factor = cputime() - start;
+%!             else
+%!               KS = diag(D1) * Keff(perm, perm) * diag(D2);
+%!             endif
+%!             start = cputime();
+%!             Z0 = KSfact \ (diag(D1) * Reff(perm));
+%!             [Z, FLAG, RELRES, ITER] = gmres(@(Z) KSfact \ (KS * Z), Z0, RESTART, TOL, MAXITER, [], [], Z0);
+%!             Phi(perm) = diag(D2) * Z;
+%!             cpu_solve = cputime() - start;
+%!           until (FLAG == 0 || do_fact)
+%!         otherwise
+%!           error("unknown solver: \"%s\"", solver);
+%!       endswitch
+%!       KeffPhi = Keff * Phi;
+%!       f1 = norm(KeffPhi - Reff);
+%!       f2 = norm(KeffPhi + Reff);
+%!       sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), 1);
+%!       idx = dof_map.ndof(:, 7);
 %!       iact = find(idx > 0);
-%!       for k=1:numel(solt.t)
-%!         solt.def(iact, j, k) = real(Phi(idx(iact)) * exp(1j * omega * solt.t(k)));
-%!       endfor
-%!     endfor
-%!     for j=1:columns(mesh.elements.tet10)
-%!       for k=1:3
-%!         for l=1:numel(solt.t)
-%!           solt.v(mesh.elements.tet10(:, j), k, l) = real(sol.particle_velocity.v.tet10(:, j, k) .* exp(1j * omega * solt.t(l)));
+%!       sol.Phi(iact) = Phi(idx(iact));
+%!       sol.PhiP(iact) = 1j * omega * Phi(idx(iact));
+%!       sol.p = -sol.PhiP;
+%!       [sol.particle_velocity, ...
+%!        sol.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                                 dof_map, ...
+%!                                                 [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                                  FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                 load_case, ...
+%!                                                 sol);
+%!       k = omega / c2;
+%!       z = rho2 * c2 * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according Jont Allen equation 5.11.9
+%!       p = sol.p(mesh.elements.acoustic_boundary.tria6);
+%!       vx = sol.particle_velocity.vn.tria6;
+%!       R = abs(mean(mean((p - z * vx) ./ (p + z * vx))));
+%!       T(i) = 1 ./ (1 - R.^2);
+%!       P(i) = sum(sol.acoustic_intensity.P.tria6);
+%!       fprintf(stderr, "%d/%d %.2fHz P=%.2fdB TL=%.2fdB res=%.2e iter=%d/%d\n", i, numel(f), f(i) * unit_second^-1, 10 * log10(P(i) / P0), 10 * log10(T(i)), f1 / f2, ITER(1), ITER(2));
+%!       solt.t = linspace(0, 2 * pi / omega, 36);
+%!       solt.p = real(-sol.PhiP .* exp(1j * omega * solt.t));
+%!       solt.def = zeros(rows(mesh.nodes), 6, numel(solt.t));
+%!       solt.v = zeros(rows(mesh.nodes), 3, numel(solt.t));
+%!       for j=1:6
+%!         idx = dof_map.ndof(:, j);
+%!         iact = find(idx > 0);
+%!         for k=1:numel(solt.t)
+%!           solt.def(iact, j, k) = real(Phi(idx(iact)) * exp(1j * omega * solt.t(k)));
 %!         endfor
 %!       endfor
+%!       for j=1:columns(mesh.elements.tet10)
+%!         for k=1:3
+%!           for l=1:numel(solt.t)
+%!             solt.v(mesh.elements.tet10(:, j), k, l) = real(sol.particle_velocity.v.tet10(:, j, k) .* exp(1j * omega * solt.t(l)));
+%!           endfor
+%!         endfor
+%!       endfor
+%!       if (f_enable_plot)
+%!         Zc = linspace(0, r + deltaPML , 300);
+%!         Xc = Yc = zeros(size(Zc));
+%!         deltaC = 0.4 / unit_meters;
+%!         delta0 = 0.1 / unit_meters;
+%!         idxc = find((mesh.nodes(:, 3) >= 0) & (sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2) < abs(mesh.nodes(:, 3)) * (deltaC / (r + deltaPML)) + delta0));
+%!         pc = zeros(numel(Zc), columns(solt.p));
+%!         for j=1:columns(pc)
+%!           pc(:, j) = griddata3(mesh.nodes(idxc, 1), mesh.nodes(idxc, 2), mesh.nodes(idxc, 3), solt.p(idxc, j), Xc, Yc, Zc);
+%!         endfor
+%!         for j=1:columns(pc)
+%!           figure("visible","off");hold on
+%!           plot(Zc * unit_meters, pc(:, j) * unit_pascal, "-;p(X=0,Y=0,Z);1");
+%!           xlabel("r [m]");
+%!           ylabel("p [Pa]");
+%!           grid on;
+%!           grid minor on;
+%!           title(sprintf("sound pressure Phi=%.1fdeg f=%.1fHz", 180 / pi * (solt.t(i) * omega), f(i) * unit_second^-1));
+%!           ylim([min(min(pc)),max(max(pc))] * unit_pascal);
+%!         endfor
+%!       endif
 %!     endfor
-%!   endfor
-%!   P0 = 1e-12 / unit_watt;
+%!   unwind_protect_cleanup
+%!     clear KSfact;
+%!   end_unwind_protect
 %!   figure("visible", "off");
 %!   hold on;
 %!   plot(f * unit_second^-1, 10 * log10(P / P0), "-;P(f);1");
@@ -38598,6 +38668,12 @@ endfunction
 %!   grid on;
 %!   grid minor on;
 %!   title("sound power level");
+%!   figure("visible", "off");
+%!   hold on;
+%!   plot(f * unit_second^-1, 10 * log10(T), "-;TL(f);1");
+%!   xlabel("f [Hz]");
+%!   ylabel("TL [dB]");
+%!   title("transmission loss");
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -38701,6 +38777,2215 @@ endfunction
 %!   tol_freq = tol_freq_abs + tol_freq_rel * fref;
 %!   sol = fem_sol_modal(mesh, dof_map, mat_ass, N, rho, tol_modes, alg, solver, num_threads);
 %!   assert(all(abs(sol.f * unit_second^-1 - fref) < tol_freq));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 216 - 1D dissipative wave equation with perfectly matched layers
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   lambda = 100e-3;
+%!   deltaPML = 2 * lambda;
+%!   l1 = lambda;
+%!   l2 = l1 + deltaPML;
+%!   c = 1440;
+%!   alpha = 1 + 2j;
+%!   sigmax = alpha * c / deltaPML;
+%!   rho = 1000;
+%!   f = c / lambda;
+%!   eta = 100;
+%!   zeta = 100;
+%!   omega = 2 * pi * f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   vx0 = 1 + 0.5j;
+%!   tau = (4/3 * eta + zeta) / (rho * c^2);
+%!   fx =  1 / (1 - 1j * sigmax / omega);
+%!   k = omega / (c * fx * sqrt(1i * omega * tau + 1));
+%!   z = (c * rho) / sqrt(1i * omega * tau + 1);
+%!   vxref = @(x, t) vx0 * exp(1j * (omega * t - k * x));
+%!   pref = @(x, t) z * vxref(x, t);
+%!   e1 = [0.1; 1; -1];
+%!   e2 = [-1; 0.8; 0.2];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l1=%g;\n", l1);
+%!   fprintf(fd, "l2=%g;\n", l2);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx1 = %g;\n", dx);
+%!   fprintf(fd, "dx2 = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0};\n");
+%!   fputs(fd, "Point(2) = {0,w,0};\n");
+%!   fputs(fd, "Point(3) = {0,w,h};\n");
+%!   fputs(fd, "Point(4) = {0,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l1/dx1)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "tmp2[] = Extrude {l2 - l1,0,0} {\n");
+%!   fputs(fd, "  Surface{tmp1[0]}; Layers{Ceil((l2 - l1)/dx2)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume1\",3) = {tmp1[1]};\n");
+%!   fputs(fd, "Physical Volume(\"volume2\",4) = {tmp2[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp1[0]};\n");
+%!   fputs(fd, "Physical Surface(\"impedance\",3) = {tmp2[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp1[1]};\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso20", "quad8"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
+%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
+%!   grp_idx_impedance = find([mesh.groups.quad8.id] == 3);
+%!   grp_idx_volume1 = find([mesh.groups.iso20.id] == 3);
+%!   grp_idx_volume2 = find([mesh.groups.iso20.id] == 4);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.materials.iso20(mesh.groups.iso20(grp_idx_volume1).elements) = 1;
+%!   mesh.materials.iso20(mesh.groups.iso20(grp_idx_volume2).elements) = 1;
+%!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.acoustic_boundary.quad8 = zeros(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
+%!   mesh.materials.acoustic_boundary.quad8(mesh.groups.quad8(grp_idx_input).elements) = 1;
+%!   mesh.materials.acoustic_boundary.quad8(mesh.groups.quad8(grp_idx_output).elements) = 1;
+%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_impedance).elements, :);
+%!   mesh.elements.acoustic_impedance.quad8.z = repmat(z / fx, size(mesh.elements.acoustic_impedance.quad8.nodes));
+%!   mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.quad8.vn = repmat(-real(fx * vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!   load_case(2).particle_velocity.quad8.vn = repmat(-imag(fx * vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.material_data.eta = eta;
+%!   mesh.material_data.zeta = zeta;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                            load_case);
+%!
+%!   mesh.elements.perfectly_matched_layers.iso20.sigma = zeros(3, columns(mat_ass.colloc_points.iso20), rows(mat_ass.colloc_points.iso20));
+%!   mesh.elements.perfectly_matched_layers.iso20.e1 = zeros(3, columns(mat_ass.colloc_points.iso20), rows(mat_ass.colloc_points.iso20));
+%!   mesh.elements.perfectly_matched_layers.iso20.e2 = zeros(3, columns(mat_ass.colloc_points.iso20), rows(mat_ass.colloc_points.iso20));
+%!
+%!   for i=1:3
+%!     mesh.elements.perfectly_matched_layers.iso20.e1(i, :, :) = e1(i);
+%!     mesh.elements.perfectly_matched_layers.iso20.e2(i, :, :) = e2(i);
+%!     mesh.elements.perfectly_matched_layers.iso20.sigma(i, :, :) = sigmax / omega;
+%!   endfor
+%!
+%!   [mat_ass.Ka_re, ...
+%!    mat_ass.Ka_im, ...
+%!    mat_ass.Da_re, ...
+%!    mat_ass.Da_im, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   sol.t = Psi / omega;
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
+%!   solC.Phi = Phi(dof_map.ndof);
+%!   solC.PhiP = 1j * omega * Phi(dof_map.ndof);
+%!   [solC.particle_velocity, ...
+%!    solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                               FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                              load_case, ...
+%!                                              solC);
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R;
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, real(pref(x, sol.t(i))), "-;pref;0");
+%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 0.5e-2;
+%!   assert(sol.p(idx, :), real(pref(x, sol.t)), tol * max(max(abs(pref(x, Psi)))));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     vx = zeros(rows(mesh.nodes), 1);
+%!     for j=1:3
+%!       vx(mesh.elements.iso20(:)) += real(solC.particle_velocity.v.iso20(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
+%!     endfor
+%!     assert(vx(idx), real(vxref(x, sol.t(i))), tol * abs(vx0));
+%!     plot(x, vx(idx), "-;vn;1");
+%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;0");
+%!     ylim([-abs(vx0), abs(vx0)]);
+%!     xlabel("x [m]");
+%!     ylabel("vx [m/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 217 - 1D dissipative wave equation with perfectly matched layers
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   lambda = 100e-3;
+%!   deltaPML = 2 * lambda;
+%!   l1 = lambda;
+%!   l2 = l1 + deltaPML;
+%!   c = 1440;
+%!   alpha = 1 + 2j;
+%!   sigmax = alpha * c / deltaPML;
+%!   rho = 1000;
+%!   f = c / lambda;
+%!   eta = 100;
+%!   zeta = 100;
+%!   omega = 2 * pi * f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   vx0 = 1 + 0.5j;
+%!   tau = (4/3 * eta + zeta) / (rho * c^2);
+%!   fx =  1 / (1 - 1j * sigmax / omega);
+%!   k = omega / (c * fx * sqrt(1i * omega * tau + 1));
+%!   z = (c * rho) / sqrt(1i * omega * tau + 1);
+%!   vxref = @(x, t) vx0 * exp(1j * (omega * t - k * x));
+%!   pref = @(x, t) z * vxref(x, t);
+%!   e1 = [0.1; 1; -1];
+%!   e2 = [-1; 0.8; 0.2];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l1=%g;\n", l1);
+%!   fprintf(fd, "l2=%g;\n", l2);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx1 = %g;\n", dx);
+%!   fprintf(fd, "dx2 = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0};\n");
+%!   fputs(fd, "Point(2) = {0,w,0};\n");
+%!   fputs(fd, "Point(3) = {0,w,h};\n");
+%!   fputs(fd, "Point(4) = {0,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l1/dx1)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "tmp2[] = Extrude {l2 - l1,0,0} {\n");
+%!   fputs(fd, "  Surface{tmp1[0]}; Layers{Ceil((l2 - l1)/dx2)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume1\",3) = {tmp1[1]};\n");
+%!   fputs(fd, "Physical Volume(\"volume2\",4) = {tmp2[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp1[0]};\n");
+%!   fputs(fd, "Physical Surface(\"impedance\",3) = {tmp2[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp1[1]};\n");
+%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"penta15", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   grp_idx_impedance = find([mesh.groups.tria6h.id] == 3);
+%!   grp_idx_volume1 = find([mesh.groups.penta15.id] == 3);
+%!   grp_idx_volume2 = find([mesh.groups.penta15.id] == 4);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.penta15 = zeros(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.materials.penta15(mesh.groups.penta15(grp_idx_volume1).elements) = 1;
+%!   mesh.materials.penta15(mesh.groups.penta15(grp_idx_volume2).elements) = 1;
+%!   mesh.elements.acoustic_boundary.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.acoustic_boundary.tria6h = zeros(rows(mesh.elements.acoustic_boundary.tria6h), 1, "int32");
+%!   mesh.materials.acoustic_boundary.tria6h(mesh.groups.tria6h(grp_idx_input).elements) = 1;
+%!   mesh.materials.acoustic_boundary.tria6h(mesh.groups.tria6h(grp_idx_output).elements) = 1;
+%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_impedance).elements, :);
+%!   mesh.elements.acoustic_impedance.tria6h.z = repmat(z / fx, size(mesh.elements.acoustic_impedance.tria6h.nodes));
+%!   mesh.materials.acoustic_impedance.tria6h = ones(rows(mesh.elements.acoustic_impedance.tria6h.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6h.vn = repmat(-real(fx * vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!   load_case(2).particle_velocity.tria6h.vn = repmat(-imag(fx * vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.material_data.eta = eta;
+%!   mesh.material_data.zeta = zeta;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                            load_case);
+%!
+%!   mesh.elements.perfectly_matched_layers.penta15.sigma = zeros(3, columns(mat_ass.colloc_points.penta15), rows(mat_ass.colloc_points.penta15));
+%!   mesh.elements.perfectly_matched_layers.penta15.e1 = zeros(3, columns(mat_ass.colloc_points.penta15), rows(mat_ass.colloc_points.penta15));
+%!   mesh.elements.perfectly_matched_layers.penta15.e2 = zeros(3, columns(mat_ass.colloc_points.penta15), rows(mat_ass.colloc_points.penta15));
+%!
+%!   for i=1:3
+%!     mesh.elements.perfectly_matched_layers.penta15.e1(i, :, :) = e1(i);
+%!     mesh.elements.perfectly_matched_layers.penta15.e2(i, :, :) = e2(i);
+%!     mesh.elements.perfectly_matched_layers.penta15.sigma(i, :, :) = sigmax / omega;
+%!   endfor
+
+%!   [mat_ass.Ka_re, ...
+%!    mat_ass.Ka_im, ...
+%!    mat_ass.Da_re, ...
+%!    mat_ass.Da_im, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   sol.t = Psi / omega;
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
+%!   solC.Phi = Phi(dof_map.ndof);
+%!   solC.PhiP = 1j * omega * Phi(dof_map.ndof);
+%!   [solC.particle_velocity, ...
+%!    solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                               FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                              load_case, ...
+%!                                              solC);
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R;
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, real(pref(x, sol.t(i))), "-;pref;0");
+%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 0.5e-2;
+%!   assert(sol.p(idx, :), real(pref(x, sol.t)), tol * max(max(abs(pref(x, Psi)))));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     vx = zeros(rows(mesh.nodes), 1);
+%!     for j=1:3
+%!       vx(mesh.elements.penta15(:)) += real(solC.particle_velocity.v.penta15(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
+%!     endfor
+%!     assert(vx(idx), real(vxref(x, sol.t(i))), tol * abs(vx0));
+%!     plot(x, vx(idx), "-;vn;1");
+%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;0");
+%!     ylim([-abs(vx0), abs(vx0)]);
+%!     xlabel("x [m]");
+%!     ylabel("vx [m/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 218 - 1D dissipative wave equation with perfectly matched layers
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   lambda = 100e-3;
+%!   deltaPML = 2 * lambda;
+%!   l1 = lambda;
+%!   l2 = l1 + deltaPML;
+%!   c = 1440;
+%!   alpha = 1 + 2j;
+%!   sigmax = alpha * c / deltaPML;
+%!   rho = 1000;
+%!   f = c / lambda;
+%!   eta = 100;
+%!   zeta = 100;
+%!   omega = 2 * pi * f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   vx0 = 1 + 0.5j;
+%!   tau = (4/3 * eta + zeta) / (rho * c^2);
+%!   fx =  1 / (1 - 1j * sigmax / omega);
+%!   k = omega / (c * fx * sqrt(1i * omega * tau + 1));
+%!   z = (c * rho) / sqrt(1i * omega * tau + 1);
+%!   vxref = @(x, t) vx0 * exp(1j * (omega * t - k * x));
+%!   pref = @(x, t) z * vxref(x, t);
+%!   e1 = [0.1; 1; -1];
+%!   e2 = [-1; 0.8; 0.2];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l1=%g;\n", l1);
+%!   fprintf(fd, "l2=%g;\n", l2);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx1 = %g;\n", dx);
+%!   fprintf(fd, "dx2 = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0};\n");
+%!   fputs(fd, "Point(2) = {0,w,0};\n");
+%!   fputs(fd, "Point(3) = {0,w,h};\n");
+%!   fputs(fd, "Point(4) = {0,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "tmp2[] = Extrude {l2 - l1,0,0} {\n");
+%!   fputs(fd, "  Surface{tmp1[0]};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume1\",3) = {tmp1[1]};\n");
+%!   fputs(fd, "Physical Volume(\"volume2\",4) = {tmp2[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp1[0]};\n");
+%!   fputs(fd, "Physical Surface(\"impedance\",3) = {tmp2[0]};\n");
+%!   fputs(fd, "MeshSize{PointsOf{Volume{tmp1[1],tmp2[1]};}} = dx1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp1[1]};\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
+%!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
+%!   grp_idx_impedance = find([mesh.groups.tria6h.id] == 3);
+%!   grp_idx_volume1 = find([mesh.groups.tet10h.id] == 3);
+%!   grp_idx_volume2 = find([mesh.groups.tet10h.id] == 4);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.materials.tet10h(mesh.groups.tet10h(grp_idx_volume1).elements) = 1;
+%!   mesh.materials.tet10h(mesh.groups.tet10h(grp_idx_volume2).elements) = 1;
+%!   mesh.elements.acoustic_boundary.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.acoustic_boundary.tria6h = zeros(rows(mesh.elements.acoustic_boundary.tria6h), 1, "int32");
+%!   mesh.materials.acoustic_boundary.tria6h(mesh.groups.tria6h(grp_idx_input).elements) = 1;
+%!   mesh.materials.acoustic_boundary.tria6h(mesh.groups.tria6h(grp_idx_output).elements) = 1;
+%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_impedance).elements, :);
+%!   mesh.elements.acoustic_impedance.tria6h.z = repmat(z / fx, size(mesh.elements.acoustic_impedance.tria6h.nodes));
+%!   mesh.materials.acoustic_impedance.tria6h = ones(rows(mesh.elements.acoustic_impedance.tria6h.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6h.vn = repmat(-real(fx * vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!   load_case(2).particle_velocity.tria6h.vn = repmat(-imag(fx * vx0), numel(mesh.groups.tria6h(grp_idx_input).elements), 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.material_data.eta = eta;
+%!   mesh.material_data.zeta = zeta;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+
+%!   [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                            load_case);
+%!
+%!   mesh.elements.perfectly_matched_layers.tet10h.sigma = zeros(3, columns(mat_ass.colloc_points.tet10h), rows(mat_ass.colloc_points.tet10h));
+%!   mesh.elements.perfectly_matched_layers.tet10h.e1 = zeros(3, columns(mat_ass.colloc_points.tet10h), rows(mat_ass.colloc_points.tet10h));
+%!   mesh.elements.perfectly_matched_layers.tet10h.e2 = zeros(3, columns(mat_ass.colloc_points.tet10h), rows(mat_ass.colloc_points.tet10h));
+%!
+%!   for i=1:3
+%!     mesh.elements.perfectly_matched_layers.tet10h.e1(i, :, :) = e1(i);
+%!     mesh.elements.perfectly_matched_layers.tet10h.e2(i, :, :) = e2(i);
+%!     mesh.elements.perfectly_matched_layers.tet10h.sigma(i, :, :) = sigmax / omega;
+%!   endfor
+
+%!   [mat_ass.Ka_re, ...
+%!    mat_ass.Ka_im, ...
+%!    mat_ass.Da_re, ...
+%!    mat_ass.Da_im, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   sol.t = Psi / omega;
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
+%!   solC.Phi = Phi(dof_map.ndof);
+%!   solC.PhiP = 1j * omega * Phi(dof_map.ndof);
+%!   [solC.particle_velocity, ...
+%!    solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                               FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                              load_case, ...
+%!                                              solC);
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R;
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, real(pref(x, sol.t(i))), "-;pref;0");
+%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 0.5e-2;
+%!   assert(sol.p(idx, :), real(pref(x, sol.t)), tol * max(max(abs(pref(x, Psi)))));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     vx = zeros(rows(mesh.nodes), 1);
+%!     for j=1:3
+%!       vx(mesh.elements.tet10h(:)) += real(solC.particle_velocity.v.tet10h(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
+%!     endfor
+%!     assert(vx(idx), real(vxref(x, sol.t(i))), tol * abs(vx0));
+%!     plot(x, vx(idx), "-;vn;1");
+%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;0");
+%!     ylim([-abs(vx0), abs(vx0)]);
+%!     xlabel("x [m]");
+%!     ylabel("vx [m/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 219 - 1D dissipative wave equation with perfectly matched layers
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   lambda = 100e-3;
+%!   deltaPML = 2 * lambda;
+%!   l1 = lambda;
+%!   l2 = l1 + deltaPML;
+%!   c = 1440;
+%!   alpha = 1 + 2j;
+%!   sigmax = alpha * c / deltaPML;
+%!   rho = 1000;
+%!   f = c / lambda;
+%!   eta = 100;
+%!   zeta = 100;
+%!   omega = 2 * pi * f;
+%!   dx = lambda / 30;
+%!   w = dx;
+%!   h = dx;
+%!   vx0 = 1 + 0.5j;
+%!   tau = (4/3 * eta + zeta) / (rho * c^2);
+%!   fx =  1 / (1 - 1j * sigmax / omega);
+%!   k = omega / (c * fx * sqrt(1i * omega * tau + 1));
+%!   z = (c * rho) / sqrt(1i * omega * tau + 1);
+%!   vxref = @(x, t) vx0 * exp(1j * (omega * t - k * x));
+%!   pref = @(x, t) z * vxref(x, t);
+%!   e1 = [0.1; 1; -1];
+%!   e2 = [-1; 0.8; 0.2];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l1=%g;\n", l1);
+%!   fprintf(fd, "l2=%g;\n", l2);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx1 = %g;\n", dx);
+%!   fprintf(fd, "dx2 = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0};\n");
+%!   fputs(fd, "Point(2) = {0,w,0};\n");
+%!   fputs(fd, "Point(3) = {0,w,h};\n");
+%!   fputs(fd, "Point(4) = {0,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
+%!   fputs(fd, "  Surface{6};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "tmp2[] = Extrude {l2 - l1,0,0} {\n");
+%!   fputs(fd, "  Surface{tmp1[0]};\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Physical Volume(\"volume1\",3) = {tmp1[1]};\n");
+%!   fputs(fd, "Physical Volume(\"volume2\",4) = {tmp2[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp1[0]};\n");
+%!   fputs(fd, "Physical Surface(\"impedance\",3) = {tmp2[0]};\n");
+%!   fputs(fd, "MeshSize{PointsOf{Volume{tmp1[1],tmp2[1]};}} = dx1;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp1[1]};\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10", "tria6"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
+%!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
+%!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
+%!   grp_idx_impedance = find([mesh.groups.tria6.id] == 3);
+%!   grp_idx_volume1 = find([mesh.groups.tet10.id] == 3);
+%!   grp_idx_volume2 = find([mesh.groups.tet10.id] == 4);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_volume1).elements) = 1;
+%!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_volume2).elements) = 1;
+%!   mesh.elements.acoustic_boundary.tria6 = mesh.elements.tria6([[mesh.groups.tria6([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.acoustic_boundary.tria6 = zeros(rows(mesh.elements.acoustic_boundary.tria6), 1, "int32");
+%!   mesh.materials.acoustic_boundary.tria6(mesh.groups.tria6(grp_idx_input).elements) = 1;
+%!   mesh.materials.acoustic_boundary.tria6(mesh.groups.tria6(grp_idx_output).elements) = 1;
+%!   mesh.elements.particle_velocity.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.tria6 = ones(rows(mesh.elements.particle_velocity.tria6.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_impedance).elements, :);
+%!   mesh.elements.acoustic_impedance.tria6.z = repmat(z / fx, size(mesh.elements.acoustic_impedance.tria6.nodes));
+%!   mesh.materials.acoustic_impedance.tria6 = ones(rows(mesh.elements.acoustic_impedance.tria6.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6.vn = repmat(-real(fx * vx0), numel(mesh.groups.tria6(grp_idx_input).elements), 6);
+%!   load_case(2).particle_velocity.tria6.vn = repmat(-imag(fx * vx0), numel(mesh.groups.tria6(grp_idx_input).elements), 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.material_data.eta = eta;
+%!   mesh.material_data.zeta = zeta;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                            load_case);
+%!
+%!   mesh.elements.perfectly_matched_layers.tet10.sigma = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!   mesh.elements.perfectly_matched_layers.tet10.e1 = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!   mesh.elements.perfectly_matched_layers.tet10.e2 = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!
+%!   for i=1:3
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(i, :, :) = e1(i);
+%!     mesh.elements.perfectly_matched_layers.tet10.e2(i, :, :) = e2(i);
+%!     mesh.elements.perfectly_matched_layers.tet10.sigma(i, :, :) = sigmax / omega;
+%!   endfor
+%!   [mat_ass.Ka_re, ...
+%!    mat_ass.Ka_im, ...
+%!    mat_ass.Da_re, ...
+%!    mat_ass.Da_im, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   sol.t = Psi / omega;
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
+%!   solC.Phi = Phi(dof_map.ndof);
+%!   solC.PhiP = 1j * omega * Phi(dof_map.ndof);
+%!   [solC.particle_velocity, ...
+%!    solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                               FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                              load_case, ...
+%!                                              solC);
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R;
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, real(pref(x, sol.t(i))), "-;pref;0");
+%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 0.5e-2;
+%!   assert(sol.p(idx, :), real(pref(x, sol.t)), tol * max(max(abs(pref(x, Psi)))));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     vx = zeros(rows(mesh.nodes), 1);
+%!     for j=1:3
+%!       vx(mesh.elements.tet10(:)) += real(solC.particle_velocity.v.tet10(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
+%!     endfor
+%!     assert(vx(idx), real(vxref(x, sol.t(i))), tol * abs(vx0));
+%!     plot(x, vx(idx), "-;vn;1");
+%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;0");
+%!     ylim([-abs(vx0), abs(vx0)]);
+%!     xlabel("x [m]");
+%!     ylabel("vx [m/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 220 - 1D dissipative wave equation with perfectly matched layers
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!   [fd, msg] = fopen([filename, ".geo"], "w");
+%!   if (fd == -1)
+%!     error("failed to open file \"%s.geo\"", filename);
+%!   endif
+%!   lambda = 100e-3;
+%!   deltaPML = 2 * lambda;
+%!   l1 = lambda;
+%!   l2 = l1 + deltaPML;
+%!   c = 1440;
+%!   alpha = 1 + 2j;
+%!   sigmax = alpha * c / deltaPML;
+%!   rho = 1000;
+%!   f = c / lambda;
+%!   eta = 100;
+%!   zeta = 100;
+%!   omega = 2 * pi * f;
+%!   dx = lambda / 200;
+%!   w = dx;
+%!   h = dx;
+%!   vx0 = 1 + 0.5j;
+%!   tau = (4/3 * eta + zeta) / (rho * c^2);
+%!   fx =  1 / (1 - 1j * sigmax / omega);
+%!   k = omega / (c * fx * sqrt(1i * omega * tau + 1));
+%!   z = (c * rho) / sqrt(1i * omega * tau + 1);
+%!   vxref = @(x, t) vx0 * exp(1j * (omega * t - k * x));
+%!   pref = @(x, t) z * vxref(x, t);
+%!   e1 = [0.1; 1; -1];
+%!   e2 = [-1; 0.8; 0.2];
+%!   e3 = cross(e1, e2);
+%!   e2 = cross(e3, e1);
+%!   e1 /= norm(e1);
+%!   e2 /= norm(e2);
+%!   e3 /= norm(e3);
+%!   R = [e1, e2, e3];
+%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!   fprintf(fd, "l1=%g;\n", l1);
+%!   fprintf(fd, "l2=%g;\n", l2);
+%!   fprintf(fd, "w=%g;\n", w);
+%!   fprintf(fd, "h=%g;\n", h);
+%!   fprintf(fd, "dx1 = %g;\n", dx);
+%!   fprintf(fd, "dx2 = %g;\n", dx);
+%!   fputs(fd, "Point(1) = {0,0,0};\n");
+%!   fputs(fd, "Point(2) = {0,w,0};\n");
+%!   fputs(fd, "Point(3) = {0,w,h};\n");
+%!   fputs(fd, "Point(4) = {0,0,h};\n");
+%!   fputs(fd, "Line(1) = {1,2};\n");
+%!   fputs(fd, "Line(2) = {2,3};\n");
+%!   fputs(fd, "Line(3) = {3,4};\n");
+%!   fputs(fd, "Line(4) = {4,1};\n");
+%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!   fputs(fd, "Plane Surface(6) = {5};\n");
+%!   fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
+%!   fputs(fd, "  Surface{6}; Layers{Ceil(l1/dx1)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "tmp2[] = Extrude {l2 - l1,0,0} {\n");
+%!   fputs(fd, "  Surface{tmp1[0]}; Layers{Ceil((l2 - l1)/dx2)}; Recombine;\n");
+%!   fputs(fd, "};\n");
+%!   fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
+%!   fputs(fd, "Physical Volume(\"volume1\",3) = {tmp1[1]};\n");
+%!   fputs(fd, "Physical Volume(\"volume2\",4) = {tmp2[1]};\n");
+%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp1[0]};\n");
+%!   fputs(fd, "Physical Surface(\"impedance\",3) = {tmp2[0]};\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   fputs(fd, "ReorientMesh Volume{tmp1[1]};\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"iso8", "iso4"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   [x, idx] = sort(mesh.nodes(:, 1));
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
+%!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
+%!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
+%!   grp_idx_impedance = find([mesh.groups.iso4.id] == 3);
+%!   grp_idx_volume1 = find([mesh.groups.iso8.id] == 3);
+%!   grp_idx_volume2 = find([mesh.groups.iso8.id] == 4);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.iso8 = zeros(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.materials.iso8(mesh.groups.iso8(grp_idx_volume1).elements) = 1;
+%!   mesh.materials.iso8(mesh.groups.iso8(grp_idx_volume2).elements) = 1;
+%!   mesh.elements.acoustic_boundary.iso4 = mesh.elements.iso4([[mesh.groups.iso4([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.acoustic_boundary.iso4 = zeros(rows(mesh.elements.acoustic_boundary.iso4), 1, "int32");
+%!   mesh.materials.acoustic_boundary.iso4(mesh.groups.iso4(grp_idx_input).elements) = 1;
+%!   mesh.materials.acoustic_boundary.iso4(mesh.groups.iso4(grp_idx_output).elements) = 1;
+%!   mesh.elements.particle_velocity.iso4.nodes = mesh.elements.iso4(mesh.groups.iso4(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.iso4 = ones(rows(mesh.elements.particle_velocity.iso4.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.iso4.nodes = mesh.elements.iso4(mesh.groups.iso4(grp_idx_impedance).elements, :);
+%!   mesh.elements.acoustic_impedance.iso4.z = repmat(z / fx, size(mesh.elements.acoustic_impedance.iso4.nodes));
+%!   mesh.materials.acoustic_impedance.iso4 = ones(rows(mesh.elements.acoustic_impedance.iso4.nodes), 1, "int32");
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.iso4.vn = repmat(-real(fx * vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
+%!   load_case(2).particle_velocity.iso4.vn = repmat(-imag(fx * vx0), numel(mesh.groups.iso4(grp_idx_input).elements), 4);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.material_data.eta = eta;
+%!   mesh.material_data.zeta = zeta;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!
+%!   [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                            dof_map, ...
+%!                                            [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                            load_case);
+%!
+%!   mesh.elements.perfectly_matched_layers.iso8.sigma = zeros(3, columns(mat_ass.colloc_points.iso8), rows(mat_ass.colloc_points.iso8));
+%!   mesh.elements.perfectly_matched_layers.iso8.e1 = zeros(3, columns(mat_ass.colloc_points.iso8), rows(mat_ass.colloc_points.iso8));
+%!   mesh.elements.perfectly_matched_layers.iso8.e2 = zeros(3, columns(mat_ass.colloc_points.iso8), rows(mat_ass.colloc_points.iso8));
+%!
+%!   for i=1:3
+%!     mesh.elements.perfectly_matched_layers.iso8.e1(i, :, :) = e1(i);
+%!     mesh.elements.perfectly_matched_layers.iso8.e2(i, :, :) = e2(i);
+%!     mesh.elements.perfectly_matched_layers.iso8.sigma(i, :, :) = sigmax / omega;
+%!   endfor
+%!
+%!   [mat_ass.Ka_re, ...
+%!    mat_ass.Ka_im, ...
+%!    mat_ass.Da_re, ...
+%!    mat_ass.Da_im, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.Ra, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                         FEM_MAT_MASS_ACOUSTICS, ...
+%!                                         FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                        load_case);
+%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.solver = "pastix";
+%!   opt_sol.refine_max_iter = int32(50);
+%!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   Psi = linspace(0, 2 * pi, 37);
+%!   sol.t = Psi / omega;
+%!   sol.p = real(-1j * omega * Phi(dof_map.ndof) * exp(1j * Psi));
+%!   solC.Phi = Phi(dof_map.ndof);
+%!   solC.PhiP = 1j * omega * Phi(dof_map.ndof);
+%!   [solC.particle_velocity, ...
+%!    solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                               FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                              load_case, ...
+%!                                              solC);
+%!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R;
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(x, sol.p(idx, i), "-;p;1");
+%!     plot(x, real(pref(x, sol.t(i))), "-;pref;0");
+%!     ylim([min(min(sol.p)), max(max(sol.p))]);
+%!     xlabel("x [m]");
+%!     ylabel("p [Pa]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!   endfor
+%!   tol = 2e-2;
+%!   assert(sol.p(idx, :), real(pref(x, sol.t)), tol * max(max(abs(pref(x, Psi)))));
+%!   for i=1:numel(Psi)
+%!     figure("visible", "off");
+%!     hold on;
+%!     vx = zeros(rows(mesh.nodes), 1);
+%!     for j=1:3
+%!       vx(mesh.elements.iso8(:)) += real(solC.particle_velocity.v.iso8(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
+%!     endfor
+%!     plot(x, vx(idx), "-;vn;1");
+%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;0");
+%!     ylim([-abs(vx0), abs(vx0)]);
+%!     xlabel("x [m]");
+%!     ylabel("vx [m/s]");
+%!     grid on;
+%!     grid minor on;
+%!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
+%!     assert(vx(idx), real(vxref(x, sol.t(i))), tol * abs(vx0));
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 221
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1e-3;
+%!     unit_second = 1e4;
+%!     unit_kilograms = 1e-3;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     unit_watt = unit_newton * unit_meters / unit_second;
+%!     lambda = 10e-3 / unit_meters;
+%!     deltaPML = 3 * lambda;
+%!     r0 = 100e-3 / unit_meters;
+%!     r1 = r0 + 3 * lambda;
+%!     r2 = r1 + deltaPML;
+%!     dx = lambda / 30;
+%!     rho = 1000 / (unit_kilograms / unit_meters^3);
+%!     c = 1440 / (unit_meters / unit_second);
+%!     nPML = 1;
+%!     alphaPML = 1;
+%!     f = c / lambda;
+%!     omega = 2 * pi * f;
+%!     k = omega / c;
+%!     f_use_PML = true;
+%!     f_use_impedance = false;
+%!     f_enable_plot = true;
+%!     Aref = (1 + 0j) / (unit_pascal * unit_meters);
+%!     pref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
+%!     zref = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according equation 5.11.9
+%!     vnref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ (r * zref(r)); ## according equation 5.11.17
+%!     alpha = atan2(2 * dx, r0);
+%!     beta = atan2(2 * dx, r0);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "r0=%g;\n", r0);
+%!     fprintf(fd, "r1=%g;\n", r1);
+%!     fprintf(fd, "r2=%g;\n", r2);
+%!     fprintf(fd, "rref = (r0 + r2) / 2;\n");
+%!     fprintf(fd, "alpha=%g;\n", alpha);
+%!     fprintf(fd, "beta=%g;\n", beta);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {r0*Cos(alpha/2),r0*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(2) = {r1*Cos(alpha/2),r1*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(3) = {r2*Cos(alpha/2),r2*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "tmp1[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{1}; Layers{Ceil(beta/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "tmp2[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{2}; Layers{Ceil(beta/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Coherence;\n");
+%!     fputs(fd, "tmp4[] = Extrude{{0,0,1},{0,0,0},-alpha/2} {\n");
+%!     fputs(fd, "  Surface{tmp1[1],tmp2[1]}; Layers{Ceil(alpha/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"v1\",1) = {tmp4[1]};\n");
+%!     fputs(fd, "Physical Volume(\"v2\",2) = {tmp4[7]};\n");
+%!     fputs(fd, "Physical Surface(\"s1\", 4) = {tmp4[2]};\n");
+%!     fputs(fd, "Physical Surface(\"s2\", 5) = {tmp4[3]};\n");
+%!     fputs(fd, "Physical Surface(\"s3\", 6) = {tmp4[9]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s1).elements, :);
+%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s2).elements, :);
+%!   mesh.materials.acoustic_boundary.quad8 = ones(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
+%!   if (f_use_impedance)
+%!     mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s3).elements, :);
+%!     mesh.elements.acoustic_impedance.quad8.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.quad8.nodes));
+%!     mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
+%!   endif
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.quad8.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   load_case(2).particle_velocity.quad8.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   if (f_use_PML)
+%!     load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_s3).nodes, :) = true;
+%!   endif
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   if (f_use_PML)
+%!     [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                              load_case);
+%!     mesh.elements.perfectly_matched_layers.iso20.sigma = zeros(3, columns(mat_ass.colloc_points.iso20), rows(mat_ass.colloc_points.iso20));
+%!     mesh.elements.perfectly_matched_layers.iso20.e1 = zeros(3, columns(mat_ass.colloc_points.iso20), rows(mat_ass.colloc_points.iso20));
+%!     mesh.elements.perfectly_matched_layers.iso20.e2 = zeros(3, columns(mat_ass.colloc_points.iso20), rows(mat_ass.colloc_points.iso20));
+%!     xi = mat_ass.colloc_points.iso20(:, :, 1).';
+%!     yi = mat_ass.colloc_points.iso20(:, :, 2).';
+%!     zi = mat_ass.colloc_points.iso20(:, :, 3).';
+%!     ri = sqrt(xi.^2 + yi.^2 + zi.^2) - r1;
+%!     mesh.elements.perfectly_matched_layers.iso20.e1(1, :, :) = xi;
+%!     mesh.elements.perfectly_matched_layers.iso20.e1(2, :, :) = yi;
+%!     mesh.elements.perfectly_matched_layers.iso20.e1(3, :, :) = zi;
+%!     mesh.elements.perfectly_matched_layers.iso20.e2(2, :, :) = 1;
+%!   endif
+%!   P = zeros(1, numel(alphaPML));
+%!   T = zeros(1, numel(alphaPML));
+%!   for i=1:numel(alphaPML)
+%!     if (f_use_PML)
+%!       sigmax = (ri >= 0) .* (1 ./ (1 - ri / deltaPML).^nPML - 1) * (2 * pi * alphaPML(i) * c / deltaPML);
+%!       mesh.elements.perfectly_matched_layers.iso20.sigma(1, :, :) = sigmax / omega;
+%!     endif
+%!     [mat_ass.Ka_re, ...
+%!      mat_ass.Ka_im, ...
+%!      mat_ass.Da_re, ...
+%!      mat_ass.Da_im, ...
+%!      mat_ass.Ma, ...
+%!      mat_ass.Ra, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_MASS_ACOUSTICS, ...
+%!                                           FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                          load_case);
+%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.solver = "pastix";
+%!     opt_sol.refine_max_iter = int32(50);
+%!     Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!     Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!     Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!     Psi = linspace(0, 2 * pi, 37);
+%!     idx = dof_map.ndof(:, 1);
+%!     iact = find(idx > 0);
+%!     solC.Phi(iact, :) = Phi(idx(iact), :);
+%!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
+%!     [solC.particle_velocity, ...
+%!      solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                                dof_map, ...
+%!                                                [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                                 FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                load_case, ...
+%!                                                solC);
+%!
+%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.quad8);
+%!     vx = solC.particle_velocity.vn.quad8;
+%!     R = abs(mean(mean((p - zref(r1) * vx) ./ (p + zref(r1) * vx))));
+%!     T(i) = 1 / (1 - R^2);
+%!     P(i) = sum(solC.acoustic_intensity.P.quad8);
+%!     P0 = 1e-12 / unit_watt;
+%!     fprintf(stderr, "alphaPML=%.2f LW=%.2fdB TL=%.2fdB\n", alphaPML(i), 10 * log10(P(i)/P0), 10 * log10(T(i)));
+
+%!     solR.t = Psi / omega;
+%!     solR.p = real(-solC.PhiP * exp(1j * Psi));
+%!     rg = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
+%!     [rg, idx] = sort(rg);
+%!     if (f_enable_plot)
+%!       for j=1:columns(solR.p)
+%!         figure("visible", "off");
+%!         hold on;
+%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
+%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!         xlabel("x [m]");
+%!         ylabel("p [Pa]");
+%!         grid on;
+%!         grid minor on;
+%!         title(sprintf("alpha=%.2f pressure t=%.2fs", alphaPML(i), solR.t(j)));
+%!         ylim([-1, 1] * max(max(abs(solR.p))) * unit_pascal);
+%!       endfor
+%!     endif
+%!     idx2 = find(rg < r1);
+%!     rg = rg(idx2);
+%!     idx = idx(idx2);
+%!     tol = 1e-2;
+%!     for j=1:numel(solR.t)
+%!       prefj = real(pref(rg, solR.t(j)));
+%!       assert(solR.p(idx, j), prefj, tol * max(abs(prefj)));
+%!     endfor
+%!   endfor
+%!   alphaPMLopt = alphaPML(find(T == min(T)));
+%!   fprintf(stderr, "optimum alphaPML=%.2f\n", alphaPMLopt);
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("P [dB]");
+%!   title("sound power level");
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(T), "-x;TL;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("TL [dB]");
+%!   title("transmission loss");
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 222
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1e-3;
+%!     unit_second = 1e4;
+%!     unit_kilograms = 1e-3;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     unit_watt = unit_newton * unit_meters / unit_second;
+%!     lambda = 10e-3 / unit_meters;
+%!     deltaPML = 3 * lambda;
+%!     r0 = 100e-3 / unit_meters;
+%!     r1 = r0 + 3 * lambda;
+%!     r2 = r1 + deltaPML;
+%!     dx = lambda / 100;
+%!     rho = 1000 / (unit_kilograms / unit_meters^3);
+%!     c = 1440 / (unit_meters / unit_second);
+%!     nPML = 1;
+%!     alphaPML = 1;
+%!     f = c / lambda;
+%!     omega = 2 * pi * f;
+%!     k = omega / c;
+%!     f_use_PML = true;
+%!     f_use_impedance = false;
+%!     f_enable_plot = true;
+%!     Aref = (1 + 0j) / (unit_pascal * unit_meters);
+%!     pref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
+%!     zref = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according equation 5.11.9
+%!     vnref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ (r * zref(r)); ## according equation 5.11.17
+%!     alpha = atan2(2 * dx, r0);
+%!     beta = atan2(2 * dx, r0);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "r0=%g;\n", r0);
+%!     fprintf(fd, "r1=%g;\n", r1);
+%!     fprintf(fd, "r2=%g;\n", r2);
+%!     fprintf(fd, "rref = (r0 + r2) / 2;\n");
+%!     fprintf(fd, "alpha=%g;\n", alpha);
+%!     fprintf(fd, "beta=%g;\n", beta);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {r0*Cos(alpha/2),r0*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(2) = {r1*Cos(alpha/2),r1*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(3) = {r2*Cos(alpha/2),r2*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "tmp1[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{1}; Layers{Ceil(beta/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "tmp2[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{2}; Layers{Ceil(beta/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Coherence;\n");
+%!     fputs(fd, "tmp4[] = Extrude{{0,0,1},{0,0,0},-alpha/2} {\n");
+%!     fputs(fd, "  Surface{tmp1[1],tmp2[1]}; Layers{Ceil(alpha/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"v1\",1) = {tmp4[1]};\n");
+%!     fputs(fd, "Physical Volume(\"v2\",2) = {tmp4[7]};\n");
+%!     fputs(fd, "Physical Surface(\"s1\", 4) = {tmp4[2]};\n");
+%!     fputs(fd, "Physical Surface(\"s2\", 5) = {tmp4[3]};\n");
+%!     fputs(fd, "Physical Surface(\"s3\", 6) = {tmp4[9]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_s1 = find([mesh.groups.iso4.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.iso4.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.iso4.id] == 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
+%!   mesh.elements.particle_velocity.iso4.nodes = mesh.elements.iso4(mesh.groups.iso4(grp_idx_s1).elements, :);
+%!   mesh.materials.particle_velocity.iso4 = ones(rows(mesh.elements.particle_velocity.iso4.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.iso4 = mesh.elements.iso4(mesh.groups.iso4(grp_idx_s2).elements, :);
+%!   mesh.materials.acoustic_boundary.iso4 = ones(rows(mesh.elements.acoustic_boundary.iso4), 1, "int32");
+%!   if (f_use_impedance)
+%!     mesh.elements.acoustic_impedance.iso4.nodes = mesh.elements.iso4(mesh.groups.iso4(grp_idx_s3).elements, :);
+%!     mesh.elements.acoustic_impedance.iso4.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.iso4.nodes));
+%!     mesh.materials.acoustic_impedance.iso4 = ones(rows(mesh.elements.acoustic_impedance.iso4.nodes), 1, "int32");
+%!   endif
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.iso4.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.iso4.nodes));
+%!   load_case(2).particle_velocity.iso4.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.iso4.nodes));
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   if (f_use_PML)
+%!     load_case_dof.locked_dof(mesh.groups.iso4(grp_idx_s3).nodes, :) = true;
+%!   endif
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   if (f_use_PML)
+%!     [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                              load_case);
+%!     mesh.elements.perfectly_matched_layers.iso8.sigma = zeros(3, columns(mat_ass.colloc_points.iso8), rows(mat_ass.colloc_points.iso8));
+%!     mesh.elements.perfectly_matched_layers.iso8.e1 = zeros(3, columns(mat_ass.colloc_points.iso8), rows(mat_ass.colloc_points.iso8));
+%!     mesh.elements.perfectly_matched_layers.iso8.e2 = zeros(3, columns(mat_ass.colloc_points.iso8), rows(mat_ass.colloc_points.iso8));
+%!     xi = mat_ass.colloc_points.iso8(:, :, 1).';
+%!     yi = mat_ass.colloc_points.iso8(:, :, 2).';
+%!     zi = mat_ass.colloc_points.iso8(:, :, 3).';
+%!     ri = sqrt(xi.^2 + yi.^2 + zi.^2) - r1;
+%!     mesh.elements.perfectly_matched_layers.iso8.e1(1, :, :) = xi;
+%!     mesh.elements.perfectly_matched_layers.iso8.e1(2, :, :) = yi;
+%!     mesh.elements.perfectly_matched_layers.iso8.e1(3, :, :) = zi;
+%!     mesh.elements.perfectly_matched_layers.iso8.e2(2, :, :) = 1;
+%!   endif
+%!   P = zeros(1, numel(alphaPML));
+%!   T = zeros(1, numel(alphaPML));
+%!   for i=1:numel(alphaPML)
+%!     if (f_use_PML)
+%!       sigmax = (ri >= 0) .* (1 ./ (1 - ri / deltaPML).^nPML - 1) * (2 * pi * alphaPML(i) * c / deltaPML);
+%!       mesh.elements.perfectly_matched_layers.iso8.sigma(1, :, :) = sigmax / omega;
+%!     endif
+%!     [mat_ass.Ka_re, ...
+%!      mat_ass.Ka_im, ...
+%!      mat_ass.Da_re, ...
+%!      mat_ass.Da_im, ...
+%!      mat_ass.Ma, ...
+%!      mat_ass.Ra, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_MASS_ACOUSTICS, ...
+%!                                           FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                          load_case);
+%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.solver = "pastix";
+%!     opt_sol.refine_max_iter = int32(50);
+%!     Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!     Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!     Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!     Psi = linspace(0, 2 * pi, 37);
+%!     idx = dof_map.ndof(:, 1);
+%!     iact = find(idx > 0);
+%!     solC.Phi(iact, :) = Phi(idx(iact), :);
+%!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
+%!     [solC.particle_velocity, ...
+%!      solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                                dof_map, ...
+%!                                                [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                                 FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                load_case, ...
+%!                                                solC);
+%!
+%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.iso4);
+%!     vx = solC.particle_velocity.vn.iso4;
+%!     R = abs(mean(mean((p - zref(r1) * vx) ./ (p + zref(r1) * vx))));
+%!     T(i) = 1 / (1 - R^2);
+%!     P(i) = sum(solC.acoustic_intensity.P.iso4);
+%!     P0 = 1e-12 / unit_watt;
+%!     fprintf(stderr, "alphaPML=%.2f LW=%.2fdB TL=%.2fdB\n", alphaPML(i), 10 * log10(P(i)/P0), 10 * log10(T(i)));
+
+%!     solR.t = Psi / omega;
+%!     solR.p = real(-solC.PhiP * exp(1j * Psi));
+%!     rg = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
+%!     [rg, idx] = sort(rg);
+%!     if (f_enable_plot)
+%!       for j=1:columns(solR.p)
+%!         figure("visible", "off");
+%!         hold on;
+%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
+%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!         xlabel("x [m]");
+%!         ylabel("p [Pa]");
+%!         grid on;
+%!         grid minor on;
+%!         title(sprintf("alpha=%.2f pressure t=%.2fs", alphaPML(i), solR.t(j)));
+%!         ylim([-1, 1] * max(max(abs(solR.p))) * unit_pascal);
+%!       endfor
+%!     endif
+%!     idx2 = find(rg < r1);
+%!     rg = rg(idx2);
+%!     idx = idx(idx2);
+%!     tol = 1e-2;
+%!     for j=1:numel(solR.t)
+%!       prefj = real(pref(rg, solR.t(j)));
+%!       assert(solR.p(idx, j), prefj, tol * max(abs(prefj)));
+%!     endfor
+%!   endfor
+%!   alphaPMLopt = alphaPML(find(T == min(T)));
+%!   fprintf(stderr, "optimum alphaPML=%.2f\n", alphaPMLopt);
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("P [dB]");
+%!   title("sound power level");
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(T), "-x;TL;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("TL [dB]");
+%!   title("transmission loss");
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 223
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1e-3;
+%!     unit_second = 1e4;
+%!     unit_kilograms = 1e-3;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     unit_watt = unit_newton * unit_meters / unit_second;
+%!     lambda = 10e-3 / unit_meters;
+%!     deltaPML = 3 * lambda;
+%!     r0 = 100e-3 / unit_meters;
+%!     r1 = r0 + 3 * lambda;
+%!     r2 = r1 + deltaPML;
+%!     dx = lambda / 20;
+%!     rho = 1000 / (unit_kilograms / unit_meters^3);
+%!     c = 1440 / (unit_meters / unit_second);
+%!     nPML = 1;
+%!     alphaPML = 1;
+%!     f = c / lambda;
+%!     omega = 2 * pi * f;
+%!     k = omega / c;
+%!     f_use_PML = true;
+%!     f_use_impedance = false;
+%!     f_enable_plot = true;
+%!     Aref = (1 + 0j) / (unit_pascal * unit_meters);
+%!     pref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
+%!     zref = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according equation 5.11.9
+%!     vnref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ (r * zref(r)); ## according equation 5.11.17
+%!     alpha = atan2(2 * dx, r0);
+%!     beta = atan2(2 * dx, r0);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "r0=%g;\n", r0);
+%!     fprintf(fd, "r1=%g;\n", r1);
+%!     fprintf(fd, "r2=%g;\n", r2);
+%!     fprintf(fd, "rref = (r0 + r2) / 2;\n");
+%!     fprintf(fd, "alpha=%g;\n", alpha);
+%!     fprintf(fd, "beta=%g;\n", beta);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {r0*Cos(alpha/2),r0*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(2) = {r1*Cos(alpha/2),r1*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(3) = {r2*Cos(alpha/2),r2*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "tmp1[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{1};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "tmp2[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{2};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Coherence;\n");
+%!     fputs(fd, "tmp4[] = Extrude{{0,0,1},{0,0,0},-alpha/2} {\n");
+%!     fputs(fd, "  Surface{tmp1[1],tmp2[1]};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{tmp4[1],tmp4[7]};}} = dx;\n");
+%!     fputs(fd, "Physical Volume(\"v1\",1) = {tmp4[1]};\n");
+%!     fputs(fd, "Physical Volume(\"v2\",2) = {tmp4[7]};\n");
+%!     fputs(fd, "Physical Surface(\"s1\", 4) = {tmp4[2]};\n");
+%!     fputs(fd, "Physical Surface(\"s2\", 5) = {tmp4[3]};\n");
+%!     fputs(fd, "Physical Surface(\"s3\", 6) = {tmp4[9]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_s1).elements, :);
+%!   mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.tria6h = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_s2).elements, :);
+%!   mesh.materials.acoustic_boundary.tria6h = ones(rows(mesh.elements.acoustic_boundary.tria6h), 1, "int32");
+%!   if (f_use_impedance)
+%!     mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_s3).elements, :);
+%!     mesh.elements.acoustic_impedance.tria6h.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.tria6h.nodes));
+%!     mesh.materials.acoustic_impedance.tria6h = ones(rows(mesh.elements.acoustic_impedance.tria6h.nodes), 1, "int32");
+%!   endif
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6h.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.tria6h.nodes));
+%!   load_case(2).particle_velocity.tria6h.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.tria6h.nodes));
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   if (f_use_PML)
+%!     load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_s3).nodes, :) = true;
+%!   endif
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   if (f_use_PML)
+%!     [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                              load_case);
+%!     mesh.elements.perfectly_matched_layers.tet10h.sigma = zeros(3, columns(mat_ass.colloc_points.tet10h), rows(mat_ass.colloc_points.tet10h));
+%!     mesh.elements.perfectly_matched_layers.tet10h.e1 = zeros(3, columns(mat_ass.colloc_points.tet10h), rows(mat_ass.colloc_points.tet10h));
+%!     mesh.elements.perfectly_matched_layers.tet10h.e2 = zeros(3, columns(mat_ass.colloc_points.tet10h), rows(mat_ass.colloc_points.tet10h));
+%!     xi = mat_ass.colloc_points.tet10h(:, :, 1).';
+%!     yi = mat_ass.colloc_points.tet10h(:, :, 2).';
+%!     zi = mat_ass.colloc_points.tet10h(:, :, 3).';
+%!     ri = sqrt(xi.^2 + yi.^2 + zi.^2) - r1;
+%!     mesh.elements.perfectly_matched_layers.tet10h.e1(1, :, :) = xi;
+%!     mesh.elements.perfectly_matched_layers.tet10h.e1(2, :, :) = yi;
+%!     mesh.elements.perfectly_matched_layers.tet10h.e1(3, :, :) = zi;
+%!     mesh.elements.perfectly_matched_layers.tet10h.e2(2, :, :) = 1;
+%!   endif
+%!   P = zeros(1, numel(alphaPML));
+%!   T = zeros(1, numel(alphaPML));
+%!   for i=1:numel(alphaPML)
+%!     if (f_use_PML)
+%!       sigmax = (ri >= 0) .* (1 ./ (1 - ri / deltaPML).^nPML - 1) * (2 * pi * alphaPML(i) * c / deltaPML);
+%!       mesh.elements.perfectly_matched_layers.tet10h.sigma(1, :, :) = sigmax / omega;
+%!     endif
+%!     [mat_ass.Ka_re, ...
+%!      mat_ass.Ka_im, ...
+%!      mat_ass.Da_re, ...
+%!      mat_ass.Da_im, ...
+%!      mat_ass.Ma, ...
+%!      mat_ass.Ra, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_MASS_ACOUSTICS, ...
+%!                                           FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                          load_case);
+%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.solver = "pastix";
+%!     opt_sol.refine_max_iter = int32(50);
+%!     Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!     Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!     Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!     Psi = linspace(0, 2 * pi, 37);
+%!     idx = dof_map.ndof(:, 1);
+%!     iact = find(idx > 0);
+%!     solC.Phi(iact, :) = Phi(idx(iact), :);
+%!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
+%!     [solC.particle_velocity, ...
+%!      solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                                dof_map, ...
+%!                                                [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                                 FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                load_case, ...
+%!                                                solC);
+%!
+%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.tria6h);
+%!     vx = solC.particle_velocity.vn.tria6h;
+%!     R = abs(mean(mean((p - zref(r1) * vx) ./ (p + zref(r1) * vx))));
+%!     T(i) = 1 / (1 - R^2);
+%!     P(i) = sum(solC.acoustic_intensity.P.tria6h);
+%!     P0 = 1e-12 / unit_watt;
+%!     fprintf(stderr, "alphaPML=%.2f LW=%.2fdB TL=%.2fdB\n", alphaPML(i), 10 * log10(P(i)/P0), 10 * log10(T(i)));
+
+%!     solR.t = Psi / omega;
+%!     solR.p = real(-solC.PhiP * exp(1j * Psi));
+%!     rg = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
+%!     [rg, idx] = sort(rg);
+%!     if (f_enable_plot)
+%!       for j=1:columns(solR.p)
+%!         figure("visible", "off");
+%!         hold on;
+%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
+%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!         xlabel("x [m]");
+%!         ylabel("p [Pa]");
+%!         grid on;
+%!         grid minor on;
+%!         title(sprintf("alpha=%.2f pressure t=%.2fs", alphaPML(i), solR.t(j)));
+%!         ylim([-1, 1] * max(max(abs(solR.p))) * unit_pascal);
+%!       endfor
+%!     endif
+%!     idx2 = find(rg < r1);
+%!     rg = rg(idx2);
+%!     idx = idx(idx2);
+%!     tol = 1e-2;
+%!     for j=1:numel(solR.t)
+%!       prefj = real(pref(rg, solR.t(j)));
+%!       assert(solR.p(idx, j), prefj, tol * max(abs(prefj)));
+%!     endfor
+%!   endfor
+%!   alphaPMLopt = alphaPML(find(T == min(T)));
+%!   fprintf(stderr, "optimum alphaPML=%.2f\n", alphaPMLopt);
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("P [dB]");
+%!   title("sound power level");
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(T), "-x;TL;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("TL [dB]");
+%!   title("transmission loss");
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 224
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1e-3;
+%!     unit_second = 1e4;
+%!     unit_kilograms = 1e-3;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     unit_watt = unit_newton * unit_meters / unit_second;
+%!     lambda = 10e-3 / unit_meters;
+%!     deltaPML = 3 * lambda;
+%!     r0 = 100e-3 / unit_meters;
+%!     r1 = r0 + 3 * lambda;
+%!     r2 = r1 + deltaPML;
+%!     dx = lambda / 20;
+%!     rho = 1000 / (unit_kilograms / unit_meters^3);
+%!     c = 1440 / (unit_meters / unit_second);
+%!     nPML = 1;
+%!     alphaPML = 1;
+%!     f = c / lambda;
+%!     omega = 2 * pi * f;
+%!     k = omega / c;
+%!     f_use_PML = true;
+%!     f_use_impedance = false;
+%!     f_enable_plot = true;
+%!     Aref = (1 + 0j) / (unit_pascal * unit_meters);
+%!     pref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
+%!     zref = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according equation 5.11.9
+%!     vnref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ (r * zref(r)); ## according equation 5.11.17
+%!     alpha = atan2(2 * dx, r0);
+%!     beta = atan2(2 * dx, r0);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "r0=%g;\n", r0);
+%!     fprintf(fd, "r1=%g;\n", r1);
+%!     fprintf(fd, "r2=%g;\n", r2);
+%!     fprintf(fd, "rref = (r0 + r2) / 2;\n");
+%!     fprintf(fd, "alpha=%g;\n", alpha);
+%!     fprintf(fd, "beta=%g;\n", beta);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {r0*Cos(alpha/2),r0*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(2) = {r1*Cos(alpha/2),r1*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(3) = {r2*Cos(alpha/2),r2*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "tmp1[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{1};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "tmp2[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{2};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Coherence;\n");
+%!     fputs(fd, "tmp4[] = Extrude{{0,0,1},{0,0,0},-alpha/2} {\n");
+%!     fputs(fd, "  Surface{tmp1[1],tmp2[1]};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{tmp4[1],tmp4[7]};}} = dx;\n");
+%!     fputs(fd, "Physical Volume(\"v1\",1) = {tmp4[1]};\n");
+%!     fputs(fd, "Physical Volume(\"v2\",2) = {tmp4[7]};\n");
+%!     fputs(fd, "Physical Surface(\"s1\", 4) = {tmp4[2]};\n");
+%!     fputs(fd, "Physical Surface(\"s2\", 5) = {tmp4[3]};\n");
+%!     fputs(fd, "Physical Surface(\"s3\", 6) = {tmp4[9]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   opt_mesh.elem_type = {"tet10", "tria6"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_s1 = find([mesh.groups.tria6.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.tria6.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.tria6.id] == 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   mesh.elements.particle_velocity.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s1).elements, :);
+%!   mesh.materials.particle_velocity.tria6 = ones(rows(mesh.elements.particle_velocity.tria6.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s2).elements, :);
+%!   mesh.materials.acoustic_boundary.tria6 = ones(rows(mesh.elements.acoustic_boundary.tria6), 1, "int32");
+%!   if (f_use_impedance)
+%!     mesh.elements.acoustic_impedance.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s3).elements, :);
+%!     mesh.elements.acoustic_impedance.tria6.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.tria6.nodes));
+%!     mesh.materials.acoustic_impedance.tria6 = ones(rows(mesh.elements.acoustic_impedance.tria6.nodes), 1, "int32");
+%!   endif
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.tria6.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.tria6.nodes));
+%!   load_case(2).particle_velocity.tria6.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.tria6.nodes));
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   if (f_use_PML)
+%!     load_case_dof.locked_dof(mesh.groups.tria6(grp_idx_s3).nodes, :) = true;
+%!   endif
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   if (f_use_PML)
+%!     [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                              load_case);
+%!     mesh.elements.perfectly_matched_layers.tet10.sigma = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!     mesh.elements.perfectly_matched_layers.tet10.e1 = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!     mesh.elements.perfectly_matched_layers.tet10.e2 = zeros(3, columns(mat_ass.colloc_points.tet10), rows(mat_ass.colloc_points.tet10));
+%!     xi = mat_ass.colloc_points.tet10(:, :, 1).';
+%!     yi = mat_ass.colloc_points.tet10(:, :, 2).';
+%!     zi = mat_ass.colloc_points.tet10(:, :, 3).';
+%!     ri = sqrt(xi.^2 + yi.^2 + zi.^2) - r1;
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(1, :, :) = xi;
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(2, :, :) = yi;
+%!     mesh.elements.perfectly_matched_layers.tet10.e1(3, :, :) = zi;
+%!     mesh.elements.perfectly_matched_layers.tet10.e2(2, :, :) = 1;
+%!   endif
+%!   P = zeros(1, numel(alphaPML));
+%!   T = zeros(1, numel(alphaPML));
+%!   for i=1:numel(alphaPML)
+%!     if (f_use_PML)
+%!       sigmax = (ri >= 0) .* (1 ./ (1 - ri / deltaPML).^nPML - 1) * (2 * pi * alphaPML(i) * c / deltaPML);
+%!       mesh.elements.perfectly_matched_layers.tet10.sigma(1, :, :) = sigmax / omega;
+%!     endif
+%!     [mat_ass.Ka_re, ...
+%!      mat_ass.Ka_im, ...
+%!      mat_ass.Da_re, ...
+%!      mat_ass.Da_im, ...
+%!      mat_ass.Ma, ...
+%!      mat_ass.Ra, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_MASS_ACOUSTICS, ...
+%!                                           FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                          load_case);
+%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.solver = "pastix";
+%!     opt_sol.refine_max_iter = int32(50);
+%!     Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!     Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!     Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!     Psi = linspace(0, 2 * pi, 37);
+%!     idx = dof_map.ndof(:, 1);
+%!     iact = find(idx > 0);
+%!     solC.Phi(iact, :) = Phi(idx(iact), :);
+%!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
+%!     [solC.particle_velocity, ...
+%!      solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                                dof_map, ...
+%!                                                [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                                 FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                load_case, ...
+%!                                                solC);
+%!
+%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.tria6);
+%!     vx = solC.particle_velocity.vn.tria6;
+%!     R = abs(mean(mean((p - zref(r1) * vx) ./ (p + zref(r1) * vx))));
+%!     T(i) = 1 / (1 - R^2);
+%!     P(i) = sum(solC.acoustic_intensity.P.tria6);
+%!     P0 = 1e-12 / unit_watt;
+%!     fprintf(stderr, "alphaPML=%.2f LW=%.2fdB TL=%.2fdB\n", alphaPML(i), 10 * log10(P(i)/P0), 10 * log10(T(i)));
+
+%!     solR.t = Psi / omega;
+%!     solR.p = real(-solC.PhiP * exp(1j * Psi));
+%!     rg = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
+%!     [rg, idx] = sort(rg);
+%!     if (f_enable_plot)
+%!       for j=1:columns(solR.p)
+%!         figure("visible", "off");
+%!         hold on;
+%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
+%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!         xlabel("x [m]");
+%!         ylabel("p [Pa]");
+%!         grid on;
+%!         grid minor on;
+%!         title(sprintf("alpha=%.2f pressure t=%.2fs", alphaPML(i), solR.t(j)));
+%!         ylim([-1, 1] * max(max(abs(solR.p))) * unit_pascal);
+%!       endfor
+%!     endif
+%!     idx2 = find(rg < r1);
+%!     rg = rg(idx2);
+%!     idx = idx(idx2);
+%!     tol = 1e-2;
+%!     for j=1:numel(solR.t)
+%!       prefj = real(pref(rg, solR.t(j)));
+%!       assert(solR.p(idx, j), prefj, tol * max(abs(prefj)));
+%!     endfor
+%!   endfor
+%!   alphaPMLopt = alphaPML(find(T == min(T)));
+%!   fprintf(stderr, "optimum alphaPML=%.2f\n", alphaPMLopt);
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("P [dB]");
+%!   title("sound power level");
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(T), "-x;TL;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("TL [dB]");
+%!   title("transmission loss");
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ### TEST 225
+%! ####################################################
+%! ## Jont Allen
+%! ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
+%! ## Chapter 5
+%! ####################################################
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1e-3;
+%!     unit_second = 1e4;
+%!     unit_kilograms = 1e-3;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     unit_watt = unit_newton * unit_meters / unit_second;
+%!     lambda = 10e-3 / unit_meters;
+%!     deltaPML = 3 * lambda;
+%!     r0 = 100e-3 / unit_meters;
+%!     r1 = r0 + 3 * lambda;
+%!     r2 = r1 + deltaPML;
+%!     dx = lambda / 30;
+%!     rho = 1000 / (unit_kilograms / unit_meters^3);
+%!     c = 1440 / (unit_meters / unit_second);
+%!     nPML = 1;
+%!     alphaPML = 1;
+%!     f = c / lambda;
+%!     omega = 2 * pi * f;
+%!     k = omega / c;
+%!     f_use_PML = true;
+%!     f_use_impedance = false;
+%!     f_enable_plot = true;
+%!     Aref = (1 + 0j) / (unit_pascal * unit_meters);
+%!     pref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ r; ## according equation 5.11.6
+%!     zref = @(r) rho * c * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according equation 5.11.9
+%!     vnref = @(r, t) Aref * exp(1j * (omega * t - k * r)) ./ (r * zref(r)); ## according equation 5.11.17
+%!     alpha = atan2(2 * dx, r0);
+%!     beta = atan2(2 * dx, r0);
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "r0=%g;\n", r0);
+%!     fprintf(fd, "r1=%g;\n", r1);
+%!     fprintf(fd, "r2=%g;\n", r2);
+%!     fprintf(fd, "rref = (r0 + r2) / 2;\n");
+%!     fprintf(fd, "alpha=%g;\n", alpha);
+%!     fprintf(fd, "beta=%g;\n", beta);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {r0*Cos(alpha/2),r0*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(2) = {r1*Cos(alpha/2),r1*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Point(3) = {r2*Cos(alpha/2),r2*Sin(alpha/2),0,dx};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "tmp1[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{1};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "tmp2[] = Extrude{{-Sin(alpha/2),Cos(alpha/2),0},{0,0,0},-beta/2} {\n");
+%!     fputs(fd, "  Line{2};\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Coherence;\n");
+%!     fputs(fd, "tmp4[] = Extrude{{0,0,1},{0,0,0},-alpha/2} {\n");
+%!     fputs(fd, "  Surface{tmp1[1],tmp2[1]}; Layers{Ceil(alpha/2 * rref / dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Physical Volume(\"v1\",1) = {tmp4[1]};\n");
+%!     fputs(fd, "Physical Volume(\"v2\",2) = {tmp4[7]};\n");
+%!     fputs(fd, "Physical Surface(\"s1\", 4) = {tmp4[2]};\n");
+%!     fputs(fd, "Physical Surface(\"s2\", 5) = {tmp4[3]};\n");
+%!     fputs(fd, "Physical Surface(\"s3\", 6) = {tmp4[9]};\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{tmp4[1],tmp4[7]};}} = dx;\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
+%!   mesh.material_data.rho = rho;
+%!   mesh.material_data.c = c;
+%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s1).elements, :);
+%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s2).elements, :);
+%!   mesh.materials.acoustic_boundary.quad8 = ones(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
+%!   if (f_use_impedance)
+%!     mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s3).elements, :);
+%!     mesh.elements.acoustic_impedance.quad8.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.quad8.nodes));
+%!     mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
+%!   endif
+%!   load_case = struct("particle_velocity", cell(1, 2));
+%!   load_case(1).particle_velocity.quad8.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   load_case(2).particle_velocity.quad8.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   load_case_dof.domain = FEM_DO_ACOUSTICS;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
+%!   if (f_use_PML)
+%!     load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_s3).nodes, :) = true;
+%!   endif
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   if (f_use_PML)
+%!     [mat_ass.colloc_points] = fem_ass_matrix(mesh, ...
+%!                                              dof_map, ...
+%!                                              [FEM_VEC_COLL_STIFF_ACOUSTICS_RE], ...
+%!                                              load_case);
+%!     mesh.elements.perfectly_matched_layers.penta15.sigma = zeros(3, columns(mat_ass.colloc_points.penta15), rows(mat_ass.colloc_points.penta15));
+%!     mesh.elements.perfectly_matched_layers.penta15.e1 = zeros(3, columns(mat_ass.colloc_points.penta15), rows(mat_ass.colloc_points.penta15));
+%!     mesh.elements.perfectly_matched_layers.penta15.e2 = zeros(3, columns(mat_ass.colloc_points.penta15), rows(mat_ass.colloc_points.penta15));
+%!     xi = mat_ass.colloc_points.penta15(:, :, 1).';
+%!     yi = mat_ass.colloc_points.penta15(:, :, 2).';
+%!     zi = mat_ass.colloc_points.penta15(:, :, 3).';
+%!     ri = sqrt(xi.^2 + yi.^2 + zi.^2) - r1;
+%!     mesh.elements.perfectly_matched_layers.penta15.e1(1, :, :) = xi;
+%!     mesh.elements.perfectly_matched_layers.penta15.e1(2, :, :) = yi;
+%!     mesh.elements.perfectly_matched_layers.penta15.e1(3, :, :) = zi;
+%!     mesh.elements.perfectly_matched_layers.penta15.e2(2, :, :) = 1;
+%!   endif
+%!   P = zeros(1, numel(alphaPML));
+%!   T = zeros(1, numel(alphaPML));
+%!   for i=1:numel(alphaPML)
+%!     if (f_use_PML)
+%!       sigmax = (ri >= 0) .* (1 ./ (1 - ri / deltaPML).^nPML - 1) * (2 * pi * alphaPML(i) * c / deltaPML);
+%!       mesh.elements.perfectly_matched_layers.penta15.sigma(1, :, :) = sigmax / omega;
+%!     endif
+%!     [mat_ass.Ka_re, ...
+%!      mat_ass.Ka_im, ...
+%!      mat_ass.Da_re, ...
+%!      mat_ass.Da_im, ...
+%!      mat_ass.Ma, ...
+%!      mat_ass.Ra, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_STIFFNESS_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_RE, ...
+%!                                           FEM_MAT_DAMPING_ACOUSTICS_IM, ...
+%!                                           FEM_MAT_MASS_ACOUSTICS, ...
+%!                                           FEM_VEC_LOAD_ACOUSTICS], ...
+%!                                          load_case);
+%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.solver = "pastix";
+%!     opt_sol.refine_max_iter = int32(50);
+%!     Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
+%!     Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
+%!     Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!     Psi = linspace(0, 2 * pi, 37);
+%!     idx = dof_map.ndof(:, 1);
+%!     iact = find(idx > 0);
+%!     solC.Phi(iact, :) = Phi(idx(iact), :);
+%!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
+%!     [solC.particle_velocity, ...
+%!      solC.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!                                                dof_map, ...
+%!                                                [FEM_VEC_PARTICLE_VELOCITY_C, ...
+%!                                                 FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                load_case, ...
+%!                                                solC);
+%!
+%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.quad8);
+%!     vx = solC.particle_velocity.vn.quad8;
+%!     R = abs(mean(mean((p - zref(r1) * vx) ./ (p + zref(r1) * vx))));
+%!     T(i) = 1 / (1 - R^2);
+%!     P(i) = sum(solC.acoustic_intensity.P.quad8);
+%!     P0 = 1e-12 / unit_watt;
+%!     fprintf(stderr, "alphaPML=%.2f LW=%.2fdB TL=%.2fdB\n", alphaPML(i), 10 * log10(P(i)/P0), 10 * log10(T(i)));
+
+%!     solR.t = Psi / omega;
+%!     solR.p = real(-solC.PhiP * exp(1j * Psi));
+%!     rg = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
+%!     [rg, idx] = sort(rg);
+%!     if (f_enable_plot)
+%!       for j=1:columns(solR.p)
+%!         figure("visible", "off");
+%!         hold on;
+%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
+%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!         xlabel("x [m]");
+%!         ylabel("p [Pa]");
+%!         grid on;
+%!         grid minor on;
+%!         title(sprintf("alpha=%.2f pressure t=%.2fs", alphaPML(i), solR.t(j)));
+%!         ylim([-1, 1] * max(max(abs(solR.p))) * unit_pascal);
+%!       endfor
+%!     endif
+%!     idx2 = find(rg < r1);
+%!     rg = rg(idx2);
+%!     idx = idx(idx2);
+%!     tol = 1e-2;
+%!     for j=1:numel(solR.t)
+%!       prefj = real(pref(rg, solR.t(j)));
+%!       assert(solR.p(idx, j), prefj, tol * max(abs(prefj)));
+%!     endfor
+%!   endfor
+%!   alphaPMLopt = alphaPML(find(T == min(T)));
+%!   fprintf(stderr, "optimum alphaPML=%.2f\n", alphaPMLopt);
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("P [dB]");
+%!   title("sound power level");
+%!   figure("visible", "off");
+%!   plot(alphaPML, 10 * log10(T), "-x;TL;1");
+%!   grid minor on;
+%!   xlabel("alphaPML [1]");
+%!   ylabel("TL [dB]");
+%!   title("transmission loss");
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
