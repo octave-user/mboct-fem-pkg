@@ -950,8 +950,7 @@ public:
           MAT_TYPE_ARRAY = 0x16u,
           MAT_TYPE_MASK = 0x1cu,
           MAT_UPDATE_INFO_ALWAYS = 0x20u,
-          MAT_COLL_PNT_OUTPUT = 0x40u,
-          MAT_COLL_PNT_INPUT = 0x80u
+          MAT_COLL_PNT_OUTPUT = 0x40u
      };
 
      static_assert(((MAT_SYM_MASK | MAT_TYPE_MASK | MAT_UPDATE_INFO_ALWAYS) & MAT_ID_MASK) == 0u);
@@ -990,10 +989,10 @@ public:
           MAT_HEAT_CAPACITY              = (18u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_THERMAL,
           VEC_LOAD_THERMAL               = (19u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_THERMAL,
           MAT_MASS_ACOUSTICS             = (20u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
-          MAT_STIFFNESS_ACOUSTICS_RE     = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS | MAT_COLL_PNT_INPUT,
-          MAT_STIFFNESS_ACOUSTICS_IM     = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS | MAT_COLL_PNT_INPUT,
-          MAT_DAMPING_ACOUSTICS_RE       = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_COLL_PNT_INPUT,
-          MAT_DAMPING_ACOUSTICS_IM       = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_COLL_PNT_INPUT,
+          MAT_STIFFNESS_ACOUSTICS_RE     = (21u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
+          MAT_STIFFNESS_ACOUSTICS_IM     = (22u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS | MAT_UPDATE_INFO_ALWAYS,
+          MAT_DAMPING_ACOUSTICS_RE       = (23u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
+          MAT_DAMPING_ACOUSTICS_IM       = (24u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_ACOUSTICS,
           VEC_LOAD_ACOUSTICS             = (25u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_ACOUSTICS,
           VEC_PARTICLE_VELOCITY          = (26u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           VEC_PARTICLE_VELOCITY_C        = (27u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
@@ -1001,10 +1000,10 @@ public:
           SCA_ACOUSTIC_INTENSITY_C       = (29u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           VEC_SURFACE_NORMAL_VECTOR      = (30u << MAT_ID_SHIFT) | MAT_TYPE_ARRAY  | DofMap::DO_ACOUSTICS | DofMap::DO_FLUID_STRUCT,
           MAT_MASS_FLUID_STRUCT          = (31u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
-          MAT_STIFFNESS_FLUID_STRUCT_RE  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_UPDATE_INFO_ALWAYS | MAT_COLL_PNT_INPUT,
-          MAT_STIFFNESS_FLUID_STRUCT_IM  = (33u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_UPDATE_INFO_ALWAYS | MAT_COLL_PNT_INPUT,
-          MAT_DAMPING_FLUID_STRUCT_RE    = (34u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_COLL_PNT_INPUT,
-          MAT_DAMPING_FLUID_STRUCT_IM    = (35u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_COLL_PNT_INPUT,
+          MAT_STIFFNESS_FLUID_STRUCT_RE  = (32u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_UPDATE_INFO_ALWAYS,
+          MAT_STIFFNESS_FLUID_STRUCT_IM  = (33u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT | MAT_UPDATE_INFO_ALWAYS,
+          MAT_DAMPING_FLUID_STRUCT_RE    = (34u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          MAT_DAMPING_FLUID_STRUCT_IM    = (35u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           VEC_LOAD_FLUID_STRUCT          = (36u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           VEC_COLL_MASS                  = MAT_MASS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_STIFFNESS             = MAT_STIFFNESS | MAT_COLL_PNT_OUTPUT,
@@ -2623,24 +2622,22 @@ public:
           }
 
           if (!data.oPML.rgElem[eltype].sigma.isempty()) {
-               const octave_idx_type iNumCollocPnt = data.oPML.rgElem[eltype].sigma.columns();
-
                FEM_ASSERT(data.oPML.rgElem[eltype].sigma.ndims() == 3);
                FEM_ASSERT(data.oPML.rgElem[eltype].e1.ndims() == 3);
                FEM_ASSERT(data.oPML.rgElem[eltype].e2.ndims() == 3);
                FEM_ASSERT(data.oPML.rgElem[eltype].sigma.rows() == 3);
-               FEM_ASSERT(data.oPML.rgElem[eltype].sigma.columns() == iNumCollocPnt);
+               FEM_ASSERT(data.oPML.rgElem[eltype].sigma.columns() == iNumNodes);
                FEM_ASSERT(data.oPML.rgElem[eltype].sigma.pages() >= id);
                FEM_ASSERT(data.oPML.rgElem[eltype].e1.rows() == 3);
-               FEM_ASSERT(data.oPML.rgElem[eltype].e1.columns() == iNumCollocPnt);
+               FEM_ASSERT(data.oPML.rgElem[eltype].e1.columns() == iNumNodes);
                FEM_ASSERT(data.oPML.rgElem[eltype].e2.rows() == 3);
-               FEM_ASSERT(data.oPML.rgElem[eltype].e2.columns() == iNumCollocPnt);
+               FEM_ASSERT(data.oPML.rgElem[eltype].e2.columns() == iNumNodes);
                FEM_ASSERT(data.oPML.rgElem[eltype].e1.pages() >= id);
                FEM_ASSERT(data.oPML.rgElem[eltype].e2.pages() >= id);
 
-               sigma = data.oPML.rgElem[eltype].sigma.linear_slice(3 * iNumCollocPnt * (id - 1), 3 * iNumCollocPnt * id).reshape(3, iNumCollocPnt);
-               e1 = data.oPML.rgElem[eltype].e1.linear_slice(3 * iNumCollocPnt * (id - 1), 3 * iNumCollocPnt * id).reshape(3, iNumCollocPnt);
-               e2 = data.oPML.rgElem[eltype].e2.linear_slice(3 * iNumCollocPnt * (id - 1), 3 * iNumCollocPnt * id).reshape(3, iNumCollocPnt);
+               sigma = data.oPML.rgElem[eltype].sigma.linear_slice(3 * iNumNodes * (id - 1), 3 * iNumNodes * id).reshape(3, iNumNodes);
+               e1 = data.oPML.rgElem[eltype].e1.linear_slice(3 * iNumNodes * (id - 1), 3 * iNumNodes * id).reshape(3, iNumNodes);
+               e2 = data.oPML.rgElem[eltype].e2.linear_slice(3 * iNumNodes * (id - 1), 3 * iNumNodes * id).reshape(3, iNumNodes);
           }
      }
 
@@ -3801,7 +3798,8 @@ protected:
           }
      }
 
-     void ParticleVelocityGradient(Matrix& vg,
+     void ParticleVelocityGradient(const ColumnVector& rv,
+                                   Matrix& vg,
                                    const octave_idx_type i,
                                    const octave_idx_type l,
                                    const Matrix& B,
@@ -3810,10 +3808,11 @@ protected:
                                    const double rho,
                                    const double tau,
                                    const octave_idx_type iNumDof) const {
-          ParticleVelocityGradientNoPML<double>(vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
+          ParticleVelocityGradientNoPML<double>(rv, vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
      }
 
-     void ParticleVelocityGradient(ComplexMatrix& vg,
+     void ParticleVelocityGradient(const ColumnVector& rv,
+                                   ComplexMatrix& vg,
                                    const octave_idx_type i,
                                    const octave_idx_type l,
                                    const Matrix& B,
@@ -3823,14 +3822,15 @@ protected:
                                    const double tau,
                                    const octave_idx_type iNumDof) const {
           if (sigma.isempty()) {
-               ParticleVelocityGradientNoPML<std::complex<double>>(vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
+               ParticleVelocityGradientNoPML<std::complex<double>>(rv, vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
           } else {
-               ParticleVelocityGradientPML(vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
+               ParticleVelocityGradientPML(rv, vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
           }
      }
 
      template <typename T>
-     void ParticleVelocityGradientNoPML(typename PostProcTypeTraits<T>::MatrixType& vg,
+     void ParticleVelocityGradientNoPML(const ColumnVector&,
+                                        typename PostProcTypeTraits<T>::MatrixType& vg,
                                         const octave_idx_type i,
                                         const octave_idx_type l,
                                         const Matrix& B,
@@ -3854,7 +3854,8 @@ protected:
           }
      }
 
-     void ParticleVelocityGradientPML(ComplexMatrix& RFR_Tvg,
+     void ParticleVelocityGradientPML(const ColumnVector& rv,
+                                      ComplexMatrix& RFR_Tvg,
                                       const octave_idx_type i,
                                       const octave_idx_type l,
                                       const Matrix& B,
@@ -3878,9 +3879,11 @@ protected:
                vg.xelem(j) = (vgj + tau * vgPj) / rho;
           }
 
-          Matrix R(3, 3);
+          Matrix R(3, 3), H(1, iNumDof);
 
-          PMLCoordinateSystem(i, R);
+          ScalarInterpMatrix(rv, H, 0);
+
+          PMLCoordinateSystem(rv, H, R);
 
           ComplexColumnVector FR_Tvg(3);
 
@@ -3891,11 +3894,9 @@ protected:
                     R_Tvgj += R.xelem(k, j) * vg.xelem(k);
                }
 
-               using namespace std::complex_literals;
-
-               const auto fj = 1. / (1. - 1i * sigma.xelem(j, i));
-
-               FR_Tvg.xelem(j) = fj * R_Tvgj;
+               const auto sigmaj = PMLSigma(j, H);
+               
+               FR_Tvg.xelem(j) = sigmaj * R_Tvgj;
           }
 
           for (octave_idx_type j = 0; j < iNumComp; ++j) {
@@ -3964,7 +3965,7 @@ protected:
                          PhiPe.xelem(j) = PhiP.xelem(idof, l);
                     }
 
-                    ParticleVelocityGradient(vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
+                    ParticleVelocityGradient(rv, vg, i, l, B, Phie, PhiPe, rho, tau, iNumDof);
                }
           }
 
@@ -4066,10 +4067,10 @@ protected:
           }
      }
 
-     void AcousticStiffnessMatrixCSL(octave_idx_type, Matrix& k, FemMatrixType eMatType) const {
+     void AcousticStiffnessMatrixCSL(const ColumnVector&, Matrix& k, FemMatrixType eMatType) const {
           const double sign = (eMatType == MAT_STIFFNESS_ACOUSTICS_RE ? 1. : -1.);
           const double coef = sign / material->Density();
-          
+
           for (octave_idx_type i = 0; i < 3; ++i) {
                k.xelem(i, i) = coef;
           }
@@ -4078,14 +4079,25 @@ protected:
      void AcousticStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
           ScalarFieldStiffnessMatrix(&Element3D::AcousticStiffnessMatrixCSL, Ke, info, eMatType);
      }
-
-     void PMLCoordinateSystem(const octave_idx_type iCollocPnt, Matrix& R) const {
+     
+     void PMLCoordinateSystem(const ColumnVector& rv, const Matrix& H, Matrix& R) const {
           FEM_ASSERT(R.rows() == 3);
           FEM_ASSERT(R.columns() == 3);
+          FEM_ASSERT(H.rows() == 1);
+          FEM_ASSERT(H.columns() == nodes.numel());
 
           for (octave_idx_type i = 0; i < 3; ++i) {
-               R.xelem(i, 0) = e1.xelem(i, iCollocPnt);
-               R.xelem(i, 1) = e2.xelem(i, iCollocPnt);
+               double e1i = 0., e2i = 0.;
+
+               for (octave_idx_type k = 0; k < H.columns(); ++k) {
+                    const double Hk = H.xelem(k);
+
+                    e1i += Hk * e1.xelem(i, k);
+                    e2i += Hk * e2.xelem(i, k);
+               }
+
+               R.xelem(i, 0) = e1i;
+               R.xelem(i, 1) = e2i;
           }
 
           R.xelem(0, 2) = R.xelem(1, 0) * R.xelem(2, 1) - R.xelem(2, 0) * R.xelem(1, 1);
@@ -4121,27 +4133,34 @@ protected:
           }
      }
 
-     void AcousticStiffnessDampingMatrixPMLCSL(octave_idx_type iCollocPnt, Matrix& RF_2R_T, FemMatrixType eMatType) const {
+     std::complex<double> PMLSigma(const octave_idx_type i, const Matrix& H) const {
+          std::complex<double> sigmai{};
+
+          for (octave_idx_type j = 0; j < H.columns(); ++j) {
+               sigmai += sigma.xelem(i, j) * H.xelem(j);
+          }
+
+          return sigmai;
+     }
+
+     void AcousticStiffnessDampingMatrixPMLCSL(const ColumnVector& rv, Matrix& RF_2R_T, FemMatrixType eMatType) const {
           // Apply transformation for perfectly matched layers
 
-          FEM_ASSERT(iGetNumCollocPoints(eMatType) == sigma.columns());
-          FEM_ASSERT(iGetNumCollocPoints(eMatType) == e1.columns());
-          FEM_ASSERT(iGetNumCollocPoints(eMatType) == e2.columns());
-          FEM_ASSERT(sigma.rows() == 3);
-          FEM_ASSERT(e1.rows() == 3);
-          FEM_ASSERT(e2.rows() == 3);
-          FEM_ASSERT(iCollocPnt >= 0);
-          FEM_ASSERT(iCollocPnt < sigma.columns());
+          const octave_idx_type iNumNodes = nodes.numel();
 
           FEM_ASSERT(RF_2R_T.rows() == 3);
           FEM_ASSERT(RF_2R_T.columns() == 3);
 
+          Matrix H(1, iNumNodes);
+
+          ScalarInterpMatrix(rv, H, 0);
+
           Matrix R(3, 3);
 
-          PMLCoordinateSystem(iCollocPnt, R);
+          PMLCoordinateSystem(rv, H, R);
 
           double sign;
-          
+
           switch (eMatType) {
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
@@ -4187,10 +4206,8 @@ protected:
           ColumnVector F_2(3);
           
           for (octave_idx_type i = 0; i < 3; ++i) {
-               const std::complex<double> sigmagi = sigma.xelem(i, iCollocPnt);
+               const std::complex<double> sigmagi = PMLSigma(i, H);
 
-               const double d = std::pow(std::pow(std::real(sigmagi), 2) + std::pow(std::imag(sigmagi) + 1., 2), 2);
-               
                double fi_2;
                
                switch (eMatType) {
@@ -4198,13 +4215,13 @@ protected:
                case MAT_DAMPING_ACOUSTICS_RE:
                case MAT_STIFFNESS_FLUID_STRUCT_RE:
                case MAT_DAMPING_FLUID_STRUCT_RE:
-                    fi_2 = (std::pow(std::imag(sigmagi) + 1., 2) - std::pow(std::real(sigmagi), 2)) / d;
+                    fi_2 = std::pow(std::real(sigmagi), 2) - std::pow(std::imag(sigmagi), 2);
                     break;
                case MAT_STIFFNESS_ACOUSTICS_IM:
                case MAT_DAMPING_ACOUSTICS_IM:
                case MAT_STIFFNESS_FLUID_STRUCT_IM:
                case MAT_DAMPING_FLUID_STRUCT_IM:
-                    fi_2 = 2. * (std::imag(sigmagi) + 1.) * std::real(sigmagi) / d;
+                    fi_2 = 2. * std::imag(sigmagi) * std::real(sigmagi);
                     break;
                default:
                     FEM_ASSERT(false);
@@ -4243,7 +4260,7 @@ protected:
           ScalarFieldStiffnessMatrix(&Element3D::AcousticStiffnessDampingMatrixPMLCSL, De, info, eMatType);
      }
 
-     void AcousticDampingMatrixCSL(octave_idx_type, Matrix& k, FemMatrixType eMatType) const {
+     void AcousticDampingMatrixCSL(const ColumnVector&, Matrix& k, FemMatrixType eMatType) const {
           const double eta = material->ShearViscosity();
           const double zeta = material->VolumeViscosity();
           const double rho = material->Density();
@@ -4260,7 +4277,7 @@ protected:
           ScalarFieldStiffnessMatrix(&Element3D::AcousticDampingMatrixCSL, De, info, eMatType);
      }
 
-     void ThermalConductivityMatrixCSL(octave_idx_type, Matrix& k, FemMatrixType) const {
+     void ThermalConductivityMatrixCSL(const ColumnVector&, Matrix& k, FemMatrixType) const {
           FEM_ASSERT(material->ThermalConductivity().rows() == 3);
           FEM_ASSERT(material->ThermalConductivity().columns() == 3);
           
@@ -4271,7 +4288,7 @@ protected:
           ScalarFieldStiffnessMatrix(&Element3D::ThermalConductivityMatrixCSL, Ke, info, eMatType);
      }
 
-     typedef void (Element3D::*ScalarFieldCSL)(octave_idx_type, Matrix&, FemMatrixType) const;
+     typedef void (Element3D::*ScalarFieldCSL)(const ColumnVector&, Matrix&, FemMatrixType) const;
 
      void ScalarFieldStiffnessMatrix(ScalarFieldCSL pfnk, Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
@@ -4297,7 +4314,7 @@ protected:
 
                ScalarGradientMatrix(rv, J, detJ, invJ, B);
 
-               (this->*pfnk)(i, k, eMatType);
+               (this->*pfnk)(rv, k, eMatType);
 
                for (octave_idx_type l = 0; l < iNumStrains; ++l) {
                     for (octave_idx_type m = 0; m < iNumDof; ++m) {
@@ -13627,7 +13644,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               throw std::runtime_error("mesh.perfectly_matched_layers."s + oElemType.name + " must be a real matrix");
                          }
 
-                         if (ov_sigmael.rows() != 3 || ov_sigmael.numel() != 3 * ov_sigmael.columns() * elem_nodes.rows()) {
+                         if (ov_sigmael.rows() != 3 || ov_sigmael.columns() != elem_nodes.columns() || ov_sigmael.numel() != 3 * elem_nodes.numel()) {
                               throw std::runtime_error("invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + " in argument mesh");
                          }
 
@@ -13645,7 +13662,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               throw std::runtime_error("mesh.perfectly_matched_layers."s + oElemType.name + ".e1 must be a real matrix");
                          }
 
-                         if (ov_e1.rows() != 3 || ov_e1.columns() != ov_sigmael.columns() || ov_e1.numel() != 3 * ov_sigmael.columns() * elem_nodes.rows()) {
+                         if (ov_e1.rows() != 3 || ov_e1.columns() != elem_nodes.columns() || ov_e1.numel() != 3 * elem_nodes.numel()) {
                               throw std::runtime_error("invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + ".e1 in argument mesh");
                          }
 
@@ -13663,7 +13680,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               throw std::runtime_error("mesh.perfectly_matched_layers."s + oElemType.name + ".e2 must be a real matrix");
                          }
 
-                         if (ov_e2.rows() != 3 || ov_e2.columns() != ov_sigmael.columns() || ov_e2.numel() != 3 * ov_sigmael.columns() * elem_nodes.rows()) {
+                         if (ov_e2.rows() != 3 || ov_e2.columns() != elem_nodes.columns() || ov_e2.numel() != 3 * elem_nodes.numel()) {
                               throw std::runtime_error("invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + ".e2 in argument mesh");
                          }
 
@@ -14410,22 +14427,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          if (!bMatInfo && bNeedMatInfo) {
                               oMatAss.UpdateMatrixInfo(oDof);
                               bMatInfo = true;
-                         }
-                         
-                         const auto eElemType = (*j)->GetElementType();
-                              
-                         if ((eMatType & Element::MAT_COLL_PNT_INPUT) && !oElemData.oPML.rgElem[eElemType].sigma.isempty()) {
-                              const octave_idx_type iNumCollocElem = (*j)->iGetNumElem() ? (*j)->iGetNumCollocPoints(0, eMatType) : 0;
-                              const octave_idx_type iNumCollocPML = oElemData.oPML.rgElem[eElemType].sigma.columns();
-                              
-                              if (iNumCollocElem != iNumCollocPML) {
-                                   const char* pszElemName = ElementTypes::GetType(eElemType).name;
-                                   throw std::runtime_error("invalid size for mesh.elements.perfectly_matched_layers."s + pszElemName + ".sigma");
-                              }
-
-                              FEM_ASSERT(oElemData.oPML.rgElem[eElemType].e1.columns() == iNumCollocPML);
-                              FEM_ASSERT(oElemData.oPML.rgElem[eElemType].e2.columns() == iNumCollocPML);                              
-                         }
+                         }                        
 
                          (*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
                     }
