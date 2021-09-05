@@ -24,6 +24,7 @@ Preprocessing
         fem_pre_mesh_cube_create
         fem_pre_mesh_elem_angle
         fem_pre_mesh_elem_split
+        fem_pre_mesh_extrude_surf
         fem_pre_mesh_groups_create
         fem_pre_mesh_import
         fem_pre_mesh_rbe3_from_surf
