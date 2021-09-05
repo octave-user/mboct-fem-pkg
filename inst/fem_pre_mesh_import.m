@@ -38382,7 +38382,7 @@ endfunction
 %!     b = 200e-3 / unit_meters;
 %!     t = 3.5e-3 / unit_meters;
 %!     r = 1500e-3 / unit_meters;
-%!     h1 = 5 * t;
+%!     h1 = 10 * t;
 %!     h2 = 200e-3 / unit_meters;
 %!     h3 = 200e-3 / unit_meters;
 %!     E1 = 210000e6 / unit_pascal;
@@ -38395,9 +38395,9 @@ endfunction
 %!     Fz = (1 + 0j) / unit_newton;
 %!     f = (100) / (unit_second^-1);
 %!     km = 2 * pi * mean(f) / c2;
-%!     deltaPML = 3 * h3;
+%!     deltaPML = h3;
 %!     alphaPML = 1;
-%!     nPML = 3;
+%!     nPML = 1;
 %!     solver = "precond";
 %!     f_enable_PML = true;
 %!     f_enable_plot = false;
@@ -38496,9 +38496,6 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-## %!   pid = spawn("gmsh", {[filename, ".geo"]});
-## %!   status = spawn_wait(pid);
-## %!   return
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-ho_min", "0.5", "-ho_max", "1.5",  [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
@@ -46897,8 +46894,8 @@ endfunction
 %!     t = 3.5e-3 / unit_meters;
 %!     r = 1500e-3 / unit_meters;
 %!     h1 = 10 * t;
-%!     h2 = 100e-3 / unit_meters;
-%!     h3 = 100e-3 / unit_meters;
+%!     h2 = 200e-3 / unit_meters;
+%!     h3 = 200e-3 / unit_meters;
 %!     E1 = 210000e6 / unit_pascal;
 %!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
 %!     nu1 = 0.3;
@@ -46908,7 +46905,7 @@ endfunction
 %!     rho2 = 1.225 / (unit_kilograms / unit_meters^3);
 %!     Fz = (1 + 0j) / unit_newton;
 %!     f = (100) / (unit_second^-1);
-%!     deltaPML = 100e-3 / unit_meters;
+%!     deltaPML = 200e-3 / unit_meters;
 %!     solver = "precond";
 %!     f_enable_PML = true;
 %!     f_enable_plot = false;
