@@ -5183,7 +5183,7 @@
 %! omega = linspace(0, 2 * pi * 3200, 1000);
 %! U1 = U2 = F1 = F2 = complex(zeros(6, numel(omega), columns(mat_ass.R)));
 %! opts.solver = "pastix";
-%! opts.max_iter_refine = int32(250);
+%! opts.refine_max_iter = int32(250);
 %! opts.epsilon_refinement = eps^0.8;
 %! opts.number_of_threads = int32(1);
 %! opts.verbose = int32(0);

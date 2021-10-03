@@ -59,7 +59,8 @@ function data = fem_sol_transient_init(M, D, K, dt, options)
 
   data.M = M;
   data.D = D;
-  data.K_eff = fem_sol_factor(K + data.a0 * M + data.a1 * D, options);
+  data.Keff = K + data.a0 * M + data.a1 * D;
+  data.Keff_fact = fem_sol_factor(data.Keff, options);
 endfunction
 
 %!test
