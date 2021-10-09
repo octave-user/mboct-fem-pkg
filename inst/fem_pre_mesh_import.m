@@ -7629,7 +7629,7 @@ endfunction
 %!     title("static deflection - consistent pressure load");
 %!     figure_list();
 %!   endif
-%!   tol = eps^0.8;
+%!   tol = eps^0.7;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
 %!     assert(sol_stat.def(:, i), mesh.nodes(:, i) * dT * mesh.material_data.gamma, tol * max(abs([a, b, c] * epsilon_th)));
@@ -11587,7 +11587,8 @@ endfunction
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
-%!   assert(sol.theta, theta_ref, eps^0.9 * max(abs(thetae)));
+%!   tol = eps^0.8;
+%!   assert(sol.theta, theta_ref, tol * max(abs(thetae)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -14435,7 +14436,8 @@ endfunction
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetas - thetae) + thetae;
-%!   assert(sol.theta, theta_ref, eps^0.8 * max(abs(thetae)));
+%!   tol = eps^0.7;
+%!   assert(sol.theta, theta_ref, tol * max(abs(thetae)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -15843,7 +15845,7 @@ endfunction
 %!                                        FEM_VEC_STRAIN_TOTAL], ...
 %!                                       load_case2, ...
 %!                                       sol_stat2);
-%!   tol = eps^0.8;
+%!   tol = eps^0.7;
 %!   epsilon_th = dT * mesh.material_data.gamma;
 %!   for i=1:3
 %!     assert(sol_stat.def(:, i), mesh.nodes(:, i) * dT * mesh.material_data.gamma, tol * max(abs([a, b, c] * epsilon_th)));

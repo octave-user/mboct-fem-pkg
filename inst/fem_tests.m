@@ -835,7 +835,7 @@
 
 %!test
 %! ## TEST 10
-%! tol = eps^0.9;
+%! tol = eps^0.8;
 %! N = 10;
 %! Phi1 = linspace(0, 90 * pi / 180, N);
 %! Phi2 = linspace(0, -30 * pi / 180, N);
