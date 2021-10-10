@@ -16,12 +16,14 @@
 #include "config.h"
 
 #include <algorithm>
+#include <atomic>
 #include <array>
 #include <cassert>
 #include <iostream>
 #include <memory>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -275,6 +277,49 @@ private:
      const octave_idx_type totdof;
 };
 
+class ParallelOptions {
+public:
+     explicit ParallelOptions(const octave_scalar_map& oDof)
+          :iNumThreadsAss(1),
+           iMultiThreadThreshold(1000) {
+          
+          const auto iter_parallel = oDof.seek("parallel");
+
+          if (iter_parallel != oDof.end()) {
+               const octave_scalar_map ma_parallel = oDof.contents(iter_parallel).scalar_map_value();
+
+               const auto iter_threads_ass = ma_parallel.seek("threads_ass");
+
+               if (iter_threads_ass != ma_parallel.end()) {
+                    iNumThreadsAss = ma_parallel.contents(iter_threads_ass).int_value();
+               }
+
+               const auto iter_threshold_elem = ma_parallel.seek("threshold_elem");
+
+               if (iter_threshold_elem != ma_parallel.end()) {
+                    iMultiThreadThreshold = ma_parallel.contents(iter_threshold_elem).int_value();
+               }
+          }
+     }
+     
+     ParallelOptions(octave_idx_type iNumThreadsAss, octave_idx_type iMultiThreadThreshold)
+          :iNumThreadsAss(iNumThreadsAss),
+           iMultiThreadThreshold(iMultiThreadThreshold) {
+     }
+
+     octave_idx_type iGetNumThreadsAss() const {
+          return iNumThreadsAss;
+     }
+
+     octave_idx_type iGetMultiThreadThreshold() const {
+          return iMultiThreadThreshold;
+     }
+     
+private:
+     octave_idx_type iNumThreadsAss;
+     octave_idx_type iMultiThreadThreshold;
+};
+
 constexpr octave_idx_type DofMap::INVALID_OFFSET;
 
 class MatrixAss;
@@ -342,6 +387,18 @@ public:
           oData.rgValue[STAT_MAX] = std::max(oData.rgValue[STAT_MAX], dValue);
           oData.rgValue[STAT_MEAN] += dValue;
           ++oData.iCount;
+     }
+
+     void Add(const MeshInfo& oMeshInfo) {
+          for (octave_idx_type i = 0; i < INFO_COUNT; ++i) {
+               Data& oData = rgData[i];
+               const Data& oDataAdd = oMeshInfo.rgData[i];
+               oData.rgValue[STAT_MIN] = std::min(oData.rgValue[STAT_MIN], oDataAdd.rgValue[STAT_MIN]);
+               oData.rgValue[STAT_MAX] = std::max(oData.rgValue[STAT_MAX], oDataAdd.rgValue[STAT_MAX]);
+               oData.rgValue[STAT_MEAN] = (oData.rgValue[STAT_MEAN] * oData.iCount
+                                         + oDataAdd.rgValue[STAT_MEAN] * oDataAdd.iCount) / (oData.iCount + oDataAdd.iCount);
+               oData.iCount += oDataAdd.iCount; 
+          }
      }
 
      double dGet(InfoType eInfoType, InfoStat eInfoStat) const {
@@ -1491,7 +1548,6 @@ public:
 
      void Insert(double d, octave_idx_type r, octave_idx_type c) {
           if (bNeedToInsertElem(r, c)) {
-               Resize(nnz + 1);
                InsertRaw(d, r, c);
           }
      }
@@ -1551,18 +1607,6 @@ public:
      }
 
 private:
-     void Resize(octave_idx_type nnz_new) {
-          if (data.rows() < nnz_new) {
-#ifdef DEBUG
-               throw std::runtime_error("fem_ass_matrix: allocated workspace size exceeded");
-#endif
-               data.resize(nnz_new, 0.);
-               ridx.resize(dim_vector(nnz_new, 1), 0);
-               cidx.resize(dim_vector(nnz_new, 1), 0);
-          }
-     }
-
-
      bool bNeedToInsertElem(octave_idx_type r, octave_idx_type c) const {
           if (!(r > 0 && c > 0)) {
                return false;
@@ -1594,14 +1638,19 @@ private:
      void InsertRaw(double d, octave_idx_type r, octave_idx_type c) {
           FEM_ASSERT(bNeedToInsertElem(r, c));
 
-          data.xelem(nnz) = d;
-          ridx.xelem(nnz) = r;
-          cidx.xelem(nnz) = c;
-          ++nnz;
+          const octave_idx_type current = nnz++;
+
+          if (data.rows() <= current) {
+               throw std::runtime_error("fem_ass_matrix: allocated workspace size exceeded");
+          }
+          
+          data.xelem(current) = d;
+          ridx.xelem(current) = r;
+          cidx.xelem(current) = c;
      }
 
      Element::FemMatrixType eMatType;
-     octave_idx_type nnz;
+     std::atomic<octave_idx_type> nnz;
      int32NDArray ridx, cidx;
      ColumnVector data;
      std::array<MatrixInfo, Element::MAT_TYPE_COUNT> info;
@@ -10119,7 +10168,7 @@ public:
      }
 
      virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const=0;
-     virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::FemMatrixType eMatType) const=0;
+     virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::FemMatrixType eMatType, const ParallelOptions& oParaOpt) const=0;
      virtual void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution) const=0;
      virtual double dGetMass() const=0;
      virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const=0;
@@ -10195,11 +10244,65 @@ public:
           return iWorkSpace;
      }
 
-     void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::FemMatrixType eMatType) const {
-          for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               i->ElementType::Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+     void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::FemMatrixType eMatType, const ParallelOptions& oParaOpt) const {
+          const octave_idx_type iNumThreads = oParaOpt.iGetNumThreadsAss();
+          
+          if (iNumThreads > 1 && iGetNumElem() >= oParaOpt.iGetMultiThreadThreshold()) {
+               vector<ThreadData> rgThreadData;
+          
+               rgThreadData.reserve(iNumThreads);
+          
+               for (octave_idx_type i = 0; i < iNumThreads; ++i) {
+                    rgThreadData.emplace_back(oMeshInfo);
+               }
+          
+               const auto pThreadFunc = [this, &oMatAss, &rgThreadData, &oDof, eMatType, iNumThreads] (const octave_idx_type iStart) {
+                                             try {
+                                                  for (auto i = rgElements.begin() + iStart; i < rgElements.end(); i += iNumThreads) {
+                                                       i->ElementType::Assemble(oMatAss, rgThreadData[iStart].oMeshInfo, oDof, eMatType);
 
-               OCTAVE_QUIT;
+                                                       OCTAVE_QUIT;
+                                                  }
+                                             } catch (...) {
+                                                  rgThreadData[iStart].pExcept = std::current_exception();
+                                             }
+                                        };
+          
+               vector<std::thread> rgThreads;
+          
+               rgThreads.reserve(iNumThreads - 1);
+
+               try {
+                    for (octave_idx_type i = 1; i < iNumThreads; ++i) {
+                         rgThreads.emplace_back(pThreadFunc, i);
+                    }
+
+                    pThreadFunc(0);
+               } catch (...) {
+                    for (auto& oThread: rgThreads) {
+                         oThread.join();
+                    }
+                    
+                    throw;
+               }
+               
+               for (auto& oThread: rgThreads) {
+                    oThread.join();
+               }
+               
+               for (const ThreadData& oThreadData: rgThreadData) {
+                    oMeshInfo.Add(oThreadData.oMeshInfo);
+               
+                    if (oThreadData.pExcept) {
+                         std::rethrow_exception(oThreadData.pExcept);
+                    }
+               }               
+          } else {
+               for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
+                    i->ElementType::Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+
+                    OCTAVE_QUIT;
+               }
           }
      }
 
@@ -10246,6 +10349,14 @@ public:
           return rgElements[id].iGetNumCollocPoints(eMatType);
      }
 private:
+     struct ThreadData {
+          explicit ThreadData(const MeshInfo& oMeshInfo)
+               :oMeshInfo{oMeshInfo} {
+          }
+          
+          MeshInfo oMeshInfo;
+          std::exception_ptr pExcept;
+     };
      vector<ElementType> rgElements;
 };
 
@@ -13529,6 +13640,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
                }
           }
+
+          const ParallelOptions oParaOpt{dof_map};
           
           const vector<Material> rgMaterials = Material::ExtractMaterialData(material_data, eDomain);
 
@@ -14707,7 +14820,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               bMatInfo = true;
                          }                        
 
-                         (*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+                         (*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType, oParaOpt);
                     }
 
                     oMatAss.Finish();
