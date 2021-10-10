@@ -396,8 +396,7 @@ public:
                const Data& oDataAdd = oMeshInfo.rgData[i];
                oData.rgValue[STAT_MIN] = std::min(oData.rgValue[STAT_MIN], oDataAdd.rgValue[STAT_MIN]);
                oData.rgValue[STAT_MAX] = std::max(oData.rgValue[STAT_MAX], oDataAdd.rgValue[STAT_MAX]);
-               oData.rgValue[STAT_MEAN] = (oData.rgValue[STAT_MEAN] * oData.iCount
-                                           + oDataAdd.rgValue[STAT_MEAN] * oDataAdd.iCount) / std::max(1, oData.iCount + oDataAdd.iCount);
+               oData.rgValue[STAT_MEAN] += oDataAdd.rgValue[STAT_MEAN];
                oData.iCount += oDataAdd.iCount; 
           }
      }
@@ -406,7 +405,7 @@ public:
           double dValue = rgData[eInfoType].rgValue[eInfoStat];
 
           if (eInfoStat == STAT_MEAN) {
-               dValue /= std::max(1, rgData[eInfoType].iCount);
+               dValue /= rgData[eInfoType].iCount;
           }
 
           return dValue;
