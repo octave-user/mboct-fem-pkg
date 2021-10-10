@@ -366,6 +366,7 @@ public:
                     oMeshStat.assign(szStatName[j], dGet(eInfoType, eInfoStat));
                }
 
+               oMeshStat.assign("count", rgData[i].iCount);
                oMeshInfo.assign(szInfoName[i], oMeshStat);
           }
 
@@ -396,7 +397,7 @@ public:
                oData.rgValue[STAT_MIN] = std::min(oData.rgValue[STAT_MIN], oDataAdd.rgValue[STAT_MIN]);
                oData.rgValue[STAT_MAX] = std::max(oData.rgValue[STAT_MAX], oDataAdd.rgValue[STAT_MAX]);
                oData.rgValue[STAT_MEAN] = (oData.rgValue[STAT_MEAN] * oData.iCount
-                                         + oDataAdd.rgValue[STAT_MEAN] * oDataAdd.iCount) / (oData.iCount + oDataAdd.iCount);
+                                           + oDataAdd.rgValue[STAT_MEAN] * oDataAdd.iCount) / std::max(1, oData.iCount + oDataAdd.iCount);
                oData.iCount += oDataAdd.iCount; 
           }
      }
@@ -405,7 +406,7 @@ public:
           double dValue = rgData[eInfoType].rgValue[eInfoStat];
 
           if (eInfoStat == STAT_MEAN) {
-               dValue /= rgData[eInfoType].iCount;
+               dValue /= std::max(1, rgData[eInfoType].iCount);
           }
 
           return dValue;
