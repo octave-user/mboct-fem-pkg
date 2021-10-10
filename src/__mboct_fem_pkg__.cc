@@ -1487,8 +1487,8 @@ public:
      explicit MatrixAss(octave_idx_type max_nnz)
           :eMatType(Element::MAT_UNKNOWN),
            nnz(0),
-           ridx(dim_vector(max_nnz, 1), 0),
-           cidx(dim_vector(max_nnz, 1), 0),
+           ridx(dim_vector(max_nnz, 1), -1),
+           cidx(dim_vector(max_nnz, 1), -1),
            data(max_nnz, 0.) {
      }
 
@@ -1519,7 +1519,7 @@ public:
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
                if (ridx.xelem(i) == cidx.xelem(i)) {
-                    diagA.xelem(ridx.xelem(i) - 1) += data.xelem(i);
+                    diagA.xelem(ridx.xelem(i)) += data.xelem(i);
                }
           }
 
@@ -1645,8 +1645,8 @@ private:
           }
           
           data.xelem(current) = d;
-          ridx.xelem(current) = r;
-          cidx.xelem(current) = c;
+          ridx.xelem(current) = r - 1;
+          cidx.xelem(current) = c - 1;
      }
 
      Element::FemMatrixType eMatType;
