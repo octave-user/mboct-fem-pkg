@@ -1518,8 +1518,8 @@ public:
           ColumnVector diagA(oDofMap.iGetNumDof(), 0.);
 
           for (octave_idx_type i = 0; i < nnz; ++i) {
-               if (ridx.xelem(i).value() == cidx.xelem(i).value()) {
-                    diagA.xelem(ridx.xelem(i).value() - 1) += data.xelem(i);
+               if (ridx.xelem(i) == cidx.xelem(i)) {
+                    diagA.xelem(ridx.xelem(i) - 1) += data.xelem(i);
                }
           }
 
@@ -1552,7 +1552,7 @@ public:
           }
      }
 
-     void Insert(const Matrix& Ke, const int32NDArray& r, const int32NDArray& c) {
+     void Insert(const Matrix& Ke, const Array<octave_idx_type>& r, const Array<octave_idx_type>& c) {
           const octave_idx_type nrows = Ke.rows();
           const octave_idx_type ncols = Ke.columns();
           
@@ -1567,8 +1567,8 @@ public:
           // Do not resize the workspace here because it could be reused for other matrices!
      }
 
-     const int32NDArray& RowIndex() const { return ridx; }
-     const int32NDArray& ColIndex() const { return cidx; }
+     const Array<octave_idx_type>& RowIndex() const { return ridx; }
+     const Array<octave_idx_type>& ColIndex() const { return cidx; }
      const ColumnVector& Data() const { return data; }
 
      SparseMatrix Assemble(const DofMap& oDofMap, octave_idx_type iNumLoads) const {
@@ -1651,7 +1651,7 @@ private:
 
      Element::FemMatrixType eMatType;
      std::atomic<octave_idx_type> nnz;
-     int32NDArray ridx, cidx;
+     Array<octave_idx_type> ridx, cidx;
      ColumnVector data;
      std::array<MatrixInfo, Element::MAT_TYPE_COUNT> info;
 };
@@ -1726,7 +1726,7 @@ public:
                     return;
                }
                
-               int32NDArray ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
+               Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
                for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                     for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
@@ -1734,8 +1734,7 @@ public:
                     }
                }
 
-               
-               int32NDArray edofidx(dim_vector(Crows, 1));
+               Array<octave_idx_type> edofidx(dim_vector(Crows, 1));
 
                for (octave_idx_type idof = 0; idof < edofidx.numel(); ++idof) {
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
@@ -1754,7 +1753,7 @@ public:
           case VEC_LOAD_THERMAL:
           case VEC_LOAD_ACOUSTICS:
           case VEC_LOAD_FLUID_STRUCT: {
-               int32NDArray edofidx(dim_vector(Crows, 1));
+               Array<octave_idx_type> edofidx(dim_vector(Crows, 1));
 
                for (octave_idx_type idof = 0; idof < Crows; ++idof) {
                     edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_JOINT, id - 1, idof);
@@ -1885,7 +1884,7 @@ public:
                return;
           }
 
-          int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
 
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < 6; ++idof) {
@@ -1893,7 +1892,7 @@ public:
                }
           }
 
-          int32NDArray edofidx(dim_vector(6, 1));
+          Array<octave_idx_type> edofidx(dim_vector(6, 1));
 
           for (octave_idx_type idof = 0; idof < edofidx.rows(); ++idof) {
                edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_RBE3, id - 1, idof);
@@ -1920,7 +1919,7 @@ public:
           for (octave_idx_type k = 0; k < xicols; ++k) {
                for (octave_idx_type j = 0; j < 6; ++j) {
                     for (octave_idx_type i = 0; i < 6; ++i) {
-                         const bool alpha = j < 3 || ndofidx.xelem((k + 1) * 6 + j).value() >= 0;
+                         const bool alpha = j < 3 || ndofidx.xelem((k + 1) * 6 + j) >= 0;
                          S.xelem(6 * k + i + Srows * j) = alpha * (i == j);
                     }
                }
@@ -2296,7 +2295,7 @@ public:
      }
      
      void AssembleMatrix(MatrixAss& mat, const Matrix& A, const DofMap& dof) const {
-          int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
 
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < 6; ++idof) {
@@ -2317,7 +2316,7 @@ public:
           FEM_ASSERT(nodes.numel() == nnodes);
           FEM_ASSERT(A.rows() == Arows);
           
-          int32NDArray ndofidx(dim_vector(nnodes * 6, 1), -1);
+          Array<octave_idx_type> ndofidx(dim_vector(nnodes * 6, 1), -1);
           
           for (octave_idx_type inode = 0; inode < nnodes; ++inode) {
                for (octave_idx_type idof = 0; idof < 6; ++idof) {
@@ -2325,7 +2324,7 @@ public:
                }
           }
 
-          int32NDArray colidx(dim_vector(Acols, 1), -1);
+          Array<octave_idx_type> colidx(dim_vector(Acols, 1), -1);
 
           for (octave_idx_type j = 0; j < Acols; ++j) {
                colidx.xelem(j) = j + 1;
@@ -2581,7 +2580,7 @@ public:
 
           LocalMassMatrix(A);
 
-          int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
           
           const octave_idx_type inode = nodes.xelem(0).value() - 1;
           
@@ -2597,7 +2596,7 @@ public:
 
           LocalLoadVector(Re);
 
-          int32NDArray ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * 6, 1), -1);
           
           const octave_idx_type inode = nodes.xelem(0).value() - 1;
           
@@ -2605,7 +2604,7 @@ public:
                ndofidx.xelem(idof) = dof.GetNodeDofIndex(inode, DofMap::NDOF_DISPLACEMENT, idof);
           }
 
-          int32NDArray colidx(dim_vector(g.columns(), 1), -1);
+          Array<octave_idx_type> colidx(dim_vector(g.columns(), 1), -1);
 
           for (octave_idx_type j = 0; j < g.columns(); ++j) {
                colidx.xelem(j) = j + 1;
@@ -2959,7 +2958,7 @@ public:
                return;
           }
 
-          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+          Array<octave_idx_type> dofidx(dim_vector(iNumDof, 1), 0);
 
           constexpr unsigned uScalarFieldMask = DofMap::DO_THERMAL | DofMap::DO_ACOUSTICS;
           const octave_idx_type inodemaxdof = ((eMatType & uScalarFieldMask) != 0u || eMaterial == Material::MAT_TYPE_FLUID) ? 1 : 3;
@@ -2982,7 +2981,7 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_FLUID_STRUCT: {
-               int32NDArray dofidxcol(dim_vector(iNumCols, 1));
+               Array<octave_idx_type> dofidxcol(dim_vector(iNumCols, 1));
 
                for (octave_idx_type i = 0; i < iNumCols; ++i) {
                     dofidxcol.xelem(i) = i + 1;
@@ -9319,7 +9318,7 @@ public:
           const octave_idx_type iNumLoads = p.rows();
           const octave_idx_type iNumNodes = nodes.numel();
           
-          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+          Array<octave_idx_type> dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
                const octave_idx_type inodeidx = nodes.xelem(inode).value() - 1;
@@ -9335,7 +9334,7 @@ public:
           
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
                for (octave_idx_type i = 0; i < iNumDof; ++i) {
-                    mat.Insert(fA.xelem(i + iNumDof * j), dofidx.xelem(i).value(), colidx + j);
+                    mat.Insert(fA.xelem(i + iNumDof * j), dofidx.xelem(i), colidx + j);
                }
           }
      }
@@ -9376,8 +9375,8 @@ public:
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumDofFluid = iNumNodes;
           
-          int32NDArray dofidx_s(dim_vector(iNumDofStruct, 1), 0);
-          int32NDArray dofidx_f(dim_vector(iNumDofFluid, 1), 0);
+          Array<octave_idx_type> dofidx_s(dim_vector(iNumDofStruct, 1), 0);
+          Array<octave_idx_type> dofidx_f(dim_vector(iNumDofFluid, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
                const octave_idx_type inodeidx = nodes(inode).value() - 1;
@@ -9401,8 +9400,8 @@ public:
           for (octave_idx_type j = 0; j < iNumDofFluid; ++j) {
                for (octave_idx_type i = 0; i < iNumDofStruct; ++i) {
                     const double Aij = A.xelem(i + iNumDofStruct * j);
-                    mat.Insert(Aij, dofidx_s.xelem(i).value(), dofidx_f.xelem(j).value());
-                    mat.Insert(Aij, dofidx_f.xelem(j).value(), dofidx_s.xelem(i).value());
+                    mat.Insert(Aij, dofidx_s.xelem(i), dofidx_f.xelem(j));
+                    mat.Insert(Aij, dofidx_f.xelem(j), dofidx_s.xelem(i));
                }
           }
      }
@@ -9434,7 +9433,7 @@ public:
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
 
           ColumnVector rv(iNumDir);
-          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+          Array<octave_idx_type> dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
                dofidx.xelem(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, eDofType, 0);
@@ -9498,7 +9497,7 @@ public:
           const octave_idx_type iNumLoads = Thetae.rows();
 
           ColumnVector rv(iNumDir);
-          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+          Array<octave_idx_type> dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
                dofidx.xelem(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, eDofType, 0);
@@ -9967,7 +9966,7 @@ public:
           const octave_idx_type iNumLoads = qe.rows();
 
           ColumnVector rv(iNumDir);
-          int32NDArray dofidx(dim_vector(iNumDof, 1), 0);
+          Array<octave_idx_type> dofidx(dim_vector(iNumDof, 1), 0);
 
           for (octave_idx_type inode = 0; inode < iNumNodes; ++inode) {
                dofidx.xelem(inode) = dof.GetNodeDofIndex(nodes(inode).value() - 1, DofMap::NDOF_TEMPERATURE, 0);
