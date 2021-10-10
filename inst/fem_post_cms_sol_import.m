@@ -228,25 +228,25 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 
-%!   group_defs(end + 1).id = 1;
-%!   group_defs(end).name = "inner_diameter";
-%!   group_defs(end).R = eye(3);
-%!   group_defs(end).X0 = zeros(3, 1);
-%!   group_defs(end).type = "cylinder";
-%!   group_defs(end).geometry.rmin = 0.5 * param.d;
-%!   group_defs(end).geometry.rmax = 0.5 * param.d;
-%!   group_defs(end).geometry.zmin = -0.5 * param.w;
-%!   group_defs(end).geometry.zmax = 0.5 * param.w;
+%!   group_defs(1).id = 1;
+%!   group_defs(1).name = "inner_diameter";
+%!   group_defs(1).R = eye(3);
+%!   group_defs(1).X0 = zeros(3, 1);
+%!   group_defs(1).type = "cylinder";
+%!   group_defs(1).geometry.rmin = 0.5 * param.d;
+%!   group_defs(1).geometry.rmax = 0.5 * param.d;
+%!   group_defs(1).geometry.zmin = -0.5 * param.w;
+%!   group_defs(1).geometry.zmax = 0.5 * param.w;
 
-%!   group_defs(end + 1).id = 2;
-%!   group_defs(end).name = "outer_diameter";
-%!   group_defs(end).R = eye(3);
-%!   group_defs(end).X0 = zeros(3, 1);
-%!   group_defs(end).type = "cylinder";
-%!   group_defs(end).geometry.rmin = 0.5 * param.D;
-%!   group_defs(end).geometry.rmax = 0.5 * param.D;
-%!   group_defs(end).geometry.zmin = -0.5 * param.w;
-%!   group_defs(end).geometry.zmax = 0.5 * param.w;
+%!   group_defs(2).id = 2;
+%!   group_defs(2).name = "outer_diameter";
+%!   group_defs(2).R = eye(3);
+%!   group_defs(2).X0 = zeros(3, 1);
+%!   group_defs(2).type = "cylinder";
+%!   group_defs(2).geometry.rmin = 0.5 * param.D;
+%!   group_defs(2).geometry.rmax = 0.5 * param.D;
+%!   group_defs(2).geometry.zmin = -0.5 * param.w;
+%!   group_defs(2).geometry.zmax = 0.5 * param.w;
 
 %!   groups = fem_pre_mesh_groups_create(mesh, group_defs, options.geo_tol);
 

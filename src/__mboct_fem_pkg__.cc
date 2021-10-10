@@ -2191,7 +2191,7 @@ public:
                               double RAij = 0;
 
                               for (octave_idx_type k = 0; k < 3; ++k) {
-                                   RAij += R.xelem(i1 + Arows * k) * A.xelem(3 * i0 + k + Arows * (3 * j0 + j1));
+                                   RAij += R.xelem(i1 + 3 * k) * A.xelem(3 * i0 + k + Arows * (3 * j0 + j1));
                               }
 
                               RA.xelem(3 * i0 + i1 + Arows * (3 * j0 + j1)) = RAij;
@@ -2225,7 +2225,7 @@ public:
 
      void LocalVecToGlobalVec(const Matrix& A, Matrix& RA) const {
           constexpr octave_idx_type Arows = 12;
-          constexpr octave_idx_type Acols = 12;
+          const octave_idx_type Acols = A.columns();
           
           FEM_ASSERT(A.rows() == Arows);
           FEM_ASSERT(RA.rows() == Arows);
@@ -2237,7 +2237,7 @@ public:
                          double RAij = 0;
 
                          for (octave_idx_type k = 0; k < 3; ++k) {
-                              RAij += R.xelem(i1 + Arows * k) * A.xelem(3 * i0 + k + Arows * j);
+                              RAij += R.xelem(i1 + 3 * k) * A.xelem(3 * i0 + k + Arows * j);
                          }
 
                          RA.xelem(3 * i0 + i1 + Arows * j) = RAij;
@@ -2358,8 +2358,9 @@ public:
 
      void LocalMassMatrix(Matrix& Me) const {
           constexpr octave_idx_type Mrows = 12;
+#ifdef DEBUG
           constexpr octave_idx_type Mcols = 12;
-
+#endif
           FEM_ASSERT(Me.rows() == Mrows);
           FEM_ASSERT(Me.columns() == Mcols);
           
@@ -2584,13 +2585,13 @@ public:
                          Jij += m * skew_lcg.xelem(k + 3 * i) * skew_lcg.xelem(k + 3 * j);
                     }
 
-                    Me.xelem(i + 3 + 3 * (j + 3)) = Jij;
+                    Me.xelem(i + 3 + Mrows * (j + 3)) = Jij;
                }
           }
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
-                    Me.xelem(j + 3 + 3 * i) = Me.xelem(i + 3 * (j + 3)) = -m * skew_lcg.xelem(i + 3 * j);
+                    Me.xelem(j + 3 + Mrows * i) = Me.xelem(i + Mrows * (j + 3)) = -m * skew_lcg.xelem(i + 3 * j);
                }
           }
      }
@@ -10340,7 +10341,7 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                               for (octave_idx_type k = 0; k < elements.rows(); ++k) {
                                    X.make_unique();
 
-                                   for (octave_idx_type l = 0; l < X.columns(); ++l) {
+                                   for (octave_idx_type l = 0; l < iNumNodesElem; ++l) {
                                         for (octave_idx_type m = 0; m < X.rows(); ++m) {
                                              octave_idx_type inode = elements.xelem(k, l).value() - 1;
 

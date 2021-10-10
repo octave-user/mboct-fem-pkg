@@ -2684,7 +2684,8 @@
 %! cms_opt.algorithm = "shift-invert";
 %! cms_opt.scaling = "mean K,M";
 %! cms_opt.invariants = true;
-%! cms_opt.refine_max_iter = int32(30);
+%! cms_opt.refine_max_iter = int32(250);
+%! cms_opt.epsilon_refinement = eps^0.8;
 %! [mesh_cms, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh_cms, load_case_cms, cms_opt);
 %! Dred = mat_ass_cms.Mred * material.alpha + mat_ass_cms.Kred * material.beta;
 %! assert(mat_ass_cms.Dred, Dred, sqrt(eps) * max(max(abs(Dred))));
@@ -4456,13 +4457,16 @@
 %! mesh.elements.bodies(2).m = m2;
 %! mesh.elements.bodies(2).J = diag([0, J2, 0]);
 %! mesh.elements.bodies(2).lcg = zeros(3, 1);
-%! load_case.locked_dof = false(size(mesh.nodes));
-%! load_case.locked_dof(:, [1,2,4,6]) = true;
-%! load_case.locked_dof(1, 1:3) = true;
-%! load_case.locked_dof(4, 2:3) = true;
-%! gz = -9.81;
-%! load_case.g = [0; 0; gz];
-%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! load_case_dof.locked_dof = false(size(mesh.nodes));
+%! load_case_dof.locked_dof(:, [1,2,4,6]) = true;
+%! load_case_dof.locked_dof(1, 1:3) = true;
+%! load_case_dof.locked_dof(4, 2:3) = true;
+%! gz = [-9.81, -1.625];
+%! load_case = struct("g", cell(size(gz)));
+%! for i=1:numel(load_case)
+%!   load_case(i).g = [0; 0; gz(i)];
+%! endfor
+%! dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %! [mat_ass.M, ...
 %!  mat_ass.K, ...
 %!  mat_ass.R] = fem_ass_matrix(mesh, ...
@@ -4471,7 +4475,7 @@
 %!                               FEM_MAT_STIFFNESS, ...
 %!                               FEM_VEC_LOAD_CONSISTENT], ...
 %!                              load_case);
-%! sol = fem_sol_static(mesh, dof_map, mat_ass);
+%! [sol] = fem_sol_static(mesh, dof_map, mat_ass);
 %! Ia = d1^4 * pi / 64;
 %! Ib = d2^4 * pi / 64;
 %! Ic = d3^4 * pi / 64;
@@ -4480,9 +4484,12 @@
 %!         3 * E * Ia / a^2 - 6 * E * Ib / b^2, 3 * E * Ia / a + 4 * E * Ib / b, 6 * E * Ib / b^2, 2 * E * Ib / b;
 %!         -12 * E * Ib / b^3, 6 * E * Ib / b^2, 3 * E * Ic / c^3 + 12 * E * Ib / b^3, -3 * E * Ic / c^2 + 6 * E * Ib / b^2;
 %!         -6 * E * Ib / b^2, 2 * E * Ib / b, -3 * E * Ic / c^2 + 6 * E * Ib / b^2, 3 * E * Ic / c + 4 * E * Ib / b];
-%! Rref = [m1 * gz; 0; m2 * gz; 0];
+%! Rref = [m1 * gz; zeros(size(gz)); m2 * gz; zeros(size(gz))];
 %! Uref = Kref \ Rref;
-%! U = sol.def(2:3, [3, 5]).'(:);
+%! U = zeros(size(Uref));
+%! for i=1:numel(load_case)
+%!  U(:, i) = sol.def(2:3, [3, 5], i).'(:);
+%! endfor
 %! tol = 1e-5;
 %! assert(U, Uref, tol * norm(Uref));
 %! lambdaref = eig(Kref, Mref);
