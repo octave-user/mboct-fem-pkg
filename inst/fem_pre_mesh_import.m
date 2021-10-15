@@ -48795,8 +48795,8 @@ endfunction
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   dof_map.parallel.threads_ass = int32(1);
-%!   dof_map.parallel.threshold_elem = int32(1000);
+%!   dof_map.parallel.threads_ass = int32(4);
+%!   dof_map.parallel.threshold_elem = int32(10000);
 %!   [mat_ass.K, ...
 %!    mat_ass.R, ...
 %!    mat_ass.mat_info, ...
