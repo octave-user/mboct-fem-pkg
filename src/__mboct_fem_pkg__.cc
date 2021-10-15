@@ -10254,12 +10254,17 @@ public:
                for (octave_idx_type i = 0; i < iNumThreads; ++i) {
                     rgThreadData.emplace_back(oMeshInfo);
                }
-          
-               const auto pThreadFunc = [this, &oMatAss, &rgThreadData, &oDof, eMatType, iNumThreads] (const octave_idx_type iStart) {
-                                             try {
-                                                  for (auto i = rgElements.begin() + iStart; i < rgElements.end(); i += iNumThreads) {
-                                                       i->ElementType::Assemble(oMatAss, rgThreadData[iStart].oMeshInfo, oDof, eMatType);
 
+               std::vector<ElemLock> rgElemLock(rgElements.size());
+
+               const auto pThreadFunc = [this, &oMatAss, &rgThreadData, &oDof, &rgElemLock, eMatType, iNumThreads] (const octave_idx_type iStart) {
+                                             try {
+                                                  for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
+                                                       const auto j = i - rgElements.begin();
+                                                       bool bExpected = false;
+                                                       if (rgElemLock[j].bLocked.compare_exchange_strong(bExpected, true)) {
+                                                            i->ElementType::Assemble(oMatAss, rgThreadData[iStart].oMeshInfo, oDof, eMatType);
+                                                       }
                                                        OCTAVE_QUIT;
                                                   }
                                              } catch (...) {
@@ -10356,6 +10361,14 @@ private:
           MeshInfo oMeshInfo;
           std::exception_ptr pExcept;
      };
+
+          struct ElemLock {
+                    ElemLock() {
+                         bLocked = false;
+                    }
+                    std::atomic<bool> bLocked;
+          };
+         
      vector<ElementType> rgElements;
 };
 
