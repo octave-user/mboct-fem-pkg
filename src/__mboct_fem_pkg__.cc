@@ -1098,13 +1098,13 @@ public:
      }
      
      Element(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
-          :eltype(eltype), id(id), X(X), material(material), nodes(nodes) {
+          :eltype(eltype), id(id), X(X), material(material), nodes(nodes), bElemAssDone{false} {
 
           FEM_ASSERT(X.columns() == nodes.numel());
      }
 
      Element(const Element& oElem)
-          :eltype(oElem.eltype), id(oElem.id), X(oElem.X), material(oElem.material), nodes(oElem.nodes) {
+          :eltype(oElem.eltype), id(oElem.id), X(oElem.X), material(oElem.material), nodes(oElem.nodes), bElemAssDone{false} {
      }
 
      virtual ~Element() {
@@ -1131,12 +1131,22 @@ public:
      virtual octave_idx_type iGetNumCollocPoints(FemMatrixType eMatType) const {
           return 0;
      }
+
+     bool bSetElemAssDone() const {
+          bool bExpected = false;
+          return bElemAssDone.compare_exchange_strong(bExpected, true);
+     }
+
+     void ResetElemAssDone() const {
+          bElemAssDone = false;
+     }
 protected:
      const ElementTypes::TypeId eltype;
      const octave_idx_type id;
      const Matrix X;
      const Material* material;
      const int32NDArray nodes;
+     mutable std::atomic<bool> bElemAssDone;
 };
 
 class PostProcData {
@@ -10255,20 +10265,23 @@ public:
                     rgThreadData.emplace_back(oMeshInfo);
                }
 
-               std::vector<ElemLock> rgElemLock(rgElements.size());
+               for (const auto& oElem: rgElements) {
+                    oElem.ResetElemAssDone();
+               }
 
-               const auto pThreadFunc = [this, &oMatAss, &rgThreadData, &oDof, &rgElemLock, eMatType, iNumThreads] (const octave_idx_type iStart) {
+               const auto pThreadFunc = [this, &oMatAss, &oDof, eMatType, iNumThreads] (ThreadData* const pThreadData) {
                                              try {
-                                                  for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                                                       const auto j = i - rgElements.begin();
-                                                       bool bExpected = false;
-                                                       if (rgElemLock[j].bLocked.compare_exchange_strong(bExpected, true)) {
-                                                            i->ElementType::Assemble(oMatAss, rgThreadData[iStart].oMeshInfo, oDof, eMatType);
+                                                  for (const auto& oElem: rgElements) {
+                                                       OCTAVE_QUIT;                                                       
+
+                                                       if (!oElem.bSetElemAssDone()) {
+                                                            continue;
                                                        }
-                                                       OCTAVE_QUIT;
+
+                                                       oElem.ElementType::Assemble(oMatAss, pThreadData->oMeshInfo, oDof, eMatType);
                                                   }
                                              } catch (...) {
-                                                  rgThreadData[iStart].pExcept = std::current_exception();
+                                                  pThreadData->pExcept = std::current_exception();
                                              }
                                         };
           
@@ -10278,10 +10291,10 @@ public:
 
                try {
                     for (octave_idx_type i = 1; i < iNumThreads; ++i) {
-                         rgThreads.emplace_back(pThreadFunc, i);
+                         rgThreads.emplace_back(pThreadFunc, &rgThreadData[i]);
                     }
 
-                    pThreadFunc(0);
+                    pThreadFunc(&rgThreadData[0]);
                } catch (...) {
                     for (auto& oThread: rgThreads) {
                          oThread.join();
@@ -10300,10 +10313,10 @@ public:
                     if (oThreadData.pExcept) {
                          std::rethrow_exception(oThreadData.pExcept);
                     }
-               }               
+               }
           } else {
-               for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-                    i->ElementType::Assemble(oMatAss, oMeshInfo, oDof, eMatType);
+               for (const auto& oElem: rgElements) {
+                    oElem.ElementType::Assemble(oMatAss, oMeshInfo, oDof, eMatType);
 
                     OCTAVE_QUIT;
                }
@@ -10311,8 +10324,8 @@ public:
      }
 
      void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution) const {
-          for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               i->ElementType::PostProcElem(eMatType, oSolution);
+          for (const auto& oElem: rgElements) {
+               oElem.ElementType::PostProcElem(eMatType, oSolution);
 
                OCTAVE_QUIT;
           }
@@ -10321,8 +10334,8 @@ public:
      double dGetMass() const {
           double dm = 0.;
 
-          for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               dm += i->ElementType::dGetMass();
+          for (const auto& oElem: rgElements) {
+               dm += oElem.ElementType::dGetMass();
 
                OCTAVE_QUIT;
           }
@@ -10355,19 +10368,12 @@ public:
 private:
      struct ThreadData {
           explicit ThreadData(const MeshInfo& oMeshInfo)
-               :oMeshInfo{oMeshInfo} {
+               :oMeshInfo{oMeshInfo}, pExcept{nullptr} {
           }
           
           MeshInfo oMeshInfo;
           std::exception_ptr pExcept;
      };
-
-          struct ElemLock {
-                    ElemLock() {
-                         bLocked = false;
-                    }
-                    std::atomic<bool> bLocked;
-          };
          
      vector<ElementType> rgElements;
 };
