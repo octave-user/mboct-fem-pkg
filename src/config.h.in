@@ -17,6 +17,9 @@
    you don't. */
 #undef HAVE_DECL_NLOPT_LD_SLSQP
 
+/* Define if BLAS dgemm can be used */
+#undef HAVE_DGEMM
+
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 

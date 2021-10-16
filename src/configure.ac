@@ -139,7 +139,7 @@ LIBS="${TLIBS}"
 
 OCTINCLUDEDIR="${OCTINCLUDEDIR:-`${MKOCTFILE} -p INCFLAGS`}"
 OCTLIBDIR="${OCTLIBDIR:-`${MKOCTFILE} -p OCTLIBDIR`}"
-OCTLIBS="${OCTLIBS:-`${MKOCTFILE} -p LIBOCTAVE` `${MKOCTFILE} -p LIBOCTINTERP`}"
+OCTLIBS="${OCTLIBS:-`${MKOCTFILE} -p LIBOCTAVE` `${MKOCTFILE} -p LIBOCTINTERP` `${MKOCTFILE} -p BLAS_LIBS`}"
 CXX="${CXX:-`${MKOCTFILE} -p CXX`}"
 CXXFLAGS="${CXXFLAGS} `${MKOCTFILE} -p CXXFLAGS`"
 OCTLDFLAGS="${OCTLDFLAGS:--L${OCTLIBDIR} -Wl,-rpath=${OCTLIBDIR} -Wl,--no-undefined}"
@@ -168,6 +168,31 @@ AC_TRY_LINK([
 AC_MSG_RESULT([${use_octlibs}])
 
 AM_CONDITIONAL(USE_OCTLIBS, [test "${use_octlibs}" = "yes"])
+
+have_dgemm=no
+
+AC_CHECK_HEADER(octave/lo-blas-proto.h)
+
+if test "${ac_cv_header_octave_lo_blas_proto_h}" = "yes"; then
+   AC_MSG_CHECKING([for dgemm])
+   AC_TRY_LINK([
+     #include <octave/lo-blas-proto.h>
+     #include <octave/oct.h>
+     ],[
+     Matrix A(3, 3), B(3, 3), C(3, 3);
+     F77_XFCN (dgemm, DGEMM, (F77_CONST_CHAR_ARG2 ("N", 1),
+     F77_CONST_CHAR_ARG2 ("N", 1),
+     octave::to_f77_int(A.rows()), octave::to_f77_int(B.columns()), octave::to_f77_int(A.columns()), 1.0, A.fortran_vec(), octave::to_f77_int(A.rows()),
+     B.fortran_vec(), B.rows(), 1.0, C.fortran_vec(), octave::to_f77_int(C.rows())
+     F77_CHAR_ARG_LEN (1)
+     F77_CHAR_ARG_LEN (1)));     
+     ],[have_dgemm=yes],[])
+   AC_MSG_RESULT([${have_dgemm}])
+fi
+
+if test "${have_dgemm}" = "yes"; then
+   AC_DEFINE(HAVE_DGEMM, [1], [Define if BLAS dgemm can be used])
+fi
 
 ## Simple symbol alternatives of different Octave versions.
 OF_OCTAVE_LIST_ALT_SYMS([

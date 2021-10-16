@@ -53,6 +53,9 @@ using namespace std::string_literals;
 #define FEM_TRACE(expr) static_cast<void>(0)
 #endif
 
+#ifdef HAVE_DGEMM
+#include <octave/lo-blas-proto.h>
+#endif
 #include <octave/oct.h>
 #include <octave/oct-map.h>
 
@@ -3226,7 +3229,23 @@ protected:
                     }
                }
 #endif
-
+#if HAVE_DGEMM
+               F77_XFCN (dgemm, DGEMM, (F77_CONST_CHAR_ARG2 ("T", 1),
+                                        F77_CONST_CHAR_ARG2 ("N", 1),
+                                        octave::to_f77_int(iNumDof),
+                                        octave::to_f77_int(iNumDof),
+                                        octave::to_f77_int(iNumStrains),
+                                        1.0,
+                                        B.fortran_vec(),
+                                        octave::to_f77_int(iNumStrains),
+                                        CB.fortran_vec(),
+                                        octave::to_f77_int(iNumStrains),
+                                        1.0,
+                                        Ke.fortran_vec(),
+                                        octave::to_f77_int(iNumDof)
+                                        F77_CHAR_ARG_LEN (1)
+                                        F77_CHAR_ARG_LEN (1)));
+#else
                for (octave_idx_type l = 0; l < iNumDof; ++l) {
                     for (octave_idx_type m = l; m < iNumDof; ++m) {
                          double Kelm = 0.;
@@ -3240,6 +3259,7 @@ protected:
                          Ke.xelem(l + iNumDof * m) += Kelm;
                     }
                }
+#endif
           }
 
           for (octave_idx_type i = 1; i < iNumDof; ++i) {
