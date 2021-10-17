@@ -129,6 +129,63 @@ struct array
 };
 
 template <typename T>
+inline void atomic_fetch_add_float(volatile T& x, const T& dx) noexcept {
+     T xprev;
+     
+     __atomic_load(&x, &xprev, __ATOMIC_RELAXED);
+     
+     T xnew = xprev + dx;
+     
+     while (!__atomic_compare_exchange(&x, &xprev, &xnew, true, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED))
+	  xnew = xprev + dx;
+}
+
+template <typename T>
+inline void atomic_fetch_add_float(volatile std::complex<T>& x, const std::complex<T>& dx) noexcept {
+     constexpr octave_idx_type N = 2;
+
+     static_assert(sizeof(std::complex<T>) == N * sizeof(T));
+
+     for (octave_idx_type i = 0; i < N; ++i) {
+          atomic_fetch_add_float(reinterpret_cast<volatile double*>(&x)[i], reinterpret_cast<const double*>(&dx)[i]);
+     }
+}
+
+template <typename T>
+inline void atomic_store_float(volatile T& x, const T& y) noexcept {
+     __atomic_store(&x, &y, __ATOMIC_SEQ_CST);
+}
+
+template <typename T>
+inline void atomic_store_float(volatile std::complex<T>& x, const std::complex<T>& y) noexcept {
+     constexpr octave_idx_type N = 2;
+     
+     static_assert(sizeof(std::complex<T>) == N * sizeof(T));
+     
+     volatile T* const px = reinterpret_cast<volatile T*>(&x);
+     const T* const py = reinterpret_cast<const T*>(&y);
+     
+     T xprev[N];
+
+     bool flag;
+
+     do {
+          flag = false;
+          
+          for (octave_idx_type i = 0; i < N; ++i) {
+               __atomic_load(&px[i], &xprev[i], __ATOMIC_RELAXED);
+          }
+
+          for (octave_idx_type i = 0; i < N; ++i) {
+               if (!__atomic_compare_exchange(&px[i], &xprev[i], &py[i], true, __ATOMIC_SEQ_CST, __ATOMIC_RELAXED)) {
+                    flag = true;
+                    break;
+               }
+          }
+     } while (flag);
+}
+
+template <typename T>
 struct PostProcTypeTraits;
 
 template <>
@@ -3060,7 +3117,7 @@ public:
           }
      }
 
-     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final {
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final override {
           switch (eMaterial) {
           case Material::MAT_TYPE_SOLID:
                switch (eMatType) {
@@ -3407,9 +3464,11 @@ protected:
           const octave_idx_type iNumNodes = nodes.numel();
           ColumnVector rv(iNumDir);
 
+          constexpr octave_idx_type Srows = 3;
+
           FEM_ASSERT(X.rows() == 3);
           FEM_ASSERT(S.ndims() == 2);
-          FEM_ASSERT(S.rows() == 3);
+          FEM_ASSERT(S.rows() == Srows);
           FEM_ASSERT(S.columns() == 1);
           FEM_ASSERT(iNumDisp == S.rows());
 
@@ -3426,7 +3485,7 @@ protected:
 
                DispInterpMatrix(rv, H);
 
-               for (octave_idx_type l = 0; l < S.rows(); ++l) {
+               for (octave_idx_type l = 0; l < Srows; ++l) {
                     double fil = 0.;
 
                     for (octave_idx_type n = 0; n < iNumNodes; ++n) {
@@ -3435,7 +3494,7 @@ protected:
                          }
                     }
 
-                    S.xelem(l) += fil * alpha * rho * detJ;
+                    atomic_fetch_add_float(S.xelem(l), fil * alpha * rho * detJ);
                }
           }
      }
@@ -3482,12 +3541,12 @@ protected:
 
                const double dmi = alpha * rho * detJ;
 
-               Inv7.xelem(0 + 3 * 0) += (fi.xelem(1) * fi.xelem(1) + fi.xelem(2) * fi.xelem(2)) * dmi;
-               Inv7.xelem(0 + 3 * 1) -= (fi.xelem(0) * fi.xelem(1)) * dmi;
-               Inv7.xelem(0 + 3 * 2) -= (fi.xelem(0) * fi.xelem(2)) * dmi;
-               Inv7.xelem(1 + 3 * 1) += (fi.xelem(0) * fi.xelem(0) + fi.xelem(2) * fi.xelem(2)) * dmi;
-               Inv7.xelem(1 + 3 * 2) -= (fi.xelem(1) * fi.xelem(2)) * dmi;
-               Inv7.xelem(2 + 3 * 2) += (fi.xelem(0) * fi.xelem(0) + fi.xelem(1) * fi.xelem(1)) * dmi;
+               atomic_fetch_add_float(Inv7.xelem(0 + 3 * 0), (fi.xelem(1) * fi.xelem(1) + fi.xelem(2) * fi.xelem(2)) * dmi);
+               atomic_fetch_add_float(Inv7.xelem(0 + 3 * 1), -(fi.xelem(0) * fi.xelem(1)) * dmi);
+               atomic_fetch_add_float(Inv7.xelem(0 + 3 * 2), -(fi.xelem(0) * fi.xelem(2)) * dmi);
+               atomic_fetch_add_float(Inv7.xelem(1 + 3 * 1), (fi.xelem(0) * fi.xelem(0) + fi.xelem(2) * fi.xelem(2)) * dmi);
+               atomic_fetch_add_float(Inv7.xelem(1 + 3 * 2), -(fi.xelem(1) * fi.xelem(2)) * dmi);
+               atomic_fetch_add_float(Inv7.xelem(2 + 3 * 2), (fi.xelem(0) * fi.xelem(0) + fi.xelem(1) * fi.xelem(1)) * dmi);
           }
      }
 
@@ -3535,7 +3594,7 @@ protected:
                               }
                          }
 
-                         Inv3.xelem(l + 3 * j) += dmi * Uil;
+                         atomic_fetch_add_float(Inv3.xelem(l + 3 * j), dmi * Uil);
                     }
                }
           }
@@ -3588,9 +3647,9 @@ protected:
                          }
                     }
 
-                    Inv4.xelem(0 + 3 * j) += (fi.xelem(1) * Ui.xelem(2) - Ui.xelem(1) * fi.xelem(2)) * dmi;
-                    Inv4.xelem(1 + 3 * j) += (Ui.xelem(0) * fi.xelem(2) - fi.xelem(0) * Ui.xelem(2)) * dmi;
-                    Inv4.xelem(2 + 3 * j) += (fi.xelem(0) * Ui.xelem(1) - Ui.xelem(0) * fi.xelem(1)) * dmi;
+                    atomic_fetch_add_float(Inv4.xelem(0 + 3 * j), (fi.xelem(1) * Ui.xelem(2) - Ui.xelem(1) * fi.xelem(2)) * dmi);
+                    atomic_fetch_add_float(Inv4.xelem(1 + 3 * j), (Ui.xelem(0) * fi.xelem(2) - fi.xelem(0) * Ui.xelem(2)) * dmi);
+                    atomic_fetch_add_float(Inv4.xelem(2 + 3 * j), (fi.xelem(0) * Ui.xelem(1) - Ui.xelem(0) * fi.xelem(1)) * dmi);
                }
           }
      }
@@ -3648,9 +3707,9 @@ protected:
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
                for (octave_idx_type j = 0; j < iNumModes; ++j) {
                     for (octave_idx_type k = 0; k < iNumModes; ++k) {
-                         Inv5.xelem(0 + 3 * (k + iNumModes * j)) += dmi.xelem(i) * (Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)));
-                         Inv5.xelem(1 + 3 * (k + iNumModes * j)) += dmi.xelem(i) * (Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)));
-                         Inv5.xelem(2 + 3 * (k + iNumModes * j)) += dmi.xelem(i) * (Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i)));
+                         atomic_fetch_add_float(Inv5.xelem(0 + 3 * (k + iNumModes * j)), dmi.xelem(i) * (Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i))));
+                         atomic_fetch_add_float(Inv5.xelem(1 + 3 * (k + iNumModes * j)), dmi.xelem(i) * (Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i))));
+                         atomic_fetch_add_float(Inv5.xelem(2 + 3 * (k + iNumModes * j)), dmi.xelem(i) * (Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i))));
                     }
                }
           }
@@ -3707,15 +3766,15 @@ protected:
                          }
                     }
 
-                    Inv8.xelem(0 + 3 * (0 + 3 * j)) += (fi.xelem(2) * Ui.xelem(2) + fi.xelem(1) * Ui.xelem(1)) * dmi;
-                    Inv8.xelem(1 + 3 * (0 + 3 * j)) += -fi.xelem(0) * Ui.xelem(1) * dmi;
-                    Inv8.xelem(2 + 3 * (0 + 3 * j)) += -fi.xelem(0) * Ui.xelem(2) * dmi;
-                    Inv8.xelem(0 + 3 * (1 + 3 * j)) += -Ui.xelem(0) * fi.xelem(1) * dmi;
-                    Inv8.xelem(1 + 3 * (1 + 3 * j)) += (fi.xelem(2) * Ui.xelem(2) + fi.xelem(0) * Ui.xelem(0)) * dmi;
-                    Inv8.xelem(2 + 3 * (1 + 3 * j)) += -fi.xelem(1) * Ui.xelem(2) * dmi;
-                    Inv8.xelem(0 + 3 * (2 + 3 * j)) += -Ui.xelem(0) * fi.xelem(2) * dmi;
-                    Inv8.xelem(1 + 3 * (2 + 3 * j)) += -Ui.xelem(1) * fi.xelem(2) * dmi;
-                    Inv8.xelem(2 + 3 * (2 + 3 * j)) += (fi.xelem(1) * Ui.xelem(1) + fi.xelem(0) * Ui.xelem(0)) * dmi;
+                    atomic_fetch_add_float(Inv8.xelem(0 + 3 * (0 + 3 * j)), (fi.xelem(2) * Ui.xelem(2) + fi.xelem(1) * Ui.xelem(1)) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(1 + 3 * (0 + 3 * j)), -fi.xelem(0) * Ui.xelem(1) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(2 + 3 * (0 + 3 * j)), -fi.xelem(0) * Ui.xelem(2) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(0 + 3 * (1 + 3 * j)), -Ui.xelem(0) * fi.xelem(1) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(1 + 3 * (1 + 3 * j)), (fi.xelem(2) * Ui.xelem(2) + fi.xelem(0) * Ui.xelem(0)) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(2 + 3 * (1 + 3 * j)), -fi.xelem(1) * Ui.xelem(2) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(0 + 3 * (2 + 3 * j)), -Ui.xelem(0) * fi.xelem(2) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(1 + 3 * (2 + 3 * j)), -Ui.xelem(1) * fi.xelem(2) * dmi);
+                    atomic_fetch_add_float(Inv8.xelem(2 + 3 * (2 + 3 * j)), (fi.xelem(1) * Ui.xelem(1) + fi.xelem(0) * Ui.xelem(0)) * dmi);
                }
           }
      }
@@ -3775,15 +3834,15 @@ protected:
                     for (octave_idx_type k = 0; k < U.dim3(); ++k) {
                          const octave_idx_type jk = j + k * Inv9.dim3();
 
-                         Inv9.xelem(0 + 3 * (0 + 3 * jk)) += (-Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i);
-                         Inv9.xelem(1 + 3 * (0 + 3 * jk)) += Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) * dmi.xelem(i);
-                         Inv9.xelem(2 + 3 * (0 + 3 * jk)) += Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) * dmi.xelem(i);
-                         Inv9.xelem(0 + 3 * (1 + 3 * jk)) += Ui.xelem(0 + iNumDisp * (k + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * dmi.xelem(i);
-                         Inv9.xelem(1 + 3 * (1 + 3 * jk)) += (-Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i);
-                         Inv9.xelem(2 + 3 * (1 + 3 * jk)) += Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) * dmi.xelem(i);
-                         Inv9.xelem(0 + 3 * (2 + 3 * jk)) += Ui.xelem(0 + iNumDisp * (k + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * dmi.xelem(i);
-                         Inv9.xelem(1 + 3 * (2 + 3 * jk)) += Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * dmi.xelem(i);
-                         Inv9.xelem(2 + 3 * (2 + 3 * jk)) += (-Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i);
+                         atomic_fetch_add_float(Inv9.xelem(0 + 3 * (0 + 3 * jk)), (-Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(1 + 3 * (0 + 3 * jk)), Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(2 + 3 * (0 + 3 * jk)), Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(0 + 3 * (1 + 3 * jk)), Ui.xelem(0 + iNumDisp * (k + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(1 + 3 * (1 + 3 * jk)), (-Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(2 + 3 * (1 + 3 * jk)), Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(0 + 3 * (2 + 3 * jk)), Ui.xelem(0 + iNumDisp * (k + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(1 + 3 * (2 + 3 * jk)), Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * dmi.xelem(i));
+                         atomic_fetch_add_float(Inv9.xelem(2 + 3 * (2 + 3 * jk)), (-Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(0 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(0 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i));
                     }
                }
           }
@@ -3855,7 +3914,7 @@ protected:
           for (octave_idx_type k = 0; k < iNumLoads; ++k) {
                for (octave_idx_type j = 0; j < iNumStrains; ++j) {
                     for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                         epsilonn.xelem(id - 1 + iNumElem * (i + iNumNodes * (j + k * iNumStrains))) = epsilonen.xelem(i + iNumNodes * (k * iNumStrains + j));
+                         atomic_store_float(epsilonn.xelem(id - 1 + iNumElem * (i + iNumNodes * (j + k * iNumStrains))), epsilonen.xelem(i + iNumNodes * (k * iNumStrains + j)));
                     }
                }
           }
@@ -3979,7 +4038,7 @@ protected:
           for (octave_idx_type k = 0; k < iNumLoads; ++k) {
                for (octave_idx_type j = 0; j < iNumStrains; ++j) {
                     for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                         taun.xelem(id - 1 + iNumElem * (i + iNumNodes * (j + k * iNumStrains))) = tauen.xelem(i + iNumNodes * (k * iNumStrains + j));
+                         atomic_store_float(taun.xelem(id - 1 + iNumElem * (i + iNumNodes * (j + k * iNumStrains))), tauen.xelem(i + iNumNodes * (k * iNumStrains + j)));
                     }
                }
           }
@@ -4171,7 +4230,7 @@ protected:
           for (octave_idx_type k = 0; k < iNumLoads; ++k) {
                for (octave_idx_type j = 0; j < iNumComp; ++j) {
                     for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                         vn.xelem(id - 1 + iNumElem * (i + iNumNodes * (j + k * iNumComp))) = ven.xelem(i + iNumNodes * (k * iNumComp + j));
+                         atomic_store_float(vn.xelem(id - 1 + iNumElem * (i + iNumNodes * (j + k * iNumComp))), ven.xelem(i + iNumNodes * (k * iNumComp + j)));
                     }
                }
           }
@@ -9090,7 +9149,7 @@ protected:
      }
      
 public:
-     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const {
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const override {
           switch (eMatType) {
           case VEC_SURFACE_NORMAL_VECTOR:
                SurfaceNormalVectorElem(oSolution.GetField(PostProcData::VEC_EL_SURFACE_NORMAL_VECTOR_RE, eltype), eMatType);
@@ -9148,7 +9207,7 @@ public:
           
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                    nel.xelem(id - 1 + iNumElem * (i + iNumNodes * j)) = nn.xelem(i + iNumNodes * j);
+                    atomic_store_float(nel.xelem(id - 1 + iNumElem * (i + iNumNodes * j)), nn.xelem(i + iNumNodes * j));
                }
           }
      }
@@ -9704,7 +9763,7 @@ public:
           // unused
      }
      
-     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final {
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final override {
           switch (eMatType) {
           case VEC_PARTICLE_VELOCITY:
                ParticleVelocityNormal<double>(oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_PART_VEL_NORM_RE, eltype),
@@ -9817,7 +9876,7 @@ public:
           
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
                for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                    vn.xelem(id - 1 + iNumElem * (i + iNumNodes * j)) = vne.xelem(i + iNumNodes * j);
+                    atomic_store_float(vn.xelem(id - 1 + iNumElem * (i + iNumNodes * j)), vne.xelem(i + iNumNodes * j));
                }
           }          
      }     
@@ -9929,12 +9988,12 @@ public:
 
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
                for (octave_idx_type i = 0; i < iNumNodes; ++i) {
-                    I.xelem(id - 1 + iNumElem * (i + iNumNodes * j)) = Ie.xelem(i + iNumNodes * j);
+                    atomic_store_float(I.xelem(id - 1 + iNumElem * (i + iNumNodes * j)), Ie.xelem(i + iNumNodes * j));
                }
           }
 
           for (octave_idx_type j = 0; j < iNumLoads; ++j) {
-               P.xelem(id - 1 + iNumElem * j) = Pe.xelem(j);
+               atomic_store_float(P.xelem(id - 1 + iNumElem * j), Pe.xelem(j));
           }
      }
      
@@ -10178,7 +10237,7 @@ public:
 
      virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const=0;
      virtual void Assemble(MatrixAss& oMatAss, MeshInfo& info, const DofMap& oDof, Element::FemMatrixType eMatType, const ParallelOptions& oParaOpt) const=0;
-     virtual void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution) const=0;
+     virtual void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution, const ParallelOptions& oParaOpt) const=0;
      virtual double dGetMass() const=0;
      virtual bool bNeedMatrixInfo(Element::FemMatrixType eMatType) const=0;
 
@@ -10269,7 +10328,7 @@ public:
                     oElem.ResetElemAssDone();
                }
 
-               const auto pThreadFunc = [this, &oMatAss, &oDof, eMatType, iNumThreads] (ThreadData* const pThreadData) {
+               const auto pThreadFunc = [this, &oMatAss, &oDof, eMatType] (ThreadData* const pThreadData) {
                                              try {
                                                   for (const auto& oElem: rgElements) {
                                                        OCTAVE_QUIT;                                                       
@@ -10323,11 +10382,71 @@ public:
           }
      }
 
-     void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution) const {
-          for (const auto& oElem: rgElements) {
-               oElem.ElementType::PostProcElem(eMatType, oSolution);
+     void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution, const ParallelOptions& oParaOpt) const final override {
+          const octave_idx_type iNumThreads = oParaOpt.iGetNumThreadsAss();
+          
+          if (iNumThreads > 1 && iGetNumElem() >= oParaOpt.iGetMultiThreadThreshold()) {
+               vector<std::exception_ptr> rgThreadData;
+          
+               rgThreadData.reserve(iNumThreads);
+          
+               for (octave_idx_type i = 0; i < iNumThreads; ++i) {
+                    rgThreadData.emplace_back(nullptr);
+               }
 
-               OCTAVE_QUIT;
+               for (const auto& oElem: rgElements) {
+                    oElem.ResetElemAssDone();
+               }
+
+               const auto pThreadFunc = [this, &oSolution, eMatType] (std::exception_ptr* const pThreadData) {
+                                             try {
+                                                  for (const auto& oElem: rgElements) {
+                                                       OCTAVE_QUIT;                                                       
+
+                                                       if (!oElem.bSetElemAssDone()) {
+                                                            continue;
+                                                       }
+
+                                                       oElem.ElementType::PostProcElem(eMatType, oSolution);
+                                                  }
+                                             } catch (...) {
+                                                  *pThreadData = std::current_exception();
+                                             }
+                                        };
+          
+               vector<std::thread> rgThreads;
+          
+               rgThreads.reserve(iNumThreads - 1);
+
+               try {
+                    for (octave_idx_type i = 1; i < iNumThreads; ++i) {
+                         rgThreads.emplace_back(pThreadFunc, &rgThreadData[i]);
+                    }
+
+                    pThreadFunc(&rgThreadData[0]);
+               } catch (...) {
+                    for (auto& oThread: rgThreads) {
+                         oThread.join();
+                    }
+                    
+                    throw;
+               }
+               
+               for (auto& oThread: rgThreads) {
+                    oThread.join();
+               }
+               
+               for (const std::exception_ptr& pThreadData: rgThreadData) {
+                    if (pThreadData) {
+                         std::rethrow_exception(pThreadData);
+                    }
+               }
+          } else {
+               for (const auto& oElem: rgElements) {
+                    oElem.ElementType::PostProcElem(eMatType, oSolution);
+
+                    OCTAVE_QUIT;
+               }
           }
      }
 
@@ -12186,7 +12305,8 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
                             const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
                             const octave_scalar_map& elements,
                             const Matrix& nodes,
-                            PostProcData& oSolution) {
+                            PostProcData& oSolution,
+                            const ParallelOptions& oParaOpt) {
      constexpr octave_idx_type iNumComp = 3;
      octave_scalar_map mapSurfaceNormalVectorElem;
 
@@ -12251,9 +12371,9 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
                                           0.));
 
                               
-               for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
-                    if ((*k)->GetElementType() == oElemType.type) {
-                         (*k)->PostProcElem(Element::VEC_SURFACE_NORMAL_VECTOR, oSolution);
+               for (const auto& pElemBlock: rgElemBlocks) {
+                    if (pElemBlock->GetElementType() == oElemType.type) {
+                         pElemBlock->PostProcElem(Element::VEC_SURFACE_NORMAL_VECTOR, oSolution, oParaOpt);
                     }
                }
 
@@ -12276,7 +12396,8 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
                                    const octave_scalar_map& elements,
                                    const Matrix& nodes,
                                    PostProcData& oSolution,
-                                   const Element::FemMatrixType eMatType) {
+                                   const Element::FemMatrixType eMatType,
+                                   const ParallelOptions& oParaOpt) {
      constexpr octave_idx_type iNumComp = 3;
      const octave_idx_type iNumLoads = oSolution.GetNumSteps();
      typedef typename PostProcTypeTraits<T>::NDArrayType TNDArray;
@@ -12314,9 +12435,9 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
                                            T{}));
 
                               
-               for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
-                    if ((*k)->GetElementType() == oElemType.type) {
-                         (*k)->PostProcElem(PPFH::ConvertMatrixType(Element::VEC_PARTICLE_VELOCITY), oSolution);
+               for (const auto& pElemBlock: rgElemBlocks) {
+                    if (pElemBlock->GetElementType() == oElemType.type) {
+                         pElemBlock->PostProcElem(PPFH::ConvertMatrixType(Element::VEC_PARTICLE_VELOCITY), oSolution, oParaOpt);
                     }
                }
 
@@ -12403,9 +12524,9 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
                          FEM_ASSERT(0);
                     }                         
 
-                    for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
-                         if ((*k)->GetElementType() == oElemType.type) {
-                              (*k)->PostProcElem(eMatType, oSolution);
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         if (pElemBlock->GetElementType() == oElemType.type) {
+                              pElemBlock->PostProcElem(eMatType, oSolution, oParaOpt);
                          }
                     }
 
@@ -14783,8 +14904,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                const Element::FemMatrixType eMatType = static_cast<Element::FemMatrixType>(matrix_type(j).value());
                octave_idx_type iWorkSpaceSize = 0;
 
-               for (auto i = rgElemBlocks.cbegin(); i != rgElemBlocks.cend(); ++i) {
-                    iWorkSpaceSize += (*i)->iGetWorkSpaceSize(eMatType);
+               for (const auto& pElemBlock: rgElemBlocks) {
+                    iWorkSpaceSize += pElemBlock->iGetWorkSpaceSize(eMatType);
                }
 
                iMaxWorkSpaceSize = std::max(iMaxWorkSpaceSize, iWorkSpaceSize);
@@ -14830,15 +14951,15 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                     bool bMatInfo = false;
                     
-                    for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                         const bool bNeedMatInfo = (*j)->bNeedMatrixInfo(eMatType);
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         const bool bNeedMatInfo = pElemBlock->bNeedMatrixInfo(eMatType);
 
                          if (!bMatInfo && bNeedMatInfo) {
                               oMatAss.UpdateMatrixInfo(oDof);
                               bMatInfo = true;
                          }                        
 
-                         (*j)->Assemble(oMatAss, oMeshInfo, oDof, eMatType, oParaOpt);
+                         pElemBlock->Assemble(oMatAss, oMeshInfo, oDof, eMatType, oParaOpt);
                     }
 
                     oMatAss.Finish();
@@ -14852,8 +14973,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::SCA_TOT_MASS: {
                     double dMass = 0.;
 
-                    for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                         dMass += (*j)->dGetMass();
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         dMass += pElemBlock->dGetMass();
                     }
 
                     retval.append(dMass);
@@ -14939,8 +15060,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     
                     oSolution.SetField(eFieldType, ElementTypes::ELEM_TYPE_UNKNOWN, NDArray(mat_dim, 0.));
 
-                    for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                         (*j)->PostProcElem(eMatType, oSolution);
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         pElemBlock->PostProcElem(eMatType, oSolution, oParaOpt);
                     }
 
                     NDArray mat = oSolution.GetField(eFieldType, ElementTypes::ELEM_TYPE_UNKNOWN);
@@ -14953,7 +15074,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                          for (octave_idx_type i = 1; i < mat.rows(); ++i) {
                               for (octave_idx_type j = 0; j < i; ++j) {
-                                   mat.xelem(i, j) = mat.xelem(j, i);
+                                   mat.xelem(i + 3 * j) = mat.xelem(j + 3 * i);
                               }
                          }
                          break;
@@ -14974,16 +15095,16 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_COLL_STIFF_FLUID_STRUCT_RE: {
                     octave_scalar_map mapCollocPoints;
 
-                    for (auto j = rgElemBlocks.cbegin(); j != rgElemBlocks.cend(); ++j) {
-                         const auto eElemType = (*j)->GetElementType();
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         const auto eElemType = pElemBlock->GetElementType();
 
-                         const octave_idx_type iNumElem = (*j)->iGetNumElem();
+                         const octave_idx_type iNumElem = pElemBlock->iGetNumElem();
 
                          if (!iNumElem) {
                               continue;
                          }
 
-                         const octave_idx_type iNumColloc = (*j)->iGetNumCollocPoints(0, eMatType);
+                         const octave_idx_type iNumColloc = pElemBlock->iGetNumCollocPoints(0, eMatType);
 
                          if (!iNumColloc) {
                               continue;
@@ -14993,7 +15114,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                          oSolution.SetField(PostProcData::VEC_EL_COLLOC_POINTS_RE, eElemType, NDArray{dimXg, 0.});
 
-                         (*j)->PostProcElem(eMatType, oSolution);
+                         pElemBlock->PostProcElem(eMatType, oSolution, oParaOpt);
 
                          const NDArray& Xg = oSolution.GetField(PostProcData::VEC_EL_COLLOC_POINTS_RE, eElemType);
                          const char* pszElemName = ElementTypes::GetType(eElemType).name;
@@ -15055,9 +15176,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               
                               oSolution.SetField(eFieldType, oElemType.type, NDArray(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.));
 
-                              for (auto k = rgElemBlocks.cbegin(); k != rgElemBlocks.cend(); ++k) {
-                                   if ((*k)->GetElementType() == oElemType.type) {
-                                        (*k)->PostProcElem(eMatTypeStressStrain, oSolution);
+                              for (const auto& pElemBlock: rgElemBlocks) {
+                                   if (pElemBlock->GetElementType() == oElemType.type) {
+                                        pElemBlock->PostProcElem(eMatTypeStressStrain, oSolution, oParaOpt);
                                    }
                               }
 
@@ -15165,18 +15286,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     switch (eMatType) {
                     case Element::VEC_PARTICLE_VELOCITY:
                     case Element::SCA_ACOUSTIC_INTENSITY:
-                         retval.append(AcousticPostProc<double>(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType));
+                         retval.append(AcousticPostProc<double>(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
                          break;
                     case Element::VEC_PARTICLE_VELOCITY_C:
                     case Element::SCA_ACOUSTIC_INTENSITY_C:
-                         retval.append(AcousticPostProc<std::complex<double> >(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType));
+                         retval.append(AcousticPostProc<std::complex<double> >(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
                          break;
                     default:
                          FEM_ASSERT(false);
                     }
                } break;
                case Element::VEC_SURFACE_NORMAL_VECTOR:
-                    retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution));
+                    retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution, oParaOpt));
                     break;
                default:
                     throw std::runtime_error("invalid value for argument matrix_type");
