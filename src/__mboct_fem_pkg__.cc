@@ -818,37 +818,9 @@ public:
           return r.rows();
      }
 
-     bool Lock() {
-          bool bExpected = false;
-
-          while (!bLocked.compare_exchange_weak(bExpected, true))
-               ;
-
-          return bExpected;
-     }
-
-     bool Unlock() {
-          bool bExpected = true;
-          return bLocked.compare_exchange_strong(bExpected, false);
-     }
-
-     class Guard {
-     public:
-          explicit Guard(IntegrationRule& oParent)
-               :oParent(oParent) {
-               oParent.Lock();
-          }
-
-          ~Guard() {
-               oParent.Unlock();
-          }
-     private:
-          IntegrationRule& oParent;
-     };
 private:
      Matrix r;
      ColumnVector alpha;
-     std::atomic<bool> bLocked;
 };
 
 struct StrainField {
@@ -1932,6 +1904,9 @@ public:
                return 1;
           }
      }
+
+     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     }          
 private:
      static DofMap::NodalDofType GetNodalDofType(const ElementTypes::TypeId eltype) {
           switch (eltype) {
@@ -2163,6 +2138,8 @@ public:
           }
      }
 
+     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     }
 private:
      const RowVector omega;
 };
@@ -2596,6 +2573,9 @@ public:
                Pe.xelem(11 + Prows * i) = -(pe.xelem(1) * l2) / 1.2E+1;
           }
      }
+
+     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     }          
 private:
      Matrix R;
      const Matrix g;
@@ -2759,6 +2739,9 @@ public:
                }
           }
      }
+
+     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     }          
 private:
      double m;
      Matrix J;
@@ -4898,8 +4881,6 @@ public:
                iIntegRule = 0;
           }
 
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
-
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
 
@@ -5324,8 +5305,6 @@ public:
           default:
                iIntegRule = 0;
           }
-
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
@@ -6153,8 +6132,6 @@ public:
                iNumPoints = M;
           }
 
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
-
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(M * N, 3);
 
@@ -6872,8 +6849,6 @@ public:
                throw std::runtime_error("matrix type not supported");
           }
 
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
-
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                const octave_idx_type N = Ni[iIntegRule];
                const double* const r = ri[iIntegRule];
@@ -7389,9 +7364,7 @@ public:
           case MAT_DAMPING_FLUID_STRUCT_RE:
           case MAT_DAMPING_FLUID_STRUCT_IM:
           case VEC_PARTICLE_VELOCITY:
-          case VEC_PARTICLE_VELOCITY_C: {
-               IntegrationRule::Guard guardStiff{oIntegStiff};
-
+          case VEC_PARTICLE_VELOCITY_C:
                if (!oIntegStiff.iGetNumEvalPoints()) {
                     constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
                     constexpr double beta = (5. - sqrt(5.)) / 20.;
@@ -7406,7 +7379,6 @@ public:
                          }
                     }
                }
-          }
                return oIntegStiff;
 
           case MAT_MASS:
@@ -7423,9 +7395,7 @@ public:
           case MAT_INERTIA_INV9:
           case MAT_HEAT_CAPACITY:
           case MAT_MASS_ACOUSTICS_RE:
-          case MAT_MASS_ACOUSTICS_IM: {
-               IntegrationRule::Guard guardMass{oIntegMass};
-
+          case MAT_MASS_ACOUSTICS_IM: 
                if (!oIntegMass.iGetNumEvalPoints()) {
                     constexpr double g1 = 0.09273525031089122640232391373703060;
                     constexpr double g2 = 0.31088591926330060979734573376345783;
@@ -7460,12 +7430,9 @@ public:
                          }
                     }
                }
-          }
                return oIntegMass;
 
-          case MAT_MASS_LUMPED: {
-               IntegrationRule::Guard guardMassDiag{oIntegMassDiag};
-
+          case MAT_MASS_LUMPED:
                if (!oIntegMassDiag.iGetNumEvalPoints()) {
                     oIntegMassDiag.SetNumEvalPoints(10, 4);
 
@@ -7497,7 +7464,6 @@ public:
                          }
                     }
                }
-          }
                return oIntegMassDiag;
 
           default:
@@ -8248,9 +8214,7 @@ public:
           constexpr double tria_area = 0.5; // Factor for triangular area
 
           switch (eMatType) {
-          case Element::VEC_LOAD_LUMPED: {
-               IntegrationRule::Guard guard{oIntegLumped};
-
+          case Element::VEC_LOAD_LUMPED:
                if (!oIntegLumped.iGetNumEvalPoints()) {
                     oIntegLumped.SetNumEvalPoints(6, 3);
 
@@ -8281,10 +8245,7 @@ public:
                }
 
                return oIntegLumped;
-          } break;
-          default: {
-               IntegrationRule::Guard guard{oIntegConsistent};
-
+          default:
                if (!oIntegConsistent.iGetNumEvalPoints()) {
                     constexpr double g1 = (6. - sqrt(15.)) / 21.;
                     constexpr double g2 = (6. + sqrt(15.)) / 21.;
@@ -8319,7 +8280,6 @@ public:
                }
 
                return oIntegConsistent;
-          } break;
           }
      }
 };
@@ -8531,8 +8491,6 @@ public:
           default:
                iIntegRule = 0;
           }
-
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
@@ -8878,8 +8836,6 @@ public:
                iIntegRule = 0;
           }
 
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
-
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
 
@@ -9157,8 +9113,6 @@ public:
           default:
                iIntegRule = 1;
           }
-
-          IntegrationRule::Guard guard{rgIntegRule[iIntegRule]};
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                constexpr double A = 0.470142064105115;
@@ -10163,6 +10117,9 @@ public:
           FEM_ASSERT(nodes.numel() == SHAPE_FUNC::iGetNumNodes());
      }
 
+     virtual const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) const override final {
+          return SHAPE_FUNC::GetIntegrationRule(eMatType);
+     }
 protected:
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) const override final {
           SHAPE_FUNC::ScalarInterpMatrix(rv, HA, irow);
@@ -10178,10 +10135,6 @@ protected:
 
      virtual void DisplacementInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) const override final {
           SHAPE_FUNC::VectorInterpMatrixDerS(rv, dHf_ds);
-     }
-
-     virtual const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) const override final {
-          return SHAPE_FUNC::GetIntegrationRule(eMatType);
      }
 };
 
@@ -10269,6 +10222,8 @@ public:
           }
      }
 
+     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     }
 private:
      const Matrix loads;
      const octave_idx_type colidx;
@@ -10374,6 +10329,7 @@ public:
 
                for (const auto& oElem: rgElements) {
                     oElem.ResetElemAssDone();
+                    oElem.GetIntegrationRule(eMatType);
                }
 
                const auto pThreadFunc = [this, &oMatAss, &oDof, eMatType] (ThreadData* const pThreadData) {
