@@ -1906,7 +1906,7 @@ public:
      }
 
      static void GetIntegrationRule(Element::FemMatrixType eMatType) {
-     }          
+     }
 private:
      static DofMap::NodalDofType GetNodalDofType(const ElementTypes::TypeId eltype) {
           switch (eltype) {
@@ -2575,7 +2575,7 @@ public:
      }
 
      static void GetIntegrationRule(Element::FemMatrixType eMatType) {
-     }          
+     }
 private:
      Matrix R;
      const Matrix g;
@@ -2740,8 +2740,8 @@ public:
           }
      }
 
-     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
-     }          
+     static void GetIntegrationRule(Element::FemMatrixType) {
+     }
 private:
      double m;
      Matrix J;
@@ -3957,9 +3957,13 @@ protected:
           FEM_ASSERT(U.dim2() == 6);
           FEM_ASSERT(iNumDof == 3 * X.columns());
 
-          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht(1, iNumNodes);
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), B(iNumStrains, iNumDof), CB(iNumStrains, iNumDof), Ht;
           ColumnVector Ue(iNumDof), epsilonik(iNumPreLoads ? iNumStrains : 0);
           Matrix taug(iNumGauss, iNumStrains * iNumLoads);
+
+          if (iNumPreLoads) {
+               Ht.resize(1, iNumNodes);
+          }
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
                for (octave_idx_type j = 0; j < iNumDir; ++j) {
@@ -7395,7 +7399,7 @@ public:
           case MAT_INERTIA_INV9:
           case MAT_HEAT_CAPACITY:
           case MAT_MASS_ACOUSTICS_RE:
-          case MAT_MASS_ACOUSTICS_IM: 
+          case MAT_MASS_ACOUSTICS_IM:
                if (!oIntegMass.iGetNumEvalPoints()) {
                     constexpr double g1 = 0.09273525031089122640232391373703060;
                     constexpr double g2 = 0.31088591926330060979734573376345783;
@@ -10329,6 +10333,7 @@ public:
 
                for (const auto& oElem: rgElements) {
                     oElem.ResetElemAssDone();
+                    // Allocate integration rule in advance to avoid race condition
                     oElem.GetIntegrationRule(eMatType);
                }
 
@@ -10400,6 +10405,8 @@ public:
 
                for (const auto& oElem: rgElements) {
                     oElem.ResetElemAssDone();
+                    // Allocate integration rule in advance to avoid race condition
+                    oElem.GetIntegrationRule(eMatType);
                }
 
                const auto pThreadFunc = [this, &oSolution, eMatType] (std::exception_ptr* const pThreadData) {
