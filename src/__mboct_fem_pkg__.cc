@@ -7358,6 +7358,7 @@ public:
           case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
