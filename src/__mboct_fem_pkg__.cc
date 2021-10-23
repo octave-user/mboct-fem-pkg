@@ -1905,7 +1905,7 @@ public:
           }
      }
 
-     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
      }
 private:
      static DofMap::NodalDofType GetNodalDofType(const ElementTypes::TypeId eltype) {
@@ -2138,7 +2138,7 @@ public:
           }
      }
 
-     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
      }
 private:
      const RowVector omega;
@@ -2574,7 +2574,7 @@ public:
           }
      }
 
-     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
      }
 private:
      Matrix R;
@@ -2740,7 +2740,7 @@ public:
           }
      }
 
-     static void GetIntegrationRule(Element::FemMatrixType) {
+     static void AllocIntegrationRule(Element::FemMatrixType) {
      }
 private:
      double m;
@@ -4868,22 +4868,12 @@ public:
           FEM_ASSERT(nodes.numel() == 8);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
           static const octave_idx_type N = 2;
           static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
           static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
 
-          static array<IntegrationRule, 2> rgIntegRule;
-
-          octave_idx_type iIntegRule;
-
-          switch (eMatType) {
-          case MAT_MASS_LUMPED:
-               iIntegRule = 1;
-               break;
-          default:
-               iIntegRule = 0;
-          }
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
@@ -4902,6 +4892,14 @@ public:
                     }
                }
           }
+     }
+
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
           return rgIntegRule[iIntegRule];
      }
@@ -5237,6 +5235,7 @@ protected:
      virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
           return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
      }
+
 private:
      template <typename T>
      typename PostProcTypeTraits<T>::MatrixType
@@ -5282,8 +5281,20 @@ private:
           Hs.xelem(irow + nrows * 6) = ((1-r)*(1-s)*(1-t))/8.0;
           Hs.xelem(irow + nrows * 7) = ((r+1)*(1-s)*(1-t))/8.0;
      }
+
+     static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_MASS_LUMPED:
+               return 1;
+          default:
+               return 0;
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
 };
 
+array<IntegrationRule, 2> Iso8::rgIntegRule;
 
 class Iso20: public Element3D
 {
@@ -5293,22 +5304,12 @@ public:
           FEM_ASSERT(nodes.numel() == 20);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
           constexpr octave_idx_type N = 3;
           static const double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
-          static array<IntegrationRule, 2> rgIntegRule;
-
-          octave_idx_type iIntegRule;
-
-          switch (eMatType) {
-          case MAT_MASS_LUMPED:
-               iIntegRule = 1;
-               break;
-          default:
-               iIntegRule = 0;
-          }
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
@@ -5327,6 +5328,14 @@ public:
                     }
                }
           }
+     }
+
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
           return rgIntegRule[iIntegRule];
      }
@@ -6077,7 +6086,20 @@ private:
           Bt.xelem(58) = (invJ.xelem(1)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(4)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(7)*(r+1)*(1-s)*t)/2.0E+0;
           Bt.xelem(59) = (invJ.xelem(2)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(5)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(8)*(r+1)*(1-s)*t)/2.0E+0;
      }
+
+     static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_MASS_LUMPED:
+               return 1;
+          default:
+               return 0;
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
 };
+
+array<IntegrationRule, 2> Iso20::rgIntegRule;
 
 class Penta15: public Element3D
 {
@@ -6087,7 +6109,7 @@ public:
           FEM_ASSERT(nodes.numel() == 15);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
           // r = 0 ... 1
           // s = 0 ... (1 - r)
           // t = -1 ... 1
@@ -6122,34 +6144,30 @@ public:
           static const double t[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static const double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
-          static array<IntegrationRule, 2> rgIntegRule;
+          const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
 
-          octave_idx_type iIntegRule, iNumPoints;
+          if (!rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints()) {
+               rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(M * N, 3);
 
-          switch (eMatType) {
-          case MAT_MASS_LUMPED:
-               iIntegRule = 1;
-               iNumPoints = 6;
-               break;
-          default:
-               iIntegRule = 0;
-               iNumPoints = M;
-          }
-
-          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
-               rgIntegRule[iIntegRule].SetNumEvalPoints(M * N, 3);
-
-               for (octave_idx_type i = 0; i < iNumPoints; ++i) {
+               for (octave_idx_type i = 0; i < oIRT.iNumPoints; ++i) {
                     for (octave_idx_type j = 0; j < N; ++j) {
-                         rgIntegRule[iIntegRule].SetWeight(i * N + j, 0.5 * w[iIntegRule][i] * alpha[iIntegRule][j]);
-                         rgIntegRule[iIntegRule].SetPosition(i * N + j, 0, r[iIntegRule][i]);
-                         rgIntegRule[iIntegRule].SetPosition(i * N + j, 1, s[iIntegRule][i]);
-                         rgIntegRule[iIntegRule].SetPosition(i * N + j, 2, t[iIntegRule][j]);
+                         rgIntegRule[oIRT.iIntegRule].SetWeight(i * N + j, 0.5 * w[oIRT.iIntegRule][i] * alpha[oIRT.iIntegRule][j]);
+                         rgIntegRule[oIRT.iIntegRule].SetPosition(i * N + j, 0, r[oIRT.iIntegRule][i]);
+                         rgIntegRule[oIRT.iIntegRule].SetPosition(i * N + j, 1, s[oIRT.iIntegRule][i]);
+                         rgIntegRule[oIRT.iIntegRule].SetPosition(i * N + j, 2, t[oIRT.iIntegRule][j]);
                     }
                }
           }
+     }
 
-          return rgIntegRule[iIntegRule];
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+          const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(oIRT.iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(oIRT.iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints() > 0);
+
+          return rgIntegRule[oIRT.iIntegRule];
      }
 
 protected:
@@ -6733,7 +6751,29 @@ private:
           Hs.xelem(irow + nrows * 13) = r*(1-t2);
           Hs.xelem(irow + nrows * 14) = s*(1-t2);
      }
+
+     struct IntegRuleType {
+          IntegRuleType(octave_idx_type iIntegRule, octave_idx_type iNumPoints)
+               :iIntegRule(iIntegRule), iNumPoints(iNumPoints) {
+          }
+
+          octave_idx_type iIntegRule;
+          octave_idx_type iNumPoints;
+     };
+
+     static IntegRuleType SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_MASS_LUMPED:
+               return IntegRuleType{1, 6};
+          default:
+               return IntegRuleType{0, 7};
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
 };
+
+array<IntegrationRule, 2> Penta15::rgIntegRule;
 
 class Tet10h: public Element3D
 {
@@ -6743,8 +6783,7 @@ public:
           FEM_ASSERT(nodes.numel() == 10);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
-
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
           constexpr double a1 = 0.25;
           constexpr double b1 = 1. / 6.;
           constexpr double c1 = 0.5;
@@ -6787,71 +6826,13 @@ public:
           static constexpr double t3[N3] = {a3, b3, a3, a3};
           static constexpr double w3[N3] = {c3, c3, c3, c3};
 
-          enum IntegRuleType {
-               R1 = 0,
-               R2,
-               R3,
-               RNUM
-          };
-
           static constexpr octave_idx_type Ni[RNUM] = {N1, N2, N3};
           static constexpr const double* ri[RNUM] = {r1, r2, r3};
           static constexpr const double* si[RNUM] = {s1, s2, s3};
           static constexpr const double* ti[RNUM] = {t1, t2, t3};
           static constexpr const double* wi[RNUM] = {w1, w2, w3};
 
-          static array<IntegrationRule, RNUM> rgIntegRule;
-
-          octave_idx_type iIntegRule;
-
-          switch (eMatType) {
-          case MAT_STIFFNESS:
-          case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:
-          case MAT_STIFFNESS_FLUID_STRUCT_RE:
-          case MAT_STIFFNESS_FLUID_STRUCT_IM:
-          case VEC_LOAD_CONSISTENT:
-          case VEC_LOAD_LUMPED:
-          case MAT_THERMAL_COND:
-          case MAT_STIFFNESS_ACOUSTICS_RE:
-          case MAT_STIFFNESS_ACOUSTICS_IM:
-          case MAT_DAMPING_ACOUSTICS_RE:
-          case MAT_DAMPING_ACOUSTICS_IM:
-          case MAT_DAMPING_FLUID_STRUCT_RE:
-          case MAT_DAMPING_FLUID_STRUCT_IM:
-               iIntegRule = R1;
-               break;
-
-          case MAT_MASS:
-          case MAT_MASS_SYM:
-          case MAT_MASS_SYM_L:
-          case MAT_MASS_FLUID_STRUCT_RE:
-          case MAT_MASS_FLUID_STRUCT_IM:
-          case VEC_INERTIA_M1:
-          case MAT_INERTIA_J:
-          case MAT_INERTIA_INV3:
-          case MAT_INERTIA_INV4:
-          case MAT_INERTIA_INV5:
-          case MAT_INERTIA_INV8:
-          case MAT_INERTIA_INV9:
-          case SCA_TOT_MASS:
-          case MAT_HEAT_CAPACITY:
-          case MAT_MASS_ACOUSTICS_RE:
-          case MAT_MASS_ACOUSTICS_IM:
-               iIntegRule = R2;
-               break;
-
-          case VEC_STRESS_CAUCH:
-          case VEC_STRAIN_TOTAL:
-          case SCA_STRESS_VMIS:
-          case VEC_PARTICLE_VELOCITY:
-          case VEC_PARTICLE_VELOCITY_C:
-               iIntegRule = R3;
-               break;
-
-          default:
-               throw std::runtime_error("matrix type not supported");
-          }
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                const octave_idx_type N = Ni[iIntegRule];
@@ -6869,6 +6850,14 @@ public:
                     rgIntegRule[iIntegRule].SetPosition(i, 2, t[i]);
                }
           }
+     }
+
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
           return rgIntegRule[iIntegRule];
      }
@@ -7274,6 +7263,13 @@ protected:
      }
 
 private:
+     enum IntegRuleType {
+          R1 = 0,
+          R2,
+          R3,
+          RNUM
+     };
+
      template <typename T>
      typename PostProcTypeTraits<T>::MatrixType
      InterpGaussToNodalTpl(FemMatrixType eMatType,
@@ -7335,7 +7331,59 @@ private:
           Hs.xelem(irow + nrows *  2) = 1. - r - s - t;
           Hs.xelem(irow + nrows *  3) = r;
      }
+
+     static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_FLUID_STRUCT_IM:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case MAT_THERMAL_COND:
+          case MAT_STIFFNESS_ACOUSTICS_RE:
+          case MAT_STIFFNESS_ACOUSTICS_IM:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+               return R1;
+
+          case MAT_MASS:
+          case MAT_MASS_SYM:
+          case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT_RE:
+          case MAT_MASS_FLUID_STRUCT_IM:
+          case VEC_INERTIA_M1:
+          case MAT_INERTIA_J:
+          case MAT_INERTIA_INV3:
+          case MAT_INERTIA_INV4:
+          case MAT_INERTIA_INV5:
+          case MAT_INERTIA_INV8:
+          case MAT_INERTIA_INV9:
+          case SCA_TOT_MASS:
+          case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS_RE:
+          case MAT_MASS_ACOUSTICS_IM:
+               return R2;
+
+          case VEC_STRESS_CAUCH:
+          case VEC_STRAIN_TOTAL:
+          case SCA_STRESS_VMIS:
+          case VEC_PARTICLE_VELOCITY:
+          case VEC_PARTICLE_VELOCITY_C:
+               return R3;
+
+          default:
+               throw std::runtime_error("matrix type not supported");
+          }
+     }
+
+     static array<IntegrationRule, RNUM> rgIntegRule;
 };
+
+array<IntegrationRule, Tet10h::RNUM> Tet10h::rgIntegRule;
 
 class Tet10: public Element3D
 {
@@ -7347,9 +7395,7 @@ public:
           FEM_ASSERT(nodes.numel() == 10);
      }
 
-     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
-          static IntegrationRule oIntegStiff, oIntegMass, oIntegMassDiag;
-
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
@@ -7384,7 +7430,7 @@ public:
                          }
                     }
                }
-               return oIntegStiff;
+               break;
 
           case MAT_MASS:
           case MAT_MASS_SYM:
@@ -7435,7 +7481,7 @@ public:
                          }
                     }
                }
-               return oIntegMass;
+               break;
 
           case MAT_MASS_LUMPED:
                if (!oIntegMassDiag.iGetNumEvalPoints()) {
@@ -7469,11 +7515,24 @@ public:
                          }
                     }
                }
-               return oIntegMassDiag;
-
+               break;
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+               AllocIntegrationRule(MAT_MASS);
+               AllocIntegrationRule(MAT_STIFFNESS);
+               break;
           default:
-               throw std::runtime_error("invalid integration rule");
+               throw std::runtime_error("invalid matrix type");
           }
+     }
+
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+          const IntegrationRule& oIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(oIntegRule.iGetNumEvalPoints() > 0);
+
+          return oIntegRule;
      }
 
 protected:
@@ -7955,7 +8014,58 @@ private:
           Hs.xelem(irow + nrows * 2) = Zeta3;
           Hs.xelem(irow + nrows * 3) = Zeta4;
      }
+
+     static IntegrationRule& SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case VEC_STRESS_CAUCH:
+          case VEC_STRAIN_TOTAL:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+          case MAT_THERMAL_COND:
+          case MAT_STIFFNESS_ACOUSTICS_RE:
+          case MAT_STIFFNESS_ACOUSTICS_IM:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_FLUID_STRUCT_IM:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+          case VEC_PARTICLE_VELOCITY:
+          case VEC_PARTICLE_VELOCITY_C:
+               return oIntegStiff;
+          case MAT_MASS:
+          case MAT_MASS_SYM:
+          case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT_RE:
+          case MAT_MASS_FLUID_STRUCT_IM:
+          case VEC_INERTIA_M1:
+          case MAT_INERTIA_J:
+          case MAT_INERTIA_INV3:
+          case MAT_INERTIA_INV4:
+          case MAT_INERTIA_INV5:
+          case MAT_INERTIA_INV8:
+          case MAT_INERTIA_INV9:
+          case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS_RE:
+          case MAT_MASS_ACOUSTICS_IM:
+               return oIntegMass;
+          case MAT_MASS_LUMPED:
+               return oIntegMassDiag;
+          default:
+               throw std::runtime_error("invalid integration rule");
+          }
+     }
+
+     static IntegrationRule oIntegStiff, oIntegMass, oIntegMassDiag;
 };
+
+IntegrationRule Tet10::oIntegStiff;
+IntegrationRule Tet10::oIntegMass;
+IntegrationRule Tet10::oIntegMassDiag;
 
 class ShapeTria6 {
 public:
@@ -8214,8 +8324,7 @@ public:
           dHf_ds.xelem(53) = -4*Zeta1;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
-          static IntegrationRule oIntegLumped, oIntegConsistent;
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
           constexpr double tria_area = 0.5; // Factor for triangular area
 
           switch (eMatType) {
@@ -8248,8 +8357,7 @@ public:
                          }
                     }
                }
-
-               return oIntegLumped;
+               break;
           default:
                if (!oIntegConsistent.iGetNumEvalPoints()) {
                     constexpr double g1 = (6. - sqrt(15.)) / 21.;
@@ -8283,11 +8391,32 @@ public:
                          oIntegConsistent.SetPosition(6, j, g3);
                     }
                }
+          }
+     }
 
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const IntegrationRule& oIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(oIntegRule.iGetNumEvalPoints() > 0);
+
+          return oIntegRule;
+     }
+
+private:
+     static const IntegrationRule& SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               return oIntegLumped;
+          default:
                return oIntegConsistent;
           }
      }
+
+     static IntegrationRule oIntegLumped, oIntegConsistent;
 };
+
+IntegrationRule ShapeTria6::oIntegLumped;
+IntegrationRule ShapeTria6::oIntegConsistent;
 
 class ShapeIso4 {
 public:
@@ -8480,22 +8609,12 @@ public:
           dHf_ds.xelem(35) = -(r+1)/4.0E+0;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
           static const octave_idx_type N = 2;
           static const double r[2][N] = {{0.577350269189626, -0.577350269189626}, {1., -1.}};
           static const double alpha[2][N] = {{1., 1.}, {1., 1.}};
 
-          static array<IntegrationRule, 2> rgIntegRule;
-
-          octave_idx_type iIntegRule;
-
-          switch (eMatType) {
-          case Element::VEC_LOAD_LUMPED:
-               iIntegRule = 1;
-               break;
-          default:
-               iIntegRule = 0;
-          }
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
@@ -8511,10 +8630,32 @@ public:
                     }
                }
           }
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
           return rgIntegRule[iIntegRule];
      }
+
+private:
+     static octave_idx_type SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               return 1;
+          default:
+               return 0;
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
 };
+
+array<IntegrationRule, 2> ShapeIso4::rgIntegRule;
 
 class ShapeQuad8 {
 public:
@@ -8824,22 +8965,12 @@ public:
           dHf_ds.xelem(71) = -(r+1)*s;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
           static constexpr octave_idx_type N = 3;
           static constexpr double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static constexpr double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
-          static array<IntegrationRule, 2> rgIntegRule;
-
-          octave_idx_type iIntegRule;
-
-          switch (eMatType) {
-          case Element::VEC_LOAD_LUMPED:
-               iIntegRule = 1;
-               break;
-          default:
-               iIntegRule = 0;
-          }
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
@@ -8855,10 +8986,32 @@ public:
                     }
                }
           }
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
           return rgIntegRule[iIntegRule];
      }
+
+private:
+    static octave_idx_type SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               return 1;
+          default:
+               return 0;
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
 };
+
+array<IntegrationRule, 2> ShapeQuad8::rgIntegRule;
 
 class ShapeTria6H {
 public:
@@ -9106,18 +9259,8 @@ public:
           dHf_ds.xelem(53) = 4*((-zeta)-eta+1)-4*eta;
      }
 
-     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
-          static array<IntegrationRule, 2> rgIntegRule;
-
-          octave_idx_type iIntegRule;
-
-          switch (eMatType) {
-          case Element::VEC_LOAD_LUMPED:
-               iIntegRule = 0;
-               break;
-          default:
-               iIntegRule = 1;
-          }
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                constexpr double A = 0.470142064105115;
@@ -9137,10 +9280,32 @@ public:
                     rgIntegRule[iIntegRule].SetWeight(i, w[iIntegRule][i]);
                }
           }
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
           return rgIntegRule[iIntegRule];
      }
+
+private:
+     static octave_idx_type SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               return 0;
+          default:
+               return 1;
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
 };
+
+array<IntegrationRule, 2> ShapeTria6H::rgIntegRule;
 
 class SurfaceElement: public Element {
 protected:
@@ -10122,9 +10287,14 @@ public:
           FEM_ASSERT(nodes.numel() == SHAPE_FUNC::iGetNumNodes());
      }
 
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+          SHAPE_FUNC::AllocIntegrationRule(eMatType);
+     }
+
      virtual const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) const override final {
           return SHAPE_FUNC::GetIntegrationRule(eMatType);
      }
+
 protected:
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) const override final {
           SHAPE_FUNC::ScalarInterpMatrix(rv, HA, irow);
@@ -10227,8 +10397,9 @@ public:
           }
      }
 
-     static void GetIntegrationRule(Element::FemMatrixType eMatType) {
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
      }
+
 private:
      const Matrix loads;
      const octave_idx_type colidx;
@@ -10321,6 +10492,9 @@ public:
      }
 
      void Assemble(MatrixAss& oMatAss, MeshInfo& oMeshInfo, const DofMap& oDof, Element::FemMatrixType eMatType, const ParallelOptions& oParaOpt) const {
+          // Allocate integration rule in advance to avoid race condition
+          ElementType::AllocIntegrationRule(eMatType);
+
           const octave_idx_type iNumThreads = oParaOpt.iGetNumThreadsAss();
 
           if (iNumThreads > 1 && iGetNumElem() >= oParaOpt.iGetMultiThreadThreshold()) {
@@ -10334,8 +10508,6 @@ public:
 
                for (const auto& oElem: rgElements) {
                     oElem.ResetElemAssDone();
-                    // Allocate integration rule in advance to avoid race condition
-                    oElem.GetIntegrationRule(eMatType);
                }
 
                const auto pThreadFunc = [this, &oMatAss, &oDof, eMatType] (ThreadData* const pThreadData) {
@@ -10393,6 +10565,9 @@ public:
      }
 
      void PostProcElem(Element::FemMatrixType eMatType, PostProcData& oSolution, const ParallelOptions& oParaOpt) const final override {
+          // Allocate integration rule in advance to avoid race condition
+          ElementType::AllocIntegrationRule(eMatType);
+
           const octave_idx_type iNumThreads = oParaOpt.iGetNumThreadsAss();
 
           if (iNumThreads > 1 && iGetNumElem() >= oParaOpt.iGetMultiThreadThreshold()) {
@@ -10406,8 +10581,6 @@ public:
 
                for (const auto& oElem: rgElements) {
                     oElem.ResetElemAssDone();
-                    // Allocate integration rule in advance to avoid race condition
-                    oElem.GetIntegrationRule(eMatType);
                }
 
                const auto pThreadFunc = [this, &oSolution, eMatType] (std::exception_ptr* const pThreadData) {
@@ -10463,6 +10636,8 @@ public:
      }
 
      double dGetMass() const {
+          ElementType::AllocIntegrationRule(Element::MAT_MASS);
+
           double dm = 0.;
 
           for (const auto& oElem: rgElements) {
