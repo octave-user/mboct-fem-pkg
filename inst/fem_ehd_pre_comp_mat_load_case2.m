@@ -55,6 +55,10 @@
 ##
 ## @var{options}.solver @dots{} Name of linear solver to use.
 ##
+## @var{options}.number_of_threads @dots{} Number of threads to use for linear solver and assembly
+##
+## @var{options}.threshold_elem @dots{} Minimum number of elements for multithreaded assembly
+##
 ## @var{options}.refine_max_iter @dots{} Maximum number of iterative refinement steps for the linear solver.
 ##
 ## @var{options}.verbose @dots{} Enable verbose output.
@@ -79,6 +83,14 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     options.solver = "pastix";
   endif
 
+  if (~isfield(options, "number_of_threads"))
+    options.number_of_threads = int32(1);
+  endif
+
+  if (~isfield(options, "threshold_elem"))
+    options.threshold_elem = int32(10000);
+  endif
+  
   if (~isfield(options, "refine_max_iter"))
     options.refine_max_iter = int32(10);
   endif
@@ -173,6 +185,9 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
   dof_map_press = fem_ass_dof_map(mesh, load_case(1));
 
+  dof_map_press.parallel.threads_ass = options.number_of_threads;
+  dof_map_press.parallel.threshold_elem = options.threshold_elem;
+  
   [mat_ass_press.K, ...
    mat_ass_press.R] = fem_ass_matrix(mesh, ...
                                      dof_map_press, ...
@@ -302,6 +317,9 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
 
     dof_map_itf_flex = fem_ass_dof_map(mesh, load_case(1));
 
+    dof_map_itf_flex.parallel.threads_ass = options.number_of_threads;
+    dof_map_itf_flex.threshold_elem = options.threshold_elem;
+    
     [mat_ass_itf_flex.K, ...
      mat_ass_itf_flex.R] = fem_ass_matrix(mesh, ...
                                           dof_map_itf_flex, ...

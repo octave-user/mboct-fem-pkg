@@ -29,7 +29,9 @@
 ##
 ## @var{cms_opt}.algorithm @dots{} Algorithm used for eigenanalysis
 ##
-## @var{cms_opt}.number_of_threads @dots{} Number of threads used for the linear solver
+## @var{cms_opt}.number_of_threads @dots{} Number of threads used for linear solver and assembly
+##
+## @var{cms_opt}.threshold_elem @dots{} Minimum number of elements for multithreaded assembly
 ##
 ## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver
 ##
@@ -60,6 +62,10 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
 
   if (~isfield(cms_opt, "number_of_threads"))
     cms_opt.number_of_threads = int32(1);
+  endif
+
+  if (~isfield(cms_opt, "threshold_elem"))
+    cms_opt.threshold_elem = int32(10000);
   endif
 
   if (~isfield(cms_opt, "refine_max_iter"))
@@ -170,6 +176,8 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
 
   dof_map = fem_ass_dof_map(mesh, load_case(1));
 
+  dof_map.parallel.threads_ass = cms_opt.number_of_threads;
+  dof_map.parallel.threshold_elem = cms_opt.threshold_elem;
   mat_type_stiffness = FEM_MAT_STIFFNESS_SYM_L;
   mat_type_mass = FEM_MAT_MASS_SYM_L;
   mat_type_damping = FEM_MAT_DAMPING_SYM_L;
@@ -610,6 +618,7 @@ endfunction
 %! 		  cms_opt.verbose = verbose;
 %! 		  cms_opt.modes.number = modes;
 %! 		  cms_opt.number_of_threads = threads;
+%!                cms_opt.threshold_elem = int32(1);
 %! 		  cms_opt.algorithm = alg{ialg};
 %! 		  cms_opt.invariants = invariants;
 %! 		  cms_opt.refine_max_iter = iter;

@@ -337,8 +337,8 @@ private:
 class ParallelOptions {
 public:
      explicit ParallelOptions(const octave_scalar_map& oDof)
-          :iNumThreadsAss(1),
-           iMultiThreadThreshold(1000) {
+          :iNumThreadsAss{1},
+           iMultiThreadThreshold{10000} {
 
           const auto iter_parallel = oDof.seek("parallel");
 
