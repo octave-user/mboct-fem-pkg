@@ -270,7 +270,7 @@ public:
                break;
 
           default:
-               throw std::runtime_error("invalid value for dof_map.domain");
+               throw std::runtime_error("dof_map: invalid value for dof_map.domain");
           }
 
 #ifdef DEBUG
@@ -583,24 +583,24 @@ public:
                     } else if (bHavec && !bHaveElasticity) {
                          eMatType = Material::MAT_TYPE_FLUID;
                     } else {
-                         throw std::runtime_error("mesh.material_data is not consistent for fluid structure interaction");
+                         throw std::runtime_error("material: mesh.material_data is not consistent for fluid structure interaction");
                     }
                     break;
 
                default:
-                    throw std::logic_error("unsupported value for dof_map.domain");
+                    throw std::logic_error("material: unsupported value for dof_map.domain");
                }
 
                switch (eMatType) {
                case Material::MAT_TYPE_SOLID:
                case Material::MAT_TYPE_THERMAL:
                     if (bHavec || bHaveeta || bHavezeta) {
-                         throw std::runtime_error("fields \"c\", \"eta\" and \"zeta\" are not valid properites for solids in mesh.material_data");
+                         throw std::runtime_error("material: fields \"c\", \"eta\" and \"zeta\" are not valid properites for solids in mesh.material_data");
                     }
                     break;
                case Material::MAT_TYPE_FLUID:
                     if (bHaveElasticity || bHavek || bHavecp) {
-                         throw std::runtime_error("fields \"E\", \"nu\", \"C\", \"k\" and \"cp\" ar not valid properties for fluids in mesh.material_data");
+                         throw std::runtime_error("material: fields \"E\", \"nu\", \"C\", \"k\" and \"cp\" ar not valid properties for fluids in mesh.material_data");
                     }
                     break;
                }
@@ -609,7 +609,7 @@ public:
                case Material::MAT_TYPE_SOLID:
                     if (bHaveC) {
                          if (bHaveE || bHavenu) {
-                              throw std::runtime_error("redundant material properties in field mesh.material_data");
+                              throw std::runtime_error("material: redundant material properties in field mesh.material_data");
                          }
 
                          C = cellC.xelem(i).matrix_value();
@@ -621,14 +621,14 @@ public:
 #endif
                     } else {
                          if (!(bHaveE && bHavenu)) {
-                              throw std::runtime_error("fields \"E\" and \"nu\" not found in mesh.material_data");
+                              throw std::runtime_error("material: fields \"E\" and \"nu\" not found in mesh.material_data");
                          }
 
                          const double E = cellE.xelem(i).scalar_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
-                              throw std::runtime_error("field \"E\" in mesh.material_data must be a real scalar");
+                              throw std::runtime_error("material: field \"E\" in mesh.material_data must be a real scalar");
                          }
 #endif
 
@@ -636,39 +636,39 @@ public:
 
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
-                              throw std::runtime_error("field \"nu\" in mesh.material_data must be a real scalar");
+                              throw std::runtime_error("material: field \"nu\" in mesh.material_data must be a real scalar");
                          }
 #endif
                          C = Material::IsotropicElasticity(E, nu);
                     }
 
                     if (C.rows() != 6 || C.columns() != 6) {
-                         throw std::runtime_error("size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
+                         throw std::runtime_error("material: size of constitutive matrix mesh.material_data.C is not valid in argument mesh");
                     }
 
                     if (!C.issymmetric()) {
-                         throw std::runtime_error("mesh.material_data.C is not symmetric");
+                         throw std::runtime_error("material: mesh.material_data.C is not symmetric");
                     }
 
                     if (!bHaveRho) {
-                         throw std::runtime_error("missing field \"rho\" in mesh.material_data");
+                         throw std::runtime_error("material: missing field \"rho\" in mesh.material_data");
                     }
                     break;
 
                case Material::MAT_TYPE_THERMAL:
                     if (!(bHavek && bHavecp && bHaveRho)) {
-                         throw std::runtime_error("missing fields mesh.material_data.k, mesh.material_data.cp and mesh.material_data.rho");
+                         throw std::runtime_error("material: missing fields mesh.material_data.k, mesh.material_data.cp and mesh.material_data.rho");
                     }
                     break;
 
                case Material::MAT_TYPE_FLUID:
                     if (!(bHavec && bHaveRho)) {
-                         throw std::runtime_error("missing field mesh.material_data.c and mesh.material_data.rho");
+                         throw std::runtime_error("material: missing field mesh.material_data.c and mesh.material_data.rho");
                     }
                     break;
 
                default:
-                    throw std::logic_error("unsupported material type");
+                    throw std::logic_error("material: unsupported material type");
                }
 
 
@@ -676,7 +676,7 @@ public:
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
-                    throw std::runtime_error("mesh.material_data.rho is not a valid scalar in argument mesh");
+                    throw std::runtime_error("material: mesh.material_data.rho is not a valid scalar in argument mesh");
                }
 #endif
 
@@ -684,7 +684,7 @@ public:
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
-                    throw std::runtime_error("mesh.material_data.alpha is not a valid scalar in argument mesh");
+                    throw std::runtime_error("material: mesh.material_data.alpha is not a valid scalar in argument mesh");
                }
 #endif
 
@@ -701,7 +701,7 @@ public:
                const Matrix k = bHavek ? cellk.xelem(i).matrix_value() : Matrix(3, 3, 0.);
 
                if (k.rows() != 3 || k.columns() != 3 || !k.issymmetric()) {
-                    throw std::runtime_error("mesh.material_data.k must be a real symmetric 3x3 matrix");
+                    throw std::runtime_error("material: mesh.material_data.k must be a real symmetric 3x3 matrix");
                }
 
                const double cp = bHavecp ? cellcp.xelem(i).scalar_value() : 0.;
@@ -844,7 +844,7 @@ struct StrainField {
                      ov_dTheta.OV_ISREAL() &&
                      ov_dTheta.rows() == nodes.rows() &&
                      ov_dTheta.columns() == 1)) {
-                    throw std::runtime_error("argument load_case.dTheta must be a real column vector with the same number of rows like mesh.nodes");
+                    throw std::runtime_error("strain field: argument load_case.dTheta must be a real column vector with the same number of rows like mesh.nodes");
                }
           }
 
@@ -852,7 +852,7 @@ struct StrainField {
                const octave_value ov_RefStrain = rgRefStrain.xelem(i);
 
                if (!(ov_RefStrain.isstruct() && ov_RefStrain.numel() == 1)) {
-                    throw std::runtime_error("argument load_case.epsilon0 must be a scalar struct");
+                    throw std::runtime_error("strain field: argument load_case.epsilon0 must be a scalar struct");
                }
           }
      }
@@ -878,7 +878,7 @@ struct GravityLoad {
                     const octave_value ovg = cellg.xelem(j);
 
                     if (!(ovg.isreal() && ovg.is_matrix_type() && ovg.rows() == grows && ovg.columns() == 1)) {
-                         throw std::runtime_error("load_case.g must be a real 3x1 vector");
+                         throw std::runtime_error("gravity load: load_case.g must be a real 3x1 vector");
                     }
 
                     const ColumnVector gj = ovg.column_vector_value();
@@ -1030,7 +1030,7 @@ struct PerfectlyMatchedLayer {
           const octave_value ov_PML = elements.contents(iter_PML);
 
           if (!(ov_PML.isstruct() && ov_PML.numel() == 1)) {
-               throw std::runtime_error("mesh.elements.perfectly_matched_layers must be a scalar struct");
+               throw std::runtime_error("PML domain: mesh.elements.perfectly_matched_layers must be a scalar struct");
           }
 
           return ov_PML.scalar_map_value();
@@ -1150,7 +1150,7 @@ public:
           case SCA_ACOUSTIC_INTENSITY:
                return SCA_ACOUSTIC_INTENSITY_C;
           default:
-               throw std::logic_error("requested complex matrix type does not exist");
+               throw std::logic_error("element: requested complex matrix type does not exist");
           }
      }
 
@@ -1312,7 +1312,7 @@ public:
           }
 
           if (iDomain < 0) {
-               throw std::logic_error("unknown domain for post processing");
+               throw std::logic_error("post proc data: unknown domain for post processing");
           }
 
           const DomainField& oDomain = domainFields[iDomain];
@@ -1327,7 +1327,7 @@ public:
                const octave_value ovSol = sol.contents(iterSol);
 
                if (!(ovSol.is_matrix_type() && (ovSol.isreal() || ovSol.iscomplex()))) {
-                    throw std::runtime_error("field sol."s + pSol->name + " must be an real or complex array in argument sol");
+                    throw std::runtime_error("post proc data: field sol."s + pSol->name + " must be an real or complex array in argument sol");
                }
 
                dim_vector dimSol;
@@ -1355,11 +1355,11 @@ public:
                }
 
                if (iNumCols != pSol->cols) {
-                    throw std::runtime_error("columns of sol."s + pSol->name + " is not valid");
+                    throw std::runtime_error("post proc data: columns of sol."s + pSol->name + " is not valid");
                }
 
                if (iNumSteps > 0 && iNumStepsCurr != iNumSteps) {
-                    throw std::runtime_error("number of load steps in sol."s + pSol->name + " is not consistent within sol");
+                    throw std::runtime_error("post proc data: number of load steps in sol."s + pSol->name + " is not consistent within sol");
                }
 
                iNumSteps = iNumStepsCurr;
@@ -1390,7 +1390,7 @@ public:
           auto iter = nodalFieldsReal.find(Key<FieldTypeReal>{eFieldType, eElemType});
 
           if (iter == nodalFieldsReal.end()) {
-               throw std::runtime_error("real field "s + szFieldName[eFieldType] + " not found in argument sol");
+               throw std::runtime_error("post proc data: real field "s + szFieldName[eFieldType] + " not found in argument sol");
           }
 
           return iter->second;
@@ -1400,7 +1400,7 @@ public:
           auto iter = nodalFieldsComplex.find(Key<FieldTypeComplex>{eFieldType, eElemType});
 
           if (iter == nodalFieldsComplex.end()) {
-               throw std::runtime_error("complex field "s + szFieldName[eFieldType] + " not found in argument sol");
+               throw std::runtime_error("post proc data: complex field "s + szFieldName[eFieldType] + " not found in argument sol");
           }
 
           return iter->second;
@@ -1456,7 +1456,7 @@ public:
           const unsigned index = fieldType;
 
           if (!(index < FIELD_COUNT_C)) {
-               throw std::logic_error("requested complex postprocessing field does not exist");
+               throw std::logic_error("post proc data: requested complex postprocessing field does not exist");
           }
 
           return static_cast<FieldTypeComplex>(fieldType);
@@ -1920,7 +1920,7 @@ private:
                return DofMap::NDOF_VELOCITY_POT;
 
           default:
-               throw std::logic_error("nodal constraint type not supported");
+               throw std::logic_error("joint: nodal constraint type not supported");
           }
      }
 
@@ -2070,7 +2070,7 @@ public:
           if (info != 0) {
                std::ostringstream os;
 
-               os << "rbe3 element id " << id << ": X matrix is singular";
+               os << "rbe3 element: id " << id << ": X matrix is singular";
 
                throw std::runtime_error(os.str());
           }
@@ -2173,7 +2173,7 @@ public:
           l = sqrt(l);
 
           if (l == 0) {
-               throw std::runtime_error("zero beam length detected");
+               throw std::runtime_error("beam2: zero beam length detected");
           }
 
           R.xelem(0 + 3 * 2) = R.xelem(1 + 3 * 0) * e2.xelem(2) - R.xelem(2 + 3 * 0) * e2.xelem(1);
@@ -2195,7 +2195,7 @@ public:
                n = sqrt(n);
 
                if (n == 0.) {
-                    throw std::runtime_error("orientation of beam cross section is not valid");
+                    throw std::runtime_error("beam2: orientation of beam cross section is not valid");
                }
 
                for (octave_idx_type i = 0; i < 3; ++i) {
@@ -2858,7 +2858,7 @@ public:
                eDofType = DofMap::NDOF_VELOCITY_POT;
                break;
           default:
-               throw std::logic_error("unknown material type");
+               throw std::logic_error("element 3D: unknown material type");
           }
 
           switch (eMatType) {
@@ -2965,7 +2965,7 @@ public:
                     }
                     break;
                default:
-                    throw std::logic_error("material not supported");
+                    throw std::logic_error("element 3D: material not supported");
                }
 
                iNumRows = iNumCols = iNumDof;
@@ -2990,7 +2990,7 @@ public:
                     }
                     break;
                default:
-                    throw std::logic_error("material not supported");
+                    throw std::logic_error("element 3D: material not supported");
                }
 
                iNumRows = iNumCols = iNumDof;
@@ -3016,7 +3016,7 @@ public:
                     }
                     break;
                default:
-                    throw std::logic_error("material not supported");
+                    throw std::logic_error("element 3D: material not supported");
                }
 
                iNumRows = iNumCols = iNumDof;
@@ -3080,7 +3080,7 @@ public:
           case Material::MAT_TYPE_FLUID:
                return nodes.numel();
           default:
-               throw std::logic_error("material not supported");
+               throw std::logic_error("element 3D: material not supported");
           }
      }
 
@@ -4394,7 +4394,7 @@ protected:
 
                if (nej == 0.) {
                     const ElementTypes::TypeInfo& oInfo = ElementTypes::GetType(eltype);
-                    throw std::runtime_error("vectors mesh.elements.perfectly_matched_layers."s
+                    throw std::runtime_error("element 3D: vectors mesh.elements.perfectly_matched_layers."s
                                              + oInfo.name
                                              + ".e1 and mesh.elements.perfectly_matched_layers."
                                              + oInfo.name
@@ -4453,7 +4453,7 @@ protected:
                break;
           default:
                FEM_ASSERT(false);
-               throw std::logic_error("invalid matrix type");
+               throw std::logic_error("element 3D: invalid matrix type");
           }
 
           double coef;
@@ -4477,7 +4477,7 @@ protected:
           } break;
           default:
                FEM_ASSERT(false);
-               throw std::logic_error("invalid matrix type");
+               throw std::logic_error("element 3D: invalid matrix type");
           }
 
           ComplexColumnVector f(3);
@@ -4514,7 +4514,7 @@ protected:
                     break;
                default:
                     FEM_ASSERT(false);
-                    throw std::logic_error("invalid matrix type");
+                    throw std::logic_error("element 3D: invalid matrix type");
                }
 
                F_2.xelem(i) = coef * fi_2_detJ;
@@ -4675,7 +4675,7 @@ protected:
                sign = -1.;
                break;
           default:
-               throw std::logic_error("invalid matrix type");
+               throw std::logic_error("element 3D: invalid matrix type");
           }
 
           return sign / (material->Density() * std::pow(material->SpeedOfSound(), 2));
@@ -4700,7 +4700,7 @@ protected:
           case MAT_MASS_FLUID_STRUCT_IM:
                return std::imag(detJ) * coef;
           default:
-               throw std::logic_error("invalid matrix type");
+               throw std::logic_error("element 3D: invalid matrix type");
           }
      }
 
@@ -7341,6 +7341,9 @@ private:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL:
+          case VEC_LOAD_ACOUSTICS:
+          case VEC_LOAD_FLUID_STRUCT:               
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
@@ -7376,7 +7379,7 @@ private:
                return R3;
 
           default:
-               throw std::runtime_error("matrix type not supported");
+               throw std::runtime_error("tet10h: matrix type not supported");
           }
      }
 
@@ -7404,7 +7407,9 @@ public:
           case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL:
           case VEC_LOAD_FLUID_STRUCT:
+          case VEC_LOAD_ACOUSTICS:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
@@ -7523,7 +7528,7 @@ public:
                AllocIntegrationRule(MAT_STIFFNESS);
                break;
           default:
-               throw std::runtime_error("invalid matrix type");
+               throw std::runtime_error("tet10: unknown matrix type");
           }
      }
 
@@ -8056,7 +8061,7 @@ private:
           case MAT_MASS_LUMPED:
                return oIntegMassDiag;
           default:
-               throw std::runtime_error("invalid integration rule");
+               throw std::runtime_error("tet10: unkown matrix type");
           }
      }
 
@@ -9435,7 +9440,7 @@ public:
           }
 
           if (detJA_2 < 0.) {
-               throw std::runtime_error("Jacobian of surface element is singular");
+               throw std::runtime_error("surface element: Jacobian of surface element is singular");
           }
 
           return sqrt(detJA_2);
@@ -9450,7 +9455,7 @@ public:
                + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
 
           if (detJA < 0.) {
-               throw std::runtime_error("Jacobian of surface element is singular");
+               throw std::runtime_error("surface element: Jacobian of surface element is singular");
           }
 
           return sqrt(detJA);
@@ -10496,8 +10501,9 @@ public:
           ElementType::AllocIntegrationRule(eMatType);
 
           const octave_idx_type iNumThreads = oParaOpt.iGetNumThreadsAss();
+          const octave_idx_type iWorkSpace = iGetWorkSpaceSize(eMatType);
 
-          if (iNumThreads > 1 && iGetNumElem() >= oParaOpt.iGetMultiThreadThreshold()) {
+          if (iNumThreads > 1 && iGetNumElem() >= oParaOpt.iGetMultiThreadThreshold() && iWorkSpace) {
                vector<ThreadData> rgThreadData;
 
                rgThreadData.reserve(iNumThreads);
@@ -10710,7 +10716,7 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                for (octave_idx_type i = 0; i < cell_pressure.numel(); ++i) {
                     if (cell_pressure(i).isstruct()) {
                          if (!(cell_pressure(i).numel() == 1)) {
-                              throw std::runtime_error("pressure must be a scalar struct");
+                              throw std::runtime_error("pressure load: pressure must be a scalar struct");
                          }
 
                          const octave_scalar_map pressure = cell_pressure.xelem(i).scalar_map_value();
@@ -10724,7 +10730,7 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                          const octave_value ov_elem_type = pressure.contents(iter_elem_type);
 
                          if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-                              throw std::runtime_error("invalid entry in load_case.pressure");
+                              throw std::runtime_error("pressure load: invalid entry in load_case.pressure");
                          }
 
                          const octave_scalar_map elem_type = ov_elem_type.scalar_map_value();
@@ -10732,37 +10738,37 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                          const auto iter_elements = elem_type.seek("elements");
 
                          if (iter_elements == elem_type.end()) {
-                              throw std::runtime_error("field \"elements\" not found in struct pressure");
+                              throw std::runtime_error("pressure load: field \"elements\" not found in struct pressure");
                          }
 
                          const auto iter_p = elem_type.seek("p");
 
                          if (iter_p == elem_type.end()) {
-                              throw std::runtime_error("field \"p\" not found in struct pressure");
+                              throw std::runtime_error("pressure load: field \"p\" not found in struct pressure");
                          }
 
                          const octave_value ov_elements = elem_type.contents(iter_elements);
 
                          if (!(ov_elements.is_matrix_type() && ov_elements.OV_ISINTEGER())) {
-                              throw std::runtime_error("pressure.elements must be an integer array");
+                              throw std::runtime_error("pressure load: pressure.elements must be an integer array");
                          }
 
                          const int32NDArray elements = ov_elements.int32_array_value();
 
                          if (elements.columns() != iNumNodesElem) {
-                              throw std::runtime_error("pressure.elements number of columns do not match");
+                              throw std::runtime_error("pressure load: pressure.elements number of columns do not match");
                          }
 
                          const octave_value ov_p = elem_type.contents(iter_p);
 
                          if (!(ov_p.is_matrix_type() && ov_p.OV_ISREAL())) {
-                              throw std::runtime_error("pressure.p must be a real matrix");
+                              throw std::runtime_error("pressure load: pressure.p must be a real matrix");
                          }
 
                          const Matrix p = ov_p.matrix_value();
 
                          if (p.columns() != elements.columns() || p.rows() != elements.rows()) {
-                              throw std::runtime_error("pressure.p must have the same shape like pressure.elements");
+                              throw std::runtime_error("pressure load: pressure.p must have the same shape like pressure.elements");
                          }
 
                          switch (j) {
@@ -10781,7 +10787,7 @@ void InsertPressureElem(ElementTypes::TypeId eltype, const Matrix& nodes, const 
                                              octave_idx_type inode = elements.xelem(k, l).value() - 1;
 
                                              if (inode < 0 || inode >= nodes.rows()) {
-                                                  throw std::runtime_error("node index out of range in pressure.elements");
+                                                  throw std::runtime_error("pressure load: node index out of range in pressure.elements");
                                              }
 
                                              X.xelem(m, l) = nodes.xelem(inode, m);
@@ -10831,7 +10837,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      const octave_value ov_convection = elements.contents(iter_convection);
 
      if (!(ov_convection.isstruct() && ov_convection.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.convection must be a scalar struct");
+          throw std::runtime_error("thermal convection: mesh.elements.convection must be a scalar struct");
      }
 
      const octave_scalar_map m_convection = ov_convection.scalar_map_value();
@@ -10845,7 +10851,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      const octave_value ov_elem_type = m_convection.contents(iter_elem_type);
 
      if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.convection."s + pszElemName + " must be a scalar struct");
+          throw std::runtime_error("thermal convection: mesh.elements.convection."s + pszElemName + " must be a scalar struct");
      }
 
      const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
@@ -10853,13 +10859,13 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      const auto iter_elnodes = m_elem_type.seek("nodes");
 
      if (iter_elnodes == m_elem_type.end()) {
-          throw std::runtime_error("missing field mesh.elements.convection."s + pszElemName + ".nodes");
+          throw std::runtime_error("thermal convection: missing field mesh.elements.convection."s + pszElemName + ".nodes");
      }
 
      const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.convection."s + pszElemName + ".nodes must be an integer matrix");
+          throw std::runtime_error("thermal convection: mesh.elements.convection."s + pszElemName + ".nodes must be an integer matrix");
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -10867,13 +10873,13 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      const auto iter_h = m_elem_type.seek("h");
 
      if (iter_h == m_elem_type.end()) {
-          throw std::runtime_error("missing field mesh.elements.convection."s + pszElemName + ".h");
+          throw std::runtime_error("thermal convection: missing field mesh.elements.convection."s + pszElemName + ".h");
      }
 
      const octave_value ov_h = m_elem_type.contents(iter_h);
 
      if (!(ov_h.is_matrix_type() && ov_h.isreal() && ov_h.rows() == elnodes.rows() && ov_h.columns() == elnodes.columns())) {
-          throw std::runtime_error("mesh.elements.convection."s + pszElemName
+          throw std::runtime_error("thermal convection: mesh.elements.convection."s + pszElemName
                                    + ".h must be a real matrix with the same size like mesh.elements.convection."
                                    + pszElemName + ".nodes");
      }
@@ -10893,7 +10899,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                const octave_value ov_conv_load = cell_conv_load.xelem(k);
 
                if (!(ov_conv_load.isstruct() && ov_conv_load.numel() == 1)) {
-                    throw std::runtime_error("load_case.convection must be a scalar struct");
+                    throw std::runtime_error("thermal convection: load_case.convection must be a scalar struct");
                }
 
                const octave_scalar_map m_conv_load = ov_conv_load.scalar_map_value();
@@ -10907,7 +10913,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                const octave_value ov_conv_load_elem = m_conv_load.contents(iter_conv_load_elem);
 
                if (!(ov_conv_load_elem.isstruct() && ov_conv_load_elem.numel() == 1)) {
-                    throw std::runtime_error("load_case.convection."s + pszElemName + " must be a scalar struct");
+                    throw std::runtime_error("thermal convection: load_case.convection."s + pszElemName + " must be a scalar struct");
                }
 
                const octave_scalar_map m_conv_load_elem = ov_conv_load_elem.scalar_map_value();
@@ -10915,13 +10921,13 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                const auto iter_theta = m_conv_load_elem.seek("theta");
 
                if (iter_theta == m_conv_load_elem.end()) {
-                    throw std::runtime_error("missing field load_case.convection."s + pszElemName + ".theta");
+                    throw std::runtime_error("thermal convection: missing field load_case.convection."s + pszElemName + ".theta");
                }
 
                const octave_value ov_thetak = m_conv_load_elem.contents(iter_theta);
 
                if (!(ov_thetak.is_matrix_type() && ov_thetak.isreal() && ov_thetak.rows() == elnodes.rows() && ov_thetak.columns() == elnodes.columns())) {
-                    throw std::runtime_error("load_case.convection."s + pszElemName + ".theta must be a real matrix with the same dimensions like mesh.elements.convection."s + pszElemName + ".nodes");
+                    throw std::runtime_error("thermal convection: load_case.convection."s + pszElemName + ".theta must be a real matrix with the same dimensions like mesh.elements.convection."s + pszElemName + ".nodes");
                }
 
                const Matrix thetak = ov_thetak.matrix_value();
@@ -10941,7 +10947,7 @@ void InsertThermalConvElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.convection."s + pszElemName + ".nodes");
+                    throw std::runtime_error("thermal convection: node index out of range in mesh.elements.convection."s + pszElemName + ".nodes");
                }
 
                for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -10989,7 +10995,7 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
                const octave_value ov_heat_source = cell_heat_source.xelem(j);
 
                if (!(ov_heat_source.isstruct() && ov_heat_source.numel() == 1)) {
-                    throw std::runtime_error("load_case.heat_source must be a scalar struct");
+                    throw std::runtime_error("heat source: load_case.heat_source must be a scalar struct");
                }
 
                const octave_scalar_map m_heat_source = ov_heat_source.scalar_map_value();
@@ -11003,7 +11009,7 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
                const octave_value ov_heat_source_elem = m_heat_source.contents(iter_heat_source_elem);
 
                if (!(ov_heat_source_elem.isstruct() && ov_heat_source_elem.numel() == 1)) {
-                    throw std::runtime_error("load_case.heat_source."s + pszElemName + " must be a scalar struct");
+                    throw std::runtime_error("heat source: load_case.heat_source."s + pszElemName + " must be a scalar struct");
                }
 
                const octave_scalar_map m_heat_source_elem = ov_heat_source_elem.scalar_map_value();
@@ -11011,13 +11017,13 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
                const auto iter_elnodes = m_heat_source_elem.seek("nodes");
 
                if (iter_elnodes == m_heat_source_elem.end()) {
-                    throw std::runtime_error("missing field load_case.heat_source."s + pszElemName + ".nodes");
+                    throw std::runtime_error("heat source: missing field load_case.heat_source."s + pszElemName + ".nodes");
                }
 
                const octave_value ov_elnodes = m_heat_source_elem.contents(iter_elnodes);
 
                if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-                    throw std::runtime_error("load_case.heat_source."s + pszElemName + ".nodes must be an integer matrix");
+                    throw std::runtime_error("heat source: load_case.heat_source."s + pszElemName + ".nodes must be an integer matrix");
                }
 
                const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -11030,13 +11036,13 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
                const auto iter_q = m_heat_source_elem.seek("q");
 
                if (iter_q == m_heat_source_elem.end()) {
-                    throw std::runtime_error("missing field load_case.heat_source."s + pszElemName + ".q");
+                    throw std::runtime_error("heat source: missing field load_case.heat_source."s + pszElemName + ".q");
                }
 
                const octave_value ov_q = m_heat_source_elem.contents(iter_q);
 
                if (!(ov_q.is_matrix_type() && ov_q.isreal() && ov_q.rows() == elnodes.rows() && ov_q.columns() == elnodes.columns())) {
-                    throw std::runtime_error("load_case.heat_source."s + pszElemName + ".q must be a real matrix with the same dimensions like load_case.heat_source."s + pszElemName + ".nodes");
+                    throw std::runtime_error("heat source: load_case.heat_source."s + pszElemName + ".q must be a real matrix with the same dimensions like load_case.heat_source."s + pszElemName + ".nodes");
                }
 
                const Matrix q = ov_q.matrix_value();
@@ -11048,7 +11054,7 @@ void InsertHeatSourceElem(ElementTypes::TypeId eltype, const Matrix& nodes, cons
                          octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                          if (inode < 0 || inode >= nodes.rows()) {
-                              throw std::runtime_error("node index out of range in load_case.heat_source."s + pszElemName + ".nodes");
+                              throw std::runtime_error("heat source: node index out of range in load_case.heat_source."s + pszElemName + ".nodes");
                          }
 
                          for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -11090,7 +11096,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
      const octave_value ov_velocity = elements.contents(iter_velocity);
 
      if (!(ov_velocity.isstruct() && ov_velocity.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.particle_velocity must be a scalar struct");
+          throw std::runtime_error("particle velocity: mesh.elements.particle_velocity must be a scalar struct");
      }
 
      const octave_scalar_map m_velocity = ov_velocity.scalar_map_value();
@@ -11104,7 +11110,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
      const octave_value ov_elem_type = m_velocity.contents(iter_elem_type);
 
      if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.particle_velocity."s + pszElemName + " must be a scalar struct");
+          throw std::runtime_error("particle velocity: mesh.elements.particle_velocity."s + pszElemName + " must be a scalar struct");
      }
 
      const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
@@ -11112,13 +11118,13 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
      const auto iter_elnodes = m_elem_type.seek("nodes");
 
      if (iter_elnodes == m_elem_type.end()) {
-          throw std::runtime_error("missing field mesh.elements.particle_velocity."s + pszElemName + ".nodes");
+          throw std::runtime_error("particle velocity: missing field mesh.elements.particle_velocity."s + pszElemName + ".nodes");
      }
 
      const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.particle_velocity."s + pszElemName + ".nodes must be an integer matrix");
+          throw std::runtime_error("particle velocity: mesh.elements.particle_velocity."s + pszElemName + ".nodes must be an integer matrix");
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -11130,7 +11136,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
                octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.particle_velocity."s + pszElemName + ".nodes");
+                    throw std::runtime_error("particle velocity: node index out of range in mesh.elements.particle_velocity."s + pszElemName + ".nodes");
                }
 
                for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -11150,13 +11156,13 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
      const auto iter_elem_type_mat = m_vel_mat.seek(pszElemName);
 
      if (iter_elem_type_mat == m_vel_mat.end()) {
-          throw std::runtime_error("mesh.materials.particle_velocity."s + pszElemName + " is not defined");
+          throw std::runtime_error("particle velocity: mesh.materials.particle_velocity."s + pszElemName + " is not defined");
      }
 
      const int32NDArray elem_mat = m_vel_mat.contents(iter_elem_type_mat).int32_array_value();
 
      if (elem_mat.numel() != elnodes.rows()) {
-          throw std::runtime_error("invalid number of rows for matrix mesh.materials.particle_velocity."s + pszElemName + " in argument mesh");
+          throw std::runtime_error("particle velocity: invalid number of rows for matrix mesh.materials.particle_velocity."s + pszElemName + " in argument mesh");
      }
 
      const octave_idx_type inum_materials = rgMaterials.size();
@@ -11165,7 +11171,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
           const octave_idx_type imaterial = elem_mat.xelem(i);
 
           if (imaterial <= 0 || imaterial > inum_materials) {
-               throw std::runtime_error("invalid index in matrix mesh.materials.particle_velocity."s + pszElemName + " in argument mesh");
+               throw std::runtime_error("particle velocity: invalid index in matrix mesh.materials.particle_velocity."s + pszElemName + " in argument mesh");
           }
      }
 
@@ -11182,7 +11188,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
                const octave_value ov_vel_load = cell_vel_load.xelem(k);
 
                if (!(ov_vel_load.isstruct() && ov_vel_load.numel() == 1)) {
-                    throw std::runtime_error("load_case.particle_velocity must be a scalar struct");
+                    throw std::runtime_error("particle velocity: load_case.particle_velocity must be a scalar struct");
                }
 
                const octave_scalar_map m_vel_load = ov_vel_load.scalar_map_value();
@@ -11196,7 +11202,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
                const octave_value ov_vel_load_elem = m_vel_load.contents(iter_vel_load_elem);
 
                if (!(ov_vel_load_elem.isstruct() && ov_vel_load_elem.numel() == 1)) {
-                    throw std::runtime_error("load_case.particle_velocity."s + pszElemName + " must be a scalar struct");
+                    throw std::runtime_error("particle velocity: load_case.particle_velocity."s + pszElemName + " must be a scalar struct");
                }
 
                const octave_scalar_map m_vel_load_elem = ov_vel_load_elem.scalar_map_value();
@@ -11204,7 +11210,7 @@ void InsertParticleVelocityBC(ElementTypes::TypeId eltype, const Matrix& nodes, 
                const auto iter_vel = m_vel_load_elem.seek("vn");
 
                if (iter_vel == m_vel_load_elem.end()) {
-                    throw std::runtime_error("missing field load_case.particle_velocity."s + pszElemName + ".vn");
+                    throw std::runtime_error("particle velocity: missing field load_case.particle_velocity."s + pszElemName + ".vn");
                }
 
                const octave_value ov_vnk = m_vel_load_elem.contents(iter_vel);
@@ -11260,7 +11266,7 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
      const octave_value ov_impedance = elements.contents(iter_impedance);
 
      if (!(ov_impedance.isstruct() && ov_impedance.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.acoustic_impedance must be a scalar struct");
+          throw std::runtime_error("acoustic impedance: mesh.elements.acoustic_impedance must be a scalar struct");
      }
 
      const octave_scalar_map m_impedance = ov_impedance.scalar_map_value();
@@ -11274,7 +11280,7 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
      const octave_value ov_elem_type = m_impedance.contents(iter_elem_type);
 
      if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + " must be a scalar struct");
+          throw std::runtime_error("acoustic impedance: mesh.elements.acoustic_impedance."s + pszElemName + " must be a scalar struct");
      }
 
      const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
@@ -11282,13 +11288,13 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
      const auto iter_elnodes = m_elem_type.seek("nodes");
 
      if (iter_elnodes == m_elem_type.end()) {
-          throw std::runtime_error("missing field mesh.elements.acoustic_impedance."s + pszElemName + ".nodes");
+          throw std::runtime_error("acoustic impedance: missing field mesh.elements.acoustic_impedance."s + pszElemName + ".nodes");
      }
 
      const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + ".nodes must be an integer matrix");
+          throw std::runtime_error("acoustic impedance: mesh.elements.acoustic_impedance."s + pszElemName + ".nodes must be an integer matrix");
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -11300,7 +11306,7 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
                octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_impedance."s + pszElemName + ".nodes");
+                    throw std::runtime_error("acoustic impedance: node index out of range in mesh.elements.acoustic_impedance."s + pszElemName + ".nodes");
                }
 
                for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -11312,13 +11318,13 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
      const auto iter_z = m_elem_type.seek("z");
 
      if (iter_z == m_elem_type.end()) {
-          throw std::runtime_error("missing field mesh.elements.acoustic_impedance."s + pszElemName + ".z");
+          throw std::runtime_error("acoustic impedance: missing field mesh.elements.acoustic_impedance."s + pszElemName + ".z");
      }
 
      const octave_value ov_z = m_elem_type.contents(iter_z);
 
      if (!(ov_z.is_matrix_type() && ov_z.rows() == elnodes.rows() && ov_z.columns() == elnodes.columns())) {
-          throw std::runtime_error("mesh.elements.acoustic_impedance."s + pszElemName + ".z must be a real matrix of the same size "
+          throw std::runtime_error("acoustic impedance: mesh.elements.acoustic_impedance."s + pszElemName + ".z must be a real matrix of the same size "
                                    "like mesh.elements.acoustic_impedance." + pszElemName + ".nodes");
      }
 
@@ -11327,7 +11333,7 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
      const auto iter_impe_mat = materials.seek("acoustic_impedance");
 
      if (iter_impe_mat == materials.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_impedance is not defined");
+          throw std::runtime_error("acoustic impedance: mesh.materials.acoustic_impedance is not defined");
      }
 
      const octave_scalar_map m_impe_mat = materials.contents(iter_impe_mat).scalar_map_value();
@@ -11335,13 +11341,13 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
      const auto iter_elem_type_mat = m_impe_mat.seek(pszElemName);
 
      if (iter_elem_type_mat == m_impe_mat.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_impedance."s + pszElemName + " is not defined");
+          throw std::runtime_error("acoustic impedance: mesh.materials.acoustic_impedance."s + pszElemName + " is not defined");
      }
 
      const int32NDArray elem_mat = m_impe_mat.contents(iter_elem_type_mat).int32_array_value();
 
      if (elem_mat.numel() != elnodes.rows()) {
-          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_impedance."s + pszElemName + " in argument mesh");
+          throw std::runtime_error("acoustic impedance: invalid number of rows for matrix mesh.materials.acoustic_impedance."s + pszElemName + " in argument mesh");
      }
 
      const octave_idx_type inum_materials = rgMaterials.size();
@@ -11350,7 +11356,7 @@ void InsertAcousticImpedanceBC(ElementTypes::TypeId eltype, const Matrix& nodes,
           const octave_idx_type imaterial = elem_mat.xelem(i);
 
           if (imaterial <= 0 || imaterial > inum_materials) {
-               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_impedance."s + pszElemName + " in argument mesh");
+               throw std::runtime_error("acoustic impedance: invalid index in matrix mesh.materials.acoustic_impedance."s + pszElemName + " in argument mesh");
           }
      }
 
@@ -11397,7 +11403,7 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
      const octave_value ov_boundary = elements.contents(iter_boundary);
 
      if (!(ov_boundary.isstruct() && ov_boundary.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.acoustic_boundary must be a scalar struct");
+          throw std::runtime_error("acoustic boundary: mesh.elements.acoustic_boundary must be a scalar struct");
      }
 
      const octave_scalar_map m_boundary = ov_boundary.scalar_map_value();
@@ -11411,7 +11417,7 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
      const octave_value ov_elnodes = m_boundary.contents(iter_elem_type);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.acoustic_boundary."s + pszElemName + " must be an integer matrix");
+          throw std::runtime_error("acoustic boundary: mesh.elements.acoustic_boundary."s + pszElemName + " must be an integer matrix");
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -11423,7 +11429,7 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
                octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.acoustic_boundary."s + pszElemName);
+                    throw std::runtime_error("acoustic boundary: node index out of range in mesh.elements.acoustic_boundary."s + pszElemName);
                }
 
                for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -11435,7 +11441,7 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
      const auto iter_bnd_mat = materials.seek("acoustic_boundary");
 
      if (iter_bnd_mat == materials.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_boundary is not defined");
+          throw std::runtime_error("acoustic boundary: mesh.materials.acoustic_boundary is not defined");
      }
 
      const octave_scalar_map m_bnd_mat = materials.contents(iter_bnd_mat).scalar_map_value();
@@ -11443,13 +11449,13 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
      const auto iter_elem_type_mat = m_bnd_mat.seek(pszElemName);
 
      if (iter_elem_type_mat == m_bnd_mat.end()) {
-          throw std::runtime_error("mesh.materials.acoustic_boundary."s + pszElemName + " is not defined");
+          throw std::runtime_error("acoustic boundary: mesh.materials.acoustic_boundary."s + pszElemName + " is not defined");
      }
 
      const int32NDArray elem_mat = m_bnd_mat.contents(iter_elem_type_mat).int32_array_value();
 
      if (elem_mat.numel() != elnodes.rows()) {
-          throw std::runtime_error("invalid number of rows for matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
+          throw std::runtime_error("acoustic boundary: invalid number of rows for matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
      }
 
      const octave_idx_type inum_materials = rgMaterials.size();
@@ -11458,7 +11464,7 @@ void InsertAcousticBoundary(ElementTypes::TypeId eltype, const Matrix& nodes, co
           const octave_idx_type imaterial = elem_mat.xelem(i);
 
           if (imaterial <= 0 || imaterial > inum_materials) {
-               throw std::runtime_error("invalid index in matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
+               throw std::runtime_error("acoustic boundary: invalid index in matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
           }
      }
 
@@ -11494,7 +11500,7 @@ void InsertFluidStructElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      const octave_value ov_fluid_struct = elements.contents(iter_fluid_struct);
 
      if (!(ov_fluid_struct.isstruct() && ov_fluid_struct.numel() == 1)) {
-          throw std::runtime_error("mesh.elements.fluid_struct_interface must be a scalar struct");
+          throw std::runtime_error("fluid struct interface: mesh.elements.fluid_struct_interface must be a scalar struct");
      }
 
      const octave_scalar_map m_fluid_struct = ov_fluid_struct.scalar_map_value();
@@ -11508,7 +11514,7 @@ void InsertFluidStructElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
      const octave_value ov_elnodes = m_fluid_struct.contents(iter_elem_type);
 
      if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
-          throw std::runtime_error("mesh.elements.fluid_struct_interface."s + pszElemName + " must be an integer matrix");
+          throw std::runtime_error("fluid struct interface: mesh.elements.fluid_struct_interface."s + pszElemName + " must be an integer matrix");
      }
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -11520,7 +11526,7 @@ void InsertFluidStructElem(ElementTypes::TypeId eltype, const Matrix& nodes, con
                octave_idx_type inode = elnodes.xelem(k, l).value() - 1;
 
                if (inode < 0 || inode >= nodes.rows()) {
-                    throw std::runtime_error("node index out of range in mesh.elements.fluid_struct_interface."s + pszElemName + ".nodes");
+                    throw std::runtime_error("fluid struct interface: node index out of range in mesh.elements.fluid_struct_interface."s + pszElemName + ".nodes");
                }
 
                for (octave_idx_type m = 0; m < X.rows(); ++m) {
@@ -11594,7 +11600,7 @@ public:
           case CT_SLIDING:
                return static_cast<ConstraintType>(constr);
           default:
-               throw std::runtime_error("invalid value for elements.sfncon{4|6|8}.constraint");
+               throw std::runtime_error("sfncon: invalid value for elements.sfncon{4|6|8}.constraint");
           }
      }
 
@@ -11607,7 +11613,7 @@ public:
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.constraint must be a scalar value");
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.constraint must be a scalar value");
           }
 #endif
 
@@ -11623,7 +11629,7 @@ public:
           case DofMap::DO_ACOUSTICS:
                return 1;
           default:
-               throw std::logic_error("unknown value for dof_map.domain");
+               throw std::logic_error("sfncon: unknown value for dof_map.domain");
           }
      }
 
@@ -11678,7 +11684,7 @@ public:
                eElemType = ElementTypes::ELEM_ACOUSTIC_CONSTR;
                break;
           default:
-               throw std::logic_error("unsupported value for dof_map.domain");
+               throw std::logic_error("sfncon: unsupported value for dof_map.domain");
           }
 
           ElemBlockPtr pElemBlock{new ElementBlock<ElemJoint>{eElemType, nidxslave.numel()}};
@@ -11759,7 +11765,7 @@ public:
 
                     std::ostringstream os;
 
-                    os << "nlopt failed to project slave node #" << i + 1 << " (" << nidxslave(i).value()
+                    os << "sfncon: nlopt failed to project slave node #" << i + 1 << " (" << nidxslave(i).value()
                        << ") to element #";
 
                     octave_idx_type eidx = -1;
@@ -11907,7 +11913,7 @@ private:
 
           if (eType == CT_SLIDING) {
                if (eElemType != ElementTypes::ELEM_JOINT) {
-                    throw std::logic_error("unsupported value for dof_map.domain");
+                    throw std::logic_error("sfncon: unsupported value for dof_map.domain");
                }
 
                Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
@@ -11968,13 +11974,13 @@ private:
 
           if (SHAPE_FUNC::iGetNumEqualityConstr()) {
               if (nlopt_add_equality_constraint(oFuncData.opt, &SurfToNodeConstr::EqualityConstr, &oFuncData, dTolX) < 0) {
-                  throw std::runtime_error("nlopt_add_equality_constraint failed");
+                  throw std::runtime_error("sfncon: nlopt_add_equality_constraint failed");
               }
           }
 
           if (SHAPE_FUNC::iGetNumInequalityConstr()) {
               if (nlopt_add_inequality_constraint(oFuncData.opt, &SurfToNodeConstr::InequalityConstr, &oFuncData, dTolX) < 0) {
-                  throw std::runtime_error("nlopt_add_inequality_constraint failed");
+                  throw std::runtime_error("sfncon: nlopt_add_inequality_constraint failed");
               }
           }
 
@@ -12291,14 +12297,14 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 #if OCTAVE_MAJOR_VERSION < 6
      if (error_state) {
-          throw std::runtime_error("elements.sfncon{4|6|8} must be a struct array");
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8} must be a struct array");
      }
 #endif
 
      const auto iter_nidxmaster = s_elem.seek("master");
 
      if (iter_nidxmaster == s_elem.end()) {
-          throw std::runtime_error("elements.sfncon{4|6|8}.master not defined");
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.master not defined");
      }
 
      const Cell ov_nidxmaster = s_elem.contents(iter_nidxmaster);
@@ -12306,7 +12312,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
      const auto iter_nidxslave = s_elem.seek("slave");
 
      if (iter_nidxslave == s_elem.end()) {
-          throw std::runtime_error("elements.sfncon{4|6|8}.slave not defined");
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.slave not defined");
      }
 
      const Cell ov_nidxslave = s_elem.contents(iter_nidxslave);
@@ -12314,7 +12320,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
      const auto iter_maxdist = s_elem.seek("maxdist");
 
      if (iter_maxdist == s_elem.end()) {
-          throw std::runtime_error("elements.sfncon{4|6|8}.maxdist not defined");
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.maxdist not defined");
      }
 
      const Cell ov_maxdist = s_elem.contents(iter_maxdist);
@@ -12346,7 +12352,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.master must be an integer array");
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.master must be an integer array");
           }
 #endif
 
@@ -12354,7 +12360,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.slave must be an integer array");
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.slave must be an integer array");
           }
 #endif
 
@@ -12362,7 +12368,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.maxdist must be a column vector");
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.maxdist must be a column vector");
           }
 #endif
 
@@ -12388,11 +12394,11 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           }
 
           if (nidxmaster.ndims() != 2 || nidxmaster.rows() < 1 || nidxmaster.columns() != iNumNodesElem) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.master must be an nx{4|6|8} array");
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.master must be an nx{4|6|8} array");
           }
 
           if (nidxslave.ndims() != 2 || nidxslave.rows() < 1 || nidxslave.columns() != 1) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.slave must be an nx1 array");
+               throw std::runtime_error("snfcon: elements.sfncon{4|6|8}.slave must be an nx1 array");
           }
 
           if (maxdist.rows() == 1 && nidxslave.rows() > 1) {
@@ -12401,21 +12407,21 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           }
 
           if (maxdist.rows() != nidxslave.rows()) {
-               throw std::runtime_error("elements.sfncon{4|6|8}.maxdist must have "
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.maxdist must have "
                                         "the same dimensions like elements.sfncon{4|6|8}.slave");
           }
 
           for (octave_idx_type i = 0; i < nidxmaster.rows(); ++i) {
                for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
                     if (nidxmaster(i, j).value() < 1 || nidxmaster(i, j).value() > nodes.rows()) {
-                         throw std::runtime_error("elements.sfncon{4|6|8}.master: node index out of range");
+                         throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.master: node index out of range");
                     }
                }
           }
 
           for (octave_idx_type i = 0; i < nidxslave.rows(); ++i) {
                if (nidxslave(i).value() < 1 || nidxslave(i).value() > nodes.rows()) {
-                    throw std::runtime_error("elements.sfncon{4|6|8}.slave: node index out of range");
+                    throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.slave: node index out of range");
                }
           }
 
@@ -12423,7 +12429,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.elements.sfncon{4|6|8}.scale must be a real scalar");
+               throw std::runtime_error("sfncon: mesh.elements.sfncon{4|6|8}.scale must be a real scalar");
           }
 #endif
 
@@ -12481,7 +12487,7 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           }
 
           if ((uConstraintFlags & CF_ELEM_DOF_PRE_ALLOCATED) && dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
-               throw std::runtime_error("dof_map.edof is not consistent with elements");
+               throw std::runtime_error("sfncon: dof_map.edof is not consistent with elements");
           }
      }
 }
@@ -12506,7 +12512,7 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
      const octave_value ovPartVel = elements.contents(iterPartVel);
 
      if (!ovPartVel.isstruct()) {
-          throw std::runtime_error("mesh.elements.particle_velocity must be a scalar struct");
+          throw std::runtime_error("surface normal vector: mesh.elements.particle_velocity must be a scalar struct");
      }
 
      const octave_scalar_map mapPartVel = ovPartVel.scalar_map_value();
@@ -12532,7 +12538,7 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
                const octave_value ovElem = mapPartVel.contents(iterElem);
 
                if (!(ovElem.isstruct() && ovElem.numel() == 1)) {
-                    throw std::runtime_error("mesh.elements.particle_velocity."s + oElemType.name + " must be a scalar struct");
+                    throw std::runtime_error("surface normal vector: mesh.elements.particle_velocity."s + oElemType.name + " must be a scalar struct");
                }
 
                const octave_scalar_map mapElem = ovElem.scalar_map_value();
@@ -12540,12 +12546,12 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
                const auto iterNodes = mapElem.seek("nodes");
 
                if (iterNodes == mapElem.end()) {
-                    throw std::runtime_error("field mesh.elements.particle_velocity."s + oElemType.name + ".nodes not found");
+                    throw std::runtime_error("surface normal vector: field mesh.elements.particle_velocity."s + oElemType.name + ".nodes not found");
                }
                const octave_value ovNodes = mapElem.contents(iterNodes);
 
                if (!(ovNodes.is_matrix_type() && ovNodes.isinteger() && ovNodes.columns() == oElemType.min_nodes)) {
-                    throw std::runtime_error("number of columns does not match for field mesh.elements.particle_velocity."s + oElemType.name + ".nodes");
+                    throw std::runtime_error("surface normal vector: number of columns does not match for field mesh.elements.particle_velocity."s + oElemType.name + ".nodes");
                }
 
                const int32NDArray elemNodes = ovNodes.int32_array_value();
@@ -12996,28 +13002,28 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
           const auto it_materials = m_mesh.seek("materials");
 
           if (it_materials == m_mesh.end()) {
-               throw std::runtime_error("missing field mesh.materials in argument mesh");
+               throw std::runtime_error("fem_ass_dof_map: missing field mesh.materials in argument mesh");
           }
 
           const octave_scalar_map materials(m_mesh.contents(it_materials).scalar_map_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.materials must be a scalar struct in argument mesh");
+               throw std::runtime_error("fem_ass_dof_map: mesh.materials must be a scalar struct in argument mesh");
           }
 #endif
 
           const auto it_material_data = m_mesh.seek("material_data");
 
           if (it_material_data == m_mesh.end()) {
-               throw std::runtime_error("missing field mesh.material_data in argument mesh");
+               throw std::runtime_error("fem_ass_dof_map: missing field mesh.material_data in argument mesh");
           }
 
           const octave_map material_data(m_mesh.contents(it_material_data).map_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.material_data must be a struct array in argument mesh");
+               throw std::runtime_error("fem_ass_dof_map: mesh.material_data must be a struct array in argument mesh");
           }
 #endif
 
@@ -13043,30 +13049,30 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     const auto iter_elem_mat = materials.seek(oElemType.name);
 
                     if (iter_elem_mat == materials.end()) {
-                         throw std::runtime_error("missing field mesh.materials."s + oElemType.name + " in argument mesh");
+                         throw std::runtime_error("fem_ass_dof_map: missing field mesh.materials."s + oElemType.name + " in argument mesh");
                     }
 
                     const int32NDArray elem_mat = materials.contents(iter_elem_mat).int32_array_value();
 
                     if (elem_mat.columns() != 1) {
-                         throw std::runtime_error("invalid number of columns in mesh.materials."s + oElemType.name);
+                         throw std::runtime_error("fem_ass_dof_map: invalid number of columns in mesh.materials."s + oElemType.name);
                     }
 
                     const int32NDArray elnodes = m_elements.contents(iter_elem_type).int32_array_value();
 
                     if (!(elnodes.columns() >= oElemType.min_nodes && elnodes.columns() <= oElemType.max_nodes)) {
-                         throw std::runtime_error("invalid number of columns in mesh.elements."s + oElemType.name);
+                         throw std::runtime_error("fem_ass_dof_map: invalid number of columns in mesh.elements."s + oElemType.name);
                     }
 
                     if (elem_mat.rows() != elnodes.rows()) {
-                         throw std::runtime_error("inconsistent size of mesh.elements."s + oElemType.name + " and mesh.materials." + oElemType.name);
+                         throw std::runtime_error("fem_ass_dof_map: inconsistent size of mesh.elements."s + oElemType.name + " and mesh.materials." + oElemType.name);
                     }
 
                     for (octave_idx_type j = 0; j < elnodes.rows(); ++j) {
                          const size_t imaterial = elem_mat.xelem(j).value() - 1;
 
                          if (imaterial >= rgMaterials.size()) {
-                              throw std::runtime_error("invalid index in field mesh.materials."s + oElemType.name);
+                              throw std::runtime_error("fem_ass_dof_map: invalid index in field mesh.materials."s + oElemType.name);
                          }
 
                          const Material::MatType eMatType = rgMaterials[imaterial].GetMaterialType();
@@ -13106,11 +13112,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         iNodeDofMin = iNodeDofMax = 6;
                                         break;
                                    default:
-                                        throw std::logic_error("invalid material type for fluid structure interaction");
+                                        throw std::logic_error("fem_ass_dof_map: invalid material type for fluid structure interaction");
                                    }
                                    break;
                               default:
-                                   throw std::runtime_error("unknown value for dof_map.domain");
+                                   throw std::runtime_error("fem_ass_dof_map: unknown value for dof_map.domain");
                               }
 
                               for (octave_idx_type l = iNodeDofMin; l <= iNodeDofMax; ++l) {
@@ -13164,7 +13170,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          default:
                               FEM_ASSERT(0);
-                              throw std::logic_error("unexpected element type");
+                              throw std::logic_error("fem_ass_dof_map: unexpected element type");
                          }
 
                          const auto iter_elem_name = m_elements.seek(elem_name[ielem_name]);
@@ -13176,7 +13182,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          const octave_value ov_elem_name = m_elements.contents(iter_elem_name);
 
                          if (!(ov_elem_name.isstruct() && ov_elem_name.numel() == 1)) {
-                              throw std::runtime_error("mesh.elements."s + elem_name[ielem_name] + " must be a scalar struct");
+                              throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + " must be a scalar struct");
                          }
 
                          const octave_scalar_map m_elem_name = ov_elem_name.scalar_map_value();
@@ -13190,7 +13196,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          const octave_value ov_elem_type = m_elem_name.contents(iter_elem_type);
 
                          if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
-                              throw std::runtime_error("mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + " must be a scalar struct");
+                              throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + " must be a scalar struct");
                          }
 
                          const octave_scalar_map m_elem_type = ov_elem_type.scalar_map_value();
@@ -13198,13 +13204,13 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          const auto iter_elnodes = m_elem_type.seek("nodes");
 
                          if (iter_elnodes == m_elem_type.end()) {
-                              throw std::runtime_error("missing field mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + ".nodes");
+                              throw std::runtime_error("fem_ass_dof_map: missing field mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + ".nodes");
                          }
 
                          const octave_value ov_elnodes = m_elem_type.contents(iter_elnodes);
 
                          if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == oElemType.max_nodes)) {
-                              throw std::runtime_error("mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + ".nodes must be an integer matrix");
+                              throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + ".nodes must be an integer matrix");
                          }
 
                          const int32NDArray elnodes = ov_elnodes.int32_array_value();
@@ -13236,7 +13242,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         iDofIndex = 6;
                                         break;
                                    default:
-                                        throw std::logic_error("domain not supported");
+                                        throw std::logic_error("fem_ass_dof_map: domain not supported");
                                    }
 
                                    dof_in_use.xelem(idxnode - 1, iDofIndex) = true;
@@ -13682,7 +13688,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
      try {
           if (nodes.columns() != 6) {
-               throw std::runtime_error("invalid number of columns for matrix nodes");
+               throw std::runtime_error("fem_pre_mesh_constr_surf_to_node: invalid number of columns for matrix nodes");
           }
 
           array<int32NDArray, DofMap::ELEM_TYPE_COUNT> edof;
@@ -13763,62 +13769,62 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("argument mesh must be a scalar struct");
+               throw std::runtime_error("fem_ass_matrix: argument mesh must be a scalar struct");
           }
 #endif
 
           const auto it_nodes = mesh.seek("nodes");
 
           if (it_nodes == mesh.end()) {
-               throw std::runtime_error("missing field mesh.nodes in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: missing field mesh.nodes in argument mesh");
           }
 
           const Matrix nodes(mesh.contents(it_nodes).matrix_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.nodes must be a real matrix in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: mesh.nodes must be a real matrix in argument mesh");
           }
 #endif
 
           const auto it_elements = mesh.seek("elements");
 
           if (it_elements == mesh.end()) {
-               throw std::runtime_error("missing field mesh.elements in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: missing field mesh.elements in argument mesh");
           }
 
           const octave_scalar_map elements(mesh.contents(it_elements).scalar_map_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.elements must be a scalar struct in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: mesh.elements must be a scalar struct in argument mesh");
           }
 #endif
           const auto it_materials = mesh.seek("materials");
 
           if (it_materials == mesh.end()) {
-               throw std::runtime_error("missing field mesh.materials in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: missing field mesh.materials in argument mesh");
           }
 
           const octave_scalar_map materials(mesh.contents(it_materials).scalar_map_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.materials must be a scalar struct in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: mesh.materials must be a scalar struct in argument mesh");
           }
 #endif
 
           const auto it_material_data = mesh.seek("material_data");
 
           if (it_material_data == mesh.end()) {
-               throw std::runtime_error("missing field mesh.material_data in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: missing field mesh.material_data in argument mesh");
           }
 
           const octave_map material_data(mesh.contents(it_material_data).map_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("mesh.material_data must be a struct array in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: mesh.material_data must be a struct array in argument mesh");
           }
 #endif
 
@@ -13826,7 +13832,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("argument dof_map must be a scalar struct");
+               throw std::runtime_error("fem_ass_matrix: argument dof_map must be a scalar struct");
           }
 #endif
 
@@ -13834,7 +13840,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("argument matrix_type must be an array of integers");
+               throw std::runtime_error("fem_ass_matrix: argument matrix_type must be an array of integers");
           }
 #endif
 
@@ -13842,7 +13848,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("argument load case must be a struct array");
+               throw std::runtime_error("fem_ass_matrix: argument load case must be a struct array");
           }
 #endif
 
@@ -13852,24 +13858,24 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("argument sol must be scalar struct");
+               throw std::runtime_error("fem_ass_matrix: argument sol must be scalar struct");
           }
 #endif
 
           if (nodes.columns() != 6) {
-               throw std::runtime_error("invalid number of columns for matrix mesh.nodes in argument mesh");
+               throw std::runtime_error("fem_ass_matrix: invalid number of columns for matrix mesh.nodes in argument mesh");
           }
 
           const auto iter_ndof = dof_map.seek("ndof");
 
           if (iter_ndof == dof_map.end()) {
-               throw std::runtime_error("field \"ndof\" not found in argument dof_map");
+               throw std::runtime_error("fem_ass_matrix: field \"ndof\" not found in argument dof_map");
           }
 
           const auto iter_domain = dof_map.seek("domain");
 
           if (iter_domain == dof_map.end()) {
-               throw std::runtime_error("field \"domain\" not found in argument dof_map");
+               throw std::runtime_error("fem_ass_matrix: field \"domain\" not found in argument dof_map");
           }
 
           const auto eDomain = static_cast<DofMap::DomainType>(dof_map.contents(iter_domain).int_value());
@@ -13878,33 +13884,33 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("field dof_map.ndof must be an integer array in argument dof_map");
+               throw std::runtime_error("fem_ass_matrix: field dof_map.ndof must be an integer array in argument dof_map");
           }
 #endif
 
           const auto iter_totdof = dof_map.seek("totdof");
 
           if (iter_totdof == dof_map.end()) {
-               throw std::runtime_error("field \"totdof\" not found in argument dof_map");
+               throw std::runtime_error("fem_ass_matrix: field \"totdof\" not found in argument dof_map");
           }
 
           const octave_idx_type inumdof = dof_map.contents(iter_totdof).int32_scalar_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
-               throw std::runtime_error("field dof_map.totdof must be an scalar integer in argument dof_map");
+               throw std::runtime_error("fem_ass_matrix: field dof_map.totdof must be an scalar integer in argument dof_map");
           }
 #endif
 
           if (ndof.rows() != nodes.rows() || ndof.columns() != DofMap::iGetNodeMaxDofIndex(eDomain)) {
-               throw std::runtime_error("shape of dof_map.ndof is not valid");
+               throw std::runtime_error("fem_ass_matrix: shape of dof_map.ndof is not valid");
           }
 
           for (octave_idx_type j = 0; j < ndof.columns(); ++j) {
                for (octave_idx_type i = 0; i < ndof.rows(); ++i) {
                     octave_idx_type idof = ndof(i, j).value();
                     if (idof > inumdof) {
-                         throw std::runtime_error("invalid index in matrix dof_map.ndof in argument dof_map");
+                         throw std::runtime_error("fem_ass_matrix: invalid index in matrix dof_map.ndof in argument dof_map");
                     }
                }
           }
@@ -13919,7 +13925,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
-                    throw std::runtime_error("dof_map.edof must be a scalar struct in argument dof_map");
+                    throw std::runtime_error("fem_ass_matrix: dof_map.edof must be a scalar struct in argument dof_map");
                }
 #endif
 
@@ -13941,14 +13947,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
                               std::ostringstream os;
-                              os << "dof_map.edof." << k->name << " must be an integer array in argument dof_map";
+                              os << "fem_ass_matrix: dof_map.edof." << k->name << " must be an integer array in argument dof_map";
                               throw std::runtime_error(os.str());
                          }
 #endif
 
                          if (a_edof.columns() < k->col_min || (k->col_max > 0 && a_edof.columns() > k->col_max)) {
                               std::ostringstream os;
-                              os << "dof_map.edof." << k->name << " numer of columns = " << a_edof.columns() << " not in range [" << k->col_min << ":" << k->col_max << "] in argument dof_map";
+                              os << "fem_ass_matrix: dof_map.edof." << k->name << " numer of columns = " << a_edof.columns() << " not in range [" << k->col_min << ":" << k->col_max << "] in argument dof_map";
                               throw std::runtime_error(os.str());
                          }
 
@@ -13961,7 +13967,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                for (octave_idx_type j = 0; j < k->columns(); ++j) {
                     for (octave_idx_type i = 0; i < k->rows(); ++i) {
                          if ((*k).xelem(i, j).value() > inumdof) {
-                              throw std::runtime_error("dof_map.edof dof index out of range in argument dof_map");
+                              throw std::runtime_error("fem_ass_matrix: dof_map.edof dof index out of range in argument dof_map");
                          }
                     }
                }
@@ -13983,7 +13989,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                const auto eMatType = static_cast<Element::FemMatrixType>(matrix_type(i).value());
 
                if (!(eMatType & eDomain)) {
-                    throw std::runtime_error("matrix type is not valid for selected dof_map.domain");
+                    throw std::runtime_error("fem_ass_matrix: matrix type is not valid for selected dof_map.domain");
                }
 
                switch (oDof.GetDomain()) {
@@ -14034,7 +14040,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_LOAD_CONSISTENT:
                     case Element::VEC_LOAD_LUMPED:
                          if (load_case.numel() == 0) {
-                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
+                              throw std::runtime_error("fem_ass_matrix: missing argument load_case for matrix_type == FEM_VEC_LOAD_*");
                          }
 
                          rgElemUse[ElementTypes::ELEM_BEAM2] = true;
@@ -14055,7 +14061,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
 
                     default:
-                         throw std::runtime_error("invalid value for argument matrix_type");
+                         throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
                     }
                     break;
 
@@ -14081,7 +14087,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     case Element::VEC_LOAD_THERMAL:
                          if (load_case.numel() == 0) {
-                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_THERMAL");
+                              throw std::runtime_error("fem_ass_matrix: missing argument load_case for matrix_type == FEM_VEC_LOAD_THERMAL");
                          }
 
                          rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
@@ -14097,7 +14103,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
 
                     default:
-                         throw std::runtime_error("invalid value for argument matrix_type");
+                         throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
                     }
                     break;
 
@@ -14135,7 +14141,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     case Element::VEC_LOAD_ACOUSTICS:
                          if (load_case.numel() == 0) {
-                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_ACOUSTICS");
+                              throw std::runtime_error("fem_ass_matrix: missing argument load_case for matrix_type == FEM_VEC_LOAD_ACOUSTICS");
                          }
 
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
@@ -14194,7 +14200,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     case Element::VEC_LOAD_FLUID_STRUCT:
                          if (load_case.numel() == 0) {
-                              throw std::runtime_error("missing argument load_case for matrix_type == FEM_VEC_LOAD_FLUID_STRUCT");
+                              throw std::runtime_error("fem_ass_matrix: missing argument load_case for matrix_type == FEM_VEC_LOAD_FLUID_STRUCT");
                          }
 
                          rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
@@ -14266,7 +14272,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
 
                default:
-                    throw std::runtime_error("invalid value for dof_map.domain");
+                    throw std::runtime_error("fem_ass_matrix: invalid value for dof_map.domain");
                }
           }
 
@@ -14297,18 +14303,18 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
-                         throw std::runtime_error(std::string("mesh.elements.") + oElemType.name
+                         throw std::runtime_error("fem_ass_matrix: mesh.elements."s + oElemType.name
                                                   + " must be an array of integers in argument mesh");
                     }
 #endif
 
                     if (elem_nodes.columns() < oElemType.min_nodes) {
-                         throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
+                         throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name
                                                   +  " in argument mesh");
                     }
 
                     if (oElemType.max_nodes > 0 && elem_nodes.columns() > oElemType.max_nodes) {
-                         throw std::runtime_error(std::string("invalid number of nodes for element type ") + oElemType.name
+                         throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name
                                                   + " in argument mesh");
                     }
 
@@ -14316,7 +14322,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          for (octave_idx_type i = 0; i < elem_nodes.rows(); ++i) {
                               octave_idx_type inode = elem_nodes.xelem(i, j);
                               if (inode < 1 || inode > nodes.rows()) {
-                                   throw std::runtime_error(std::string("invalid node index for element type ")
+                                   throw std::runtime_error("invalid node index for element type "s
                                                             + oElemType.name + " in argument mesh");
                               }
                          }
@@ -14325,20 +14331,20 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     const auto iter_mat = materials.seek(oElemType.name);
 
                     if (iter_mat == materials.end()) {
-                         throw std::runtime_error("material not defined for all element types in argument mesh");
+                         throw std::runtime_error("fem_ass_matrix: material not defined for all element types in argument mesh");
                     }
 
                     const int32NDArray elem_mat = materials.contents(iter_mat).int32_array_value();
 
                     if (elem_mat.numel() != elem_nodes.rows()) {
-                         throw std::runtime_error("invalid size for matrix mesh.materials."s + oElemType.name + " in argument mesh");
+                         throw std::runtime_error("fem_ass_matrix: invalid size for matrix mesh.materials."s + oElemType.name + " in argument mesh");
                     }
 
                     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
                          octave_idx_type imaterial = elem_mat.xelem(i);
 
                          if (imaterial <= 0 || imaterial > material_data.numel()) {
-                              throw std::runtime_error("invalid index in matrix mesh.materials in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid index in matrix mesh.materials in argument mesh");
                          }
                     }
 
@@ -14350,17 +14356,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_f = ov_PMLelem.seek("f");
 
                          if (iter_f == ov_PMLelem.end()) {
-                              throw std::runtime_error("missing field mesh.perfectly_matched_layers."s + oElemType.name + ".f");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.perfectly_matched_layers."s + oElemType.name + ".f");
                          }
 
                          const octave_value ov_fel = ov_PMLelem.contents(iter_f);
 
                          if (!((ov_fel.isreal() || ov_fel.iscomplex()) && ov_fel.is_matrix_type())) {
-                              throw std::runtime_error("mesh.perfectly_matched_layers."s + oElemType.name + " must be a real matrix");
+                              throw std::runtime_error("fem_ass_matrix: mesh.perfectly_matched_layers."s + oElemType.name + " must be a real matrix");
                          }
 
                          if (ov_fel.rows() != 3 || ov_fel.columns() != elem_nodes.columns() || ov_fel.numel() != 3 * elem_nodes.numel()) {
-                              throw std::runtime_error("invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + " in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + " in argument mesh");
                          }
 
                          oElemData.oPML.rgElem[oElemType.type].f = ov_fel.complex_array_value();
@@ -14368,17 +14374,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_e1 = ov_PMLelem.seek("e1");
 
                          if (iter_e1 == ov_PMLelem.end()) {
-                              throw std::runtime_error("missing field mesh.perfectly_matched_layers."s + oElemType.name + ".e1");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.perfectly_matched_layers."s + oElemType.name + ".e1");
                          }
 
                          const octave_value ov_e1 = ov_PMLelem.contents(iter_e1);
 
                          if (!(ov_e1.isreal() && ov_e1.is_matrix_type())) {
-                              throw std::runtime_error("mesh.perfectly_matched_layers."s + oElemType.name + ".e1 must be a real matrix");
+                              throw std::runtime_error("fem_ass_matrix: mesh.perfectly_matched_layers."s + oElemType.name + ".e1 must be a real matrix");
                          }
 
                          if (ov_e1.rows() != 3 || ov_e1.columns() != elem_nodes.columns() || ov_e1.numel() != 3 * elem_nodes.numel()) {
-                              throw std::runtime_error("invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + ".e1 in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + ".e1 in argument mesh");
                          }
 
                          oElemData.oPML.rgElem[oElemType.type].e1 = ov_e1.array_value();
@@ -14386,17 +14392,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_e2 = ov_PMLelem.seek("e2");
 
                          if (iter_e2 == ov_PMLelem.end()) {
-                              throw std::runtime_error("missing field mesh.perfectly_matched_layers."s + oElemType.name + ".e2");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.perfectly_matched_layers."s + oElemType.name + ".e2");
                          }
 
                          const octave_value ov_e2 = ov_PMLelem.contents(iter_e2);
 
                          if (!(ov_e2.isreal() && ov_e2.is_matrix_type())) {
-                              throw std::runtime_error("mesh.perfectly_matched_layers."s + oElemType.name + ".e2 must be a real matrix");
+                              throw std::runtime_error("fem_ass_matrix: mesh.perfectly_matched_layers."s + oElemType.name + ".e2 must be a real matrix");
                          }
 
                          if (ov_e2.rows() != 3 || ov_e2.columns() != elem_nodes.columns() || ov_e2.numel() != 3 * elem_nodes.numel()) {
-                              throw std::runtime_error("invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + ".e2 in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid size for matrix mesh.perfectly_matched_layers."s + oElemType.name + ".e2 in argument mesh");
                          }
 
                          oElemData.oPML.rgElem[oElemType.type].e2 = ov_e2.array_value();
@@ -14424,7 +14430,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
 
                     default:
-                         throw std::logic_error("invalid element type");
+                         throw std::logic_error("fem_ass_matrix: invalid element type");
                     }
                } break;
                case ElementTypes::ELEM_BEAM2:
@@ -14443,14 +14449,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                     if (error_state) {
-                         throw std::runtime_error("mesh.elements."s + oElemType.name + " must be an struct array in argument mesh");
+                         throw std::runtime_error("fem_ass_matrix: mesh.elements."s + oElemType.name + " must be an struct array in argument mesh");
                     }
 #endif
 
                     const auto iter_nodes = s_elem.seek("nodes");
 
                     if (iter_nodes == s_elem.end()) {
-                         throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".nodes in argument mesh");
+                         throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".nodes in argument mesh");
                     }
 
                     const Cell ov_nodes(s_elem.contents(iter_nodes));
@@ -14464,25 +14470,25 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_mat = materials.seek("beam2");
 
                          if (iter_mat == materials.end()) {
-                              throw std::runtime_error("missing field mesh.materials.beam2 in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.materials.beam2 in argument mesh");
                          }
 
                          const octave_value ov_elem_mat = materials.contents(iter_mat);
 
                          if (!(ov_elem_mat.columns() == 1 && ov_elem_mat.isinteger())) {
-                              throw std::runtime_error("mesh.materials.beam2 must be an integer column vector");
+                              throw std::runtime_error("fem_ass_matrix: mesh.materials.beam2 must be an integer column vector");
                          }
 
                          elem_mat = ov_elem_mat.int32_array_value();
 
                          if (elem_mat.numel() != s_elem.numel()) {
-                              throw std::runtime_error("numel(mesh.materials.beam2) does not match numel(mesh.elements.beam2)");
+                              throw std::runtime_error("fem_ass_matrix: numel(mesh.materials.beam2) does not match numel(mesh.elements.beam2)");
                          }
 
                          const auto iter_sect = s_elem.seek("section");
 
                          if (iter_sect == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements.beam2.section in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section in argument mesh");
                          }
 
                          ov_section = s_elem.contents(iter_sect);
@@ -14492,7 +14498,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_e2 = s_elem.seek("e2");
 
                          if (iter_e2 == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements.beam2.e2 in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.e2 in argument mesh");
                          }
 
                          ov_e2 = s_elem.contents(iter_e2);
@@ -14506,7 +14512,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_m = s_elem.seek("m");
 
                          if (iter_m == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".m in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".m in argument mesh");
                          }
 
                          cell_m = s_elem.contents(iter_m);
@@ -14514,7 +14520,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_J = s_elem.seek("J");
 
                          if (iter_J == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".J in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".J in argument mesh");
                          }
 
                          cell_J = s_elem.contents(iter_J);
@@ -14522,7 +14528,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_lcg = s_elem.seek("lcg");
 
                          if (iter_lcg == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".lcg in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".lcg in argument mesh");
                          }
 
                          cell_lcg = s_elem.contents(iter_lcg);
@@ -14536,7 +14542,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          const auto iter_C = s_elem.seek("C");
 
                          if (iter_C == s_elem.end()) {
-                              throw std::runtime_error("missing field mesh.elements."s + oElemType.name + ".C in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".C in argument mesh");
                          }
 
                          ov_C = s_elem.contents(iter_C);
@@ -14588,27 +14594,27 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
-                              throw std::runtime_error("mesh.elements"s + oElemType.name + ".nodes must be an array of integers in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: mesh.elements"s + oElemType.name + ".nodes must be an array of integers in argument mesh");
                          }
 #endif
 
                          if (elem_nodes.columns() < oElemType.min_nodes) {
-                              throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
                          }
 
                          if (oElemType.max_nodes > 0 && elem_nodes.columns() > oElemType.max_nodes) {
-                              throw std::runtime_error("invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid number of nodes for element type "s + oElemType.name + " in argument mesh");
                          }
 
                          if (elem_nodes.rows() != 1) {
-                              throw std::runtime_error("invalid number of rows in node matrix for element type "s + oElemType.name + " in argument mesh");
+                              throw std::runtime_error("fem_ass_matrix: invalid number of rows in node matrix for element type "s + oElemType.name + " in argument mesh");
                          }
 
                          for (octave_idx_type j = 0; j < elem_nodes.columns(); ++j) {
                               octave_idx_type inode = elem_nodes.xelem(j);
 
                               if (inode < 1 || inode > nodes.rows()) {
-                                   throw std::runtime_error("invalid node index for element type "s + oElemType.name + " in argument mesh");
+                                   throw std::runtime_error("fem_ass_matrix: invalid node index for element type "s + oElemType.name + " in argument mesh");
                               }
                          }
 
@@ -14626,12 +14632,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.materials.beam2 must be an integer array");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.materials.beam2 must be an integer array");
                               }
 #endif
 
                               if (imaterial < 0 || static_cast<size_t>(imaterial) >= rgMaterials.size()) {
-                                   throw std::runtime_error("mesh.materials.beam2 out of range");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.materials.beam2 out of range");
                               }
 
                               const Material* const material = &rgMaterials[imaterial];
@@ -14640,44 +14646,44 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section must be a scalar struct");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section must be a scalar struct");
                               }
 #endif
 
                               auto iterA = m_section.seek("A");
 
                               if (iterA == m_section.end()) {
-                                   throw std::runtime_error("missing field mesh.elements.beam2.section.A");
+                                   throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section.A");
                               }
 
                               auto iterAy = m_section.seek("Ay");
 
                               if (iterAy == m_section.end()) {
-                                   throw std::runtime_error("missing field mesh.elements.beam2.section.Ay");
+                                   throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section.Ay");
                               }
 
                               auto iterAz = m_section.seek("Az");
 
                               if (iterAz == m_section.end()) {
-                                   throw std::runtime_error("missing field mesh.elements.beam2.section.Az");
+                                   throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section.Az");
                               }
 
                               auto iterIt = m_section.seek("It");
 
                               if (iterIt == m_section.end()) {
-                                   throw std::runtime_error("missing field mesh.elements.beam2.section.It");
+                                   throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section.It");
                               }
 
                               auto iterIy = m_section.seek("Iy");
 
                               if (iterIy == m_section.end()) {
-                                   throw std::runtime_error("missing field mesh.elements.beam2.section.Iy");
+                                   throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section.Iy");
                               }
 
                               auto iterIz = m_section.seek("Iz");
 
                               if (iterIz == m_section.end()) {
-                                   throw std::runtime_error("missing field mesh.elements.beam2.section.Iz");
+                                   throw std::runtime_error("fem_ass_matrix: missing field mesh.elements.beam2.section.Iz");
                               }
 
                               BeamCrossSection section;
@@ -14686,7 +14692,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section.A must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section.A must be a real scalar");
                               }
 #endif
 
@@ -14694,7 +14700,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section.Ay must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section.Ay must be a real scalar");
                               }
 #endif
 
@@ -14702,7 +14708,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section.Az must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section.Az must be a real scalar");
                               }
 #endif
 
@@ -14710,7 +14716,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section.It must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section.It must be a real scalar");
                               }
 #endif
 
@@ -14718,7 +14724,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section.Iy must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section.Iy must be a real scalar");
                               }
 #endif
 
@@ -14726,7 +14732,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.section.Iz must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.section.Iz must be a real scalar");
                               }
 #endif
 
@@ -14734,12 +14740,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements.beam2.e2 must be a column vector");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.e2 must be a column vector");
                               }
 #endif
 
                               if (e2.rows() != 3) {
-                                   throw std::runtime_error("mesh.elements.beam2.e2 must be 3x1 matrix");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.beam2.e2 must be 3x1 matrix");
                               }
 
                               pElem->Insert<ElemBeam2>(i + 1, X, material, elem_nodes, section, e2, oElemData.oGravity.g);
@@ -14748,7 +14754,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               const octave_value ov_m = cell_m.xelem(i);
 
                               if (!ov_m.is_real_scalar()) {
-                                   throw std::runtime_error("mesh.elements.body.m must be a real scalar");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.body.m must be a real scalar");
                               }
 
                               const double m = ov_m.scalar_value();
@@ -14756,19 +14762,19 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               const octave_value ov_J = cell_J.xelem(i);
 
                               if (!(ov_J.is_matrix_type() && ov_J.isreal() && ov_J.rows() == 3 && ov_J.columns() == 3)) {
-                                   throw std::runtime_error("mesh.elements.body.J must be a symmetric 3x3 matrix");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.body.J must be a symmetric 3x3 matrix");
                               }
 
                               const Matrix J = ov_J.matrix_value();
 
                               if (!J.issymmetric()) {
-                                   throw std::runtime_error("mesh.elements.body.J must be a symmetric 3x3 matrix");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.body.J must be a symmetric 3x3 matrix");
                               }
 
                               const octave_value ov_lcg = cell_lcg.xelem(i);
 
                               if (!(ov_lcg.is_matrix_type() && ov_lcg.isreal() && ov_lcg.rows() == 3 && ov_lcg.columns() == 1)) {
-                                   throw std::runtime_error("mesh.elements.body.lcg must be a real 3x1 vector");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements.body.lcg must be a real 3x1 vector");
                               }
 
                               const ColumnVector lcg = ov_lcg.column_vector_value();
@@ -14783,7 +14789,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                                    if (error_state) {
-                                        throw std::runtime_error("mesh.elements.rbe3.weight must be a row vector in argument mesh");
+                                        throw std::runtime_error("fem_ass_matrix: mesh.elements.rbe3.weight must be a row vector in argument mesh");
                                    }
 #endif
                               } else {
@@ -14791,7 +14797,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               }
 
                               if (weight.numel() != elem_nodes.numel() - 1) {
-                                   throw std::runtime_error("numel(mesh.elements.rbe3.weight) does not match numel(mesh.elements.rbe3.nodes) - 1 in argument mesh");
+                                   throw std::runtime_error("fem_ass_matrix: numel(mesh.elements.rbe3.weight) does not match numel(mesh.elements.rbe3.nodes) - 1 in argument mesh");
                               }
 
                               pElem->Insert<ElemRBE3>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, weight);
@@ -14803,7 +14809,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements."s + oElemType.name + ".C must be a real matrix in argument mesh");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements."s + oElemType.name + ".C must be a real matrix in argument mesh");
                               }
 #endif
 
@@ -14811,14 +14817,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
-                                   throw std::runtime_error("mesh.elements."s + oElemType.name + ".scale must be a real scalar in argument mesh");
+                                   throw std::runtime_error("fem_ass_matrix: mesh.elements."s + oElemType.name + ".scale must be a real scalar in argument mesh");
                               }
 #endif
 
                               const octave_idx_type iNumDofNodeMax = ElemJoint::iGetNumDofNodeMax(oElemType.type);
 
                               if (C.rows() < 1 || C.rows() > edof[oElemType.dof_type].columns() || C.columns() != iNumDofNodeMax * elem_nodes.columns() || C.rows() > C.columns()) {
-                                   throw std::runtime_error("invalid size for field elements."s + oElemType.name + ".C");
+                                   throw std::runtime_error("fem_ass_matrix: invalid size for field elements."s + oElemType.name + ".C");
                               }
 
                               Matrix U(C.rows(), load_case.numel(), 0.); // By default displacement is set to zero
@@ -14837,7 +14843,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
 #if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
-                                             throw std::runtime_error("load_case."s + oElemType.name + " must be an struct array in argument load_case");
+                                             throw std::runtime_error("fem_ass_matrix: load_case."s + oElemType.name + " must be an struct array in argument load_case");
                                         }
 #endif
 
@@ -14867,25 +14873,25 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                         const auto iter_U = s_joints.seek(var_name[idx]);
 
                                         if (iter_U == s_elem.end()) {
-                                             throw std::runtime_error("missing field load_case."s + oElemType.name + ".U in argument load case");
+                                             throw std::runtime_error("fem_ass_matrix: missing field load_case."s + oElemType.name + ".U in argument load case");
                                         }
 
                                         const Cell ov_U(s_joints.contents(iter_U));
 
                                         if (ov_U.numel() != s_elem.numel()) {
-                                             throw std::runtime_error("load_case."s + oElemType.name + " must have the same size like mesh.elements." + oElemType.name + " in argument load case");
+                                             throw std::runtime_error("fem_ass_matrix: load_case."s + oElemType.name + " must have the same size like mesh.elements." + oElemType.name + " in argument load case");
                                         }
 
                                         const ColumnVector Uk(ov_U(i).column_vector_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
-                                             throw std::runtime_error("load_case."s + oElemType.name + ".U must be a real column vector");
+                                             throw std::runtime_error("fem_ass_matrix: load_case."s + oElemType.name + ".U must be a real column vector");
                                         }
 #endif
 
                                         if (Uk.rows() != C.rows()) {
-                                             throw std::runtime_error("load_case."s + oElemType.name + ".U must be a real column vector of the same number of rows like mesh.elements." + oElemType.name + ".C in argument load_case");
+                                             throw std::runtime_error("fem_ass_matrix: load_case."s + oElemType.name + ".U must be a real column vector of the same number of rows like mesh.elements." + oElemType.name + ".C in argument load_case");
                                         }
 
                                         for (octave_idx_type l = 0; l < C.rows(); ++l) {
@@ -14902,7 +14908,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
 
                     if (oElemType.dof_type != DofMap::ELEM_NODOF && dofelemid[oElemType.dof_type] > edof[oElemType.dof_type].rows()) {
-                         throw std::runtime_error("dof_map.edof is not consistent with elements in argument dof_map");
+                         throw std::runtime_error("fem_ass_matrix: dof_map.edof is not consistent with elements in argument dof_map");
                     }
 
                     rgElemBlocks.emplace_back(std::move(pElem));
@@ -14969,24 +14975,24 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                         const Matrix loads = cell_loads(i).matrix_value();
 #if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
-                                             throw std::runtime_error("field load_case.loads must be a real matrix in argument load_case");
+                                             throw std::runtime_error("fem_ass_matrix: field load_case.loads must be a real matrix in argument load_case");
                                         }
 #endif
 
                                         if (loads.columns() != 3 && loads.columns() != 6) {
-                                             throw std::runtime_error("load_case.loads must be a n x 3 or n x 6 matrix in argument load_case");
+                                             throw std::runtime_error("fem_ass_matrix: load_case.loads must be a n x 3 or n x 6 matrix in argument load_case");
                                         }
 
                                         const int32NDArray loaded_nodes = cell_loaded_nodes(i).int32_array_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                                         if (error_state) {
-                                             throw std::runtime_error("field load_case.loaded_nodes must be an integer matrix in argument load_case");
+                                             throw std::runtime_error("fem_ass_matrix: field load_case.loaded_nodes must be an integer matrix in argument load_case");
                                         }
 #endif
 
                                         if (loaded_nodes.columns() != 1 || loaded_nodes.rows() != loads.rows()) {
-                                             throw std::runtime_error("load_case.loaded_nodes must be a column vector with the same number of rows like load_case.loads");
+                                             throw std::runtime_error("fem_ass_matrix: load_case.loaded_nodes must be a column vector with the same number of rows like load_case.loads");
                                         }
 
                                         Matrix X(3, loaded_nodes.rows());
@@ -14996,7 +15002,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                                   octave_idx_type inode = loaded_nodes(l).value() - 1;
 
                                                   if (inode < 0 || inode >= nodes.rows()) {
-                                                       throw std::runtime_error("node index out of range in load_case.pressure.elements in argument load_case");
+                                                       throw std::runtime_error("fem_ass_matrix: node index out of range in load_case.pressure.elements in argument load_case");
                                                   }
 
                                                   X.xelem(m, l) = nodes.xelem(inode, m);
@@ -15081,7 +15087,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                if (rgElemUse[j] &&
                    eDofType != DofMap::ELEM_NODOF &&
                    dofelemid[eDofType] != edof[eDofType].rows()) {
-                    throw std::runtime_error("dof_map.edof is not consistent with mesh.elements in argument dof_map");
+                    throw std::runtime_error("fem_ass_matrix: dof_map.edof is not consistent with mesh.elements in argument dof_map");
                }
           }
 
@@ -15212,7 +15218,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     if (bNeedSolution) {
                          if (nargin <= 4) {
-                              throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
+                              throw std::runtime_error("fem_ass_matrix: argument sol is not optional for selected matrix type in argument matrix_type");
                          }
                     }
 
@@ -15242,7 +15248,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
                     default:
                          FEM_ASSERT(0);
-                         throw std::logic_error("unexpected matrix type");
+                         throw std::logic_error("fem_ass_matrix: unexpected matrix type");
                     }
 
                     oSolution.SetField(eFieldType, ElementTypes::ELEM_TYPE_UNKNOWN, NDArray(mat_dim, 0.));
@@ -15315,7 +15321,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_STRAIN_TOTAL:
                case Element::SCA_STRESS_VMIS: {
                     if (nargin <= 4) {
-                         throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
+                         throw std::runtime_error("fem_ass_matrix: argument sol is not optional for selected matrix type in argument matrix_type");
                     }
 
                     constexpr octave_idx_type iNumStress = 6;
@@ -15358,7 +15364,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                    break;
                               default:
                                    FEM_ASSERT(0);
-                                   throw std::logic_error("unexpected matrix type");
+                                   throw std::logic_error("fem_ass_matrix: unexpected matrix type");
                               }
 
                               oSolution.SetField(eFieldType, oElemType.type, NDArray(dim_vector(elem_nodes.rows(), elem_nodes.columns(), iNumStress, iNumLoads), 0.));
@@ -15467,7 +15473,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::SCA_ACOUSTIC_INTENSITY_C:
                {
                     if (nargin <= 4) {
-                         throw std::runtime_error("argument sol is not optional for selected matrix type in argument matrix_type");
+                         throw std::runtime_error("fem_ass_matrix: argument sol is not optional for selected matrix type in argument matrix_type");
                     }
 
                     switch (eMatType) {
@@ -15487,7 +15493,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution, oParaOpt));
                     break;
                default:
-                    throw std::runtime_error("invalid value for argument matrix_type");
+                    throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
                }
           }
 
