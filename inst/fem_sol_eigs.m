@@ -60,7 +60,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
   opts.maxit = 50000;
   opts.isreal = true;
 
-  if (nargin < 4)
+  if (nargin < 4 || rho == 0)
     rho = 0;
     Ksh = K;
   else
