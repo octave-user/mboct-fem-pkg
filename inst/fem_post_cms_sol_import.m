@@ -146,7 +146,7 @@ endfunction
 %! param.n = 1; ## number of revolutions
 
 %! cms_opt.algorithm = "shift-invert";
-%! cms_opt.refine_max_iter = int32(3);
+%! cms_opt.refine_max_iter = int32(10);
 %! cms_opt.element.name = "elem_id_disk";
 %! cms_opt.nodes.modal.name = "node_id_inner_diameter";
 %! cms_opt.nodes.interfaces(1).name = "node_id_outer_diameter";

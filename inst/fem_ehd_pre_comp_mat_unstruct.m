@@ -54,7 +54,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
   endif
 
   if (~isfield(cms_opt, "refine_max_iter"))
-    cms_opt.refine_max_iter = int32(3);
+    cms_opt.refine_max_iter = int32(10);
   endif
 
   if (~isfield(cms_opt, "number_of_threads"))

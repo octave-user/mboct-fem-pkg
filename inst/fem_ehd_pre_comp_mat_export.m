@@ -56,7 +56,7 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
   endswitch
 
   if (~isfield(options, "modal_threshold"))
-    options.modal_threshold = sqrt(eps);
+    options.modal_threshold = 1e-12;
   endif
   
   owns_fd = false;

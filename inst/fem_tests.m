@@ -212,6 +212,7 @@
 %!    mat_ass.dm, ...
 %!    mat_ass.S, ...
 %!    mat_ass.J, ...
+%!    mat_ass.colloc, ...
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
@@ -221,7 +222,9 @@
 %!                                         FEM_VEC_LOAD_CONSISTENT, ...
 %!                                         FEM_SCA_TOT_MASS, ...
 %!                                         FEM_VEC_INERTIA_M1, ...
-%!                                         FEM_MAT_INERTIA_J], ...
+%!                                         FEM_MAT_INERTIA_J, ...
+%!                                         FEM_VEC_COLL_MASS, ...
+%!                                         FEM_VEC_COLL_STIFFNESS], ...
 %!                                        load_case);
 %!   mat_ass.D = diag(zeros(columns(mat_ass.M), 1));
 %!   assert(mat_ass.dm, mesh.material_data.rho * a * b * c, sqrt(eps) * mesh.material_data.rho * a * b * c);
@@ -3049,6 +3052,8 @@
 %! Iz = w^3 * h / 12;
 %! B = E * [Iz];
 %! mu = rho * A;
+%! alpha = 1e-10;
+%! beta = 1e-8;
 %! omega1 = sqrt(B / (mu * L^4)); ## valid only for lean beams
 %! omega_ref = omega1.' * [3.516, 22.035, 61.697];
 %! omega_ref = sort(omega_ref(:));
@@ -3060,6 +3065,8 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
+%! mesh.material_data.alpha = alpha;
+%! mesh.material_data.beta = beta;
 %! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.section.A = A;
@@ -3078,13 +3085,21 @@
 %! load_case.locked_dof(:, [1,3,4,5]) = true;
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
-%!  mat_ass.M] = fem_ass_matrix(mesh, ...
-%!                              dof_map, ...
-%!                              [FEM_MAT_STIFFNESS, ...
-%!                               FEM_MAT_MASS], ...
-%!                              load_case);
+%!  mat_ass.M, ...
+%!  mat_ass.D, ...
+%!  mat_ass.dm] = fem_ass_matrix(mesh, ...
+%!                               dof_map, ...
+%!                               [FEM_MAT_STIFFNESS, ...
+%!                                FEM_MAT_MASS, ...
+%!                                FEM_MAT_DAMPING, ...
+%!                                FEM_SCA_TOT_MASS], ...
+%!                               load_case);
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, 3);
-%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 0.1e-2);
+%! tolf = 0.1e-2;
+%! tolm = 5 * eps;
+%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < tolf);
+%! assert(mat_ass.dm, rho * A * L, tolm * rho * A * L);
+%! assert(mat_ass.D, mat_ass.M * alpha + mat_ass.K * beta, tolm);
 %! endfor
 
 %!test
@@ -4377,12 +4392,14 @@
 %! load_case.locked_dof = false(size(mesh.nodes));
 %! load_case.g = [5; 4; -3];
 %! dof_map = fem_ass_dof_map(mesh, load_case);
-%! [M, MU, ML, R] = fem_ass_matrix(mesh, ...
-%!                                 dof_map, [FEM_MAT_MASS, ...
-%!                                           FEM_MAT_MASS_SYM, ...
-%!                                           FEM_MAT_MASS_SYM_L, ...
-%!                                           FEM_VEC_LOAD_CONSISTENT], ...
-%!                                 load_case);
+%! [M, MU, ML, R, dm] = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     [FEM_MAT_MASS, ...
+%!                                      FEM_MAT_MASS_SYM, ...
+%!                                      FEM_MAT_MASS_SYM_L, ...
+%!                                      FEM_VEC_LOAD_CONSISTENT, ...
+%!                                      FEM_SCA_TOT_MASS], ...
+%!                                     load_case);
 %! Mref = [      m * eye(3), -m * skew(lcg);
 %!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
 %! tol = eps;
@@ -4393,6 +4410,7 @@
 %! assert(full(MU + ML - diag(diag(ML))), Mref, tol * norm(Mref));
 %! assert(full(MU + ML - diag(diag(MU))), Mref, tol * norm(Mref));
 %! assert(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
+%! assert(dm, m, tol * m);
 
 %!test
 %! ## TEST 53
@@ -4469,12 +4487,14 @@
 %! dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %! [mat_ass.M, ...
 %!  mat_ass.K, ...
-%!  mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                              dof_map, ...
-%!                              [FEM_MAT_MASS, ...
-%!                               FEM_MAT_STIFFNESS, ...
-%!                               FEM_VEC_LOAD_CONSISTENT], ...
-%!                              load_case);
+%!  mat_ass.R, ...
+%!  mat_ass.dm] = fem_ass_matrix(mesh, ...
+%!                               dof_map, ...
+%!                               [FEM_MAT_MASS, ...
+%!                                FEM_MAT_STIFFNESS, ...
+%!                                FEM_VEC_LOAD_CONSISTENT, ...
+%!                                FEM_SCA_TOT_MASS], ...
+%!                               load_case);
 %! [sol] = fem_sol_static(mesh, dof_map, mat_ass);
 %! Ia = d1^4 * pi / 64;
 %! Ib = d2^4 * pi / 64;
@@ -4496,8 +4516,10 @@
 %! lambda = eig(mat_ass.K, mat_ass.M);
 %! lambdaref = sort(lambdaref);
 %! lambda = sort(lambda)(1:4);
-%! tol = 1e-5;
-%! assert(lambda, lambdaref, tol * max(lambdaref));
+%! tolf = 1e-5;
+%! tolm = eps;
+%! assert(lambda, lambdaref, tolf * max(lambdaref));
+%! assert(mat_ass.dm, m1 + m2, tolm * (m1 + m2));
 
 %!test
 %! ## TEST 54
@@ -4665,6 +4687,125 @@
 %! for i=1:2
 %!   assert(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
 %! endfor
+
+%!test ## test 57
+%! assert(isinteger(FEM_MAT_DAMPING));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_SYM));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_SYM_L));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV3));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV4));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV5));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV8));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV9));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_J));
+%!test
+%! assert(isinteger(FEM_MAT_MASS));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_LUMPED));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_SYM));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_SYM_L));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_SYM));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_SYM_L));
+%!test
+%! assert(isinteger(FEM_SCA_STRESS_VMIS));
+%!test
+%! assert(isinteger(FEM_SCA_TOT_MASS));
+%!test
+%! assert(isinteger(FEM_VEC_INERTIA_M1));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_CONSISTENT));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_LUMPED));
+%!test
+%! assert(isinteger(FEM_VEC_STRESS_CAUCH));
+%!test
+%! assert(isinteger(FEM_VEC_STRAIN_TOTAL));
+%!test
+%! assert(isinteger(FEM_CT_FIXED));
+%!test
+%! assert(isinteger(FEM_CT_SLIDING));
+%!test
+%! assert(isinteger(FEM_MAT_THERMAL_COND));
+%!test
+%! assert(isinteger(FEM_MAT_HEAT_CAPACITY));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_THERMAL));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_IM));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_ACOUSTICS_IM));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_ACOUSTICS_IM));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_VEC_PARTICLE_VELOCITY));
+%!test
+%! assert(isinteger(FEM_SCA_ACOUSTIC_INTENSITY));
+%!test
+%! assert(isinteger(FEM_VEC_PARTICLE_VELOCITY_C));
+%!test
+%! assert(isinteger(FEM_SCA_ACOUSTIC_INTENSITY_C));
+%!test
+%! assert(isinteger(FEM_VEC_SURFACE_NORMAL_VECTOR));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_IM));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_FLUID_STRUCT_IM));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_IM));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_FLUID_STRUCT));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_MASS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_STIFFNESS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_HEAT_CAPACITY));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_THERMAL_COND));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_MASS_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_STIFF_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_MASS_FLUID_STRUCT));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_STIFF_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_DO_STRUCTURAL));
+%!test
+%! assert(isinteger(FEM_DO_THERMAL));
+%!test
+%! assert(isinteger(FEM_DO_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_DO_FLUID_STRUCT));
 
 %!demo
 %! ## DEMO 1

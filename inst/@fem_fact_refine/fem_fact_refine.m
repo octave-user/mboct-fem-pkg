@@ -33,7 +33,7 @@ function fact = fem_fact_refine(A, opts)
   endif
 
   if (opts.epsilon_refinement <= 0)
-    opts.epsilon_refinement = eps^0.7;
+    opts.epsilon_refinement = eps^0.6;
   endif
 
   if (~isfield(opts, "symmetric"))
