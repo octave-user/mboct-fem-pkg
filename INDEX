@@ -100,9 +100,9 @@ Assembly of global matrices
         FEM_VEC_COLL_HEAT_CAPACITY
         FEM_VEC_COLL_THERMAL_COND
         FEM_VEC_COLL_MASS_ACOUSTICS
-        FEM_VEC_COLL_STIFF_ACOUSTICS_RE
+        FEM_VEC_COLL_STIFF_ACOUSTICS
         FEM_VEC_COLL_MASS_FLUID_STRUCT
-        FEM_VEC_COLL_STIFF_FLUID_STRUCT_RE
+        FEM_VEC_COLL_STIFF_FLUID_STRUCT
         fem_ass_dof_map
         fem_ass_matrix
 
