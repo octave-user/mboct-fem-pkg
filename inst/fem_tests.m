@@ -4793,11 +4793,11 @@
 %!test
 %! assert(isinteger(FEM_VEC_COLL_MASS_ACOUSTICS));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_STIFF_ACOUSTICS_RE));
+%! assert(isinteger(FEM_VEC_COLL_STIFF_ACOUSTICS));
 %!test
 %! assert(isinteger(FEM_VEC_COLL_MASS_FLUID_STRUCT));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_STIFF_FLUID_STRUCT_RE));
+%! assert(isinteger(FEM_VEC_COLL_STIFF_FLUID_STRUCT));
 %!test
 %! assert(isinteger(FEM_DO_STRUCTURAL));
 %!test
