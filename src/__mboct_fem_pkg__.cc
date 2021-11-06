@@ -8081,7 +8081,7 @@ protected:
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
           FEM_ASSERT(rv.numel() == 3);
           FEM_ASSERT(H.rows() == 3);
-          FEM_ASSERT(H.columns() == 30);
+          FEM_ASSERT(H.columns() == 60);
 
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
@@ -8656,7 +8656,7 @@ protected:
 
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
           FEM_ASSERT(rv.numel() == 3);
-          FEM_ASSERT(Hs.columns() == 10);
+          FEM_ASSERT(Hs.columns() == 20);
           FEM_ASSERT(irow >= 0);
           FEM_ASSERT(irow < Hs.rows());
 
@@ -8689,7 +8689,7 @@ protected:
 
      virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
           FEM_ASSERT(Bt.rows() == 3);
-          FEM_ASSERT(Bt.columns() == 10);
+          FEM_ASSERT(Bt.columns() == 20);
           FEM_ASSERT(J.rows() == 3);
           FEM_ASSERT(J.columns() == 3);
           FEM_ASSERT(invJ.rows() == 3);
