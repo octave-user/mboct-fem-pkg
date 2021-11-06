@@ -146,9 +146,9 @@ inline void atomic_fetch_add_float(volatile std::complex<T>& x, const std::compl
      static_assert(sizeof(std::complex<T>) == N * sizeof(T));
 
      // FIXME: x.real() and x.imag() do not return L-values
-     volatile T* const px = reinterpret_cast<volatile double*>(&x); 
+     volatile T* const px = reinterpret_cast<volatile double*>(&x);
      volatile T* const pdx = reinterpret_cast<const double*>(&dx);
-     
+
      for (octave_idx_type i = 0; i < N; ++i) {
           atomic_fetch_add_float(px[i], pdx[i]);
      }
@@ -7290,7 +7290,7 @@ private:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
           case VEC_LOAD_ACOUSTICS:
-          case VEC_LOAD_FLUID_STRUCT:               
+          case VEC_LOAD_FLUID_STRUCT:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
@@ -8028,56 +8028,81 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
-          constexpr double a = (1 + sqrt(5./14.)) / 4.;
-          constexpr double b = (1 - sqrt(5./14.)) / 4.;
-          constexpr double c = 1. / 4.;
-          constexpr double d = 1. / 14.;
-          constexpr double e = 11. / 14.;
-          constexpr double w1 = -74. / 5625;
-          constexpr double w2 = 343. / 45000.;
-          constexpr double w3 = 56. / 2250.;
-          
-          constexpr octave_idx_type N = 11;
-          static constexpr double ri[N] = { c,  e,  d,  d,  d,  a,  a,  a,  b,  b,  b};
-          static constexpr double si[N] = { c,  d,  e,  d,  d,  a,  b,  b,  a,  a,  b};
-          static constexpr double ti[N] = { c,  d,  d,  e,  d,  b,  a,  b,  a,  b,  a};
-          static constexpr double wi[N] = {w1, w2, w2, w2, w2, w3, w3, w3, w3, w3, w3};
+          switch (eMatType) {
+          case MAT_STIFFNESS: {
+               constexpr double a = (1 + sqrt(5./14.)) / 4.;
+               constexpr double b = (1 - sqrt(5./14.)) / 4.;
+               constexpr double c = 1. / 4.;
+               constexpr double d = 1. / 14.;
+               constexpr double e = 11. / 14.;
+               constexpr double w1 = -74. / 5625;
+               constexpr double w2 = 343. / 45000.;
+               constexpr double w3 = 56. / 2250.;
 
-          if (!oIntegStiff.iGetNumEvalPoints()) {
-               oIntegStiff.SetNumEvalPoints(N, 3);
+               constexpr octave_idx_type N = 11;
+               static constexpr double ri[N] = { c,  e,  d,  d,  d,  a,  a,  a,  b,  b,  b};
+               static constexpr double si[N] = { c,  d,  e,  d,  d,  a,  b,  b,  a,  a,  b};
+               static constexpr double ti[N] = { c,  d,  d,  e,  d,  b,  a,  b,  a,  b,  a};
+               static constexpr double wi[N] = {w1, w2, w2, w2, w2, w3, w3, w3, w3, w3, w3};
 
-               for (octave_idx_type i = 0; i < N; ++i) {
-                    oIntegStiff.SetPosition(i, 0, ri[i]);
-                    oIntegStiff.SetPosition(i, 1, si[i]);
-                    oIntegStiff.SetPosition(i, 2, ti[i]);
-                    oIntegStiff.SetWeight(i, wi[i]);
+               if (!oIntegStiff.iGetNumEvalPoints()) {
+                    oIntegStiff.SetNumEvalPoints(N, 3);
+
+                    for (octave_idx_type i = 0; i < N; ++i) {
+                         oIntegStiff.SetPosition(i, 0, ri[i]);
+                         oIntegStiff.SetPosition(i, 1, si[i]);
+                         oIntegStiff.SetPosition(i, 2, ti[i]);
+                         oIntegStiff.SetWeight(i, wi[i]);
+                    }
                }
-          }          
-          // constexpr octave_idx_type N = 5;
-          // constexpr double alpha = 0.58541020;
-          // constexpr double beta = 0.13819660;
-          // constexpr double gamma = -2. / 15.;
-          // constexpr double delta = 3. / 40.;
-          // static constexpr double L1[N] = {1. / 4., 1. / 3., 1. / 6., 1. / 6., 1. / 3.};
-          // static constexpr double L2[N] = {1. / 4., 1. / 6., 1. / 3., 1. / 6., 1. / 6.};
-          // static constexpr double L3[N] = {1. / 4., 1. / 6., 1. / 6., 1. / 3., 1. / 6.};
-          // static constexpr double L4[N] = {1. / 4., 1. / 6., 1. / 6., 1. / 6., 1. / 3.};
-          // static constexpr double w[N]  = {  gamma,   delta,   delta,   delta,   delta};
+          } break;
+          case MAT_MASS: {
+               constexpr double a2 = 0.25;
+               constexpr double b2_1 = (7. + sqrt(15.)) / 34.;
+               constexpr double b2_2 = (7. - sqrt(15.)) / 34.;
+               constexpr double c2_1 = (13. - 3. * sqrt(15.)) / 34.;
+               constexpr double c2_2 = (13. + 3. * sqrt(15.)) / 34.;
+               constexpr double d2 = (5. - sqrt(15.)) / 20.;
+               constexpr double e2 = (5. + sqrt(15.)) / 20.;
+               constexpr double f2 = 8. / 405.;
+               constexpr double g2 = (2665. - 14. * sqrt(15.)) / 226800.;
+               constexpr double h2 = (2665. + 14. * sqrt(15.)) / 226800.;
+               constexpr double i2 = 5. / 567.;
+               constexpr octave_idx_type N2 = 15;
 
-          // if (!oIntegStiff.iGetNumEvalPoints()) {
-          //      oIntegStiff.SetNumEvalPoints(N, 3);
+               static constexpr double t2[N2] = {a2, b2_1, b2_1, b2_1, c2_1, b2_2, b2_2, b2_2, c2_2, d2, d2, e2, d2, e2, e2};
 
-          //      for (octave_idx_type i = 0; i < N; ++i) {
-          //           oIntegStiff.SetPosition(i, 0, L2[i]);
-          //           oIntegStiff.SetPosition(i, 1, L3[i]);
-          //           oIntegStiff.SetPosition(i, 2, L4[i]);
-          //           oIntegStiff.SetWeight(i, w[i]);
-          //      }
-          // }
+               static constexpr double r2[N2] = {a2, b2_1, b2_1, c2_1, b2_1, b2_2, b2_2, c2_2, b2_2, d2, e2, d2, e2, d2, e2};
+
+               static constexpr double s2[N2] = {a2, b2_1, c2_1, b2_1, b2_1, b2_2, c2_2, b2_2, b2_2, e2, d2, d2, e2, e2, d2};
+
+               static constexpr double w2[N2] = {f2, g2, g2, g2, g2, h2, h2, h2, h2, i2, i2, i2, i2, i2, i2};
+
+               if (!oIntegMass.iGetNumEvalPoints()) {
+                    oIntegMass.SetNumEvalPoints(N2, 3);
+
+                    for (octave_idx_type i = 0; i < N2; ++i) {
+                         oIntegMass.SetPosition(i, 0, r2[i]);
+                         oIntegMass.SetPosition(i, 1, s2[i]);
+                         oIntegMass.SetPosition(i, 2, t2[i]);
+                         oIntegMass.SetWeight(i, w2[i]);
+                    }
+               }               
+          } break;
+          default:
+               throw std::runtime_error("unkown matrix type");
+          }
      }
 
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
-          return oIntegStiff;
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+               return oIntegStiff;
+          case MAT_MASS:
+               return oIntegMass;
+          default:
+               throw std::runtime_error("unknown matrix type");
+          }
      }
 
 protected:
@@ -8810,10 +8835,11 @@ private:
           throw std::logic_error("not implemented yet");
      }
 
-     static IntegrationRule oIntegStiff;
+     static IntegrationRule oIntegStiff, oIntegMass;
 };
 
 IntegrationRule Tet20::oIntegStiff;
+IntegrationRule Tet20::oIntegMass;
 
 class ShapeTria6 {
 public:
@@ -11576,7 +11602,7 @@ template <typename ConvectionElemType>
 void InsertThermalConvElem(const ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const octave_map& load_case, const char* const pszElemName, const octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
      const octave_idx_type iNumNodes = nodes.rows();
      const octave_idx_type iNumLoads = load_case.numel();
-     
+
      const auto iter_convection = elements.seek("convection");
 
      if (iter_convection == elements.end()) {
@@ -11617,7 +11643,7 @@ void InsertThermalConvElem(const ElementTypes::TypeId eltype, const Matrix& node
           throw std::runtime_error("thermal convection: mesh.elements.convection."s + pszElemName + ".nodes must be an integer matrix");
      }
 
-     const int32NDArray elnodes = ov_elnodes.int32_array_value();     
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
 
      const auto iter_h = m_elem_type.seek("h");
@@ -11780,7 +11806,7 @@ void InsertHeatSourceElem(const ElementTypes::TypeId eltype, const Matrix& nodes
                const int32NDArray elnodes = ov_elnodes.int32_array_value();
 
                const octave_idx_type iNumElem = elnodes.rows();
-               
+
                if (i == 0) {
                     iNumElemTot += iNumElem;
                     continue;
@@ -12056,7 +12082,7 @@ void InsertAcousticImpedanceBC(const ElementTypes::TypeId eltype, const Matrix& 
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
-     
+
      NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
 
      for (octave_idx_type k = 0; k < iNumElem; ++k) {
@@ -12181,7 +12207,7 @@ void InsertAcousticBoundary(const ElementTypes::TypeId eltype, const Matrix& nod
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
-     
+
      NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
 
      for (octave_idx_type k = 0; k < iNumElem; ++k) {
@@ -12280,7 +12306,7 @@ void InsertFluidStructElem(const ElementTypes::TypeId eltype, const Matrix& node
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
-     
+
      NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
 
      for (octave_idx_type k = 0; k < iNumElem; ++k) {
@@ -12631,7 +12657,7 @@ private:
           }
 
           const octave_idx_type iNumNodes = X.rows();
-          
+
           Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
 
           switch (eElemType) {
@@ -12718,10 +12744,10 @@ private:
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
           FEM_ASSERT(dHf.rows() == 3);
-          
+
           const octave_idx_type iNumCoord = X.rows();
           const octave_idx_type iNumNodes = X.columns();
-          
+
           for (octave_idx_type i = 0; i < 3; ++i) {
                double ni = 0.;
 
@@ -13472,7 +13498,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 
                     const octave_idx_type iNumElem = elem_nodes.rows();
                     const octave_idx_type iNumNodesElem = elem_nodes.columns();
-                    
+
                     switch (eMatType) {
                     case Element::SCA_ACOUSTIC_INTENSITY:
                     case Element::SCA_ACOUSTIC_INTENSITY_C:
@@ -14582,7 +14608,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           }
 #endif
           const octave_idx_type iNumNodes = nodes.rows();
-          
+
           const auto it_elements = mesh.seek("elements");
 
           if (it_elements == mesh.end()) {
@@ -14643,7 +14669,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const octave_map load_case(nargin > 3 ? args(3).map_value() : octave_map());
 
           const octave_idx_type iNumLoads = load_case.numel();
-          
+
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("fem_ass_matrix: argument load case must be a struct array");
@@ -14764,11 +14790,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           for (const auto& edofk: edof) {
                const octave_idx_type edofkrows = edofk.rows();
                const octave_idx_type edofkcols = edofk.columns();
-               
+
                for (octave_idx_type j = 0; j < edofkcols; ++j) {
                     for (octave_idx_type i = 0; i < edofkrows; ++i) {
                          const octave_idx_type edofkij = edofk.xelem(i + edofkrows * j).value();
-                         
+
                          if (edofkij > inumdof) {
                               throw std::runtime_error("fem_ass_matrix: dof_map.edof dof index out of range in argument dof_map");
                          }
@@ -15025,7 +15051,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
-                         
+
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
@@ -15239,7 +15265,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case ElementTypes::ELEM_TET10H:
                          rgElemBlocks.emplace_back(new ElementBlock<Tet10h>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
                          break;
-                         
+
                     case ElementTypes::ELEM_TET10:
                          rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
                          break;
@@ -15247,7 +15273,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case ElementTypes::ELEM_TET20:
                          rgElemBlocks.emplace_back(new ElementBlock<Tet20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
                          break;
-                         
+
                     default:
                          throw std::logic_error("fem_ass_matrix: invalid element type");
                     }
@@ -15634,7 +15660,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const octave_idx_type iNumConstrEq = C.rows();
                               const octave_idx_type iNumDofConstr = C.columns();
-                              
+
                               const double dScale = ov_Scale.numel() ? ov_Scale.xelem(i).scalar_value() : 1.;
 
 #if OCTAVE_MAJOR_VERSION < 6
@@ -15825,7 +15851,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                              if (inode < 0 || inode >= nodes.rows()) {
                                                   throw std::runtime_error("fem_ass_matrix: node index out of range in load_case.pressure.elements in argument load_case");
                                              }
-                                             
+
                                              for (octave_idx_type m = 0; m < 3; ++m) {
                                                   X.xelem(m + 3 * l) = nodes.xelem(inode, m);
                                              }
@@ -16175,7 +16201,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const octave_idx_type iNumElem = elem_nodes.rows();
                               const octave_idx_type iNumNodesElem = elem_nodes.columns();
-                                                            
+
                               const Element::FemMatrixType eMatTypeStressStrain = eMatType == Element::SCA_STRESS_VMIS ? Element::VEC_STRESS_CAUCH : eMatType;
 
                               PostProcData::FieldTypeReal eFieldType;
