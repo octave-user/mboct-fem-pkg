@@ -8028,27 +8028,52 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
-          constexpr octave_idx_type N = 5;
-          constexpr double alpha = 0.58541020;
-          constexpr double beta = 0.13819660;
-          constexpr double gamma = -2. / 15.;
-          constexpr double delta = 3. / 40.;
-          static constexpr double L1[N] = {1. / 4., 1. / 3., 1. / 6., 1. / 6., 1. / 3.};
-          static constexpr double L2[N] = {1. / 4., 1. / 6., 1. / 3., 1. / 6., 1. / 6.};
-          static constexpr double L3[N] = {1. / 4., 1. / 6., 1. / 6., 1. / 3., 1. / 6.};
-          static constexpr double L4[N] = {1. / 4., 1. / 6., 1. / 6., 1. / 6., 1. / 3.};
-          static constexpr double w[N]  = {  gamma,   delta,   delta,   delta,   delta};
+          constexpr double a = (1 + sqrt(5./14.)) / 4.;
+          constexpr double b = (1 - sqrt(5./14.)) / 4.;
+          constexpr double c = 1. / 4.;
+          constexpr double d = 1. / 14.;
+          constexpr double e = 11. / 14.;
+          constexpr double w1 = -74. / 5625;
+          constexpr double w2 = 343. / 45000.;
+          constexpr double w3 = 56. / 2250.;
+          
+          constexpr octave_idx_type N = 11;
+          static constexpr double ri[N] = { c,  e,  d,  d,  d,  a,  a,  a,  b,  b,  b};
+          static constexpr double si[N] = { c,  d,  e,  d,  d,  a,  b,  b,  a,  a,  b};
+          static constexpr double ti[N] = { c,  d,  d,  e,  d,  b,  a,  b,  a,  b,  a};
+          static constexpr double wi[N] = {w1, w2, w2, w2, w2, w3, w3, w3, w3, w3, w3};
 
           if (!oIntegStiff.iGetNumEvalPoints()) {
                oIntegStiff.SetNumEvalPoints(N, 3);
 
                for (octave_idx_type i = 0; i < N; ++i) {
-                    oIntegStiff.SetPosition(i, 0, L2[i]);
-                    oIntegStiff.SetPosition(i, 1, L3[i]);
-                    oIntegStiff.SetPosition(i, 2, L4[i]);
-                    oIntegStiff.SetWeight(i, w[i]);
+                    oIntegStiff.SetPosition(i, 0, ri[i]);
+                    oIntegStiff.SetPosition(i, 1, si[i]);
+                    oIntegStiff.SetPosition(i, 2, ti[i]);
+                    oIntegStiff.SetWeight(i, wi[i]);
                }
-          }
+          }          
+          // constexpr octave_idx_type N = 5;
+          // constexpr double alpha = 0.58541020;
+          // constexpr double beta = 0.13819660;
+          // constexpr double gamma = -2. / 15.;
+          // constexpr double delta = 3. / 40.;
+          // static constexpr double L1[N] = {1. / 4., 1. / 3., 1. / 6., 1. / 6., 1. / 3.};
+          // static constexpr double L2[N] = {1. / 4., 1. / 6., 1. / 3., 1. / 6., 1. / 6.};
+          // static constexpr double L3[N] = {1. / 4., 1. / 6., 1. / 6., 1. / 3., 1. / 6.};
+          // static constexpr double L4[N] = {1. / 4., 1. / 6., 1. / 6., 1. / 6., 1. / 3.};
+          // static constexpr double w[N]  = {  gamma,   delta,   delta,   delta,   delta};
+
+          // if (!oIntegStiff.iGetNumEvalPoints()) {
+          //      oIntegStiff.SetNumEvalPoints(N, 3);
+
+          //      for (octave_idx_type i = 0; i < N; ++i) {
+          //           oIntegStiff.SetPosition(i, 0, L2[i]);
+          //           oIntegStiff.SetPosition(i, 1, L3[i]);
+          //           oIntegStiff.SetPosition(i, 2, L4[i]);
+          //           oIntegStiff.SetWeight(i, w[i]);
+          //      }
+          // }
      }
 
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
