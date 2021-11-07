@@ -753,42 +753,64 @@ private:
 class IntegrationRule
 {
 public:
-     IntegrationRule() {
+     IntegrationRule()
+          :iNumEvalPoints{0}, iNumDirections{0} {
+          FEM_ASSERT(bInvariant());
      }
 
-     void SetNumEvalPoints(octave_idx_type iNumEvalPoints, octave_idx_type iNumDirections) {
-          r.resize(iNumEvalPoints, iNumDirections);
-          alpha.resize(iNumEvalPoints);
+     void SetNumEvalPoints(octave_idx_type iNumEvalPnt, octave_idx_type iNumDir) {
+          FEM_ASSERT(bInvariant());
+          r.resize(iNumEvalPnt, iNumDir);
+          alpha.resize(iNumEvalPnt);
+          iNumEvalPoints = iNumEvalPnt;
+          iNumDirections = iNumDir;
+          FEM_ASSERT(bInvariant());
      }
 
      void SetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection, double ri) {
-          r.xelem(iEvalPnt + r.rows() * iDirection) = ri;
+          FEM_ASSERT(bInvariant());
+          r.xelem(iEvalPnt + iNumEvalPoints * iDirection) = ri;
+          FEM_ASSERT(bInvariant());
      }
 
      void SetWeight(octave_idx_type iEvalPnt, double alphai) {
+          FEM_ASSERT(bInvariant());
           alpha.xelem(iEvalPnt) = alphai;
+          FEM_ASSERT(bInvariant());
      }
 
      double dGetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection) const {
-          return r.xelem(iEvalPnt + r.rows() * iDirection);
+          FEM_ASSERT(bInvariant());
+          return r.xelem(iEvalPnt + iNumEvalPoints * iDirection);
      }
 
      double dGetWeight(octave_idx_type iEvalPnt) const {
+          FEM_ASSERT(bInvariant());
           return alpha.xelem(iEvalPnt);
      }
 
      octave_idx_type iGetNumDirections() const {
-          return r.columns();
+          FEM_ASSERT(bInvariant());
+          return iNumDirections;
      }
 
      octave_idx_type iGetNumEvalPoints() const {
-          FEM_ASSERT(r.rows() == alpha.rows());
-
-          return r.rows();
+          FEM_ASSERT(bInvariant());
+          return iNumEvalPoints;
      }
 
 private:
+#ifdef DEBUG
+     bool bInvariant() const {
+          FEM_ASSERT(alpha.rows() == iNumEvalPoints);
+          FEM_ASSERT(r.rows() == iNumEvalPoints);
+          FEM_ASSERT(r.columns() == iNumDirections);
+          
+          return true;
+     }
+#endif
      Matrix r;
+     octave_idx_type iNumEvalPoints, iNumDirections;
      ColumnVector alpha;
 };
 
@@ -6731,6 +6753,20 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+               AllocIntegrationRule(MAT_STIFFNESS);
+               AllocIntegrationRule(MAT_MASS);
+               return;
+               
+          default:
+               break;
+          }
+          
           constexpr double a1 = 0.25;
           constexpr double b1 = 1. / 6.;
           constexpr double c1 = 0.5;
@@ -7364,8 +7400,6 @@ public:
           case MAT_DAMPING_ACOUSTICS_IM:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
-          case MAT_DAMPING_FLUID_STRUCT_RE:
-          case MAT_DAMPING_FLUID_STRUCT_IM:
           case VEC_PARTICLE_VELOCITY:
           case VEC_PARTICLE_VELOCITY_C:
                if (!oIntegStiff.iGetNumEvalPoints()) {
@@ -7468,12 +7502,16 @@ public:
                     }
                }
                break;
+               
           case MAT_DAMPING:
           case MAT_DAMPING_SYM:
           case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:               
                AllocIntegrationRule(MAT_MASS);
                AllocIntegrationRule(MAT_STIFFNESS);
                break;
+               
           default:
                throw std::runtime_error("tet10: unknown matrix type");
           }
@@ -8028,6 +8066,19 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+               AllocIntegrationRule(MAT_MASS);
+               AllocIntegrationRule(MAT_STIFFNESS);
+               return;
+          default:
+               break;
+          }
+          
           constexpr double a = (1 + sqrt(5./14.)) / 4.;
           constexpr double b = (1 - sqrt(5./14.)) / 4.;
           constexpr double c = 1. / 4.;
@@ -8079,6 +8130,7 @@ public:
           octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
           FEM_ASSERT(iIntegRule >= 0);
           FEM_ASSERT(iIntegRule < RNUM);
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
           return rgIntegRule[iIntegRule];
      }
 
@@ -8829,8 +8881,6 @@ private:
           case MAT_STIFFNESS_ACOUSTICS_IM:
           case MAT_DAMPING_ACOUSTICS_RE:
           case MAT_DAMPING_ACOUSTICS_IM:
-          case MAT_DAMPING_FLUID_STRUCT_RE:
-          case MAT_DAMPING_FLUID_STRUCT_IM:
                return R1;
 
           case MAT_MASS:
