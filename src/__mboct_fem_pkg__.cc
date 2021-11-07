@@ -8873,7 +8873,7 @@ private:
                ScalarInterpMatrix(rv, H, i);
           }
 
-          return H.solve(taug);
+          return (H.transpose() * H).solve(H.transpose() * taug);
      }
 
      static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
