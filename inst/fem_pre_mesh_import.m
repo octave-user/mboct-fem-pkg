@@ -57,7 +57,7 @@ function [mesh, load_case] = fem_pre_mesh_import(filename, format, options)
   endif
 
   if (~isfield(options, "elem_type"))
-    options.elem_type = {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "pyra5"};
+    options.elem_type = {"tet10", "tria6", "tet20", "tria10", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "pyra5"};
   endif
 
   switch (format)
@@ -152,38 +152,40 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
 
           groups = unique(elem_tags(:, 1));
 
-          eltype = struct("name", {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "tet10h", "tria6h","pyra5"}, ...
-                          "promote", {-1, -1, 6, 6, 7, -1, -1, -1, -1, -1, -1, -1, 6}, ...
-                          "id", {11, 9, 4, 6, 2, 5, 3, 17, 16, 18, 11, 9, 7}, ...
-                          "dim", {3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3}, ...
+          eltype = struct("name", {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "tet10h", "tria6h", "pyra5", "tet20", "tria10"}, ...
+                          "promote", {-1, -1, 6, 6, 7, -1, -1, -1, -1, -1, -1, -1, 6, -1, -1}, ...
+                          "id", {11, 9, 4, 6, 2, 5, 3, 17, 16, 18, 11, 9, 7, 29, 21}, ...
+                          "dim", {3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3, 3, 2}, ...
                           "norder", {[1:8, 10, 9], ...
                                      1:6, ...
                                      [4, 4, 4, 4, 1:3, 3], ...
                                      [6,4,4,5,3,1,1,2], ...
                                      [1:3, 3], ...
                                      [5:8, 1:4], ...
-				     1:4, ...
-				     [5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16], ...
-				     1:8, ...
-				     [1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12], ...
-				     [1:8, 10, 9], ...
+                                     1:4, ...
+                                     [5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16], ...
+                                     1:8, ...
+                                     [1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12], ...
+                                     [1:8, 10, 9], ...
                                      1:6, ...
-                                     [5,5,5,5,1:4]}, ...
-                          "nordernonp", {[],[],[],[],[1:3],[],[],[],[],[],[],[],[1:5]});
+                                     [5,5,5,5,1:4], ...
+                                     [1,5,6,2,7,8,3,9,10,17,16,20,14,19,12,18,15,13,11,4], ...
+                                     [1:10]}, ...
+                          "nordernonp", {[],[],[],[],[1:3],[],[],[],[],[],[],[],[1:5],[],[]});
 
-	  use_elem_type = false(1, numel(eltype));
+          use_elem_type = false(1, numel(eltype));
 
-	  for i=1:numel(eltype)
-	    switch (eltype(i).name)
-	      case options.elem_type
-		use_elem_type(i) = true;
-	    endswitch
-	  endfor
+          for i=1:numel(eltype)
+            switch (eltype(i).name)
+              case options.elem_type
+                use_elem_type(i) = true;
+            endswitch
+          endfor
 
           idx_elem = find(use_elem_type);
           idx_promote(idx_elem) = 1:numel(idx_elem);
-          
-	  eltype = eltype(use_elem_type);
+
+          eltype = eltype(use_elem_type);
 
           for i=1:numel(eltype)
             if (eltype(i).promote > 0)
@@ -595,31 +597,31 @@ function [mesh, load_case] = fem_load_mesh_eossp(filename, format)
 
             elem_nodes = [elem1(5:8).', elem2.'];
 
-	    if (~isfield(mesh, "elements"))
-	      mesh.elements = struct();
-	    endif
+            if (~isfield(mesh, "elements"))
+              mesh.elements = struct();
+            endif
 
-	    if (~isfield(mesh, "materials"))
-	      mesh.materials = struct();
-	    endif
+            if (~isfield(mesh, "materials"))
+              mesh.materials = struct();
+            endif
 
-	    switch (elem1(3))
-	      case 8
-		if (~isfield(mesh.materials, "iso4"))
-		  mesh.materials.iso4 = [];
-		endif
-		if (~isfield(mesh.elements, "iso4"))
-		  mesh.elements.iso4 = [];
-		endif
-	      case {11, 12}
-		if (~isfield(mesh.materials, "iso8"))
-		  mesh.materials.iso8 = [];
-		endif
-		if (~isfield(mesh.elements, "iso8"))
-		  mesh.elements.iso8 = [];
-		endif
-	    endswitch
-	    
+            switch (elem1(3))
+              case 8
+                if (~isfield(mesh.materials, "iso4"))
+                  mesh.materials.iso4 = [];
+                endif
+                if (~isfield(mesh.elements, "iso4"))
+                  mesh.elements.iso4 = [];
+                endif
+              case {11, 12}
+                if (~isfield(mesh.materials, "iso8"))
+                  mesh.materials.iso8 = [];
+                endif
+                if (~isfield(mesh.elements, "iso8"))
+                  mesh.elements.iso8 = [];
+                endif
+            endswitch
+
             switch (elem1(3))
               case 8
                 mesh.materials.iso4(end + 1, 1) = material_id(elem1(4));
@@ -1231,7 +1233,7 @@ endfunction
 %!   endfor
 %!   [mesh, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
 %!   mat_ass_cms.Dred = alpha * mat_ass_cms.Mred + beta * mat_ass_cms.Kred;
-  
+
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -2504,32 +2506,32 @@ endfunction
 %!     for i=1:numel(ri)
 %!       fd = -1;
 %!       unwind_protect
-%! 	[fd, msg] = fopen([filename, ".geo"], "w");
-%! 	if (fd == -1)
+%!      [fd, msg] = fopen([filename, ".geo"], "w");
+%!      if (fd == -1)
 %!           error("failed to open file \"%s.geo\"", filename);
-%! 	endif
-%! 	fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%! 	fprintf(fd, "ri = %g;\n", ri(i));
-%! 	fprintf(fd, "ro = %g;\n", ro(i));
-%! 	fprintf(fd, "h = %g;\n", h);
-%! 	fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
-%! 	fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
-%! 	fputs(fd, "Point(5) = {ro,0.0,h};\n");
-%! 	fputs(fd, "Point(6) = {ri,0.0,h};\n");
-%! 	fputs(fd, "Line(1) = {1,2};\n");
-%! 	fputs(fd, "Line(4) = {2,5};\n");
-%! 	fputs(fd, "Line(5) = {5,6};\n");
-%! 	fputs(fd, "Line(8) = {6,1};\n");
-%! 	fputs(fd, "Line Loop(5) = {1,4,5,8};\n");
-%! 	fputs(fd, "Plane Surface(6) = {5};\n");
-%! 	fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
-%! 	fprintf(fd, "Physical Volume(\"volume\",%d) = {tmp[1]};\n", (i - 1) * 100 + 1);
-%! 	fprintf(fd, "Physical Surface(\"bottom\",%d) = {tmp[2]};\n", (i - 1) * 100 + 1);
-%! 	fprintf(fd, "Physical Surface(\"outside\",%d) = {tmp[3]};\n", (i - 1) * 100 + 2);
-%! 	fprintf(fd, "Physical Surface(\"inside\",%d) = {tmp[5]};\n", (i - 1) * 100 + 3);
-%! 	fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[4]};\n", (i - 1) * 100 + 4);
-%! 	fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[0]};\n", (i - 1) * 100 + 5); ##x
-%! 	fprintf(fd, "Physical Surface(\"right\",%d) = {6};\n", (i - 1) * 100 + 6);  ##y
+%!      endif
+%!      fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!      fprintf(fd, "ri = %g;\n", ri(i));
+%!      fprintf(fd, "ro = %g;\n", ro(i));
+%!      fprintf(fd, "h = %g;\n", h);
+%!      fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
+%!      fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
+%!      fputs(fd, "Point(5) = {ro,0.0,h};\n");
+%!      fputs(fd, "Point(6) = {ri,0.0,h};\n");
+%!      fputs(fd, "Line(1) = {1,2};\n");
+%!      fputs(fd, "Line(4) = {2,5};\n");
+%!      fputs(fd, "Line(5) = {5,6};\n");
+%!      fputs(fd, "Line(8) = {6,1};\n");
+%!      fputs(fd, "Line Loop(5) = {1,4,5,8};\n");
+%!      fputs(fd, "Plane Surface(6) = {5};\n");
+%!      fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; };\n");
+%!      fprintf(fd, "Physical Volume(\"volume\",%d) = {tmp[1]};\n", (i - 1) * 100 + 1);
+%!      fprintf(fd, "Physical Surface(\"bottom\",%d) = {tmp[2]};\n", (i - 1) * 100 + 1);
+%!      fprintf(fd, "Physical Surface(\"outside\",%d) = {tmp[3]};\n", (i - 1) * 100 + 2);
+%!      fprintf(fd, "Physical Surface(\"inside\",%d) = {tmp[5]};\n", (i - 1) * 100 + 3);
+%!      fprintf(fd, "Physical Surface(\"top\",%d) = {tmp[4]};\n", (i - 1) * 100 + 4);
+%!      fprintf(fd, "Physical Surface(\"left\",%d) = {tmp[0]};\n", (i - 1) * 100 + 5); ##x
+%!      fprintf(fd, "Physical Surface(\"right\",%d) = {6};\n", (i - 1) * 100 + 6);  ##y
 %!       unwind_protect_cleanup
 %!         if (fd ~= -1)
 %!           fclose(fd);
@@ -2590,7 +2592,7 @@ endfunction
 %!     if (do_plot)
 %!       figure("visible", "off");
 %!       for i=1:numel(data)
-%! 	fem_post_sol_plot(data(i).mesh);
+%!      fem_post_sol_plot(data(i).mesh);
 %!       endfor
 %!       xlabel("x [m]");
 %!       ylabel("y [m]");
@@ -2608,16 +2610,16 @@ endfunction
 %!     assert(sol_eig.f(:), fref, 0.1e-2 * max(fref));
 %!     if (do_plot)
 %!       for i=1:numel(sol_eig.f)
-%! 	figure("visible", "off");
-%! 	hold on;
-%! 	fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
-%! 	view(30,30);
-%! 	xlabel('x [m]');
-%! 	ylabel('y [m]');
-%! 	zlabel('z [m]');
-%! 	grid on;
-%! 	grid minor on;
-%! 	title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
+%!      figure("visible", "off");
+%!      hold on;
+%!      fem_post_sol_plot(mesh, sol_eig, scale_eig/max(norm(sol_eig.def(:, 1:3, i), "rows")), i);
+%!      view(30,30);
+%!      xlabel('x [m]');
+%!      ylabel('y [m]');
+%!      zlabel('z [m]');
+%!      grid on;
+%!      grid minor on;
+%!      title(sprintf("mode %d: %.1fHz", i, sol_eig.f(i)));
 %!       endfor
 %!     endif
 %!   endfor
@@ -2706,10 +2708,10 @@ endfunction
 %!             fputs(fd, "Plane Surface(6) = {5};\n");
 %!             if (orange(o) == 1 || i == 1)
 %!               if (rrange(r) || i == 1)
-%! 		fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d}; Recombine; };\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
-%! 		fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
+%!              fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d}; Recombine; };\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
+%!              fprintf(fd, "Recombine Surface{6,tmp[0]};\n");
 %!               else
-%! 		fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d};};\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
+%!              fprintf(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6}; Layers{%d};};\n", ceil(0.5 * pi * ri(1) / mesh_size(m)));
 %!               endif
 %!             else
 %!               fputs(fd, "tmp[] = Extrude {{0, 0, 1}, {0, 0, 0}, Pi/2} { Surface{6};};\n");
@@ -2827,16 +2829,16 @@ endfunction
 %!         endif
 %!       endfor
 %!       if (do_plot)
-%! 	figure("visible", "off");
-%! 	hold on;
-%! 	for i=1:columns(f)
+%!      figure("visible", "off");
+%!      hold on;
+%!      for i=1:columns(f)
 %!           plot(num_nodes.', f(:, i, r, o), sprintf("-;mode %d;%d", i, i));
-%! 	endfor
-%! 	xlabel("nodes [1]");
-%! 	ylabel("f [Hz]");
-%! 	grid on;
-%! 	grid minor on;
-%! 	title("natural frequencies versus mesh size");
+%!      endfor
+%!      xlabel("nodes [1]");
+%!      ylabel("f [Hz]");
+%!      grid on;
+%!      grid minor on;
+%!      title("natural frequencies versus mesh size");
 %!       endif
 %!     endfor
 %!   endfor
@@ -5953,7 +5955,7 @@ endfunction
 %!                                                     cms_opt.nodes.interfaces.number], "quad8");
 %!   [mesh, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
 %!   mat_ass_cms.Dred = alpha * mat_ass_cms.Mred + beta * mat_ass_cms.Kred;
-  
+
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -6093,7 +6095,7 @@ endfunction
 %!     idof = dof_map.ndof(:, i);
 %!     idx = idof > 0;
 %!     F(idx, i) = mat_ass.R(idof(idx));
-%!   endfor      
+%!   endfor
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7276,7 +7278,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7391,7 +7393,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7506,7 +7508,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7620,7 +7622,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7735,7 +7737,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7847,7 +7849,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -7969,7 +7971,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -8117,7 +8119,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -8264,7 +8266,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -8411,7 +8413,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -8558,7 +8560,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
@@ -10194,7 +10196,7 @@ endfunction
 %!   for i=1:numel(mesh.elements.rbe3)
 %!     assert(sum(mesh.elements.rbe3(i).weight), b * c, sqrt(eps) * (b * c));
 %!   endfor
-  
+
 %!   if (plot_modes)
 %!     figure("visible","off");
 %!     hold on;
@@ -11600,10 +11602,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11704,10 +11706,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11808,10 +11810,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -11914,11 +11916,11 @@ endfunction
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc, ...
 %!    mat_ass.coll_Kk] = fem_ass_matrix(mesh, ...
-%! 				        dof_map, ...
-%! 				        [FEM_MAT_THERMAL_COND, ...
+%!                                      dof_map, ...
+%!                                      [FEM_MAT_THERMAL_COND, ...
 %!                                       FEM_VEC_LOAD_THERMAL, ...
 %!                                       FEM_VEC_COLL_THERMAL_COND], ...
-%! 				        load_case);
+%!                                      load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -12018,10 +12020,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
 %!   theta_ref = (x + l) / (3 * l) * (thetae(2) - thetae(1)) + thetae(1);
@@ -12109,10 +12111,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.iso4.h = [repmat(h0, size(mesh.elements.iso4(mesh.groups.iso4(1).elements, :)));
-%!                                      repmat(h1, size(mesh.elements.iso4(mesh.groups.iso4(2).elements, :)))];                                          
+%!                                      repmat(h1, size(mesh.elements.iso4(mesh.groups.iso4(2).elements, :)))];
 %!   load_case.convection.iso4.theta = [theta_s(mesh.elements.iso4(mesh.groups.iso4(1).elements, :));
 %!                                      theta_s(mesh.elements.iso4(mesh.groups.iso4(2).elements, :))];
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12125,10 +12127,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12221,10 +12223,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.quad8.h = [repmat(h0, size(mesh.elements.quad8(mesh.groups.quad8(1).elements, :)));
-%!                                       repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];                                          
+%!                                       repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];
 %!   load_case.convection.quad8.theta = [theta_s(mesh.elements.quad8(mesh.groups.quad8(1).elements, :));
 %!                                       theta_s(mesh.elements.quad8(mesh.groups.quad8(2).elements, :))];
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12237,10 +12239,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12327,10 +12329,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.quad8.h = [repmat(h0, size(mesh.elements.quad8(mesh.groups.quad8(1).elements, :)));
-%!                                       repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];                                          
+%!                                       repmat(h1, size(mesh.elements.quad8(mesh.groups.quad8(2).elements, :)))];
 %!   load_case.convection.quad8.theta = [theta_s(mesh.elements.quad8(mesh.groups.quad8(1).elements, :));
 %!                                       theta_s(mesh.elements.quad8(mesh.groups.quad8(2).elements, :))];
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12343,10 +12345,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12432,10 +12434,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.tria6.h = [repmat(h0, size(mesh.elements.tria6(mesh.groups.tria6(1).elements, :)));
-%!                                       repmat(h1, size(mesh.elements.tria6(mesh.groups.tria6(2).elements, :)))];                                          
+%!                                       repmat(h1, size(mesh.elements.tria6(mesh.groups.tria6(2).elements, :)))];
 %!   load_case.convection.tria6.theta = [theta_s(mesh.elements.tria6(mesh.groups.tria6(1).elements, :));
 %!                                       theta_s(mesh.elements.tria6(mesh.groups.tria6(2).elements, :))];
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12448,10 +12450,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12538,10 +12540,10 @@ endfunction
 %!   h1 = 1e11;
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
 %!   mesh.elements.convection.tria6h.h = [repmat(h0, size(mesh.elements.tria6h(mesh.groups.tria6h(1).elements, :)));
-%!                                        repmat(h1, size(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :)))];                                          
+%!                                        repmat(h1, size(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :)))];
 %!   load_case.convection.tria6h.theta = [theta_s(mesh.elements.tria6h(mesh.groups.tria6h(1).elements, :));
 %!                                        theta_s(mesh.elements.tria6h(mesh.groups.tria6h(2).elements, :))];
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12554,10 +12556,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   assert(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));
@@ -12644,7 +12646,7 @@ endfunction
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12657,10 +12659,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12748,7 +12750,7 @@ endfunction
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12761,10 +12763,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12852,7 +12854,7 @@ endfunction
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12865,10 +12867,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -12962,7 +12964,7 @@ endfunction
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -12975,10 +12977,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   opt_sol.refine_max_iter = int32(20);
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
@@ -13066,7 +13068,7 @@ endfunction
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13232,7 +13234,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_THERMAL;                                     
+%!   load_case.domain = FEM_DO_THERMAL;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13410,7 +13412,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_THERMAL;                                     
+%!   load_case.domain = FEM_DO_THERMAL;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13578,7 +13580,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_THERMAL;                                     
+%!   load_case.domain = FEM_DO_THERMAL;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13742,7 +13744,7 @@ endfunction
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_THERMAL;                                     
+%!   load_case.domain = FEM_DO_THERMAL;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -13909,7 +13911,7 @@ endfunction
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-  
+
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];
@@ -14028,10 +14030,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -14134,10 +14136,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -14240,10 +14242,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -14345,10 +14347,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -14450,10 +14452,10 @@ endfunction
 %!   mesh.nodes = [mesh.nodes(:, 1:3) * R.', mesh.nodes(:, 4:6) * R.'];
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Qc] = fem_ass_matrix(mesh, ...
-%! 				dof_map, ...
-%! 				[FEM_MAT_THERMAL_COND, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_THERMAL_COND, ...
 %!                                  FEM_VEC_LOAD_THERMAL], ...
-%! 				load_case);
+%!                              load_case);
 %!   thetas = thetae + 3 * l * q / lambda;
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Qc;
 %!   x = mesh.nodes(:, 1:3) * R(:, 1);
@@ -15381,7 +15383,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -15544,7 +15546,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -15694,7 +15696,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -15844,7 +15846,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -16577,7 +16579,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);  
+%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -29789,7 +29791,7 @@ endfunction
 %!   vz = @(x, z, t) vz_theta(x * cos(theta) - z * sin(theta), x * sin(theta) + z * cos(theta), t);
 %!   zx = @(x, z, t) zx_theta(x * cos(theta) - z * sin(theta), x * sin(theta) + z * cos(theta));
 %!   zz = @(x, z, t) zz_theta(x * cos(theta) - z * sin(theta), x * sin(theta) + z * cos(theta));
-%!   
+%!
 %!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!   fprintf(fd, "l=%g;\n", l);
 %!   fprintf(fd, "w=%g;\n", w);
@@ -32027,7 +32029,7 @@ endfunction
 %!   alpha = 2.5 * pi / 180;
 %!   beta = atan(dx / r0);
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -32383,7 +32385,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -32754,7 +32756,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -33085,7 +33087,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -33416,7 +33418,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -33752,7 +33754,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -34228,7 +34230,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -34604,7 +34606,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -34943,7 +34945,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -35278,7 +35280,7 @@ endfunction
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -37266,7 +37268,7 @@ endfunction
 %!   alpha = atan2(2 * dx, r0);
 %!   beta = atan2(2 * dx, r0);
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -37602,7 +37604,7 @@ endfunction
 %!   alpha = atan2(2 * dx, r0);
 %!   beta = atan2(2 * dx, r0);
 %!   v0 = 1e-3 / (unit_meters / unit_second);
-%!   ## See Jont Allen 
+%!   ## See Jont Allen
 %!   ## THE ACOUSTIC WAVE EQUATION AND SIMPLE SOLUTIONS
 %!   ## Chapter 5 spherical waves, equation 5.11.9
 %!   z3 = rho3 * c3 * k3 * r3 .* exp(1j * acot(k3 * r3)) ./ sqrt(1 + (k3 * r3).^2);
@@ -47784,6 +47786,201 @@ endfunction
 %!   tref1 = sol.t(find(pout >= pref)(1));
 %!   tol = 3e-2;
 %!   assert(tref1 - tref0, l / a, tol * l / a);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 256: patch test of tet20
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 5e-3;
+%!     b = 300e-3;
+%!     c = 10e-3;
+%!     mesh_size = 2.5e-3;
+%!     scale_def = 10e-3;
+%!     N = 20;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=1;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   load_case.locked_dof(mesh.groups.tria10(find([mesh.groups.tria10.id] == 1)).nodes, 1:3) = true;
+%!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   dof_map.parallel.threads_ass = int32(4);
+%!   dof_map.parallel.threshold_elem = int32(1000);
+%!   [mat_ass.M, ...
+%!    mat_ass.D, ...
+%!    mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_MASS, ...
+%!                                 FEM_MAT_DAMPING, ...
+%!                                 FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, 0, sqrt(eps), "shift-invert", "pastix", int32(4));
+%!   sol_eig.stress = fem_ass_matrix(mesh, ...
+%!                                   dof_map, ...
+%!                                   [FEM_VEC_STRESS_CAUCH], ...
+%!                                   load_case, ...
+%!                                   sol_eig);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 257: patch test of tet10
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 200e-3;
+%!     c = 20e-3;
+%!     mesh_size = 3.5e-3;
+%!     scale_def = 10e-3;
+%!     N = 20;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=1;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   load_case.locked_dof(mesh.groups.tria6(find([mesh.groups.tria6.id] == 1)).nodes, 1:3) = true;
+%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   dof_map.parallel.threads_ass = int32(4);
+%!   dof_map.parallel.threshold_elem = int32(1000);
+%!   [mat_ass.M, ...
+%!    mat_ass.D, ...
+%!    mat_ass.K, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_MASS, ...
+%!                                 FEM_MAT_DAMPING, ...
+%!                                 FEM_MAT_STIFFNESS, ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
+%!                                load_case);
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, 0, sqrt(eps), "shift-invert", "pastix", int32(4));
+%!   sol_eig.stress = fem_ass_matrix(mesh, ...
+%!                                   dof_map, ...
+%!                                   [FEM_SCA_STRESS_VMIS], ...
+%!                                   load_case, ...
+%!                                   sol_eig);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

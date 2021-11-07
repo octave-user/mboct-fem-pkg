@@ -8106,14 +8106,14 @@ public:
           static constexpr double ti3[N3] = {6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 4.820780989426000e-03, 4.820780989426000e-03, 4.820780989426000e-03, 4.820780989426000e-03, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 1.089062557068340e-01, 1.089062557068340e-01, 1.089062557068340e-01, 1.089062557068340e-01, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 4.488872992916900e-01, 4.488872992916900e-01, 4.488872992916900e-01, 4.488872992916900e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 8.659570925834790e-01, 8.659570925834790e-01, 8.659570925834790e-01, 8.659570925834790e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02};
           static constexpr double wi3[N3] = {1.761084870822600e-06, 1.761084870822600e-06, 3.301615549885100e-06, 3.301615549885100e-06, 1.569257503335800e-05, 1.569257503335800e-05, 2.941984830275260e-05, 2.941984830275260e-05, 3.185931686560010e-05, 3.185931686560010e-05, 5.972864665122530e-05, 5.972864665122530e-05, 2.360313944207820e-05, 2.360313944207820e-05, 4.425027634907300e-05, 4.425027634907300e-05, 7.458679166511140e-05, 7.458679166511140e-05, 1.398325062338110e-04, 1.398325062338110e-04, 6.646237464725280e-04, 6.646237464725280e-04, 1.246011553748000e-03, 1.246011553748000e-03, 1.349329762022000e-03, 1.349329762022000e-03, 2.529672588768000e-03, 2.529672588768000e-03, 9.996579230088670e-04, 9.996579230088670e-04, 1.874121002261000e-03, 1.874121002261000e-03, 3.074301219528830e-04, 3.074301219528830e-04, 5.763584072291740e-04, 5.763584072291740e-04, 2.739430867978000e-03, 2.739430867978000e-03, 5.135781756688000e-03, 5.135781756688000e-03, 5.561636370626000e-03, 5.561636370626000e-03, 1.042674627912200e-02, 1.042674627912200e-02, 4.120367029080000e-03, 4.120367029080000e-03, 7.724708831375000e-03, 7.724708831375000e-03, 3.163437496694650e-04, 3.163437496694650e-04, 5.930693405649470e-04, 5.930693405649470e-04, 2.818857915521000e-03, 2.818857915521000e-03, 5.284688592238000e-03, 5.284688592238000e-03, 5.722890433136000e-03, 5.722890433136000e-03, 1.072905931870600e-02, 1.072905931870600e-02, 4.239832934111000e-03, 4.239832934111000e-03, 7.948679008091999e-03, 7.948679008091999e-03};
 
-          constexpr double a4 = (5. - sqrt(5.)) / 20.;
-          constexpr double b4 = (5. + 3. * sqrt(5)) / 20.;
+          constexpr double a4 = (5. + 3. * sqrt(5)) / 20.;
+          constexpr double b4 = (5. - sqrt(5.)) / 20.;
           constexpr double c4 = 1. / 24.;
           constexpr octave_idx_type N4 = 4;
 
-          static constexpr double ri4[N4] = {a4, a4, a4, b4};
-          static constexpr double si4[N4] = {a4, a4, b4, a4};
-          static constexpr double ti4[N4] = {a4, b4, a4, a4};
+          static constexpr double ri4[N4] = {b4, a4, b4, b4};
+          static constexpr double si4[N4] = {b4, b4, a4, b4};
+          static constexpr double ti4[N4] = {b4, b4, b4, a4};
           static constexpr double wi4[N4] = {c4, c4, c4, c4};
 
           static constexpr octave_idx_type M = 4;
@@ -8141,10 +8141,12 @@ public:
      }
 
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
-          octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+          
           FEM_ASSERT(iIntegRule >= 0);
           FEM_ASSERT(iIntegRule < RNUM);
           FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
+          
           return rgIntegRule[iIntegRule];
      }
 
@@ -8878,9 +8880,11 @@ private:
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumLoads = taug.columns();
           constexpr octave_idx_type iNumNodesCorner = 4;
-          
+
           ColumnVector rv(iNumDir);
 
+          FEM_ASSERT(iNumGauss == iNumNodesCorner);
+          
           Matrix H(iNumGauss, iNumNodesCorner);
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
@@ -8891,9 +8895,13 @@ private:
                ScalarInterpMatrixCornerNodes(rv, H, i);
           }
 
-          const auto taunc = H.solve(taug);
+          octave_idx_type info = -1;
 
-          typename PostProcTypeTraits<T>::MatrixType taun(iNumNodes, iNumLoads);
+          const auto taunc = H.solve(taug, info);
+
+          FEM_ASSERT(info == 0);
+
+          typename PostProcTypeTraits<T>::MatrixType taun(iNumNodes, iNumLoads, T{});
 
           static constexpr octave_idx_type idxcorner[iNumNodesCorner] = {1 - 1, 4 - 1, 7 - 1, 20 - 1};
           static constexpr octave_idx_type iNumMidside1 = 6;
@@ -8911,17 +8919,16 @@ private:
                }
 
                for (octave_idx_type j = 0; j < iNumMidside1; ++j) {
-                    for (octave_idx_type k = 0; k < 2; ++k) {
-                         taun.xelem(idxmidside1[j][k], i) = ((2. - k) * taun.xelem(idxcorner1[j][0], i) + (k + 1.) * taun.xelem(idxcorner1[j][1], i)) / 3.;
-                    }
+                    taun.xelem(idxmidside1[j][0], i) = (2. * taun.xelem(idxcorner1[j][0], i) + taun.xelem(idxcorner1[j][1], i)) / 3.;
+                    taun.xelem(idxmidside1[j][1], i) = (taun.xelem(idxcorner1[j][0], i) + 2. * taun.xelem(idxcorner1[j][1], i)) / 3.;
                }
 
                for (octave_idx_type j = 0; j < iNumMidSide2; ++j) {
-                    taun.xelem(idxmidside2[j], i) = 0.5 * (taun.xelem(idxcorner2[j][0], i) + taun.xelem(idxcorner2[j][1], i));
+                    taun.xelem(idxmidside2[j], i) = (taun.xelem(idxcorner2[j][0], i) + taun.xelem(idxcorner2[j][1], i)) / 2.;
                }
 
                taun.xelem(idxmidside3, i) = (taun.xelem(idxcorner3[0], i) + taun.xelem(idxcorner3[1], i) + taun.xelem(idxcorner3[2], i)) / 3.;
-          }
+          }          
 
           return taun;
      }
@@ -8987,10 +8994,10 @@ private:
 
           const octave_idx_type nrows = Hs.rows();
 
-          Hs.xelem(irow) = ((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
-          Hs.xelem(nrows+irow) = (r*(3*r-2)*(3*r-1))/2.0E+0;
-          Hs.xelem(2*nrows+irow) = (s*(3*s-2)*(3*s-1))/2.0E+0;
-          Hs.xelem(3*nrows+irow) = (t*(3*t-2)*(3*t-1))/2.0E+0;
+          Hs.xelem(0*nrows+irow) = 1. - r - s - t;
+          Hs.xelem(1*nrows+irow) = r;
+          Hs.xelem(2*nrows+irow) = s;
+          Hs.xelem(3*nrows+irow) = t;
      }
      
      static array<IntegrationRule, RNUM> rgIntegRule;
