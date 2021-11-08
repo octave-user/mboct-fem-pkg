@@ -8878,57 +8878,26 @@ private:
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
           const octave_idx_type iNumNodes = nodes.numel();
-          const octave_idx_type iNumLoads = taug.columns();
-          constexpr octave_idx_type iNumNodesCorner = 4;
 
           ColumnVector rv(iNumDir);
 
-          FEM_ASSERT(iNumGauss == iNumNodesCorner);
+          FEM_ASSERT(iNumGauss >= iNumNodes);
           
-          Matrix H(iNumGauss, iNumNodesCorner);
+          Matrix H(iNumGauss, iNumNodes);
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
                for (octave_idx_type j = 0; j < iNumDir; ++j) {
                     rv.xelem(j) = oIntegRule.dGetPosition(i, j);
                }
 
-               ScalarInterpMatrixCornerNodes(rv, H, i);
+               ScalarInterpMatrix(rv, H, i);
           }
 
           octave_idx_type info = -1;
 
-          const auto taunc = H.solve(taug, info);
+          const auto taun = H.solve(taug, info);
 
           FEM_ASSERT(info == 0);
-
-          typename PostProcTypeTraits<T>::MatrixType taun(iNumNodes, iNumLoads, T{});
-
-          static constexpr octave_idx_type idxcorner[iNumNodesCorner] = {1 - 1, 4 - 1, 7 - 1, 20 - 1};
-          static constexpr octave_idx_type iNumMidside1 = 6;
-          static constexpr octave_idx_type idxmidside1[iNumMidside1][2] = {{2 - 1, 3 - 1}, {5 - 1, 6 - 1}, {8 - 1, 9 - 1}, {11 - 1, 17 - 1}, {13 - 1, 18 - 1}, {15 - 1, 19 - 1}};
-          static constexpr octave_idx_type idxcorner1[iNumMidside1][2]  = {{1 - 1, 4 - 1}, {4 - 1, 7 - 1}, {7 - 1, 1 - 1}, { 4 - 1, 20 - 1}, { 7 - 1, 20 - 1}, { 1 - 1, 20 - 1}};
-          static constexpr octave_idx_type iNumMidSide2 = 3;
-          static constexpr octave_idx_type idxmidside2[iNumMidSide2] = {12 - 1, 14 - 1, 16 - 1};
-          static constexpr octave_idx_type idxcorner2[iNumMidSide2][2] = {{11 - 1, 13 - 1}, {13 - 1, 15 - 1}, {15 - 1, 11 - 1}};
-          static constexpr octave_idx_type idxmidside3 = 10 - 1;
-          static constexpr octave_idx_type idxcorner3[] = {1 - 1, 4 - 1, 7 - 1};
-          
-          for (octave_idx_type i = 0; i < iNumLoads; ++i) {
-               for (octave_idx_type j = 0; j < iNumNodesCorner; ++j) {
-                    taun.xelem(idxcorner[j], i) = taunc.xelem(j, i);
-               }
-
-               for (octave_idx_type j = 0; j < iNumMidside1; ++j) {
-                    taun.xelem(idxmidside1[j][0], i) = (2. * taun.xelem(idxcorner1[j][0], i) + taun.xelem(idxcorner1[j][1], i)) / 3.;
-                    taun.xelem(idxmidside1[j][1], i) = (taun.xelem(idxcorner1[j][0], i) + 2. * taun.xelem(idxcorner1[j][1], i)) / 3.;
-               }
-
-               for (octave_idx_type j = 0; j < iNumMidSide2; ++j) {
-                    taun.xelem(idxmidside2[j], i) = (taun.xelem(idxcorner2[j][0], i) + taun.xelem(idxcorner2[j][1], i)) / 2.;
-               }
-
-               taun.xelem(idxmidside3, i) = (taun.xelem(idxcorner3[0], i) + taun.xelem(idxcorner3[1], i) + taun.xelem(idxcorner3[2], i)) / 3.;
-          }          
 
           return taun;
      }
@@ -8975,7 +8944,7 @@ private:
           case SCA_STRESS_VMIS:
           case VEC_PARTICLE_VELOCITY:
           case VEC_PARTICLE_VELOCITY_C:
-               return R4;
+               return R3;
 
           default:
                throw std::runtime_error("tet20: matrix type not supported");
