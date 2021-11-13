@@ -903,37 +903,45 @@ public:
           ELEM_SFNCON6,
           ELEM_SFNCON6H,
           ELEM_SFNCON8,
+          ELEM_SFNCON10,
           ELEM_PRESSURE_ISO4,
           ELEM_PRESSURE_QUAD8,
           ELEM_PRESSURE_TRIA6,
           ELEM_PRESSURE_TRIA6H,
+          ELEM_PRESSURE_TRIA10,
           ELEM_STRUCT_FORCE,
           ELEM_THERM_CONV_ISO4,
           ELEM_THERM_CONV_QUAD8,
           ELEM_THERM_CONV_TRIA6,
           ELEM_THERM_CONV_TRIA6H,
+          ELEM_THERM_CONV_TRIA10,
           ELEM_THERM_CONSTR,
           ELEM_HEAT_SOURCE_ISO4,
           ELEM_HEAT_SOURCE_QUAD8,
           ELEM_HEAT_SOURCE_TRIA6,
           ELEM_HEAT_SOURCE_TRIA6H,
+          ELEM_HEAT_SOURCE_TRIA10,
           ELEM_PARTICLE_VEL_ISO4,
           ELEM_PARTICLE_VEL_QUAD8,
           ELEM_PARTICLE_VEL_TRIA6,
           ELEM_PARTICLE_VEL_TRIA6H,
+          ELEM_PARTICLE_VEL_TRIA10,
           ELEM_ACOUSTIC_IMPE_ISO4,
           ELEM_ACOUSTIC_IMPE_QUAD8,
           ELEM_ACOUSTIC_IMPE_TRIA6,
           ELEM_ACOUSTIC_IMPE_TRIA6H,
+          ELEM_ACOUSTIC_IMPE_TRIA10,
           ELEM_ACOUSTIC_CONSTR,
           ELEM_ACOUSTIC_BND_ISO4,
           ELEM_ACOUSTIC_BND_QUAD8,
           ELEM_ACOUSTIC_BND_TRIA6,
           ELEM_ACOUSTIC_BND_TRIA6H,
+          ELEM_ACOUSTIC_BND_TRIA10,
           ELEM_FLUID_STRUCT_ISO4,
           ELEM_FLUID_STRUCT_QUAD8,
           ELEM_FLUID_STRUCT_TRIA6,
           ELEM_FLUID_STRUCT_TRIA6H,
+          ELEM_FLUID_STRUCT_TRIA10,
           ELEM_TYPE_COUNT,
           ELEM_TYPE_UNKNOWN = -1
      };
@@ -972,37 +980,45 @@ private:
           {ElementTypes::ELEM_SFNCON6,              "sfncon6",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON6H,             "sfncon6h",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON8,              "sfncon8",         1, -1, DofMap::ELEM_JOINT},
+          {ElementTypes::ELEM_SFNCON10,             "sfncon10",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_PRESSURE_ISO4,        "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_QUAD8,       "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_TRIA6,       "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_TRIA6H,      "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PRESSURE_TRIA10,      "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_STRUCT_FORCE,         "force",           1, -1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_ISO4,      "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_QUAD8,     "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_TRIA6,     "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_TRIA6H,    "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_THERM_CONV_TRIA10,    "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONSTR,         "thermal_constr",  1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_HEAT_SOURCE_ISO4,     "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,    "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,    "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H,   "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_HEAT_SOURCE_TRIA10,   "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PARTICLE_VEL_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4,   "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8,  "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6,  "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H, "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10, "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_CONSTR,      "acoustic_constr", 1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_ACOUSTIC_BND_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ACOUSTIC_BND_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
-          {ElementTypes::ELEM_FLUID_STRUCT_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF}
+          {ElementTypes::ELEM_FLUID_STRUCT_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_FLUID_STRUCT_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF}
      };
 };
 
@@ -7487,11 +7503,11 @@ public:
 
                     constexpr double w2 = 1. / 10.;
                     static constexpr double g2[][4] = {{0.5,0.5,0,0},
-                                                   {0.5,0,0.5,0},
-                                                   {0.5,0,0,0.5},
-                                                   {0,0.5,0.5,0},
-                                                   {0,0.5,0,0.5},
-                                                   {0,0,0.5,0.5}};
+                                                       {0.5,0,0.5,0},
+                                                       {0.5,0,0,0.5},
+                                                       {0,0.5,0.5,0},
+                                                       {0,0.5,0,0.5},
+                                                       {0,0,0.5,0.5}};
 
                     for (octave_idx_type i = 0; i < 6; ++i) {
                          oIntegMassDiag.SetWeight(i + 4, w2);
@@ -8116,18 +8132,25 @@ public:
           static constexpr double ti4[N4] = {b4, b4, b4, a4};
           static constexpr double wi4[N4] = {c4, c4, c4, c4};
 
-          static constexpr octave_idx_type M = 4;
-          static constexpr octave_idx_type N[M] = {N1, N2, N3, N4};
-          static constexpr const double* r[M] = {ri1, ri2, ri3, ri4};
-          static constexpr const double* s[M] = {si1, si2, si3, si4};
-          static constexpr const double* t[M] = {ti1, ti2, ti3, ti4};
-          static constexpr const double* w[M] = {wi1, wi2, wi3, wi4};
+          constexpr octave_idx_type N5 = 20;
+
+          static constexpr double ri5[N5] = {0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 1.0000000000000000e+00, 6.6666666666666663e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00};
+          static constexpr double si5[N5] = {0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 1.0000000000000000e+00, 6.6666666666666663e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00};
+          static constexpr double ti5[N5] = {0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 6.6666666666666663e-01, 6.6666666666666663e-01, 6.6666666666666663e-01, 1.0000000000000000e+00};
+          static constexpr double wi5[N5] = {8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03};
+          
+          static constexpr octave_idx_type M = 5;
+          static constexpr octave_idx_type N[M] = {N1, N2, N3, N4, N5};
+          static constexpr const double* r[M] = {ri1, ri2, ri3, ri4, ri5};
+          static constexpr const double* s[M] = {si1, si2, si3, si4, si5};
+          static constexpr const double* t[M] = {ti1, ti2, ti3, ti4, ti5};
+          static constexpr const double* w[M] = {wi1, wi2, wi3, wi4, wi5};
 
           const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           FEM_ASSERT(iIntegRule >= 0);
           FEM_ASSERT(iIntegRule < M);
-          
+
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule], 3);
 
@@ -8142,11 +8165,11 @@ public:
 
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
           const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
-          
+
           FEM_ASSERT(iIntegRule >= 0);
           FEM_ASSERT(iIntegRule < RNUM);
           FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
-          
+
           return rgIntegRule[iIntegRule];
      }
 
@@ -8867,6 +8890,7 @@ private:
           R2,
           R3,
           R4,
+          R5,
           RNUM
      };
 
@@ -8882,7 +8906,7 @@ private:
           ColumnVector rv(iNumDir);
 
           FEM_ASSERT(iNumGauss >= iNumNodes);
-          
+
           Matrix H(iNumGauss, iNumNodes);
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
@@ -8946,6 +8970,9 @@ private:
           case VEC_PARTICLE_VELOCITY_C:
                return R3;
 
+          case MAT_MASS_LUMPED:
+               return R5;
+               
           default:
                throw std::runtime_error("tet20: matrix type not supported");
           }
@@ -8968,7 +8995,7 @@ private:
           Hs.xelem(2*nrows+irow) = s;
           Hs.xelem(3*nrows+irow) = t;
      }
-     
+
      static array<IntegrationRule, RNUM> rgIntegRule;
 };
 
@@ -10214,6 +10241,453 @@ private:
 
 array<IntegrationRule, 2> ShapeTria6H::rgIntegRule;
 
+class ShapeTria10 {
+public:
+     static constexpr octave_idx_type iGetNumNodes() {
+          return 10;
+     }
+
+     static constexpr octave_idx_type iGetNumDirections() {
+          return 2;
+     }
+
+     static constexpr octave_idx_type iGetNumDofNode() {
+          return 3;
+     }
+
+     static constexpr octave_idx_type iGetNumEqualityConstr() {
+          return 0;
+     }
+
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 1;
+     }
+
+     static constexpr double EqualityConstr(const ColumnVector&) {
+          return 0;
+     }
+
+     static double InequalityConstr(const ColumnVector& rv) {
+          return rv.xelem(0) + rv.xelem(1) - 1.;
+     }
+
+     static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+          FEM_ASSERT(rmin.rows() == iGetNumDirections());
+          FEM_ASSERT(rmax.rows() == rmin.rows());
+
+          for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+               rmin.xelem(i) = 0.;
+          }
+
+          for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+               rmax.xelem(i) = 1.;
+          }
+     }
+
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
+          FEM_ASSERT(rv.rows() == 2);
+          FEM_ASSERT(HA.rows() > irow);
+          FEM_ASSERT(HA.columns() == 10);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+          const octave_idx_type nrows = HA.rows();
+
+          HA.xelem(irow + nrows * 0) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 1) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 2) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          HA.xelem(irow + nrows * 3) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 4) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          HA.xelem(irow + nrows * 5) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          HA.xelem(irow + nrows * 6) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          HA.xelem(irow + nrows * 7) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          HA.xelem(irow + nrows * 8) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 9) = 27*eta*((-zeta)-eta+1)*zeta;
+     }
+
+     static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          Hf.xelem(0) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          Hf.xelem(1) = 0;
+          Hf.xelem(2) = 0;
+          Hf.xelem(3) = 0;
+          Hf.xelem(4) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          Hf.xelem(5) = 0;
+          Hf.xelem(6) = 0;
+          Hf.xelem(7) = 0;
+          Hf.xelem(8) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          Hf.xelem(9) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          Hf.xelem(10) = 0;
+          Hf.xelem(11) = 0;
+          Hf.xelem(12) = 0;
+          Hf.xelem(13) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          Hf.xelem(14) = 0;
+          Hf.xelem(15) = 0;
+          Hf.xelem(16) = 0;
+          Hf.xelem(17) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          Hf.xelem(18) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(19) = 0;
+          Hf.xelem(20) = 0;
+          Hf.xelem(21) = 0;
+          Hf.xelem(22) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(23) = 0;
+          Hf.xelem(24) = 0;
+          Hf.xelem(25) = 0;
+          Hf.xelem(26) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(27) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(28) = 0;
+          Hf.xelem(29) = 0;
+          Hf.xelem(30) = 0;
+          Hf.xelem(31) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(32) = 0;
+          Hf.xelem(33) = 0;
+          Hf.xelem(34) = 0;
+          Hf.xelem(35) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(36) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          Hf.xelem(37) = 0;
+          Hf.xelem(38) = 0;
+          Hf.xelem(39) = 0;
+          Hf.xelem(40) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          Hf.xelem(41) = 0;
+          Hf.xelem(42) = 0;
+          Hf.xelem(43) = 0;
+          Hf.xelem(44) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          Hf.xelem(45) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(46) = 0;
+          Hf.xelem(47) = 0;
+          Hf.xelem(48) = 0;
+          Hf.xelem(49) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(50) = 0;
+          Hf.xelem(51) = 0;
+          Hf.xelem(52) = 0;
+          Hf.xelem(53) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(54) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(55) = 0;
+          Hf.xelem(56) = 0;
+          Hf.xelem(57) = 0;
+          Hf.xelem(58) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(59) = 0;
+          Hf.xelem(60) = 0;
+          Hf.xelem(61) = 0;
+          Hf.xelem(62) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(63) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          Hf.xelem(64) = 0;
+          Hf.xelem(65) = 0;
+          Hf.xelem(66) = 0;
+          Hf.xelem(67) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          Hf.xelem(68) = 0;
+          Hf.xelem(69) = 0;
+          Hf.xelem(70) = 0;
+          Hf.xelem(71) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          Hf.xelem(72) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(73) = 0;
+          Hf.xelem(74) = 0;
+          Hf.xelem(75) = 0;
+          Hf.xelem(76) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(77) = 0;
+          Hf.xelem(78) = 0;
+          Hf.xelem(79) = 0;
+          Hf.xelem(80) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(81) = 27*eta*((-zeta)-eta+1)*zeta;
+          Hf.xelem(82) = 0;
+          Hf.xelem(83) = 0;
+          Hf.xelem(84) = 0;
+          Hf.xelem(85) = 27*eta*((-zeta)-eta+1)*zeta;
+          Hf.xelem(86) = 0;
+          Hf.xelem(87) = 0;
+          Hf.xelem(88) = 0;
+          Hf.xelem(89) = 27*eta*((-zeta)-eta+1)*zeta          ;
+     }
+
+     static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          dHf_dr.xelem(0) = ((3*zeta-2)*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-2))/2.0E+0;
+          dHf_dr.xelem(1) = 0;
+          dHf_dr.xelem(2) = 0;
+          dHf_dr.xelem(3) = 0;
+          dHf_dr.xelem(4) = ((3*zeta-2)*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-2))/2.0E+0;
+          dHf_dr.xelem(5) = 0;
+          dHf_dr.xelem(6) = 0;
+          dHf_dr.xelem(7) = 0;
+          dHf_dr.xelem(8) = ((3*zeta-2)*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-2))/2.0E+0;
+          dHf_dr.xelem(9) = 0;
+          dHf_dr.xelem(10) = 0;
+          dHf_dr.xelem(11) = 0;
+          dHf_dr.xelem(12) = 0;
+          dHf_dr.xelem(13) = 0;
+          dHf_dr.xelem(14) = 0;
+          dHf_dr.xelem(15) = 0;
+          dHf_dr.xelem(16) = 0;
+          dHf_dr.xelem(17) = 0;
+          dHf_dr.xelem(18) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(19) = 0;
+          dHf_dr.xelem(20) = 0;
+          dHf_dr.xelem(21) = 0;
+          dHf_dr.xelem(22) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(23) = 0;
+          dHf_dr.xelem(24) = 0;
+          dHf_dr.xelem(25) = 0;
+          dHf_dr.xelem(26) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(27) = (9.0E+0*eta*(3*zeta-1))/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_dr.xelem(28) = 0;
+          dHf_dr.xelem(29) = 0;
+          dHf_dr.xelem(30) = 0;
+          dHf_dr.xelem(31) = (9.0E+0*eta*(3*zeta-1))/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_dr.xelem(32) = 0;
+          dHf_dr.xelem(33) = 0;
+          dHf_dr.xelem(34) = 0;
+          dHf_dr.xelem(35) = (9.0E+0*eta*(3*zeta-1))/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_dr.xelem(36) = (9.0E+0*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(37) = 0;
+          dHf_dr.xelem(38) = 0;
+          dHf_dr.xelem(39) = 0;
+          dHf_dr.xelem(40) = (9.0E+0*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(41) = 0;
+          dHf_dr.xelem(42) = 0;
+          dHf_dr.xelem(43) = 0;
+          dHf_dr.xelem(44) = (9.0E+0*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(45) = ((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(46) = 0;
+          dHf_dr.xelem(47) = 0;
+          dHf_dr.xelem(48) = 0;
+          dHf_dr.xelem(49) = ((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(50) = 0;
+          dHf_dr.xelem(51) = 0;
+          dHf_dr.xelem(52) = 0;
+          dHf_dr.xelem(53) = ((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(54) = ((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(55) = 0;
+          dHf_dr.xelem(56) = 0;
+          dHf_dr.xelem(57) = 0;
+          dHf_dr.xelem(58) = ((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(59) = 0;
+          dHf_dr.xelem(60) = 0;
+          dHf_dr.xelem(61) = 0;
+          dHf_dr.xelem(62) = ((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(63) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0+(9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          dHf_dr.xelem(64) = 0;
+          dHf_dr.xelem(65) = 0;
+          dHf_dr.xelem(66) = 0;
+          dHf_dr.xelem(67) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0+(9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          dHf_dr.xelem(68) = 0;
+          dHf_dr.xelem(69) = 0;
+          dHf_dr.xelem(70) = 0;
+          dHf_dr.xelem(71) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0+(9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          dHf_dr.xelem(72) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0+(9.0E+0*((-zeta)-eta+1)*(3*zeta-1))/2.0E+0+(2.7E+1*((-zeta)-eta+1)*zeta)/2.0E+0;
+          dHf_dr.xelem(73) = 0;
+          dHf_dr.xelem(74) = 0;
+          dHf_dr.xelem(75) = 0;
+          dHf_dr.xelem(76) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0+(9.0E+0*((-zeta)-eta+1)*(3*zeta-1))/2.0E+0+(2.7E+1*((-zeta)-eta+1)*zeta)/2.0E+0;
+          dHf_dr.xelem(77) = 0;
+          dHf_dr.xelem(78) = 0;
+          dHf_dr.xelem(79) = 0;
+          dHf_dr.xelem(80) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0+(9.0E+0*((-zeta)-eta+1)*(3*zeta-1))/2.0E+0+(2.7E+1*((-zeta)-eta+1)*zeta)/2.0E+0;
+          dHf_dr.xelem(81) = 27*eta*((-zeta)-eta+1)-27*eta*zeta;
+          dHf_dr.xelem(82) = 0;
+          dHf_dr.xelem(83) = 0;
+          dHf_dr.xelem(84) = 0;
+          dHf_dr.xelem(85) = 27*eta*((-zeta)-eta+1)-27*eta*zeta;
+          dHf_dr.xelem(86) = 0;
+          dHf_dr.xelem(87) = 0;
+          dHf_dr.xelem(88) = 0;
+          dHf_dr.xelem(89) = 27*eta*((-zeta)-eta+1)-27*eta*zeta;
+     }
+
+     static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          dHf_ds.xelem(0) = 0;
+          dHf_ds.xelem(1) = 0;
+          dHf_ds.xelem(2) = 0;
+          dHf_ds.xelem(3) = 0;
+          dHf_ds.xelem(4) = 0;
+          dHf_ds.xelem(5) = 0;
+          dHf_ds.xelem(6) = 0;
+          dHf_ds.xelem(7) = 0;
+          dHf_ds.xelem(8) = 0;
+          dHf_ds.xelem(9) = ((3*eta-2)*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-2))/2.0E+0;
+          dHf_ds.xelem(10) = 0;
+          dHf_ds.xelem(11) = 0;
+          dHf_ds.xelem(12) = 0;
+          dHf_ds.xelem(13) = ((3*eta-2)*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-2))/2.0E+0;
+          dHf_ds.xelem(14) = 0;
+          dHf_ds.xelem(15) = 0;
+          dHf_ds.xelem(16) = 0;
+          dHf_ds.xelem(17) = ((3*eta-2)*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-2))/2.0E+0;
+          dHf_ds.xelem(18) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(19) = 0;
+          dHf_ds.xelem(20) = 0;
+          dHf_ds.xelem(21) = 0;
+          dHf_ds.xelem(22) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(23) = 0;
+          dHf_ds.xelem(24) = 0;
+          dHf_ds.xelem(25) = 0;
+          dHf_ds.xelem(26) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(27) = (9.0E+0*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(28) = 0;
+          dHf_ds.xelem(29) = 0;
+          dHf_ds.xelem(30) = 0;
+          dHf_ds.xelem(31) = (9.0E+0*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(32) = 0;
+          dHf_ds.xelem(33) = 0;
+          dHf_ds.xelem(34) = 0;
+          dHf_ds.xelem(35) = (9.0E+0*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(36) = (9.0E+0*(3*eta-1)*zeta)/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_ds.xelem(37) = 0;
+          dHf_ds.xelem(38) = 0;
+          dHf_ds.xelem(39) = 0;
+          dHf_ds.xelem(40) = (9.0E+0*(3*eta-1)*zeta)/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_ds.xelem(41) = 0;
+          dHf_ds.xelem(42) = 0;
+          dHf_ds.xelem(43) = 0;
+          dHf_ds.xelem(44) = (9.0E+0*(3*eta-1)*zeta)/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_ds.xelem(45) = (9.0E+0*(3*eta-1)*((-zeta)-eta+1))/2.0E+0+(2.7E+1*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_ds.xelem(46) = 0;
+          dHf_ds.xelem(47) = 0;
+          dHf_ds.xelem(48) = 0;
+          dHf_ds.xelem(49) = (9.0E+0*(3*eta-1)*((-zeta)-eta+1))/2.0E+0+(2.7E+1*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_ds.xelem(50) = 0;
+          dHf_ds.xelem(51) = 0;
+          dHf_ds.xelem(52) = 0;
+          dHf_ds.xelem(53) = (9.0E+0*(3*eta-1)*((-zeta)-eta+1))/2.0E+0+(2.7E+1*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_ds.xelem(54) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(55) = 0;
+          dHf_ds.xelem(56) = 0;
+          dHf_ds.xelem(57) = 0;
+          dHf_ds.xelem(58) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(59) = 0;
+          dHf_ds.xelem(60) = 0;
+          dHf_ds.xelem(61) = 0;
+          dHf_ds.xelem(62) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(63) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0;
+          dHf_ds.xelem(64) = 0;
+          dHf_ds.xelem(65) = 0;
+          dHf_ds.xelem(66) = 0;
+          dHf_ds.xelem(67) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0;
+          dHf_ds.xelem(68) = 0;
+          dHf_ds.xelem(69) = 0;
+          dHf_ds.xelem(70) = 0;
+          dHf_ds.xelem(71) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0;
+          dHf_ds.xelem(72) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(73) = 0;
+          dHf_ds.xelem(74) = 0;
+          dHf_ds.xelem(75) = 0;
+          dHf_ds.xelem(76) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(77) = 0;
+          dHf_ds.xelem(78) = 0;
+          dHf_ds.xelem(79) = 0;
+          dHf_ds.xelem(80) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(81) = 27*((-zeta)-eta+1)*zeta-27*eta*zeta;
+          dHf_ds.xelem(82) = 0;
+          dHf_ds.xelem(83) = 0;
+          dHf_ds.xelem(84) = 0;
+          dHf_ds.xelem(85) = 27*((-zeta)-eta+1)*zeta-27*eta*zeta;
+          dHf_ds.xelem(86) = 0;
+          dHf_ds.xelem(87) = 0;
+          dHf_ds.xelem(88) = 0;
+          dHf_ds.xelem(89) = 27*((-zeta)-eta+1)*zeta-27*eta*zeta;
+     }
+
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+          
+          static constexpr double zeta2[] = {0.3333333333333330, 0.0288447332326850, 0.7810368490299260, 0.1417072194148800, 0.0250035347626860, 0.0095408154002990};
+          static constexpr double eta2[] = {0.3333333333333330, 0.4855776333836570, 0.1094815754850370, 0.3079398387641210, 0.2466725606399030, 0.0668032510122000};
+          static constexpr double w2[] = {4.5408995191376998e-02, 1.8362978878233498e-02, 2.2660529717764000e-02, 3.6378958422710002e-02, 1.4163621265528500e-02, 4.7108334818665000e-03};
+          
+          static constexpr octave_idx_type perm2[3][3] = {{0, 1, 2}, {1, 0, 2}, {1, 2, 0}};
+          static constexpr octave_idx_type perm3[6][3] = {{2, 1, 0}, {2, 0, 1}, {1, 2, 0}, {1, 0, 2}, {0, 2, 1}, {0, 1, 2}};
+
+          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+               switch (iIntegRule) {
+               case R2:
+                    rgIntegRule[R2].SetNumEvalPoints(25, 2);
+                    rgIntegRule[R2].SetPosition(0, 0, zeta2[0]);
+                    rgIntegRule[R2].SetPosition(0, 1, eta2[0]);
+                    rgIntegRule[R2].SetWeight(0, w2[0]);
+
+                    for (octave_idx_type i = 1; i < 3; ++i) {
+                         for (octave_idx_type j = 0; j < 3; ++j) {
+                              const octave_idx_type idx = (i - 1) * 3 + j + 1;
+
+                              FEM_ASSERT(idx >= 1);
+                              FEM_ASSERT(idx <= 6);
+
+                              const double x[3] = {zeta2[i], eta2[i], 1. - zeta2[i] - eta2[i]};
+
+                              rgIntegRule[R2].SetWeight(idx, w2[i]);
+
+                              for (octave_idx_type k = 0; k < 2; ++k) {
+                                   rgIntegRule[R2].SetPosition(idx, k, x[perm2[j][k]]);
+                              }
+                         }
+                    }
+
+                    for (octave_idx_type i = 3; i < 6; ++i) {
+                         for (octave_idx_type j = 0; j < 6; ++j) {
+                              const octave_idx_type idx = (i - 3) * 6 + j + 7;
+
+                              FEM_ASSERT(idx >= 7);
+                              FEM_ASSERT(idx < 25);
+                              
+                              const double x[3] = {zeta2[i], eta2[i], 1. - zeta2[i] - eta2[i]};
+
+                              rgIntegRule[R2].SetWeight(idx, w2[i]);
+
+                              for (octave_idx_type k = 0; k < 2; ++k) {
+                                   rgIntegRule[R2].SetPosition(idx, k, x[perm3[j][k]]);
+                              }
+                         }
+                    }
+                    break;
+                    
+               default:
+                    throw std::logic_error("invalid integration rule");
+               }
+          }
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
+
+          return rgIntegRule[iIntegRule];
+     }
+
+private:
+     enum IntegRuleType {
+          R2 = 0,
+          RNUM
+     };
+
+     static octave_idx_type SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               throw std::runtime_error("tria10: VEC_LOAD_LUMPED not implemented, use VEC_LOAD_CONSISTENT instead");
+          default:
+               return R2;
+          }
+     }
+
+     static array<IntegrationRule, RNUM> rgIntegRule;
+};
+
+array<IntegrationRule, ShapeTria10::RNUM> ShapeTria10::rgIntegRule;
+
 class SurfaceElement: public Element {
 protected:
      SurfaceElement(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -11224,36 +11698,43 @@ typedef SurfaceElementImpl<ShapeIso4, PressureLoad> PressureLoadIso4;
 typedef SurfaceElementImpl<ShapeQuad8, PressureLoad> PressureLoadQuad8;
 typedef SurfaceElementImpl<ShapeTria6, PressureLoad> PressureLoadTria6;
 typedef SurfaceElementImpl<ShapeTria6H, PressureLoad> PressureLoadTria6H;
+typedef SurfaceElementImpl<ShapeTria10, PressureLoad> PressureLoadTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, ThermalConvectionBC> ThermalConvectionBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ThermalConvectionBC> ThermalConvectionBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, ThermalConvectionBC> ThermalConvectionBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ThermalConvectionBC> ThermalConvectionBCTria6H;
+typedef SurfaceElementImpl<ShapeTria10, ThermalConvectionBC> ThermalConvectionBCTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, HeatSource> HeatSourceIso4;
 typedef SurfaceElementImpl<ShapeQuad8, HeatSource> HeatSourceQuad8;
 typedef SurfaceElementImpl<ShapeTria6, HeatSource> HeatSourceTria6;
 typedef SurfaceElementImpl<ShapeTria6H, HeatSource> HeatSourceTria6H;
+typedef SurfaceElementImpl<ShapeTria10, HeatSource> HeatSourceTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, ParticleVelocityBC> ParticleVelocityBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ParticleVelocityBC> ParticleVelocityBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, ParticleVelocityBC> ParticleVelocityBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ParticleVelocityBC> ParticleVelocityBCTria6H;
+typedef SurfaceElementImpl<ShapeTria10, ParticleVelocityBC> ParticleVelocityBCTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, AcousticImpedanceBC> AcousticImpedanceBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticImpedanceBC> AcousticImpedanceBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, AcousticImpedanceBC> AcousticImpedanceBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticImpedanceBC> AcousticImpedanceBCTria6H;
+typedef SurfaceElementImpl<ShapeTria10, AcousticImpedanceBC> AcousticImpedanceBCTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, AcousticBoundary> AcousticBoundaryIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticBoundary> AcousticBoundaryQuad8;
 typedef SurfaceElementImpl<ShapeTria6, AcousticBoundary> AcousticBoundaryTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticBoundary> AcousticBoundaryTria6H;
+typedef SurfaceElementImpl<ShapeTria10, AcousticBoundary> AcousticBoundaryTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, FluidStructInteract> FluidStructInteractIso4;
 typedef SurfaceElementImpl<ShapeQuad8, FluidStructInteract> FluidStructInteractQuad8;
 typedef SurfaceElementImpl<ShapeTria6, FluidStructInteract> FluidStructInteractTria6;
 typedef SurfaceElementImpl<ShapeTria6H, FluidStructInteract> FluidStructInteractTria6H;
+typedef SurfaceElementImpl<ShapeTria10, FluidStructInteract> FluidStructInteractTria10;
 
 class StructForce: public Element {
 public:
@@ -12497,6 +12978,11 @@ namespace shape_func_util {
      struct SelectElemPerSlaveNode<ShapeTria6H> {
           static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
      };
+
+     template <>
+     struct SelectElemPerSlaveNode<ShapeTria10> {
+          static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
+     };
 };
 
 class SurfToNodeConstrBase {
@@ -13324,6 +13810,9 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           case ElementTypes::ELEM_SFNCON8:
                iNumNodesElem = ShapeQuad8::iGetNumNodes();
                break;
+          case ElementTypes::ELEM_SFNCON10:
+               iNumNodesElem = ShapeTria10::iGetNumNodes();
+               break;
           default:
                FEM_ASSERT(false);
           }
@@ -13417,6 +13906,18 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                          rgElemBlocks,
                                                          dScale);
                break;
+          case ElementTypes::ELEM_SFNCON10:
+               SurfToNodeConstr<ShapeTria10>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                          nodes,
+                                                          nidxmaster,
+                                                          nidxslave,
+                                                          maxdist,
+                                                          eConstrType,
+                                                          uConstraintFlags,
+                                                          eDomain,
+                                                          rgElemBlocks,
+                                                          dScale);
+               break;
           default:
                FEM_ASSERT(false);
           }
@@ -13463,7 +13964,8 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
           case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
           case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
           case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
-          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H: {
+          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+          case ElementTypes::ELEM_PARTICLE_VEL_TRIA10: {
                const auto iterElem = mapPartVel.seek(oElemType.name);
 
                if (iterElem == mapPartVel.end()) {
@@ -13620,7 +14122,8 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
                case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
                case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8:
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6:
-               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H: {
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H:
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA10: {
                     const auto iter_elem = mapAcousticBoundary.seek(oElemType.name);
 
                     if (iter_elem == mapAcousticBoundary.end()) {
@@ -14078,14 +14581,17 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+               case ElementTypes::ELEM_THERM_CONV_TRIA10:
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
                     if (eDomain == DofMap::DO_THERMAL || eDomain == DofMap::DO_ACOUSTICS || eDomain == DofMap::DO_FLUID_STRUCT) {
                          static constexpr char elem_name[][19] = {"convection", "particle_velocity", "acoustic_impedance"};
 
@@ -14100,6 +14606,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_THERM_CONV_QUAD8:
                          case ElementTypes::ELEM_THERM_CONV_TRIA6:
                          case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+                         case ElementTypes::ELEM_THERM_CONV_TRIA10:
                               ielem_name = EL_IDX_CONVECTION;
                               break;
 
@@ -14107,6 +14614,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
                          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+                         case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
                               ielem_name = EL_IDX_PARTICLE_VEL;
                               break;
 
@@ -14114,6 +14622,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
                               ielem_name = EL_IDX_ACOUSTIC_IMPEDANCE;
                               break;
 
@@ -14373,6 +14882,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_SFNCON10:
                     case ElementTypes::ELEM_THERM_CONSTR:
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                          break;
@@ -14405,6 +14915,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_SFNCON10:
                     case ElementTypes::ELEM_THERM_CONSTR:
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                          const char* const fn = (oElemType.type == ElementTypes::ELEM_JOINT ||
@@ -14428,7 +14939,8 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_SFNCON4:
                          case ElementTypes::ELEM_SFNCON6:
                          case ElementTypes::ELEM_SFNCON6H:
-                         case ElementTypes::ELEM_SFNCON8: {
+                         case ElementTypes::ELEM_SFNCON8:
+                         case ElementTypes::ELEM_SFNCON10: {
                               const auto iter_constr = m_etype.seek("constraint");
 
                               if (iter_constr != m_etype.end()) {
@@ -14455,6 +14967,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    case ElementTypes::ELEM_SFNCON6:
                                    case ElementTypes::ELEM_SFNCON6H:
                                    case ElementTypes::ELEM_SFNCON8:
+                                   case ElementTypes::ELEM_SFNCON10:
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
                                         edof[CS_JOINT].elem_count += ov_fn(j).numel();
@@ -14492,6 +15005,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    case ElementTypes::ELEM_SFNCON6:
                                    case ElementTypes::ELEM_SFNCON6H:
                                    case ElementTypes::ELEM_SFNCON8:
+                                   case ElementTypes::ELEM_SFNCON10:
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
                                         icurrjoints += ov_fn(j).numel();
@@ -14652,7 +15166,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
           rgElemBlocks.reserve(2);
 
-          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON8; ++k) {
+          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON10; ++k) {
                constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
                const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
 
@@ -14966,6 +15480,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_MASS:
@@ -15012,6 +15527,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
 
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
@@ -15037,6 +15553,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_HEAT_CAPACITY:
@@ -15060,11 +15577,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA10] = true;
 
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA10] = true;
                          break;
 
                     default:
@@ -15082,6 +15601,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_MASS_ACOUSTICS_RE:
@@ -15103,6 +15623,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          break;
 
                     case Element::VEC_LOAD_ACOUSTICS:
@@ -15114,6 +15635,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          break;
 
@@ -15129,6 +15651,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_DAMPING_ACOUSTICS_IM:
@@ -15136,6 +15659,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10] = true;
                          break;
 
                     default:
@@ -15174,6 +15698,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
@@ -15189,6 +15714,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          break;
 
@@ -15203,6 +15729,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
@@ -15212,6 +15739,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10] = true;
                          break;
 
                     case Element::VEC_SURFACE_NORMAL_VECTOR:
@@ -15219,6 +15747,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          break;
 
                     case Element::VEC_PARTICLE_VELOCITY:
@@ -15235,6 +15764,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA10] = true;
                          break;
 
                     default:
@@ -15897,7 +16427,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON4:
                case ElementTypes::ELEM_SFNCON6:
                case ElementTypes::ELEM_SFNCON6H:
-               case ElementTypes::ELEM_SFNCON8: {
+               case ElementTypes::ELEM_SFNCON8:
+               case ElementTypes::ELEM_SFNCON10: {
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
                     SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
@@ -15917,6 +16448,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_PRESSURE_TRIA6H:
                     InsertPressureElem<PressureLoadTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_PRESSURE_TRIA10:
+                    InsertPressureElem<PressureLoadTria10>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
                case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
                     InsertFluidStructElem<FluidStructInteractIso4>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -15928,6 +16462,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
                     InsertFluidStructElem<FluidStructInteractTria6H>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_TRIA10:
+                    InsertFluidStructElem<FluidStructInteractTria10>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_STRUCT_FORCE: {
                     const auto iter_loads = load_case.seek("loads");
@@ -16010,6 +16547,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
                     InsertThermalConvElem<ThermalConvectionBCTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_THERM_CONV_TRIA10:
+                    InsertThermalConvElem<ThermalConvectionBCTria10>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
                case ElementTypes::ELEM_HEAT_SOURCE_ISO4:
                     InsertHeatSourceElem<HeatSourceIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -16021,6 +16561,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_HEAT_SOURCE_TRIA6H:
                     InsertHeatSourceElem<HeatSourceTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_TRIA10:
+                    InsertHeatSourceElem<HeatSourceTria10>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
                     InsertParticleVelocityBC<ParticleVelocityBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
@@ -16034,6 +16577,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
                     InsertParticleVelocityBC<ParticleVelocityBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
+                    InsertParticleVelocityBC<ParticleVelocityBCTria10>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
+                    break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
@@ -16046,6 +16592,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria10>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
+                    break;
                case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
                     InsertAcousticBoundary<AcousticBoundaryIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -16057,6 +16606,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H:
                     InsertAcousticBoundary<AcousticBoundaryTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA10:
+                    InsertAcousticBoundary<AcousticBoundaryTria10>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                default:
                     FEM_ASSERT(false);
