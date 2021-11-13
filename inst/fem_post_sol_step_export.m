@@ -103,6 +103,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                     idxnode = int32([1:4]);
                   case {"tria6", "tria6h"}
                     idxnode = int32([1:6]);
+                  case "tria10"
+                    idxnode = int32([1:10]);
 		  case "quad8"
 		    idxnode = int32([1:8]);
                   case "iso8"
