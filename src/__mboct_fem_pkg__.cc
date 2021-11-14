@@ -8933,6 +8933,8 @@ private:
           case MAT_STIFFNESS_SYM_L:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
