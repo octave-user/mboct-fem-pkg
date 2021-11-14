@@ -2872,9 +2872,11 @@ public:
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_FLUID_STRUCT:
-               pFunc = &Element3D::StructuralLoadVector;
-               iNumRows = iNumDof;
-               iNumCols = iNumPreLoads;
+               if (eMaterial == Material::MAT_TYPE_SOLID) {
+                    pFunc = &Element3D::StructuralLoadVector;
+                    iNumRows = iNumDof;
+                    iNumCols = iNumPreLoads;
+               }
                break;
 
           case MAT_THERMAL_COND:
