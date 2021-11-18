@@ -57759,81 +57759,79 @@ endfunction
 %!   endif
 %!   fd = -1;
 %!   unwind_protect
-%!   [fd, msg] = fopen([filename, ".geo"], "w");
-%!   if (fd == -1)
-%!     error("failed to open file \"%s.geo\"", filename);
-%!   endif
-%!   unit_meters = 1;
-%!   unit_second = 1;
-%!   unit_kilograms = 1;
-%!   unit_newton = unit_kilograms * unit_meters / unit_second^2;
-%!   unit_pascal = unit_newton / unit_meters^2;
-%!   g = 9.81 * unit_meters / unit_second^2;
-%!   l1 = 10e-3 / unit_meters;
-%!   l2 = 10e-3 / unit_meters;
-%!   l3 = 10e-3 / unit_meters;
-%!   c1 = 1400 / (unit_meters / unit_second);
-%!   rho1 = 1000 / (unit_kilograms / unit_meters^3);
-%!   eta1 = 1e-3 / (unit_pascal * unit_second);
-%!   zeta1 = 0 / (unit_pascal * unit_second);
-%!   E2 = 70000e6 / unit_pascal;
-%!   rho2 = 2700 / (unit_kilograms / unit_meters^3);
-%!   nu2 = 0.3;
-%!   alpha2 = 0 / (unit_second^-1);
-%!   beta2 = 1e-8 / unit_second;
-%!   c3 = 1400 / (unit_meters / unit_second);
-%!   rho3 = 1000 / (unit_kilograms / unit_meters^3);
-%!   eta3 = 1e-3 / (unit_pascal * unit_second);
-%!   zeta3 = 0 / (unit_pascal * unit_second);
-%!   dx = 1e-3 / unit_meters;
-%!   w = dx;
-%!   h = dx;
-%!   c2 = sqrt(E2 / rho2);
-%!   dt = dx / c1 /100;
-%!   T = 1000 * dt;
-%!   t = 0:dt:T;
-%!   fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!   fprintf(fd, "l1=%g;\n", l1);
-%!   fprintf(fd, "l2=%g;\n", l2);
-%!   fprintf(fd, "l3=%g;\n", l3);
-%!   fprintf(fd, "w=%g;\n", w);
-%!   fprintf(fd, "h=%g;\n", h);
-%!   fprintf(fd, "dx = %g;\n", dx);
-%!   fputs(fd, "Point(1) = {0,0,0};\n");
-%!   fputs(fd, "Point(2) = {0,w,0};\n");
-%!   fputs(fd, "Point(3) = {0,w,h};\n");
-%!   fputs(fd, "Point(4) = {0,0,h};\n");
-%!   fputs(fd, "Line(1) = {1,2};\n");
-%!   fputs(fd, "Line(2) = {2,3};\n");
-%!   fputs(fd, "Line(3) = {3,4};\n");
-%!   fputs(fd, "Line(4) = {4,1};\n");
-%!   fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!   fputs(fd, "Plane Surface(6) = {5};\n");
-%!   fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
-%!   fputs(fd, "  Surface{6}; Layers{Ceil(l1/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
-%!   fputs(fd, "tmp2[] = Extrude {l2,0,0} {\n");
-%!   fputs(fd, "  Surface{tmp1[0]}; Layers{Ceil(l2/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{tmp1[0], tmp2[0]};\n");
-%!   fputs(fd, "tmp3[] = Extrude {l3,0,0} {\n");
-%!   fputs(fd, "  Surface{tmp2[0]}; Layers{Ceil(l3/dx)}; Recombine;\n");
-%!   fputs(fd, "};\n");
-%!   fputs(fd, "Recombine Surface{tmp2[0], tmp3[0]};\n");
-%!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
-%!   fputs(fd, "Physical Surface(\"output\",2) = {tmp3[0]};\n");
-%!   fputs(fd, "Physical Surface(\"fsi-bnd1\",3) = {tmp1[0]};\n");
-%!   fputs(fd, "Physical Surface(\"fsi-bnd2\",4) = {tmp2[0]};\n");
-%!   fputs(fd, "Physical Surface(\"slider1\",8) = {tmp2[2]};\n");
-%!   fputs(fd, "Physical Surface(\"slider2\",9) = {tmp2[5]};\n");
-%!   fputs(fd, "Physical Volume(\"volume1\",5) = {tmp1[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
-%!   fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "ReorientMesh Volume{tmp2[1]};\n");
-%!   fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1;
+%!     unit_second = 1;
+%!     unit_kilograms = 1;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     g = 9.81 * unit_meters / unit_second^2;
+%!     l1 = 100e-3 / unit_meters;
+%!     l2 = 10e-3 / unit_meters;
+%!     l3 = 100e-3 / unit_meters;
+%!     c1 = 1400 / (unit_meters / unit_second);
+%!     rho1 = 1000 / (unit_kilograms / unit_meters^3);
+%!     eta1 = 1e-3 / (unit_pascal * unit_second);
+%!     zeta1 = 0 / (unit_pascal * unit_second);
+%!     E2 = 70000e6 / unit_pascal;
+%!     rho2 = 2700 / (unit_kilograms / unit_meters^3);
+%!     nu2 = 0.3;
+%!     alpha2 = 0 / (unit_second^-1);
+%!     beta2 = 1e-8 / unit_second;
+%!     c3 = 1400 / (unit_meters / unit_second);
+%!     rho3 = 1000 / (unit_kilograms / unit_meters^3);
+%!     eta3 = 1e-3 / (unit_pascal * unit_second);
+%!     zeta3 = 0 / (unit_pascal * unit_second);
+%!     dx = 1e-3 / unit_meters;
+%!     w = dx;
+%!     h = dx;
+%!     f = 10000 / (unit_second^-1);
+%!     omega = 2 * pi * f;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "l1=%g;\n", l1);
+%!     fprintf(fd, "l2=%g;\n", l2);
+%!     fprintf(fd, "l3=%g;\n", l3);
+%!     fprintf(fd, "w=%g;\n", w);
+%!     fprintf(fd, "h=%g;\n", h);
+%!     fprintf(fd, "dx = %g;\n", dx);
+%!     fputs(fd, "Point(1) = {0,0,0};\n");
+%!     fputs(fd, "Point(2) = {0,w,0};\n");
+%!     fputs(fd, "Point(3) = {0,w,h};\n");
+%!     fputs(fd, "Point(4) = {0,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp1[] = Extrude {l1,0,0} {\n");
+%!     fputs(fd, "  Surface{6}; Layers{Ceil(l1/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{6, tmp1[0]};\n");
+%!     fputs(fd, "tmp2[] = Extrude {l2,0,0} {\n");
+%!     fputs(fd, "  Surface{tmp1[0]}; Layers{Ceil(l2/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{tmp1[0], tmp2[0]};\n");
+%!     fputs(fd, "tmp3[] = Extrude {l3,0,0} {\n");
+%!     fputs(fd, "  Surface{tmp2[0]}; Layers{Ceil(l3/dx)}; Recombine;\n");
+%!     fputs(fd, "};\n");
+%!     fputs(fd, "Recombine Surface{tmp2[0], tmp3[0]};\n");
+%!     fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"output\",2) = {tmp3[0]};\n");
+%!     fputs(fd, "Physical Surface(\"fsi-bnd1\",3) = {tmp1[0]};\n");
+%!     fputs(fd, "Physical Surface(\"fsi-bnd2\",4) = {tmp2[0]};\n");
+%!     fputs(fd, "Physical Surface(\"slider1\",8) = {tmp2[2]};\n");
+%!     fputs(fd, "Physical Surface(\"slider2\",9) = {tmp2[5]};\n");
+%!     fputs(fd, "Physical Volume(\"volume1\",5) = {tmp1[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume2\",6) = {tmp2[1]};\n");
+%!     fputs(fd, "Physical Volume(\"volume3\",7) = {tmp3[1]};\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "ReorientMesh Volume{tmp2[1]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -57876,40 +57874,41 @@ endfunction
 %!                               "beta", {[], beta2, []});
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   load_case.g = [g; 0; 0];
-%!   [mat_ass.Kfs, ...
-%!    mat_ass.Mfs, ...
-%!    mat_ass.Dfs, ...
+%!   [mat_ass.Mfs_re, ...
+%!    mat_ass.Mfs_im, ...
+%!    mat_ass.Dfs_re, ...
+%!    mat_ass.Dfs_im, ...
+%!    mat_ass.Kfs_re, ...
+%!    mat_ass.Kfs_im, ...
 %!    mat_ass.Rfs, ...
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
-%!                                        [FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
-%!                                         FEM_MAT_MASS_FLUID_STRUCT_RE, ...
+%!                                        [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
+%!                                         FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_STIFFNESS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
-%!   dPhi_dt2(:, 1) = mat_ass.Mfs \ mat_ass.Rfs;
 %!   opt_sol.number_of_threads = int32(1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.delta = 0.6;
-%!   sol_dat = fem_sol_transient_init(mat_ass.Mfs, mat_ass.Dfs, mat_ass.Kfs, dt, opt_sol);
-%!   for i=2:numel(t)
-%!     if (mod(i, 10) == 0)
-%!       fprintf(stderr, "Step %d/%d\n", i, numel(t));
-%!     endif
-%!     [Phi(:, i), dPhi_dt(:, i), dPhi_dt2(:, i)] = fem_sol_transient_step(Phi(:, i - 1), dPhi_dt(:, i - 1), dPhi_dt2(:, i - 1), mat_ass.Rfs, sol_dat);
-%!   endfor
-%!   sol.t = t;
+%!   Keff = -omega^2 * complex(mat_ass.Mfs_re, mat_ass.Mfs_im) + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
+%!   Reff = complex(mat_ass.Rfs);
+%!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
+%!   sol.t = linspace(0, 2 * pi, 36) / omega;
 %!   idxp = dof_map.ndof(:, 7);
 %!   idxp1 = find(idxp > 0);
 %!   idxp = idxp(idxp1);
-%!   sol.p(idxp1, :) = -dPhi_dt(idxp, :);
+%!   sol.p = zeros(rows(dof_map.ndof), numel(sol.t));
+%!   sol.def = zeros(rows(dof_map.ndof), columns(dof_map.ndof), numel(sol.t));
+%!   sol.p(idxp1, :) = real(-1j * omega * Phi(idxp, :) .* exp(1j * omega * sol.t));
 %!   for j=1:6
 %!     idxU = dof_map.ndof(:, j);
 %!     idxU1 = find(idxU > 0);
 %!     idxU = idxU(idxU1);
-%!     sol.def(idxU1, j, :) = Phi(idxU, :);
+%!     sol.def(idxU1, j, :) = real(Phi(idxU, :) .* exp(1j * omega * sol.t));
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
