@@ -58844,7 +58844,7 @@ endfunction
 %!test
 %! ### TEST 318
 %! ### rigid body motion of a solid domain between two fluid domains
-%! do_plot = true;
+%! do_plot = false;
 %! if (do_plot)
 %!   close all;
 %! endif
@@ -58866,9 +58866,9 @@ endfunction
 %!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
 %!     unit_pascal = unit_newton / unit_meters^2;
 %!     g = 9.81 * unit_meters / unit_second^2;
-%!     l1 = 50e-3 / unit_meters;
-%!     l0 = 10e-3 / unit_meters;
-%!     l2 = 50e-3 / unit_meters;
+%!     l1 = 15e-3 / unit_meters;
+%!     l0 = 5e-3 / unit_meters;
+%!     l2 = 15e-3 / unit_meters;
 %!     c = 1400 / (unit_meters / unit_second);
 %!     rhof = 1000 / (unit_kilograms / unit_meters^3);
 %!     eta = 0 / (unit_pascal * unit_second);
@@ -58997,7 +58997,7 @@ endfunction
 %!   Keff = -omega^2 * complex(mat_ass.Mfs_re, mat_ass.Mfs_im) + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!   Reff = complex(mat_ass.Rfs);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
-%!   sol.t = linspace(0, 2 * pi, 36) / omega;
+%!   sol.t = linspace(0, 2 * pi, 18) / omega;
 %!   idxp = dof_map.ndof(:, 7);
 %!   idxp1 = find(idxp > 0);
 %!   idxp = idxp(idxp1);
@@ -59012,23 +59012,20 @@ endfunction
 %!   endfor
 %!   p1 = @(x, t) A1 * exp(1j * (omega * t - k * x)) + B1 * exp(1j * (omega * t + k * x));
 %!   p2 = @(x, t) A2 * exp(1j * (omega * t - k * x)) + B2 * exp(1j * (omega * t + k * x));
-%!   x1 = linspace(0, l1, 100);
-%!   x2 = linspace(l1 + l0, l1 + l0 + l2, 100);
-%!   tol = 1e-3;
+%!   x1 = linspace(0, l1, 25).';
+%!   x2 = linspace(l1 + l0, l1 + l0 + l2, 25).';
+%!   tol = 5e-3;
+%!   p1ref = real(p1(x1, sol.t));
+%!   p2ref = real(p2(x2, sol.t));
 %!   for i=1:numel(sol.t)
-%!     p1ref = real(p1(x1, sol.t(i)));
-%!     p2ref = real(p2(x2, sol.t(i)));
 %!     p1n = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), sol.p(:, i), x1, zeros(size(x1)), zeros(size(x1)));
 %!     p2n = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), sol.p(:, i), x2, zeros(size(x2)), zeros(size(x2)));
 %!     Un = mean(sol.def(mesh.groups.tet20(grp_idx_volume2).nodes, 1, i));
-%!     assert(p1n.', p1ref, tol * max(abs(p1ref)));
-%!     assert(p2n.', p2ref, tol * max(abs(p2ref)));
-%!     assert(Un, real(U * exp(1j * omega * sol.t(i))), tol * abs(U));
 %!     if (do_plot)
 %!       figure("visible", "off");
 %!       hold on;
-%!       plot(x1 * unit_meters, p1ref * unit_pascal, "-;p1;1");
-%!       plot(x2 * unit_meters, p2ref * unit_pascal, "-;p2;2");
+%!       plot(x1 * unit_meters, p1ref(:, i) * unit_pascal, "-;p1;1");
+%!       plot(x2 * unit_meters, p2ref(:, i) * unit_pascal, "-;p2;2");
 %!       plot(x1 * unit_meters, p1n * unit_pascal, "-;p1n;4");
 %!       plot(x2 * unit_meters, p2n * unit_pascal, "-;p2n;5");
 %!       ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
@@ -59037,6 +59034,9 @@ endfunction
 %!       grid minor on;
 %!       title(sprintf("pressure t=%.2fs", sol.t(i) * unit_second));
 %!     endif
+%!     assert(p1n, p1ref(:, i), tol * max(max(abs(p1ref))));
+%!     assert(p2n, p2ref(:, i), tol * max(max(abs(p2ref))));
+%!     assert(Un, real(U * exp(1j * omega * sol.t(i))), tol * abs(U));
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
