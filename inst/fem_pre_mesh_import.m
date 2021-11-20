@@ -47837,11 +47837,10 @@ endfunction
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
-%!     a = 5e-3;
-%!     b = 300e-3;
-%!     c = 10e-3;
-%!     mesh_size = 5e-3;
-%!     scale_def = 10e-3;
+%!     a = 5;
+%!     b = 300;
+%!     c = 10;
+%!     mesh_size = 5;
 %!     N = 20;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "a = %g;\n", a);
@@ -47884,9 +47883,9 @@ endfunction
 %!   unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
-%!   E = 210000e6;
+%!   E = 210000;
 %!   nu = 0.3;
-%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.rho = 7850e-9;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   dof_map.parallel.threads_ass = int32(4);
@@ -47911,8 +47910,9 @@ endfunction
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;
-%!   opt_sol.refine_max_iter = int32(10);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, 1e-3, sqrt(eps), "shift-invert", opt_sol);
+%!   opt_sol.refine_max_iter = int32(20);
+%!   shift = sqrt(eps) * max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M)));
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, sqrt(eps), "shift-invert", opt_sol);
 %!   sol_eig.stress = fem_ass_matrix(mesh, ...
 %!                                   dof_map, ...
 %!                                   [FEM_VEC_STRESS_CAUCH], ...
@@ -47925,9 +47925,9 @@ endfunction
 %!   J3ref = mref * (a^2 + b^2) / 12;
 %!   Jref = diag([J1ref, J2ref, J3ref]) - skew(lcg) * skew(lcg) * mref;
 %!   Sref = mref * lcg;
-%!   assert(mat_ass.mtot, mref, eps^0.9 * mref);
-%!   assert(mat_ass.J, Jref, eps^0.9 * norm(Jref));
-%!   assert(mat_ass.S, Sref, eps^0.9 * norm(Sref));
+%!   assert(mat_ass.mtot, mref, eps^0.8 * mref);
+%!   assert(mat_ass.J, Jref, eps^0.8 * norm(Jref));
+%!   assert(mat_ass.S, Sref, eps^0.8 * norm(Sref));
 %!   tolf = eps^0.3;
 %!   tolt = eps^0.4;
 %!   assert(max(max(max(max(abs(sol_eig.stress.tau.tet20(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.tet20(:, :, :, 7:end)))))));
@@ -47942,101 +47942,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 257: patch test of tet20
-%! do_plot = false;
-%! if (do_plot)
-%!   close all;
-%! endif
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
-%!     endif
-%!     a = 8e-3;
-%!     b = 200e-3;
-%!     c = 20e-3;
-%!     mesh_size = 3.5e-3;
-%!     scale_def = 10e-3;
-%!     N = 20;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fprintf(fd, "a = %g;\n", a);
-%!     fprintf(fd, "b = %g;\n", b);
-%!     fprintf(fd, "c = %g;\n", c);
-%!     fprintf(fd, "h = %g;\n", mesh_size);
-%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
-%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
-%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
-%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Line(3) = {3,4};\n");
-%!     fputs(fd, "Line(4) = {4,1};\n");
-%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
-%!     fputs(fd, "Plane Surface(6) = {5};\n");
-%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
-%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
-%!     fputs(fd, "Mesh.HighOrderOptimize=1;\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   load_case.locked_dof(mesh.groups.tria6(find([mesh.groups.tria6.id] == 1)).nodes, 1:3) = true;
-%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
-%!   E = 210000e6;
-%!   nu = 0.3;
-%!   mesh.material_data.rho = 7850;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   dof_map.parallel.threads_ass = int32(4);
-%!   dof_map.parallel.threshold_elem = int32(1000);
-%!   [mat_ass.M, ...
-%!    mat_ass.D, ...
-%!    mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_MASS, ...
-%!                                 FEM_MAT_DAMPING, ...
-%!                                 FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT], ...
-%!                                load_case);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, 0, sqrt(eps), "shift-invert", "pastix", int32(4));
-%!   sol_eig.stress = fem_ass_matrix(mesh, ...
-%!                                   dof_map, ...
-%!                                   [FEM_SCA_STRESS_VMIS], ...
-%!                                   load_case, ...
-%!                                   sol_eig);
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
+%! ## TEST 257: unused
 
 %!test
 %! ### TEST258
