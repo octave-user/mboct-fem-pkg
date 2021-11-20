@@ -14490,7 +14490,7 @@ endfunction
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
-%!     dx = 1e-3;
+%!     dx = 3e-3;
 %!     L = 100e-3;
 %!     W = dx;
 %!     H = dx;
@@ -14588,7 +14588,7 @@ endfunction
 %!   endfor
 %!   theta_ref = theta0 * theta_ref;
 %!   tol = 1e-3;
-%!   assert(sol.theta(idx_x, 100:end), theta_ref(:, 100:end), tol * abs(theta0));
+%!   assert(max(max(abs(sol.theta(idx_x, 100:end) - theta_ref(:, 100:end)))) < tol * abs(theta0));
 %!   if (do_plot)
 %!     for i=[1:10,11:100:numel(sol.t)]
 %!       figure("visible", "off");
@@ -17216,7 +17216,7 @@ endfunction
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
-%!     dx = 2.5e-3;
+%!     dx = 5e-3;
 %!     R = 0.1;
 %!     Phi1 = -15 * pi / 180;
 %!     Phi2 = 15 * pi / 180;
@@ -17354,8 +17354,8 @@ endfunction
 %!     title("temperature at the surface");
 %!   endif
 %!   tol = 1.5e-2;
-%!   assert(interp1(sol.t, theta_surface, t_ref, "linear", "extrap"), theta_ref_surface, tol * abs(thetae - theta0));
-%!   assert(interp1(sol.t, theta_center, t_ref, "linear", "extrap"), theta_ref_center, tol * abs(thetae - theta0));
+%!   assert(max(max(abs(interp1(sol.t, theta_surface, t_ref, "linear", "extrap") - theta_ref_surface))) < tol * abs(thetae - theta0));
+%!   assert(max(max(abs(interp1(sol.t, theta_center, t_ref, "linear", "extrap") - theta_ref_center))) < tol * abs(thetae - theta0));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -24250,7 +24250,10 @@ endfunction
 %! ## 18.303 Linear Partial Differential Equations
 %! ## Matthew J. Hancock
 %! ## Fall 2006
-%! close all;
+%! do_plot = true;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -24264,7 +24267,7 @@ endfunction
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
 %!     l = 1.5;
-%!     dx = 3e-3;
+%!     dx = 8e-3;
 %!     w = dx;
 %!     h = dx;
 %!     c = 340;
@@ -24365,6 +24368,7 @@ endfunction
 %!   endfor
 %!   sol.t = t;
 %!   sol.p = -dPhi_dt(dof_map.ndof, :);
+%!   if (do_plot)
 %!   for i=1:20:numel(t)
 %!     figure("visible", "off");
 %!     hold on;
@@ -24377,8 +24381,9 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("t=%.2fs", t(i)));
 %!   endfor
-%!   tol = 5e-3;
-%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%!   endif
+%!   tol = 1e-2;
+%!   assert(max(max(abs(Phi(idx, :) - Phiref))) < tol * max(max(abs(Phiref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -33066,7 +33071,10 @@ endfunction
 
 %!test
 %! ### TEST 192
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -33110,9 +33118,9 @@ endfunction
 %!   lambda1 = c1 / f;
 %!   lambda2 = c2 / f;
 %!   lambda3 = c3 / f;
-%!   dx1 = lambda1 / 30;
-%!   dx2 = lambda2 / 30;
-%!   dx3 = lambda3 / 30;
+%!   dx1 = lambda1 / 20;
+%!   dx2 = lambda2 / 20;
+%!   dx3 = lambda3 / 20;
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
@@ -33360,6 +33368,7 @@ endfunction
 %!   [r, idx] = sort(norm(mesh.nodes(:, 1:3), "rows"));
 %!   vref = real(v(r, sol.t));
 %!   pref = real(p(r, sol.t));
+%!   if (do_plot)
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
@@ -33382,10 +33391,11 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
+%!   endif
 %!   tol = 2e-2;
 %!   idx2 = find(r < r1 | r > r2);
-%!   assert(vr(idx, :), vref, tol * max(max(abs(vref))));
-%!   assert(sol.p(idx(idx2), :), pref(idx2,:), tol * max(max(abs(pref))));
+%!   assert(max(max(abs(vr(idx, :) - vref))) < tol * max(max(abs(vref))));
+%!   assert(max(max(abs(sol.p(idx(idx2), :) - pref(idx2,:)))) < tol * max(max(abs(pref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -35269,7 +35279,10 @@ endfunction
 
 %!test
 %! ### TEST 199
-%! close all;
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -35313,9 +35326,9 @@ endfunction
 %!   lambda1 = c1 / f;
 %!   lambda2 = c2 / f;
 %!   lambda3 = c3 / f;
-%!   dx1 = lambda1 / 30;
-%!   dx2 = lambda2 / 30;
-%!   dx3 = lambda3 / 30;
+%!   dx1 = lambda1 / 20;
+%!   dx2 = lambda2 / 20;
+%!   dx3 = lambda3 / 20;
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
@@ -35567,6 +35580,7 @@ endfunction
 %!   [r, idx] = sort(norm(mesh.nodes(:, 1:3), "rows"));
 %!   vref = real(v(r, sol.t));
 %!   pref = real(p(r, sol.t));
+%!   if (do_plot)
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
@@ -35589,10 +35603,11 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
-%!   tol = 2e-2;
+%!   endif
+%!   tol = 2.5e-2;
 %!   idx2 = find(r < r1 | r > r2);
-%!   assert(vr(idx, :), vref, tol * max(max(abs(vref))));
-%!   assert(sol.p(idx(idx2), :), pref(idx2,:), tol * max(max(abs(pref))));
+%!   assert(max(max(abs(vr(idx, :) - vref))) < tol * max(max(abs(vref))));
+%!   assert(max(max(abs(sol.p(idx(idx2), :) - pref(idx2,:)))) < tol * max(max(abs(pref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -38881,7 +38896,7 @@ endfunction
 %!     d2 = 120e-3 / unit_meters;
 %!     d3 = 60e-3 / unit_meters;
 %!     t = 3.5e-3 / unit_meters;
-%!     h1 = 3 * t;
+%!     h1 = 4 * t;
 %!     E1 = 210000e6 / unit_pascal;
 %!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
 %!     nu1 = 0.3;
@@ -47961,7 +47976,107 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 257: unused
+%! ## TEST 257
+%! ## M. Maeder, R. D'Auria, E. Grasso, G. Petrone b, S. De Rosa, M. Klaerner, L. Kroll, S. Marburg
+%! ## Numerical analysis of sound radiation from rotating discs
+%! ## Journal of Sound and Vibration 468 (2020) 115085
+%! close all;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     unit_meters = 1e-3;
+%!     unit_second = 1e4;
+%!     unit_kilograms = 1e-3;
+%!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
+%!     unit_pascal = unit_newton / unit_meters^2;
+%!     N = 13;
+%!     d1 = 800e-3 / unit_meters;
+%!     d2 = 120e-3 / unit_meters;
+%!     d3 = 60e-3 / unit_meters;
+%!     t = 3.5e-3 / unit_meters;
+%!     h1 = 10 * t;
+%!     E1 = 210000e6 / unit_pascal;
+%!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
+%!     nu1 = 0.3;
+%!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "d1 = %g;\n", d1);
+%!     fprintf(fd, "d2 = %g;\n", d2);
+%!     fprintf(fd, "d3 = %g;\n", d3);
+%!     fprintf(fd, "t = %g;\n", t);
+%!     fprintf(fd, "h1 = %g;\n", h1);
+%!     fputs(fd, "v1 = newv;\n");
+%!     fputs(fd, "Cylinder(v1) = {0, 0, -0.5 * t, 0, 0, t, 0.5 * d1};\n");
+%!     fputs(fd, "v2 = newv;\n");
+%!     fputs(fd, "Cylinder(v2) = {0, 0, -0.5 * t, 0, 0, t, 0.5 * d2};\n");
+%!     fputs(fd, "v3 = newv;\n");
+%!     fputs(fd, "Cylinder(v3) = {0, 0, -0.5 * t, 0, 0, t, 0.5 * d3};\n");
+%!     fputs(fd, "v5 = BooleanFragments{Volume{v1};Delete;}{Volume{v2,v3};Delete;};\n");
+%!     fputs(fd, "Physical Volume(\"solid\", 1) = {8, 9};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\", 3) = {14, 15};\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 1;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{8, 9}; } } = h1;\n");
+%!     fputs(fd, "Mesh.HighOrderIterMax = 100;\n");
+%!     fputs(fd, "Mesh.HighOrderPassMax = 100;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-ho_min", "0.5", "-ho_max", "1.5",  [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   unlink([filename, ".geo"]);
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   unlink([filename, ".msh"]);
+%!   grp_idx_v_solid = find([mesh.groups.tet20.id] == 1);
+%!   grp_idx_s_clamp = find([mesh.groups.tria10.id] == 3);
+%!   mesh.material_data.E = E1;
+%!   mesh.material_data.rho = rho1;
+%!   mesh.material_data.nu = nu1;
+%!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
+%!   mesh.materials.tet20(mesh.groups.tet20(grp_idx_v_solid).elements) = 1;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
+%!   load_case_dof.locked_dof(mesh.groups.tria10(grp_idx_s_clamp).nodes, 1:3) = true;
+%!   load_case_dof.domain = FEM_DO_STRUCTURAL;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   [mat_ass.K, ...
+%!    mat_ass.M, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_STIFFNESS, ...
+%!                                         FEM_MAT_MASS], ...
+%!                                        load_case_dof);
+%!   rho = 0;
+%!   alg = "shift-invert";
+%!   solver = "pastix";
+%!   num_threads = int32(4);
+%!   tol_modes = 1e-3;
+%!   fref = [22.1, 22.1, 25.6, 32.6, 32.6, 68.6, 68.6, 119.2, 119.2, 155.8, 167.8, 167.8, 182.9];
+%!   tol_freq_rel = 0.5e-2;
+%!   tol_freq_abs = 0.5;
+%!   tol_freq = tol_freq_abs + tol_freq_rel * fref;
+%!   sol = fem_sol_modal(mesh, dof_map, mat_ass, N, rho, tol_modes, alg, solver, num_threads);
+%!   assert(all(abs(sol.f * unit_second^-1 - fref) < tol_freq));
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
 
 %!test
 %! ### TEST258
@@ -53675,7 +53790,7 @@ endfunction
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
 %!     l = 1.5;
-%!     dx = 3e-3;
+%!     dx = 6e-3;
 %!     w = dx;
 %!     h = dx;
 %!     c = 340;
@@ -53790,8 +53905,8 @@ endfunction
 %!     title(sprintf("t=%.2fs", t(i)));
 %!   endfor
 %!   endif
-%!   tol = 5e-3;
-%!   assert(Phi(idx, :), Phiref, tol * max(max(abs(Phiref))));
+%!   tol = 7e-3;
+%!   assert(max(max(abs(Phi(idx, :) - Phiref))) < tol * max(max(abs(Phiref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -57902,7 +58017,7 @@ endfunction
 %!test
 %! ### TEST 314
 %! ### rigid body motion of a solid domain between two fluid domains
-%! do_plot = true;
+%! do_plot = false;
 %! if (do_plot)
 %!   close all;
 %! endif
@@ -57924,9 +58039,9 @@ endfunction
 %!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
 %!     unit_pascal = unit_newton / unit_meters^2;
 %!     g = 9.81 * unit_meters / unit_second^2;
-%!     l1 = 100e-3 / unit_meters;
-%!     l0 = 10e-3 / unit_meters;
-%!     l2 = 100e-3 / unit_meters;
+%!     l1 = 10e-3 / unit_meters;
+%!     l0 = 1e-3 / unit_meters;
+%!     l2 = 10e-3 / unit_meters;
 %!     c = 1400 / (unit_meters / unit_second);
 %!     rhof = 1000 / (unit_kilograms / unit_meters^3);
 %!     eta = 0 / (unit_pascal * unit_second);
@@ -58056,7 +58171,7 @@ endfunction
 %!   Keff = -omega^2 * complex(mat_ass.Mfs_re, mat_ass.Mfs_im) + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!   Reff = complex(mat_ass.Rfs);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
-%!   sol.t = linspace(0, 2 * pi, 36) / omega;
+%!   sol.t = linspace(0, 2 * pi, 18) / omega;
 %!   idxp = dof_map.ndof(:, 7);
 %!   idxp1 = find(idxp > 0);
 %!   idxp = idxp(idxp1);
@@ -58071,23 +58186,20 @@ endfunction
 %!   endfor
 %!   p1 = @(x, t) A1 * exp(1j * (omega * t - k * x)) + B1 * exp(1j * (omega * t + k * x));
 %!   p2 = @(x, t) A2 * exp(1j * (omega * t - k * x)) + B2 * exp(1j * (omega * t + k * x));
-%!   x1 = linspace(0, l1, 100);
-%!   x2 = linspace(l1 + l0, l1 + l0 + l2, 100);
-%!   tol = 1e-3;
+%!   x1 = linspace(0, l1, 25).';
+%!   x2 = linspace(l1 + l0, l1 + l0 + l2, 25).';
+%!   tol = 5e-3;
+%!   p1ref = real(p1(x1, sol.t));
+%!   p2ref = real(p2(x2, sol.t));
 %!   for i=1:numel(sol.t)
-%!     p1ref = real(p1(x1, sol.t(i)));
-%!     p2ref = real(p2(x2, sol.t(i)));
 %!     p1n = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), sol.p(:, i), x1, zeros(size(x1)), zeros(size(x1)));
 %!     p2n = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), sol.p(:, i), x2, zeros(size(x2)), zeros(size(x2)));
 %!     Un = mean(sol.def(mesh.groups.penta15(grp_idx_volume2).nodes, 1, i));
-%!     assert(p1n.', p1ref, tol * max(abs(p1ref)));
-%!     assert(p2n.', p2ref, tol * max(abs(p2ref)));
-%!     assert(Un, real(U * exp(1j * omega * sol.t(i))), tol * abs(U));
 %!     if (do_plot)
 %!       figure("visible", "off");
 %!       hold on;
-%!       plot(x1 * unit_meters, p1ref * unit_pascal, "-;p1;1");
-%!       plot(x2 * unit_meters, p2ref * unit_pascal, "-;p2;2");
+%!       plot(x1 * unit_meters, p1ref(:, i) * unit_pascal, "-;p1;1");
+%!       plot(x2 * unit_meters, p2ref(:, i) * unit_pascal, "-;p2;2");
 %!       plot(x1 * unit_meters, p1n * unit_pascal, "-;p1n;4");
 %!       plot(x2 * unit_meters, p2n * unit_pascal, "-;p2n;5");
 %!       ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
@@ -58096,6 +58208,9 @@ endfunction
 %!       grid minor on;
 %!       title(sprintf("pressure t=%.2fs", sol.t(i) * unit_second));
 %!     endif
+%!     assert(p1n, p1ref(:, i), tol * max(max(abs(p1ref))));
+%!     assert(p2n, p2ref(:, i), tol * max(max(abs(p2ref))));
+%!     assert(Un, real(U * exp(1j * omega * sol.t(i))), tol * abs(U));
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -58523,7 +58638,7 @@ endfunction
 %!test
 %! ### TEST 317
 %! ### rigid body motion of a solid domain between two fluid domains
-%! do_plot = true;
+%! do_plot = false;
 %! if (do_plot)
 %!   close all;
 %! endif
@@ -58545,9 +58660,9 @@ endfunction
 %!     unit_newton = unit_kilograms * unit_meters / unit_second^2;
 %!     unit_pascal = unit_newton / unit_meters^2;
 %!     g = 9.81 * unit_meters / unit_second^2;
-%!     l1 = 30e-3 / unit_meters;
-%!     l0 = 10e-3 / unit_meters;
-%!     l2 = 30e-3 / unit_meters;
+%!     l1 = 10e-3 / unit_meters;
+%!     l0 = 1e-3 / unit_meters;
+%!     l2 = 10e-3 / unit_meters;
 %!     c = 1400 / (unit_meters / unit_second);
 %!     rhof = 1000 / (unit_kilograms / unit_meters^3);
 %!     eta = 0 / (unit_pascal * unit_second);
@@ -58676,7 +58791,7 @@ endfunction
 %!   Keff = -omega^2 * complex(mat_ass.Mfs_re, mat_ass.Mfs_im) + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!   Reff = complex(mat_ass.Rfs);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
-%!   sol.t = linspace(0, 2 * pi, 36) / omega;
+%!   sol.t = linspace(0, 2 * pi, 18) / omega;
 %!   idxp = dof_map.ndof(:, 7);
 %!   idxp1 = find(idxp > 0);
 %!   idxp = idxp(idxp1);
@@ -58691,23 +58806,20 @@ endfunction
 %!   endfor
 %!   p1 = @(x, t) A1 * exp(1j * (omega * t - k * x)) + B1 * exp(1j * (omega * t + k * x));
 %!   p2 = @(x, t) A2 * exp(1j * (omega * t - k * x)) + B2 * exp(1j * (omega * t + k * x));
-%!   x1 = linspace(0, l1, 100);
-%!   x2 = linspace(l1 + l0, l1 + l0 + l2, 100);
+%!   x1 = linspace(0, l1, 25).';
+%!   x2 = linspace(l1 + l0, l1 + l0 + l2, 25).';
 %!   tol = 1e-3;
+%!   p1ref = real(p1(x1, sol.t));
+%!   p2ref = real(p2(x2, sol.t));
 %!   for i=1:numel(sol.t)
-%!     p1ref = real(p1(x1, sol.t(i)));
-%!     p2ref = real(p2(x2, sol.t(i)));
 %!     p1n = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), sol.p(:, i), x1, zeros(size(x1)), zeros(size(x1)));
 %!     p2n = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), sol.p(:, i), x2, zeros(size(x2)), zeros(size(x2)));
 %!     Un = mean(sol.def(mesh.groups.tet10(grp_idx_volume2).nodes, 1, i));
-%!     assert(p1n.', p1ref, tol * max(abs(p1ref)));
-%!     assert(p2n.', p2ref, tol * max(abs(p2ref)));
-%!     assert(Un, real(U * exp(1j * omega * sol.t(i))), tol * abs(U));
 %!     if (do_plot)
 %!       figure("visible", "off");
 %!       hold on;
-%!       plot(x1 * unit_meters, p1ref * unit_pascal, "-;p1;1");
-%!       plot(x2 * unit_meters, p2ref * unit_pascal, "-;p2;2");
+%!       plot(x1 * unit_meters, p1ref(:, i) * unit_pascal, "-;p1;1");
+%!       plot(x2 * unit_meters, p2ref(:, i) * unit_pascal, "-;p2;2");
 %!       plot(x1 * unit_meters, p1n * unit_pascal, "-;p1n;4");
 %!       plot(x2 * unit_meters, p2n * unit_pascal, "-;p2n;5");
 %!       ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
@@ -58716,6 +58828,9 @@ endfunction
 %!       grid minor on;
 %!       title(sprintf("pressure t=%.2fs", sol.t(i) * unit_second));
 %!     endif
+%!     assert(p1n, p1ref(:, i), tol * max(max(abs(p1ref))));
+%!     assert(p2n, p2ref(:, i), tol * max(max(abs(p2ref))));
+%!     assert(Un, real(U * exp(1j * omega * sol.t(i))), tol * abs(U));
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
