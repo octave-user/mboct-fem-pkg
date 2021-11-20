@@ -52,7 +52,7 @@ jobs:
           ./bootstrap.sh && \
           ./configure --with-static-modules \
           --enable-octave --enable-sparse_autodiff --enable-autodiff \
-          --disable-Werror CXXFLAGS="-O3 -Wall -march=native" CPPFLAGS=-I/usr/include/suitesparse \
+          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native" CPPFLAGS=-I/usr/include/suitesparse \
           --with-arpack --with-umfpack --without-metis && \
           make -j4 && sudo make install && popd
 
@@ -60,19 +60,19 @@ jobs:
         run: |
            git clone -b master https://github.com/octave-user/mboct-octave-pkg.git && \
            pushd mboct-octave-pkg && \
-           make install_local && popd
+           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
       - name: Install mboct-numerical-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git && \
            pushd mboct-numerical-pkg && \
-           make install_local && popd
+           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
       - name: Install mboct-mbdyn-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
-           make install_local && popd
+           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
       - name: Create distribution
         run: make -C $GITHUB_WORKSPACE dist
