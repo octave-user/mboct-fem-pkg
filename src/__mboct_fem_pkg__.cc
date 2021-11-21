@@ -1832,14 +1832,13 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:               
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
           case MAT_DAMPING_FLUID_STRUCT_RE:
                return 2 * C.rows() * C.columns();
-          case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:
-               return C.rows() * C.columns();
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
@@ -2101,11 +2100,10 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:               
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
                return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
-          case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:
-               return 4 * 6 + 2 * 6 * 6 * (X.columns() - 1);
           default:
                return 0;
           }
@@ -3087,24 +3085,18 @@ public:
           case MAT_MASS_ACOUSTICS_IM:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
-          case MAT_DAMPING_ACOUSTICS_RE: {
-               const octave_idx_type iNumDof = iGetNumDof(eMatType);
-
-               return iNumDof * iNumDof;
-          }
+          case MAT_DAMPING_ACOUSTICS_RE:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_DAMPING_SYM:
-          case MAT_DAMPING_SYM_L: {
+          case MAT_DAMPING_SYM_L:
+          case MAT_MASS_LUMPED: {
                const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
-               return (iNumDof + 1) * iNumDof / 2;
+               return iNumDof * iNumDof;
           }
-          case MAT_MASS_LUMPED:
-               return iGetNumDof(eMatType);
-
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_FLUID_STRUCT:
