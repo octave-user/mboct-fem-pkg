@@ -15,6 +15,7 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {Function File} [@var{U}, @var{lambda}, @var{err}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{tol}, @var{alg}, @var{solver}, @var{num_threads})
+## @deftypefnx {} [@var{@dots{}}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{tol}, @var{alg}, @var{options})
 ## Solve the general eigenvalue problem K * U = lambda^2 * M * U.
 ##
 ## @var{K} @dots{} Assembled stiffness matrix. @var{K} is allowed to be singular provided that @var{K} - @var{rho} * @var{M} is regular.
@@ -32,6 +33,9 @@
 ## @var{solver} @dots{} Linear solver to use: One of ("pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide").
 ##
 ## @var{num_threads} @dots{} Number of threads to use for the linear solver.
+##
+## @var{options} @dots{} Options passed to fem_sol_factor
+##
 ## @seealso{fem_sol_modal}
 ## @end deftypefn
 
@@ -51,11 +55,18 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
   if (nargin < 7)
     solver = "pastix";
   endif
-  
-  if (nargin < 8)
-    num_threads = int32(1);
-  endif
 
+  if (isstruct(solver))
+    opt_lin = solver;
+  else
+    if (nargin < 8)
+      num_threads = int32(1);
+    endif
+    
+    opt_lin.solver = solver;
+    opt_lin.number_of_threads = num_threads;    
+  endif
+  
   opts.disp = 0;
   opts.maxit = 50000;
   opts.isreal = true;
@@ -66,9 +77,6 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
   else
     Ksh = K - rho * M;
   endif
-
-  opt_lin.solver = solver;
-  opt_lin.number_of_threads = num_threads;
 
   Kfact = fem_sol_factor(Ksh, opt_lin);
 

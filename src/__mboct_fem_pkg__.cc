@@ -146,9 +146,9 @@ inline void atomic_fetch_add_float(volatile std::complex<T>& x, const std::compl
      static_assert(sizeof(std::complex<T>) == N * sizeof(T));
 
      // FIXME: x.real() and x.imag() do not return L-values
-     volatile T* const px = reinterpret_cast<volatile double*>(&x); 
+     volatile T* const px = reinterpret_cast<volatile double*>(&x);
      volatile T* const pdx = reinterpret_cast<const double*>(&dx);
-     
+
      for (octave_idx_type i = 0; i < N; ++i) {
           atomic_fetch_add_float(px[i], pdx[i]);
      }
@@ -753,42 +753,64 @@ private:
 class IntegrationRule
 {
 public:
-     IntegrationRule() {
+     IntegrationRule()
+          :iNumEvalPoints{0}, iNumDirections{0} {
+          FEM_ASSERT(bInvariant());
      }
 
-     void SetNumEvalPoints(octave_idx_type iNumEvalPoints, octave_idx_type iNumDirections) {
-          r.resize(iNumEvalPoints, iNumDirections);
-          alpha.resize(iNumEvalPoints);
+     void SetNumEvalPoints(octave_idx_type iNumEvalPnt, octave_idx_type iNumDir) {
+          FEM_ASSERT(bInvariant());
+          r.resize(iNumEvalPnt, iNumDir);
+          alpha.resize(iNumEvalPnt);
+          iNumEvalPoints = iNumEvalPnt;
+          iNumDirections = iNumDir;
+          FEM_ASSERT(bInvariant());
      }
 
      void SetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection, double ri) {
-          r.xelem(iEvalPnt + r.rows() * iDirection) = ri;
+          FEM_ASSERT(bInvariant());
+          r.xelem(iEvalPnt + iNumEvalPoints * iDirection) = ri;
+          FEM_ASSERT(bInvariant());
      }
 
      void SetWeight(octave_idx_type iEvalPnt, double alphai) {
+          FEM_ASSERT(bInvariant());
           alpha.xelem(iEvalPnt) = alphai;
+          FEM_ASSERT(bInvariant());
      }
 
      double dGetPosition(octave_idx_type iEvalPnt, octave_idx_type iDirection) const {
-          return r.xelem(iEvalPnt + r.rows() * iDirection);
+          FEM_ASSERT(bInvariant());
+          return r.xelem(iEvalPnt + iNumEvalPoints * iDirection);
      }
 
      double dGetWeight(octave_idx_type iEvalPnt) const {
+          FEM_ASSERT(bInvariant());
           return alpha.xelem(iEvalPnt);
      }
 
      octave_idx_type iGetNumDirections() const {
-          return r.columns();
+          FEM_ASSERT(bInvariant());
+          return iNumDirections;
      }
 
      octave_idx_type iGetNumEvalPoints() const {
-          FEM_ASSERT(r.rows() == alpha.rows());
-
-          return r.rows();
+          FEM_ASSERT(bInvariant());
+          return iNumEvalPoints;
      }
 
 private:
+#ifdef DEBUG
+     bool bInvariant() const {
+          FEM_ASSERT(alpha.rows() == iNumEvalPoints);
+          FEM_ASSERT(r.rows() == iNumEvalPoints);
+          FEM_ASSERT(r.columns() == iNumDirections);
+
+          return true;
+     }
+#endif
      Matrix r;
+     octave_idx_type iNumEvalPoints, iNumDirections;
      ColumnVector alpha;
 };
 
@@ -872,6 +894,7 @@ public:
           ELEM_PENTA15,
           ELEM_TET10H,
           ELEM_TET10,
+          ELEM_TET20,
           ELEM_BEAM2,
           ELEM_RBE3,
           ELEM_JOINT,
@@ -880,37 +903,45 @@ public:
           ELEM_SFNCON6,
           ELEM_SFNCON6H,
           ELEM_SFNCON8,
+          ELEM_SFNCON10,
           ELEM_PRESSURE_ISO4,
           ELEM_PRESSURE_QUAD8,
           ELEM_PRESSURE_TRIA6,
           ELEM_PRESSURE_TRIA6H,
+          ELEM_PRESSURE_TRIA10,
           ELEM_STRUCT_FORCE,
           ELEM_THERM_CONV_ISO4,
           ELEM_THERM_CONV_QUAD8,
           ELEM_THERM_CONV_TRIA6,
           ELEM_THERM_CONV_TRIA6H,
+          ELEM_THERM_CONV_TRIA10,
           ELEM_THERM_CONSTR,
           ELEM_HEAT_SOURCE_ISO4,
           ELEM_HEAT_SOURCE_QUAD8,
           ELEM_HEAT_SOURCE_TRIA6,
           ELEM_HEAT_SOURCE_TRIA6H,
+          ELEM_HEAT_SOURCE_TRIA10,
           ELEM_PARTICLE_VEL_ISO4,
           ELEM_PARTICLE_VEL_QUAD8,
           ELEM_PARTICLE_VEL_TRIA6,
           ELEM_PARTICLE_VEL_TRIA6H,
+          ELEM_PARTICLE_VEL_TRIA10,
           ELEM_ACOUSTIC_IMPE_ISO4,
           ELEM_ACOUSTIC_IMPE_QUAD8,
           ELEM_ACOUSTIC_IMPE_TRIA6,
           ELEM_ACOUSTIC_IMPE_TRIA6H,
+          ELEM_ACOUSTIC_IMPE_TRIA10,
           ELEM_ACOUSTIC_CONSTR,
           ELEM_ACOUSTIC_BND_ISO4,
           ELEM_ACOUSTIC_BND_QUAD8,
           ELEM_ACOUSTIC_BND_TRIA6,
           ELEM_ACOUSTIC_BND_TRIA6H,
+          ELEM_ACOUSTIC_BND_TRIA10,
           ELEM_FLUID_STRUCT_ISO4,
           ELEM_FLUID_STRUCT_QUAD8,
           ELEM_FLUID_STRUCT_TRIA6,
           ELEM_FLUID_STRUCT_TRIA6H,
+          ELEM_FLUID_STRUCT_TRIA10,
           ELEM_TYPE_COUNT,
           ELEM_TYPE_UNKNOWN = -1
      };
@@ -940,6 +971,7 @@ private:
           {ElementTypes::ELEM_PENTA15,              "penta15",        15, 15, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET10H,               "tet10h",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET10,                "tet10",          10, 10, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_TET20,                "tet20",          20, 20, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_BEAM2,                "beam2",           2,  2, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_RBE3,                 "rbe3",            2, -1, DofMap::ELEM_RBE3},
           {ElementTypes::ELEM_JOINT,                "joints",          1, -1, DofMap::ELEM_JOINT},
@@ -948,37 +980,45 @@ private:
           {ElementTypes::ELEM_SFNCON6,              "sfncon6",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON6H,             "sfncon6h",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON8,              "sfncon8",         1, -1, DofMap::ELEM_JOINT},
+          {ElementTypes::ELEM_SFNCON10,             "sfncon10",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_PRESSURE_ISO4,        "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_QUAD8,       "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_TRIA6,       "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_TRIA6H,      "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PRESSURE_TRIA10,      "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_STRUCT_FORCE,         "force",           1, -1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_ISO4,      "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_QUAD8,     "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_TRIA6,     "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_TRIA6H,    "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_THERM_CONV_TRIA10,    "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONSTR,         "thermal_constr",  1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_HEAT_SOURCE_ISO4,     "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,    "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,    "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H,   "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_HEAT_SOURCE_TRIA10,   "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PARTICLE_VEL_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4,   "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8,  "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6,  "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H, "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10, "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_CONSTR,      "acoustic_constr", 1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_ACOUSTIC_BND_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ACOUSTIC_BND_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
-          {ElementTypes::ELEM_FLUID_STRUCT_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF}
+          {ElementTypes::ELEM_FLUID_STRUCT_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_FLUID_STRUCT_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF}
      };
 };
 
@@ -1792,14 +1832,13 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:               
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
           case MAT_DAMPING_FLUID_STRUCT_RE:
                return 2 * C.rows() * C.columns();
-          case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:
-               return C.rows() * C.columns();
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
@@ -2061,11 +2100,10 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:               
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
                return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
-          case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:
-               return 4 * 6 + 2 * 6 * 6 * (X.columns() - 1);
           default:
                return 0;
           }
@@ -3047,24 +3085,18 @@ public:
           case MAT_MASS_ACOUSTICS_IM:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
-          case MAT_DAMPING_ACOUSTICS_RE: {
-               const octave_idx_type iNumDof = iGetNumDof(eMatType);
-
-               return iNumDof * iNumDof;
-          }
+          case MAT_DAMPING_ACOUSTICS_RE:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_DAMPING_SYM:
-          case MAT_DAMPING_SYM_L: {
+          case MAT_DAMPING_SYM_L:
+          case MAT_MASS_LUMPED: {
                const octave_idx_type iNumDof = iGetNumDof(eMatType);
 
-               return (iNumDof + 1) * iNumDof / 2;
+               return iNumDof * iNumDof;
           }
-          case MAT_MASS_LUMPED:
-               return iGetNumDof(eMatType);
-
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_FLUID_STRUCT:
@@ -4339,9 +4371,7 @@ protected:
                     nej += Rij * Rij;
                }
 
-               nej = sqrt(nej);
-
-               if (nej == 0.) {
+               if (nej <= 0.) {
                     const ElementTypes::TypeInfo& oInfo = ElementTypes::GetType(eltype);
                     throw std::runtime_error("element 3D: vectors mesh.elements.perfectly_matched_layers."s
                                              + oInfo.name
@@ -4349,6 +4379,8 @@ protected:
                                              + oInfo.name
                                              + ".e2 are co-linear");
                }
+
+               nej = sqrt(nej);
 
                for (octave_idx_type i = 0; i < 3; ++i) {
                     R.xelem(i + 3 * j) /= nej;
@@ -6731,6 +6763,20 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+               AllocIntegrationRule(MAT_STIFFNESS);
+               AllocIntegrationRule(MAT_MASS);
+               return;
+
+          default:
+               break;
+          }
+
           constexpr double a1 = 0.25;
           constexpr double b1 = 1. / 6.;
           constexpr double c1 = 0.5;
@@ -7290,7 +7336,7 @@ private:
           case VEC_LOAD_LUMPED:
           case VEC_LOAD_THERMAL:
           case VEC_LOAD_ACOUSTICS:
-          case VEC_LOAD_FLUID_STRUCT:               
+          case VEC_LOAD_FLUID_STRUCT:
           case MAT_THERMAL_COND:
           case MAT_STIFFNESS_ACOUSTICS_RE:
           case MAT_STIFFNESS_ACOUSTICS_IM:
@@ -7364,8 +7410,6 @@ public:
           case MAT_DAMPING_ACOUSTICS_IM:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
-          case MAT_DAMPING_FLUID_STRUCT_RE:
-          case MAT_DAMPING_FLUID_STRUCT_IM:
           case VEC_PARTICLE_VELOCITY:
           case VEC_PARTICLE_VELOCITY_C:
                if (!oIntegStiff.iGetNumEvalPoints()) {
@@ -7453,11 +7497,11 @@ public:
 
                     constexpr double w2 = 1. / 10.;
                     static constexpr double g2[][4] = {{0.5,0.5,0,0},
-                                                   {0.5,0,0.5,0},
-                                                   {0.5,0,0,0.5},
-                                                   {0,0.5,0.5,0},
-                                                   {0,0.5,0,0.5},
-                                                   {0,0,0.5,0.5}};
+                                                       {0.5,0,0.5,0},
+                                                       {0.5,0,0,0.5},
+                                                       {0,0.5,0.5,0},
+                                                       {0,0.5,0,0.5},
+                                                       {0,0,0.5,0.5}};
 
                     for (octave_idx_type i = 0; i < 6; ++i) {
                          oIntegMassDiag.SetWeight(i + 4, w2);
@@ -7468,12 +7512,16 @@ public:
                     }
                }
                break;
+
           case MAT_DAMPING:
           case MAT_DAMPING_SYM:
           case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
                AllocIntegrationRule(MAT_MASS);
                AllocIntegrationRule(MAT_STIFFNESS);
                break;
+
           default:
                throw std::runtime_error("tet10: unknown matrix type");
           }
@@ -8018,6 +8066,936 @@ private:
 IntegrationRule Tet10::oIntegStiff;
 IntegrationRule Tet10::oIntegMass;
 IntegrationRule Tet10::oIntegMassDiag;
+
+class Tet20: public Element3D
+{
+public:
+     Tet20(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const ElementData& data)
+          :Element3D(eltype, id, X, material, nodes, data) {
+          FEM_ASSERT(nodes.numel() == 20);
+     }
+
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+               AllocIntegrationRule(MAT_MASS);
+               AllocIntegrationRule(MAT_STIFFNESS);
+               return;
+          default:
+               break;
+          }
+
+          constexpr double a1 = (1 + sqrt(5./14.)) / 4.;
+          constexpr double b1 = (1 - sqrt(5./14.)) / 4.;
+          constexpr double c1 = 1. / 4.;
+          constexpr double d1 = 1. / 14.;
+          constexpr double e1 = 11. / 14.;
+          constexpr double w1 = -74. / 5625;
+          constexpr double w2 = 343. / 45000.;
+          constexpr double w3 = 56. / 2250.;
+
+          constexpr octave_idx_type N1 = 11;
+          static constexpr double ri1[N1] = {c1, e1, d1, d1, d1, a1, a1, a1, b1, b1, b1};
+          static constexpr double si1[N1] = {c1, d1, e1, d1, d1, a1, b1, b1, a1, a1, b1};
+          static constexpr double ti1[N1] = {c1, d1, d1, e1, d1, b1, a1, b1, a1, b1, a1};
+          static constexpr double wi1[N1] = {w1, w2, w2, w2, w2, w3, w3, w3, w3, w3, w3};
+
+          constexpr octave_idx_type N2 = 27;
+          static constexpr double ri2[N2] = {1.431498841332000e-03, 1.127016653792600e-02, 6.350832689629000e-03, 6.350832689629000e-03, 5.000000000000000e-02, 2.817541634481500e-02, 1.127016653792600e-02, 8.872983346207400e-02, 5.000000000000000e-02, 6.350832689629000e-03, 5.000000000000000e-02, 2.817541634481500e-02, 2.817541634481500e-02, 2.218245836551850e-01, 1.250000000000000e-01, 5.000000000000000e-02, 3.936491673103710e-01, 2.218245836551850e-01, 1.127016653792600e-02, 8.872983346207400e-02, 5.000000000000000e-02, 5.000000000000000e-02, 3.936491673103710e-01, 2.218245836551850e-01, 8.872983346207400e-02, 6.985685011586670e-01, 3.936491673103710e-01};
+          static constexpr double si2[N2] = {1.127016653792600e-02, 1.431498841332000e-03, 6.350832689629000e-03, 5.000000000000000e-02, 6.350832689629000e-03, 2.817541634481500e-02, 8.872983346207400e-02, 1.127016653792600e-02, 5.000000000000000e-02, 5.000000000000000e-02, 6.350832689629000e-03, 2.817541634481500e-02, 2.218245836551850e-01, 2.817541634481500e-02, 1.250000000000000e-01, 3.936491673103710e-01, 5.000000000000000e-02, 2.218245836551850e-01, 8.872983346207400e-02, 1.127016653792600e-02, 5.000000000000000e-02, 3.936491673103710e-01, 5.000000000000000e-02, 2.218245836551850e-01, 6.985685011586670e-01, 8.872983346207400e-02, 3.936491673103710e-01};
+          static constexpr double ti2[N2] = {1.000000000000000e-01, 1.000000000000000e-01, 1.000000000000000e-01, 5.635083268962900e-02, 5.635083268962900e-02, 5.635083268962900e-02, 1.270166537925800e-02, 1.270166537925800e-02, 1.270166537925800e-02, 4.436491673103710e-01, 4.436491673103710e-01, 4.436491673103710e-01, 2.500000000000000e-01, 2.500000000000000e-01, 2.500000000000000e-01, 5.635083268962900e-02, 5.635083268962900e-02, 5.635083268962900e-02, 7.872983346207409e-01, 7.872983346207409e-01, 7.872983346207409e-01, 4.436491673103710e-01, 4.436491673103710e-01, 4.436491673103710e-01, 1.000000000000000e-01, 1.000000000000000e-01, 1.000000000000000e-01};
+          static constexpr double wi2[N2] = {3.068198819728420e-05, 3.068198819728420e-05, 4.909118111565470e-05, 2.177926162424280e-04, 2.177926162424280e-04, 3.484681859878840e-04, 2.415587821057510e-04, 2.415587821057510e-04, 3.864940513692010e-04, 9.662351284230000e-04, 9.662351284230000e-04, 1.545976205477000e-03, 6.858710562414000e-03, 6.858710562414000e-03, 1.097393689986300e-02, 7.607153074595000e-03, 7.607153074595000e-03, 1.217144491935200e-02, 1.901788268649000e-03, 1.901788268649000e-03, 3.042861229838000e-03, 1.349962850858600e-02, 1.349962850858600e-02, 2.159940561373800e-02, 1.497274736708400e-02, 1.497274736708400e-02, 2.395639578733400e-02};
+
+          constexpr octave_idx_type N3 = 64;
+          static constexpr double ri3[N3] = {3.347157145940000e-04, 4.486065274832000e-03, 1.590903418873000e-03, 3.229877570553000e-03, 1.590903418873000e-03, 2.132226325753900e-02, 7.561562178966000e-03, 1.535160449744700e-02, 3.229877570553000e-03, 4.328879995600800e-02, 1.535160449744700e-02, 3.116707302911400e-02, 4.486065274832000e-03, 6.012499793871600e-02, 2.132226325753900e-02, 4.328879995600800e-02, 1.590903418873000e-03, 2.132226325753900e-02, 7.561562178966000e-03, 1.535160449744700e-02, 7.561562178966000e-03, 1.013446935278680e-01, 3.594009661935300e-02, 7.296615908748100e-02, 1.535160449744700e-02, 2.057516180032910e-01, 7.296615908748100e-02, 1.481370634132570e-01, 2.132226325753900e-02, 2.857740482736200e-01, 1.013446935278680e-01, 2.057516180032910e-01, 3.229877570553000e-03, 4.328879995600800e-02, 1.535160449744700e-02, 3.116707302911400e-02, 1.535160449744700e-02, 2.057516180032910e-01, 7.296615908748100e-02, 1.481370634132570e-01, 3.116707302911400e-02, 4.177202262625760e-01, 1.481370634132570e-01, 3.007502358784330e-01, 4.328879995600800e-02, 5.801830443098590e-01, 2.057516180032910e-01, 4.177202262625760e-01, 4.486065274832000e-03, 6.012499793871600e-02, 2.132226325753900e-02, 4.328879995600800e-02, 2.132226325753900e-02, 2.857740482736200e-01, 1.013446935278680e-01, 2.057516180032910e-01, 4.328879995600800e-02, 5.801830443098590e-01, 2.057516180032910e-01, 4.177202262625760e-01, 6.012499793871600e-02, 8.058320946447630e-01, 2.857740482736200e-01, 5.801830443098590e-01};
+          static constexpr double si3[N3] = {4.486065274832000e-03, 3.347157145940000e-04, 3.229877570553000e-03, 1.590903418873000e-03, 2.132226325753900e-02, 1.590903418873000e-03, 1.535160449744700e-02, 7.561562178966000e-03, 4.328879995600800e-02, 3.229877570553000e-03, 3.116707302911400e-02, 1.535160449744700e-02, 6.012499793871600e-02, 4.486065274832000e-03, 4.328879995600800e-02, 2.132226325753900e-02, 2.132226325753900e-02, 1.590903418873000e-03, 1.535160449744700e-02, 7.561562178966000e-03, 1.013446935278680e-01, 7.561562178966000e-03, 7.296615908748100e-02, 3.594009661935300e-02, 2.057516180032910e-01, 1.535160449744700e-02, 1.481370634132570e-01, 7.296615908748100e-02, 2.857740482736200e-01, 2.132226325753900e-02, 2.057516180032910e-01, 1.013446935278680e-01, 4.328879995600800e-02, 3.229877570553000e-03, 3.116707302911400e-02, 1.535160449744700e-02, 2.057516180032910e-01, 1.535160449744700e-02, 1.481370634132570e-01, 7.296615908748100e-02, 4.177202262625760e-01, 3.116707302911400e-02, 3.007502358784330e-01, 1.481370634132570e-01, 5.801830443098590e-01, 4.328879995600800e-02, 4.177202262625760e-01, 2.057516180032910e-01, 6.012499793871600e-02, 4.486065274832000e-03, 4.328879995600800e-02, 2.132226325753900e-02, 2.857740482736200e-01, 2.132226325753900e-02, 2.057516180032910e-01, 1.013446935278680e-01, 5.801830443098590e-01, 4.328879995600800e-02, 4.177202262625760e-01, 2.057516180032910e-01, 8.058320946447630e-01, 6.012499793871600e-02, 5.801830443098590e-01, 2.857740482736200e-01};
+          static constexpr double ti3[N3] = {6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 4.820780989426000e-03, 4.820780989426000e-03, 4.820780989426000e-03, 4.820780989426000e-03, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 1.089062557068340e-01, 1.089062557068340e-01, 1.089062557068340e-01, 1.089062557068340e-01, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 4.488872992916900e-01, 4.488872992916900e-01, 4.488872992916900e-01, 4.488872992916900e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 8.659570925834790e-01, 8.659570925834790e-01, 8.659570925834790e-01, 8.659570925834790e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02};
+          static constexpr double wi3[N3] = {1.761084870822600e-06, 1.761084870822600e-06, 3.301615549885100e-06, 3.301615549885100e-06, 1.569257503335800e-05, 1.569257503335800e-05, 2.941984830275260e-05, 2.941984830275260e-05, 3.185931686560010e-05, 3.185931686560010e-05, 5.972864665122530e-05, 5.972864665122530e-05, 2.360313944207820e-05, 2.360313944207820e-05, 4.425027634907300e-05, 4.425027634907300e-05, 7.458679166511140e-05, 7.458679166511140e-05, 1.398325062338110e-04, 1.398325062338110e-04, 6.646237464725280e-04, 6.646237464725280e-04, 1.246011553748000e-03, 1.246011553748000e-03, 1.349329762022000e-03, 1.349329762022000e-03, 2.529672588768000e-03, 2.529672588768000e-03, 9.996579230088670e-04, 9.996579230088670e-04, 1.874121002261000e-03, 1.874121002261000e-03, 3.074301219528830e-04, 3.074301219528830e-04, 5.763584072291740e-04, 5.763584072291740e-04, 2.739430867978000e-03, 2.739430867978000e-03, 5.135781756688000e-03, 5.135781756688000e-03, 5.561636370626000e-03, 5.561636370626000e-03, 1.042674627912200e-02, 1.042674627912200e-02, 4.120367029080000e-03, 4.120367029080000e-03, 7.724708831375000e-03, 7.724708831375000e-03, 3.163437496694650e-04, 3.163437496694650e-04, 5.930693405649470e-04, 5.930693405649470e-04, 2.818857915521000e-03, 2.818857915521000e-03, 5.284688592238000e-03, 5.284688592238000e-03, 5.722890433136000e-03, 5.722890433136000e-03, 1.072905931870600e-02, 1.072905931870600e-02, 4.239832934111000e-03, 4.239832934111000e-03, 7.948679008091999e-03, 7.948679008091999e-03};
+
+          constexpr double a4 = (5. + 3. * sqrt(5)) / 20.;
+          constexpr double b4 = (5. - sqrt(5.)) / 20.;
+          constexpr double c4 = 1. / 24.;
+          constexpr octave_idx_type N4 = 4;
+
+          static constexpr double ri4[N4] = {b4, a4, b4, b4};
+          static constexpr double si4[N4] = {b4, b4, a4, b4};
+          static constexpr double ti4[N4] = {b4, b4, b4, a4};
+          static constexpr double wi4[N4] = {c4, c4, c4, c4};
+
+          constexpr octave_idx_type N5 = 20;
+
+          static constexpr double ri5[N5] = {0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 1.0000000000000000e+00, 6.6666666666666663e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00};
+          static constexpr double si5[N5] = {0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 1.0000000000000000e+00, 6.6666666666666663e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 3.3333333333333331e-01, 6.6666666666666663e-01, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 0.0000000000000000e+00, 0.0000000000000000e+00};
+          static constexpr double ti5[N5] = {0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 0.0000000000000000e+00, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 3.3333333333333331e-01, 6.6666666666666663e-01, 6.6666666666666663e-01, 6.6666666666666663e-01, 1.0000000000000000e+00};
+          static constexpr double wi5[N5] = {8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03, 8.333333333333333e-03};
+
+          static constexpr octave_idx_type M = 5;
+          static constexpr octave_idx_type N[M] = {N1, N2, N3, N4, N5};
+          static constexpr const double* r[M] = {ri1, ri2, ri3, ri4, ri5};
+          static constexpr const double* s[M] = {si1, si2, si3, si4, si5};
+          static constexpr const double* t[M] = {ti1, ti2, ti3, ti4, ti5};
+          static constexpr const double* w[M] = {wi1, wi2, wi3, wi4, wi5};
+
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(iIntegRule < M);
+
+          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+               rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule], 3);
+
+               for (octave_idx_type i = 0; i < N[iIntegRule]; ++i) {
+                    rgIntegRule[iIntegRule].SetPosition(i, 0, r[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetPosition(i, 1, s[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetPosition(i, 2, t[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetWeight(i, w[iIntegRule][i]);
+               }
+          }
+     }
+
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const final {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(iIntegRule < RNUM);
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
+
+          return rgIntegRule[iIntegRule];
+     }
+
+protected:
+     virtual double Jacobian(const ColumnVector& rv, Matrix& J) const final {
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(rv.numel() == 3);
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          J.xelem(0) = ((-9.0E+0)*X.xelem(54)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(48)*t*(3*t-1))/2.0E+0+27*X.xelem(45)*((-t)-s-r+1)*t+((-2.7E+1)*X.xelem(42)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*X.xelem(42)*(3*((-t)-s-r+1)-1)*t)/2.0E+0-27*X.xelem(39)*s*t+27*X.xelem(33)*s*t+(9.0E+0*X.xelem(30)*(3*r-1)*t)/2.0E+0-27*X.xelem(45)*r*t+(2.7E+1*X.xelem(30)*r*t)/2.0E+0+(9.0E+0*X.xelem(3)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+27*X.xelem(27)*s*((-t)-s-r+1)+((-2.7E+1)*X.xelem(24)*s*((-t)-s-r+1))/2.0E+0+(9.0E+0*X.xelem(6)*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*X.xelem(6)*r*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*X.xelem(3)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(0)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(24)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(3)*r*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(21)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(15)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(12)*(3*r-1)*s)/2.0E+0-27*X.xelem(27)*r*s+(2.7E+1*X.xelem(12)*r*s)/2.0E+0+(X.xelem(9)*(3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*X.xelem(9)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(6)*r*(3*r-1))/2.0E+0+(3.0E+0*X.xelem(9)*r*(3*r-2))/2.0E+0;
+          J.xelem(1) = ((-9.0E+0)*X.xelem(54)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(51)*t*(3*t-1))/2.0E+0+((-2.7E+1)*X.xelem(42)*((-t)-s-r+1)*t)/2.0E+0+27*X.xelem(39)*((-t)-s-r+1)*t+((-9.0E+0)*X.xelem(42)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*X.xelem(36)*(3*s-1)*t)/2.0E+0-27*X.xelem(39)*s*t+(2.7E+1*X.xelem(36)*s*t)/2.0E+0-27*X.xelem(45)*r*t+27*X.xelem(33)*r*t+(9.0E+0*X.xelem(24)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+(9.0E+0*X.xelem(21)*(3*s-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*X.xelem(24)*s*((-t)-s-r+1))/2.0E+0+(2.7E+1*X.xelem(21)*s*((-t)-s-r+1))/2.0E+0+27*X.xelem(27)*r*((-t)-s-r+1)+((-2.7E+1)*X.xelem(3)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(0)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(24)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(3)*r*(3*((-t)-s-r+1)-1))/2.0E+0+(X.xelem(18)*(3*s-2)*(3*s-1))/2.0E+0+((-9.0E+0)*X.xelem(21)*s*(3*s-1))/2.0E+0+(3.0E+0*X.xelem(18)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(15)*r*(3*s-1))/2.0E+0+(3.0E+0*X.xelem(18)*s*(3*s-2))/2.0E+0-27*X.xelem(27)*r*s+(2.7E+1*X.xelem(15)*r*s)/2.0E+0+(9.0E+0*X.xelem(12)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(6)*r*(3*r-1))/2.0E+0;
+          J.xelem(2) = (X.xelem(57)*(3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*X.xelem(57)*t*(3*t-1))/2.0E+0+((-9.0E+0)*X.xelem(54)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(54)*((-t)-s-r+1)*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(51)*s*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(48)*r*(3*t-1))/2.0E+0+(3.0E+0*X.xelem(57)*t*(3*t-2))/2.0E+0+(2.7E+1*X.xelem(54)*((-t)-s-r+1)*t)/2.0E+0+((-2.7E+1)*X.xelem(42)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*X.xelem(42)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(2.7E+1*X.xelem(51)*s*t)/2.0E+0-27*X.xelem(39)*s*t+(2.7E+1*X.xelem(48)*r*t)/2.0E+0-27*X.xelem(45)*r*t+(9.0E+0*X.xelem(42)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+27*X.xelem(39)*s*((-t)-s-r+1)+((-2.7E+1)*X.xelem(24)*s*((-t)-s-r+1))/2.0E+0+27*X.xelem(45)*r*((-t)-s-r+1)+((-2.7E+1)*X.xelem(3)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(0)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(24)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(3)*r*(3*((-t)-s-r+1)-1))/2.0E+0+(9.0E+0*X.xelem(36)*s*(3*s-1))/2.0E+0+((-9.0E+0)*X.xelem(21)*s*(3*s-1))/2.0E+0+27*X.xelem(33)*r*s-27*X.xelem(27)*r*s+(9.0E+0*X.xelem(30)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(6)*r*(3*r-1))/2.0E+0;
+          J.xelem(3) = ((-9.0E+0)*X.xelem(55)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(49)*t*(3*t-1))/2.0E+0+27*X.xelem(46)*((-t)-s-r+1)*t+((-2.7E+1)*X.xelem(43)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*X.xelem(43)*(3*((-t)-s-r+1)-1)*t)/2.0E+0-27*X.xelem(40)*s*t+27*X.xelem(34)*s*t+(9.0E+0*X.xelem(31)*(3*r-1)*t)/2.0E+0-27*X.xelem(46)*r*t+(2.7E+1*X.xelem(31)*r*t)/2.0E+0+(9.0E+0*X.xelem(4)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(1)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(1)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+27*X.xelem(28)*s*((-t)-s-r+1)+((-2.7E+1)*X.xelem(25)*s*((-t)-s-r+1))/2.0E+0+(9.0E+0*X.xelem(7)*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*X.xelem(7)*r*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*X.xelem(4)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(1)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(25)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(4)*r*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(22)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(16)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(13)*(3*r-1)*s)/2.0E+0-27*X.xelem(28)*r*s+(2.7E+1*X.xelem(13)*r*s)/2.0E+0+(X.xelem(10)*(3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*X.xelem(10)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(7)*r*(3*r-1))/2.0E+0+(3.0E+0*X.xelem(10)*r*(3*r-2))/2.0E+0;
+          J.xelem(4) = ((-9.0E+0)*X.xelem(55)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(52)*t*(3*t-1))/2.0E+0+((-2.7E+1)*X.xelem(43)*((-t)-s-r+1)*t)/2.0E+0+27*X.xelem(40)*((-t)-s-r+1)*t+((-9.0E+0)*X.xelem(43)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*X.xelem(37)*(3*s-1)*t)/2.0E+0-27*X.xelem(40)*s*t+(2.7E+1*X.xelem(37)*s*t)/2.0E+0-27*X.xelem(46)*r*t+27*X.xelem(34)*r*t+(9.0E+0*X.xelem(25)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(1)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(1)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+(9.0E+0*X.xelem(22)*(3*s-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*X.xelem(25)*s*((-t)-s-r+1))/2.0E+0+(2.7E+1*X.xelem(22)*s*((-t)-s-r+1))/2.0E+0+27*X.xelem(28)*r*((-t)-s-r+1)+((-2.7E+1)*X.xelem(4)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(1)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(25)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(4)*r*(3*((-t)-s-r+1)-1))/2.0E+0+(X.xelem(19)*(3*s-2)*(3*s-1))/2.0E+0+((-9.0E+0)*X.xelem(22)*s*(3*s-1))/2.0E+0+(3.0E+0*X.xelem(19)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(16)*r*(3*s-1))/2.0E+0+(3.0E+0*X.xelem(19)*s*(3*s-2))/2.0E+0-27*X.xelem(28)*r*s+(2.7E+1*X.xelem(16)*r*s)/2.0E+0+(9.0E+0*X.xelem(13)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(7)*r*(3*r-1))/2.0E+0;
+          J.xelem(5) = (X.xelem(58)*(3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*X.xelem(58)*t*(3*t-1))/2.0E+0+((-9.0E+0)*X.xelem(55)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(55)*((-t)-s-r+1)*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(52)*s*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(49)*r*(3*t-1))/2.0E+0+(3.0E+0*X.xelem(58)*t*(3*t-2))/2.0E+0+(2.7E+1*X.xelem(55)*((-t)-s-r+1)*t)/2.0E+0+((-2.7E+1)*X.xelem(43)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*X.xelem(43)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(2.7E+1*X.xelem(52)*s*t)/2.0E+0-27*X.xelem(40)*s*t+(2.7E+1*X.xelem(49)*r*t)/2.0E+0-27*X.xelem(46)*r*t+(9.0E+0*X.xelem(43)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(1)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(1)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+27*X.xelem(40)*s*((-t)-s-r+1)+((-2.7E+1)*X.xelem(25)*s*((-t)-s-r+1))/2.0E+0+27*X.xelem(46)*r*((-t)-s-r+1)+((-2.7E+1)*X.xelem(4)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(1)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(25)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(4)*r*(3*((-t)-s-r+1)-1))/2.0E+0+(9.0E+0*X.xelem(37)*s*(3*s-1))/2.0E+0+((-9.0E+0)*X.xelem(22)*s*(3*s-1))/2.0E+0+27*X.xelem(34)*r*s-27*X.xelem(28)*r*s+(9.0E+0*X.xelem(31)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(7)*r*(3*r-1))/2.0E+0;
+          J.xelem(6) = ((-9.0E+0)*X.xelem(56)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(50)*t*(3*t-1))/2.0E+0+27*X.xelem(47)*((-t)-s-r+1)*t+((-2.7E+1)*X.xelem(44)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*X.xelem(44)*(3*((-t)-s-r+1)-1)*t)/2.0E+0-27*X.xelem(41)*s*t+27*X.xelem(35)*s*t+(9.0E+0*X.xelem(32)*(3*r-1)*t)/2.0E+0-27*X.xelem(47)*r*t+(2.7E+1*X.xelem(32)*r*t)/2.0E+0+(9.0E+0*X.xelem(5)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(2)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+27*X.xelem(29)*s*((-t)-s-r+1)+((-2.7E+1)*X.xelem(26)*s*((-t)-s-r+1))/2.0E+0+(9.0E+0*X.xelem(8)*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*X.xelem(8)*r*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*X.xelem(5)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(2)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(26)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(5)*r*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(23)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(17)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(14)*(3*r-1)*s)/2.0E+0-27*X.xelem(29)*r*s+(2.7E+1*X.xelem(14)*r*s)/2.0E+0+(X.xelem(11)*(3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*X.xelem(11)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(8)*r*(3*r-1))/2.0E+0+(3.0E+0*X.xelem(11)*r*(3*r-2))/2.0E+0;
+          J.xelem(7) = ((-9.0E+0)*X.xelem(56)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(53)*t*(3*t-1))/2.0E+0+((-2.7E+1)*X.xelem(44)*((-t)-s-r+1)*t)/2.0E+0+27*X.xelem(41)*((-t)-s-r+1)*t+((-9.0E+0)*X.xelem(44)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*X.xelem(38)*(3*s-1)*t)/2.0E+0-27*X.xelem(41)*s*t+(2.7E+1*X.xelem(38)*s*t)/2.0E+0-27*X.xelem(47)*r*t+27*X.xelem(35)*r*t+(9.0E+0*X.xelem(26)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(2)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+(9.0E+0*X.xelem(23)*(3*s-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*X.xelem(26)*s*((-t)-s-r+1))/2.0E+0+(2.7E+1*X.xelem(23)*s*((-t)-s-r+1))/2.0E+0+27*X.xelem(29)*r*((-t)-s-r+1)+((-2.7E+1)*X.xelem(5)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(2)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(26)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(5)*r*(3*((-t)-s-r+1)-1))/2.0E+0+(X.xelem(20)*(3*s-2)*(3*s-1))/2.0E+0+((-9.0E+0)*X.xelem(23)*s*(3*s-1))/2.0E+0+(3.0E+0*X.xelem(20)*s*(3*s-1))/2.0E+0+(9.0E+0*X.xelem(17)*r*(3*s-1))/2.0E+0+(3.0E+0*X.xelem(20)*s*(3*s-2))/2.0E+0-27*X.xelem(29)*r*s+(2.7E+1*X.xelem(17)*r*s)/2.0E+0+(9.0E+0*X.xelem(14)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(8)*r*(3*r-1))/2.0E+0;
+          J.xelem(8) = (X.xelem(59)*(3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*X.xelem(59)*t*(3*t-1))/2.0E+0+((-9.0E+0)*X.xelem(56)*t*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(56)*((-t)-s-r+1)*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(53)*s*(3*t-1))/2.0E+0+(9.0E+0*X.xelem(50)*r*(3*t-1))/2.0E+0+(3.0E+0*X.xelem(59)*t*(3*t-2))/2.0E+0+(2.7E+1*X.xelem(56)*((-t)-s-r+1)*t)/2.0E+0+((-2.7E+1)*X.xelem(44)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*X.xelem(44)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(2.7E+1*X.xelem(53)*s*t)/2.0E+0-27*X.xelem(41)*s*t+(2.7E+1*X.xelem(50)*r*t)/2.0E+0-27*X.xelem(47)*r*t+(9.0E+0*X.xelem(44)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*X.xelem(2)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0+27*X.xelem(41)*s*((-t)-s-r+1)+((-2.7E+1)*X.xelem(26)*s*((-t)-s-r+1))/2.0E+0+27*X.xelem(47)*r*((-t)-s-r+1)+((-2.7E+1)*X.xelem(5)*r*((-t)-s-r+1))/2.0E+0-(X.xelem(2)*(3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(26)*s*(3*((-t)-s-r+1)-1))/2.0E+0+((-9.0E+0)*X.xelem(5)*r*(3*((-t)-s-r+1)-1))/2.0E+0+(9.0E+0*X.xelem(38)*s*(3*s-1))/2.0E+0+((-9.0E+0)*X.xelem(23)*s*(3*s-1))/2.0E+0+27*X.xelem(35)*r*s-27*X.xelem(29)*r*s+(9.0E+0*X.xelem(32)*r*(3*r-1))/2.0E+0+((-9.0E+0)*X.xelem(8)*r*(3*r-1))/2.0E+0;
+
+          return Determinant3x3(J);
+     }
+
+     virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const final {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(H.rows() == 3);
+          FEM_ASSERT(H.columns() == 60);
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          H.xelem(0) = ((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(1) = 0;
+          H.xelem(2) = 0;
+          H.xelem(3) = 0;
+          H.xelem(4) = ((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(5) = 0;
+          H.xelem(6) = 0;
+          H.xelem(7) = 0;
+          H.xelem(8) = ((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(9) = (9.0E+0*r*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(10) = 0;
+          H.xelem(11) = 0;
+          H.xelem(12) = 0;
+          H.xelem(13) = (9.0E+0*r*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(14) = 0;
+          H.xelem(15) = 0;
+          H.xelem(16) = 0;
+          H.xelem(17) = (9.0E+0*r*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(18) = (9.0E+0*r*(3*r-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(19) = 0;
+          H.xelem(20) = 0;
+          H.xelem(21) = 0;
+          H.xelem(22) = (9.0E+0*r*(3*r-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(23) = 0;
+          H.xelem(24) = 0;
+          H.xelem(25) = 0;
+          H.xelem(26) = (9.0E+0*r*(3*r-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(27) = (r*(3*r-2)*(3*r-1))/2.0E+0;
+          H.xelem(28) = 0;
+          H.xelem(29) = 0;
+          H.xelem(30) = 0;
+          H.xelem(31) = (r*(3*r-2)*(3*r-1))/2.0E+0;
+          H.xelem(32) = 0;
+          H.xelem(33) = 0;
+          H.xelem(34) = 0;
+          H.xelem(35) = (r*(3*r-2)*(3*r-1))/2.0E+0;
+          H.xelem(36) = (9.0E+0*r*(3*r-1)*s)/2.0E+0;
+          H.xelem(37) = 0;
+          H.xelem(38) = 0;
+          H.xelem(39) = 0;
+          H.xelem(40) = (9.0E+0*r*(3*r-1)*s)/2.0E+0;
+          H.xelem(41) = 0;
+          H.xelem(42) = 0;
+          H.xelem(43) = 0;
+          H.xelem(44) = (9.0E+0*r*(3*r-1)*s)/2.0E+0;
+          H.xelem(45) = (9.0E+0*r*s*(3*s-1))/2.0E+0;
+          H.xelem(46) = 0;
+          H.xelem(47) = 0;
+          H.xelem(48) = 0;
+          H.xelem(49) = (9.0E+0*r*s*(3*s-1))/2.0E+0;
+          H.xelem(50) = 0;
+          H.xelem(51) = 0;
+          H.xelem(52) = 0;
+          H.xelem(53) = (9.0E+0*r*s*(3*s-1))/2.0E+0;
+          H.xelem(54) = (s*(3*s-2)*(3*s-1))/2.0E+0;
+          H.xelem(55) = 0;
+          H.xelem(56) = 0;
+          H.xelem(57) = 0;
+          H.xelem(58) = (s*(3*s-2)*(3*s-1))/2.0E+0;
+          H.xelem(59) = 0;
+          H.xelem(60) = 0;
+          H.xelem(61) = 0;
+          H.xelem(62) = (s*(3*s-2)*(3*s-1))/2.0E+0;
+          H.xelem(63) = (9.0E+0*s*(3*s-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(64) = 0;
+          H.xelem(65) = 0;
+          H.xelem(66) = 0;
+          H.xelem(67) = (9.0E+0*s*(3*s-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(68) = 0;
+          H.xelem(69) = 0;
+          H.xelem(70) = 0;
+          H.xelem(71) = (9.0E+0*s*(3*s-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(72) = (9.0E+0*s*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(73) = 0;
+          H.xelem(74) = 0;
+          H.xelem(75) = 0;
+          H.xelem(76) = (9.0E+0*s*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(77) = 0;
+          H.xelem(78) = 0;
+          H.xelem(79) = 0;
+          H.xelem(80) = (9.0E+0*s*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          H.xelem(81) = 27*r*s*((-t)-s-r+1);
+          H.xelem(82) = 0;
+          H.xelem(83) = 0;
+          H.xelem(84) = 0;
+          H.xelem(85) = 27*r*s*((-t)-s-r+1);
+          H.xelem(86) = 0;
+          H.xelem(87) = 0;
+          H.xelem(88) = 0;
+          H.xelem(89) = 27*r*s*((-t)-s-r+1);
+          H.xelem(90) = (9.0E+0*r*(3*r-1)*t)/2.0E+0;
+          H.xelem(91) = 0;
+          H.xelem(92) = 0;
+          H.xelem(93) = 0;
+          H.xelem(94) = (9.0E+0*r*(3*r-1)*t)/2.0E+0;
+          H.xelem(95) = 0;
+          H.xelem(96) = 0;
+          H.xelem(97) = 0;
+          H.xelem(98) = (9.0E+0*r*(3*r-1)*t)/2.0E+0;
+          H.xelem(99) = 27*r*s*t;
+          H.xelem(100) = 0;
+          H.xelem(101) = 0;
+          H.xelem(102) = 0;
+          H.xelem(103) = 27*r*s*t;
+          H.xelem(104) = 0;
+          H.xelem(105) = 0;
+          H.xelem(106) = 0;
+          H.xelem(107) = 27*r*s*t;
+          H.xelem(108) = (9.0E+0*s*(3*s-1)*t)/2.0E+0;
+          H.xelem(109) = 0;
+          H.xelem(110) = 0;
+          H.xelem(111) = 0;
+          H.xelem(112) = (9.0E+0*s*(3*s-1)*t)/2.0E+0;
+          H.xelem(113) = 0;
+          H.xelem(114) = 0;
+          H.xelem(115) = 0;
+          H.xelem(116) = (9.0E+0*s*(3*s-1)*t)/2.0E+0;
+          H.xelem(117) = 27*s*((-t)-s-r+1)*t;
+          H.xelem(118) = 0;
+          H.xelem(119) = 0;
+          H.xelem(120) = 0;
+          H.xelem(121) = 27*s*((-t)-s-r+1)*t;
+          H.xelem(122) = 0;
+          H.xelem(123) = 0;
+          H.xelem(124) = 0;
+          H.xelem(125) = 27*s*((-t)-s-r+1)*t;
+          H.xelem(126) = (9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1)*t)/2.0E+0;
+          H.xelem(127) = 0;
+          H.xelem(128) = 0;
+          H.xelem(129) = 0;
+          H.xelem(130) = (9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1)*t)/2.0E+0;
+          H.xelem(131) = 0;
+          H.xelem(132) = 0;
+          H.xelem(133) = 0;
+          H.xelem(134) = (9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1)*t)/2.0E+0;
+          H.xelem(135) = 27*r*((-t)-s-r+1)*t;
+          H.xelem(136) = 0;
+          H.xelem(137) = 0;
+          H.xelem(138) = 0;
+          H.xelem(139) = 27*r*((-t)-s-r+1)*t;
+          H.xelem(140) = 0;
+          H.xelem(141) = 0;
+          H.xelem(142) = 0;
+          H.xelem(143) = 27*r*((-t)-s-r+1)*t;
+          H.xelem(144) = (9.0E+0*r*t*(3*t-1))/2.0E+0;
+          H.xelem(145) = 0;
+          H.xelem(146) = 0;
+          H.xelem(147) = 0;
+          H.xelem(148) = (9.0E+0*r*t*(3*t-1))/2.0E+0;
+          H.xelem(149) = 0;
+          H.xelem(150) = 0;
+          H.xelem(151) = 0;
+          H.xelem(152) = (9.0E+0*r*t*(3*t-1))/2.0E+0;
+          H.xelem(153) = (9.0E+0*s*t*(3*t-1))/2.0E+0;
+          H.xelem(154) = 0;
+          H.xelem(155) = 0;
+          H.xelem(156) = 0;
+          H.xelem(157) = (9.0E+0*s*t*(3*t-1))/2.0E+0;
+          H.xelem(158) = 0;
+          H.xelem(159) = 0;
+          H.xelem(160) = 0;
+          H.xelem(161) = (9.0E+0*s*t*(3*t-1))/2.0E+0;
+          H.xelem(162) = (9.0E+0*((-t)-s-r+1)*t*(3*t-1))/2.0E+0;
+          H.xelem(163) = 0;
+          H.xelem(164) = 0;
+          H.xelem(165) = 0;
+          H.xelem(166) = (9.0E+0*((-t)-s-r+1)*t*(3*t-1))/2.0E+0;
+          H.xelem(167) = 0;
+          H.xelem(168) = 0;
+          H.xelem(169) = 0;
+          H.xelem(170) = (9.0E+0*((-t)-s-r+1)*t*(3*t-1))/2.0E+0;
+          H.xelem(171) = (t*(3*t-2)*(3*t-1))/2.0E+0;
+          H.xelem(172) = 0;
+          H.xelem(173) = 0;
+          H.xelem(174) = 0;
+          H.xelem(175) = (t*(3*t-2)*(3*t-1))/2.0E+0;
+          H.xelem(176) = 0;
+          H.xelem(177) = 0;
+          H.xelem(178) = 0;
+          H.xelem(179) = (t*(3*t-2)*(3*t-1))/2.0E+0;
+     }
+
+     virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(invJ.rows() == 3);
+          FEM_ASSERT(invJ.columns() == 3);
+          FEM_ASSERT(B.rows() == 6);
+          FEM_ASSERT(B.columns() == 60);
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          Inverse3x3(J, detJ, invJ);
+
+          B.xelem(0) = invJ.xelem(6)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(1) = 0;
+          B.xelem(2) = 0;
+          B.xelem(3) = invJ.xelem(7)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(4) = 0;
+          B.xelem(5) = invJ.xelem(8)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(6) = 0;
+          B.xelem(7) = invJ.xelem(7)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(8) = 0;
+          B.xelem(9) = invJ.xelem(6)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(10) = invJ.xelem(8)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(11) = 0;
+          B.xelem(12) = 0;
+          B.xelem(13) = 0;
+          B.xelem(14) = invJ.xelem(8)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(15) = 0;
+          B.xelem(16) = invJ.xelem(7)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(17) = invJ.xelem(6)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(18) = invJ.xelem(0)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(19) = 0;
+          B.xelem(20) = 0;
+          B.xelem(21) = invJ.xelem(1)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(22) = 0;
+          B.xelem(23) = invJ.xelem(2)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(24) = 0;
+          B.xelem(25) = invJ.xelem(1)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(26) = 0;
+          B.xelem(27) = invJ.xelem(0)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(28) = invJ.xelem(2)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(29) = 0;
+          B.xelem(30) = 0;
+          B.xelem(31) = 0;
+          B.xelem(32) = invJ.xelem(2)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(33) = 0;
+          B.xelem(34) = invJ.xelem(1)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(35) = invJ.xelem(0)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(36) = invJ.xelem(0)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          B.xelem(37) = 0;
+          B.xelem(38) = 0;
+          B.xelem(39) = invJ.xelem(1)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          B.xelem(40) = 0;
+          B.xelem(41) = invJ.xelem(2)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          B.xelem(42) = 0;
+          B.xelem(43) = invJ.xelem(1)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          B.xelem(44) = 0;
+          B.xelem(45) = invJ.xelem(0)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          B.xelem(46) = invJ.xelem(2)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          B.xelem(47) = 0;
+          B.xelem(48) = 0;
+          B.xelem(49) = 0;
+          B.xelem(50) = invJ.xelem(2)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          B.xelem(51) = 0;
+          B.xelem(52) = invJ.xelem(1)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          B.xelem(53) = invJ.xelem(0)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          B.xelem(54) = invJ.xelem(0)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(55) = 0;
+          B.xelem(56) = 0;
+          B.xelem(57) = invJ.xelem(1)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(58) = 0;
+          B.xelem(59) = invJ.xelem(2)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(60) = 0;
+          B.xelem(61) = invJ.xelem(1)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(62) = 0;
+          B.xelem(63) = invJ.xelem(0)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(64) = invJ.xelem(2)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(65) = 0;
+          B.xelem(66) = 0;
+          B.xelem(67) = 0;
+          B.xelem(68) = invJ.xelem(2)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(69) = 0;
+          B.xelem(70) = invJ.xelem(1)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(71) = invJ.xelem(0)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          B.xelem(72) = invJ.xelem(0)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          B.xelem(73) = 0;
+          B.xelem(74) = 0;
+          B.xelem(75) = invJ.xelem(1)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          B.xelem(76) = 0;
+          B.xelem(77) = invJ.xelem(2)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          B.xelem(78) = 0;
+          B.xelem(79) = invJ.xelem(1)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          B.xelem(80) = 0;
+          B.xelem(81) = invJ.xelem(0)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          B.xelem(82) = invJ.xelem(2)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          B.xelem(83) = 0;
+          B.xelem(84) = 0;
+          B.xelem(85) = 0;
+          B.xelem(86) = invJ.xelem(2)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          B.xelem(87) = 0;
+          B.xelem(88) = invJ.xelem(1)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          B.xelem(89) = invJ.xelem(0)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          B.xelem(90) = invJ.xelem(3)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          B.xelem(91) = 0;
+          B.xelem(92) = 0;
+          B.xelem(93) = invJ.xelem(4)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          B.xelem(94) = 0;
+          B.xelem(95) = invJ.xelem(5)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          B.xelem(96) = 0;
+          B.xelem(97) = invJ.xelem(4)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          B.xelem(98) = 0;
+          B.xelem(99) = invJ.xelem(3)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          B.xelem(100) = invJ.xelem(5)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          B.xelem(101) = 0;
+          B.xelem(102) = 0;
+          B.xelem(103) = 0;
+          B.xelem(104) = invJ.xelem(5)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          B.xelem(105) = 0;
+          B.xelem(106) = invJ.xelem(4)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          B.xelem(107) = invJ.xelem(3)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          B.xelem(108) = invJ.xelem(3)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(109) = 0;
+          B.xelem(110) = 0;
+          B.xelem(111) = invJ.xelem(4)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(112) = 0;
+          B.xelem(113) = invJ.xelem(5)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(114) = 0;
+          B.xelem(115) = invJ.xelem(4)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(116) = 0;
+          B.xelem(117) = invJ.xelem(3)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(118) = invJ.xelem(5)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(119) = 0;
+          B.xelem(120) = 0;
+          B.xelem(121) = 0;
+          B.xelem(122) = invJ.xelem(5)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(123) = 0;
+          B.xelem(124) = invJ.xelem(4)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(125) = invJ.xelem(3)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          B.xelem(126) = invJ.xelem(3)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          B.xelem(127) = 0;
+          B.xelem(128) = 0;
+          B.xelem(129) = invJ.xelem(4)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          B.xelem(130) = 0;
+          B.xelem(131) = invJ.xelem(5)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          B.xelem(132) = 0;
+          B.xelem(133) = invJ.xelem(4)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          B.xelem(134) = 0;
+          B.xelem(135) = invJ.xelem(3)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          B.xelem(136) = invJ.xelem(5)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          B.xelem(137) = 0;
+          B.xelem(138) = 0;
+          B.xelem(139) = 0;
+          B.xelem(140) = invJ.xelem(5)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          B.xelem(141) = 0;
+          B.xelem(142) = invJ.xelem(4)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          B.xelem(143) = invJ.xelem(3)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          B.xelem(144) = invJ.xelem(3)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(145) = 0;
+          B.xelem(146) = 0;
+          B.xelem(147) = invJ.xelem(4)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(148) = 0;
+          B.xelem(149) = invJ.xelem(5)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(150) = 0;
+          B.xelem(151) = invJ.xelem(4)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(152) = 0;
+          B.xelem(153) = invJ.xelem(3)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(154) = invJ.xelem(5)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(155) = 0;
+          B.xelem(156) = 0;
+          B.xelem(157) = 0;
+          B.xelem(158) = invJ.xelem(5)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(159) = 0;
+          B.xelem(160) = invJ.xelem(4)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(161) = invJ.xelem(3)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          B.xelem(162) = invJ.xelem(0)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(3)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(6)*r*s;
+          B.xelem(163) = 0;
+          B.xelem(164) = 0;
+          B.xelem(165) = invJ.xelem(1)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(4)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(7)*r*s;
+          B.xelem(166) = 0;
+          B.xelem(167) = invJ.xelem(2)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(5)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(8)*r*s;
+          B.xelem(168) = 0;
+          B.xelem(169) = invJ.xelem(1)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(4)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(7)*r*s;
+          B.xelem(170) = 0;
+          B.xelem(171) = invJ.xelem(0)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(3)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(6)*r*s;
+          B.xelem(172) = invJ.xelem(2)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(5)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(8)*r*s;
+          B.xelem(173) = 0;
+          B.xelem(174) = 0;
+          B.xelem(175) = 0;
+          B.xelem(176) = invJ.xelem(2)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(5)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(8)*r*s;
+          B.xelem(177) = 0;
+          B.xelem(178) = invJ.xelem(1)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(4)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(7)*r*s;
+          B.xelem(179) = invJ.xelem(0)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(3)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(6)*r*s;
+          B.xelem(180) = invJ.xelem(0)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*r*(3*r-1))/2.0E+0;
+          B.xelem(181) = 0;
+          B.xelem(182) = 0;
+          B.xelem(183) = invJ.xelem(1)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*r*(3*r-1))/2.0E+0;
+          B.xelem(184) = 0;
+          B.xelem(185) = invJ.xelem(2)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*r*(3*r-1))/2.0E+0;
+          B.xelem(186) = 0;
+          B.xelem(187) = invJ.xelem(1)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*r*(3*r-1))/2.0E+0;
+          B.xelem(188) = 0;
+          B.xelem(189) = invJ.xelem(0)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*r*(3*r-1))/2.0E+0;
+          B.xelem(190) = invJ.xelem(2)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*r*(3*r-1))/2.0E+0;
+          B.xelem(191) = 0;
+          B.xelem(192) = 0;
+          B.xelem(193) = 0;
+          B.xelem(194) = invJ.xelem(2)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*r*(3*r-1))/2.0E+0;
+          B.xelem(195) = 0;
+          B.xelem(196) = invJ.xelem(1)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*r*(3*r-1))/2.0E+0;
+          B.xelem(197) = invJ.xelem(0)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*r*(3*r-1))/2.0E+0;
+          B.xelem(198) = 27*invJ.xelem(0)*s*t+27*invJ.xelem(3)*r*t+27*invJ.xelem(6)*r*s;
+          B.xelem(199) = 0;
+          B.xelem(200) = 0;
+          B.xelem(201) = 27*invJ.xelem(1)*s*t+27*invJ.xelem(4)*r*t+27*invJ.xelem(7)*r*s;
+          B.xelem(202) = 0;
+          B.xelem(203) = 27*invJ.xelem(2)*s*t+27*invJ.xelem(5)*r*t+27*invJ.xelem(8)*r*s;
+          B.xelem(204) = 0;
+          B.xelem(205) = 27*invJ.xelem(1)*s*t+27*invJ.xelem(4)*r*t+27*invJ.xelem(7)*r*s;
+          B.xelem(206) = 0;
+          B.xelem(207) = 27*invJ.xelem(0)*s*t+27*invJ.xelem(3)*r*t+27*invJ.xelem(6)*r*s;
+          B.xelem(208) = 27*invJ.xelem(2)*s*t+27*invJ.xelem(5)*r*t+27*invJ.xelem(8)*r*s;
+          B.xelem(209) = 0;
+          B.xelem(210) = 0;
+          B.xelem(211) = 0;
+          B.xelem(212) = 27*invJ.xelem(2)*s*t+27*invJ.xelem(5)*r*t+27*invJ.xelem(8)*r*s;
+          B.xelem(213) = 0;
+          B.xelem(214) = 27*invJ.xelem(1)*s*t+27*invJ.xelem(4)*r*t+27*invJ.xelem(7)*r*s;
+          B.xelem(215) = 27*invJ.xelem(0)*s*t+27*invJ.xelem(3)*r*t+27*invJ.xelem(6)*r*s;
+          B.xelem(216) = invJ.xelem(3)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*s*(3*s-1))/2.0E+0;
+          B.xelem(217) = 0;
+          B.xelem(218) = 0;
+          B.xelem(219) = invJ.xelem(4)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*s*(3*s-1))/2.0E+0;
+          B.xelem(220) = 0;
+          B.xelem(221) = invJ.xelem(5)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*s*(3*s-1))/2.0E+0;
+          B.xelem(222) = 0;
+          B.xelem(223) = invJ.xelem(4)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*s*(3*s-1))/2.0E+0;
+          B.xelem(224) = 0;
+          B.xelem(225) = invJ.xelem(3)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*s*(3*s-1))/2.0E+0;
+          B.xelem(226) = invJ.xelem(5)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*s*(3*s-1))/2.0E+0;
+          B.xelem(227) = 0;
+          B.xelem(228) = 0;
+          B.xelem(229) = 0;
+          B.xelem(230) = invJ.xelem(5)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*s*(3*s-1))/2.0E+0;
+          B.xelem(231) = 0;
+          B.xelem(232) = invJ.xelem(4)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*s*(3*s-1))/2.0E+0;
+          B.xelem(233) = invJ.xelem(3)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*s*(3*s-1))/2.0E+0;
+          B.xelem(234) = invJ.xelem(3)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(6)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(0)*s*t;
+          B.xelem(235) = 0;
+          B.xelem(236) = 0;
+          B.xelem(237) = invJ.xelem(4)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(7)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(1)*s*t;
+          B.xelem(238) = 0;
+          B.xelem(239) = invJ.xelem(5)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(8)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(2)*s*t;
+          B.xelem(240) = 0;
+          B.xelem(241) = invJ.xelem(4)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(7)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(1)*s*t;
+          B.xelem(242) = 0;
+          B.xelem(243) = invJ.xelem(3)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(6)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(0)*s*t;
+          B.xelem(244) = invJ.xelem(5)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(8)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(2)*s*t;
+          B.xelem(245) = 0;
+          B.xelem(246) = 0;
+          B.xelem(247) = 0;
+          B.xelem(248) = invJ.xelem(5)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(8)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(2)*s*t;
+          B.xelem(249) = 0;
+          B.xelem(250) = invJ.xelem(4)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(7)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(1)*s*t;
+          B.xelem(251) = invJ.xelem(3)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(6)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(0)*s*t;
+          B.xelem(252) = invJ.xelem(6)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(253) = 0;
+          B.xelem(254) = 0;
+          B.xelem(255) = invJ.xelem(7)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(256) = 0;
+          B.xelem(257) = invJ.xelem(8)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(258) = 0;
+          B.xelem(259) = invJ.xelem(7)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(260) = 0;
+          B.xelem(261) = invJ.xelem(6)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(262) = invJ.xelem(8)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(263) = 0;
+          B.xelem(264) = 0;
+          B.xelem(265) = 0;
+          B.xelem(266) = invJ.xelem(8)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(267) = 0;
+          B.xelem(268) = invJ.xelem(7)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(269) = invJ.xelem(6)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          B.xelem(270) = invJ.xelem(0)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(6)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(3)*r*t;
+          B.xelem(271) = 0;
+          B.xelem(272) = 0;
+          B.xelem(273) = invJ.xelem(1)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(7)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(4)*r*t;
+          B.xelem(274) = 0;
+          B.xelem(275) = invJ.xelem(2)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(8)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(5)*r*t;
+          B.xelem(276) = 0;
+          B.xelem(277) = invJ.xelem(1)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(7)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(4)*r*t;
+          B.xelem(278) = 0;
+          B.xelem(279) = invJ.xelem(0)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(6)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(3)*r*t;
+          B.xelem(280) = invJ.xelem(2)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(8)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(5)*r*t;
+          B.xelem(281) = 0;
+          B.xelem(282) = 0;
+          B.xelem(283) = 0;
+          B.xelem(284) = invJ.xelem(2)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(8)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(5)*r*t;
+          B.xelem(285) = 0;
+          B.xelem(286) = invJ.xelem(1)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(7)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(4)*r*t;
+          B.xelem(287) = invJ.xelem(0)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(6)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(3)*r*t;
+          B.xelem(288) = invJ.xelem(6)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          B.xelem(289) = 0;
+          B.xelem(290) = 0;
+          B.xelem(291) = invJ.xelem(7)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          B.xelem(292) = 0;
+          B.xelem(293) = invJ.xelem(8)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          B.xelem(294) = 0;
+          B.xelem(295) = invJ.xelem(7)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          B.xelem(296) = 0;
+          B.xelem(297) = invJ.xelem(6)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          B.xelem(298) = invJ.xelem(8)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          B.xelem(299) = 0;
+          B.xelem(300) = 0;
+          B.xelem(301) = 0;
+          B.xelem(302) = invJ.xelem(8)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          B.xelem(303) = 0;
+          B.xelem(304) = invJ.xelem(7)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          B.xelem(305) = invJ.xelem(6)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          B.xelem(306) = invJ.xelem(6)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(3)*t*(3*t-1))/2.0E+0;
+          B.xelem(307) = 0;
+          B.xelem(308) = 0;
+          B.xelem(309) = invJ.xelem(7)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(4)*t*(3*t-1))/2.0E+0;
+          B.xelem(310) = 0;
+          B.xelem(311) = invJ.xelem(8)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(5)*t*(3*t-1))/2.0E+0;
+          B.xelem(312) = 0;
+          B.xelem(313) = invJ.xelem(7)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(4)*t*(3*t-1))/2.0E+0;
+          B.xelem(314) = 0;
+          B.xelem(315) = invJ.xelem(6)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(3)*t*(3*t-1))/2.0E+0;
+          B.xelem(316) = invJ.xelem(8)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(5)*t*(3*t-1))/2.0E+0;
+          B.xelem(317) = 0;
+          B.xelem(318) = 0;
+          B.xelem(319) = 0;
+          B.xelem(320) = invJ.xelem(8)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(5)*t*(3*t-1))/2.0E+0;
+          B.xelem(321) = 0;
+          B.xelem(322) = invJ.xelem(7)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(4)*t*(3*t-1))/2.0E+0;
+          B.xelem(323) = invJ.xelem(6)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(3)*t*(3*t-1))/2.0E+0;
+          B.xelem(324) = invJ.xelem(6)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(3)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          B.xelem(325) = 0;
+          B.xelem(326) = 0;
+          B.xelem(327) = invJ.xelem(7)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(4)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          B.xelem(328) = 0;
+          B.xelem(329) = invJ.xelem(8)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(5)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          B.xelem(330) = 0;
+          B.xelem(331) = invJ.xelem(7)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(4)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          B.xelem(332) = 0;
+          B.xelem(333) = invJ.xelem(6)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(3)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          B.xelem(334) = invJ.xelem(8)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(5)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          B.xelem(335) = 0;
+          B.xelem(336) = 0;
+          B.xelem(337) = 0;
+          B.xelem(338) = invJ.xelem(8)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(5)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          B.xelem(339) = 0;
+          B.xelem(340) = invJ.xelem(7)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(4)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          B.xelem(341) = invJ.xelem(6)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(3)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          B.xelem(342) = invJ.xelem(6)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(343) = 0;
+          B.xelem(344) = 0;
+          B.xelem(345) = invJ.xelem(7)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(346) = 0;
+          B.xelem(347) = invJ.xelem(8)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(348) = 0;
+          B.xelem(349) = invJ.xelem(7)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(350) = 0;
+          B.xelem(351) = invJ.xelem(6)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(352) = invJ.xelem(8)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(353) = 0;
+          B.xelem(354) = 0;
+          B.xelem(355) = 0;
+          B.xelem(356) = invJ.xelem(8)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(357) = 0;
+          B.xelem(358) = invJ.xelem(7)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          B.xelem(359) = invJ.xelem(6)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+     }
+
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
+     }
+
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }
+
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const final {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hs.columns() == 20);
+          FEM_ASSERT(irow >= 0);
+          FEM_ASSERT(irow < Hs.rows());
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+          const octave_idx_type nrows = Hs.rows();
+
+          Hs.xelem(irow) = ((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          Hs.xelem(nrows+irow) = (9.0E+0*r*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          Hs.xelem(2*nrows+irow) = (9.0E+0*r*(3*r-1)*((-t)-s-r+1))/2.0E+0;
+          Hs.xelem(3*nrows+irow) = (r*(3*r-2)*(3*r-1))/2.0E+0;
+          Hs.xelem(4*nrows+irow) = (9.0E+0*r*(3*r-1)*s)/2.0E+0;
+          Hs.xelem(5*nrows+irow) = (9.0E+0*r*s*(3*s-1))/2.0E+0;
+          Hs.xelem(6*nrows+irow) = (s*(3*s-2)*(3*s-1))/2.0E+0;
+          Hs.xelem(7*nrows+irow) = (9.0E+0*s*(3*s-1)*((-t)-s-r+1))/2.0E+0;
+          Hs.xelem(8*nrows+irow) = (9.0E+0*s*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          Hs.xelem(9*nrows+irow) = 27*r*s*((-t)-s-r+1);
+          Hs.xelem(10*nrows+irow) = (9.0E+0*r*(3*r-1)*t)/2.0E+0;
+          Hs.xelem(11*nrows+irow) = 27*r*s*t;
+          Hs.xelem(12*nrows+irow) = (9.0E+0*s*(3*s-1)*t)/2.0E+0;
+          Hs.xelem(13*nrows+irow) = 27*s*((-t)-s-r+1)*t;
+          Hs.xelem(14*nrows+irow) = (9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1)*t)/2.0E+0;
+          Hs.xelem(15*nrows+irow) = 27*r*((-t)-s-r+1)*t;
+          Hs.xelem(16*nrows+irow) = (9.0E+0*r*t*(3*t-1))/2.0E+0;
+          Hs.xelem(17*nrows+irow) = (9.0E+0*s*t*(3*t-1))/2.0E+0;
+          Hs.xelem(18*nrows+irow) = (9.0E+0*((-t)-s-r+1)*t*(3*t-1))/2.0E+0;
+          Hs.xelem(19*nrows+irow) = (t*(3*t-2)*(3*t-1))/2.0E+0;
+     }
+
+     virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
+          FEM_ASSERT(Bt.rows() == 3);
+          FEM_ASSERT(Bt.columns() == 20);
+          FEM_ASSERT(J.rows() == 3);
+          FEM_ASSERT(J.columns() == 3);
+          FEM_ASSERT(invJ.rows() == 3);
+          FEM_ASSERT(invJ.columns() == 3);
+
+          FEM_ASSERT(rv.numel() == 3);
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          Inverse3x3(J, detJ, invJ);
+
+          Bt.xelem(0) = invJ.xelem(6)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(1) = invJ.xelem(7)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(2) = invJ.xelem(8)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(3) = invJ.xelem(0)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(4) = invJ.xelem(1)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(5) = invJ.xelem(2)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(6) = invJ.xelem(0)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(7) = invJ.xelem(1)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(8) = invJ.xelem(2)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(9) = invJ.xelem(0)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          Bt.xelem(10) = invJ.xelem(1)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          Bt.xelem(11) = invJ.xelem(2)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
+          Bt.xelem(12) = invJ.xelem(0)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(13) = invJ.xelem(1)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(14) = invJ.xelem(2)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(15) = invJ.xelem(3)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(16) = invJ.xelem(4)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(17) = invJ.xelem(5)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(18) = invJ.xelem(3)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          Bt.xelem(19) = invJ.xelem(4)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          Bt.xelem(20) = invJ.xelem(5)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
+          Bt.xelem(21) = invJ.xelem(3)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(22) = invJ.xelem(4)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(23) = invJ.xelem(5)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(24) = invJ.xelem(3)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(25) = invJ.xelem(4)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(26) = invJ.xelem(5)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
+          Bt.xelem(27) = invJ.xelem(0)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(3)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(6)*r*s;
+          Bt.xelem(28) = invJ.xelem(1)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(4)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(7)*r*s;
+          Bt.xelem(29) = invJ.xelem(2)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(5)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(8)*r*s;
+          Bt.xelem(30) = invJ.xelem(0)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(31) = invJ.xelem(1)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(32) = invJ.xelem(2)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*r*(3*r-1))/2.0E+0;
+          Bt.xelem(33) = 27*invJ.xelem(0)*s*t+27*invJ.xelem(3)*r*t+27*invJ.xelem(6)*r*s;
+          Bt.xelem(34) = 27*invJ.xelem(1)*s*t+27*invJ.xelem(4)*r*t+27*invJ.xelem(7)*r*s;
+          Bt.xelem(35) = 27*invJ.xelem(2)*s*t+27*invJ.xelem(5)*r*t+27*invJ.xelem(8)*r*s;
+          Bt.xelem(36) = invJ.xelem(3)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(37) = invJ.xelem(4)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(38) = invJ.xelem(5)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*s*(3*s-1))/2.0E+0;
+          Bt.xelem(39) = invJ.xelem(3)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(6)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(0)*s*t;
+          Bt.xelem(40) = invJ.xelem(4)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(7)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(1)*s*t;
+          Bt.xelem(41) = invJ.xelem(5)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(8)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(2)*s*t;
+          Bt.xelem(42) = invJ.xelem(6)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          Bt.xelem(43) = invJ.xelem(7)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          Bt.xelem(44) = invJ.xelem(8)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
+          Bt.xelem(45) = invJ.xelem(0)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(6)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(3)*r*t;
+          Bt.xelem(46) = invJ.xelem(1)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(7)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(4)*r*t;
+          Bt.xelem(47) = invJ.xelem(2)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(8)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(5)*r*t;
+          Bt.xelem(48) = invJ.xelem(6)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(49) = invJ.xelem(7)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(50) = invJ.xelem(8)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(51) = invJ.xelem(6)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(3)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(52) = invJ.xelem(7)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(4)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(53) = invJ.xelem(8)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(5)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(54) = invJ.xelem(6)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(3)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(55) = invJ.xelem(7)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(4)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(56) = invJ.xelem(8)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(5)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
+          Bt.xelem(57) = invJ.xelem(6)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          Bt.xelem(58) = invJ.xelem(7)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+          Bt.xelem(59) = invJ.xelem(8)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
+
+     }
+
+private:
+     enum IntegRuleType {
+          R1 = 0,
+          R2,
+          R3,
+          R4,
+          R5,
+          RNUM
+     };
+
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType,
+                           const typename PostProcTypeTraits<T>::MatrixType& taug) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumNodes = nodes.numel();
+
+          ColumnVector rv(iNumDir);
+
+          FEM_ASSERT(iNumGauss >= iNumNodes);
+
+          Matrix H(iNumGauss, iNumNodes);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               ScalarInterpMatrix(rv, H, i);
+          }
+
+          octave_idx_type info = -1;
+
+          const auto taun = H.solve(taug, info);
+
+          FEM_ASSERT(info == 0);
+
+          return taun;
+     }
+
+     static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType & ~MAT_COLL_PNT_OUTPUT) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_FLUID_STRUCT_IM:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_THERMAL:
+          case VEC_LOAD_ACOUSTICS:
+          case VEC_LOAD_FLUID_STRUCT:
+          case MAT_THERMAL_COND:
+          case MAT_STIFFNESS_ACOUSTICS_RE:
+          case MAT_STIFFNESS_ACOUSTICS_IM:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
+               return R1;
+
+          case MAT_MASS:
+          case MAT_MASS_SYM:
+          case MAT_MASS_SYM_L:
+          case MAT_MASS_FLUID_STRUCT_RE:
+          case MAT_MASS_FLUID_STRUCT_IM:
+          case VEC_INERTIA_M1:
+          case MAT_INERTIA_J:
+          case MAT_INERTIA_INV3:
+          case MAT_INERTIA_INV4:
+          case MAT_INERTIA_INV5:
+          case MAT_INERTIA_INV8:
+          case MAT_INERTIA_INV9:
+          case SCA_TOT_MASS:
+          case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS_RE:
+          case MAT_MASS_ACOUSTICS_IM:
+               return R3;
+
+          case VEC_STRESS_CAUCH:
+          case VEC_STRAIN_TOTAL:
+          case SCA_STRESS_VMIS:
+          case VEC_PARTICLE_VELOCITY:
+          case VEC_PARTICLE_VELOCITY_C:
+               return R3;
+
+          case MAT_MASS_LUMPED:
+               return R5;
+
+          default:
+               throw std::runtime_error("tet20: matrix type not supported");
+          }
+     }
+
+     void ScalarInterpMatrixCornerNodes(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hs.columns() == 4);
+          FEM_ASSERT(irow >= 0);
+          FEM_ASSERT(irow < Hs.rows());
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          const octave_idx_type nrows = Hs.rows();
+
+          Hs.xelem(0*nrows+irow) = 1. - r - s - t;
+          Hs.xelem(1*nrows+irow) = r;
+          Hs.xelem(2*nrows+irow) = s;
+          Hs.xelem(3*nrows+irow) = t;
+     }
+
+     static array<IntegrationRule, RNUM> rgIntegRule;
+};
+
+array<IntegrationRule, Tet20::RNUM> Tet20::rgIntegRule;
 
 class ShapeTria6 {
 public:
@@ -9259,6 +10237,453 @@ private:
 
 array<IntegrationRule, 2> ShapeTria6H::rgIntegRule;
 
+class ShapeTria10 {
+public:
+     static constexpr octave_idx_type iGetNumNodes() {
+          return 10;
+     }
+
+     static constexpr octave_idx_type iGetNumDirections() {
+          return 2;
+     }
+
+     static constexpr octave_idx_type iGetNumDofNode() {
+          return 3;
+     }
+
+     static constexpr octave_idx_type iGetNumEqualityConstr() {
+          return 0;
+     }
+
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 1;
+     }
+
+     static constexpr double EqualityConstr(const ColumnVector&) {
+          return 0;
+     }
+
+     static double InequalityConstr(const ColumnVector& rv) {
+          return rv.xelem(0) + rv.xelem(1) - 1.;
+     }
+
+     static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+          FEM_ASSERT(rmin.rows() == iGetNumDirections());
+          FEM_ASSERT(rmax.rows() == rmin.rows());
+
+          for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+               rmin.xelem(i) = 0.;
+          }
+
+          for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+               rmax.xelem(i) = 1.;
+          }
+     }
+
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
+          FEM_ASSERT(rv.rows() == 2);
+          FEM_ASSERT(HA.rows() > irow);
+          FEM_ASSERT(HA.columns() == 10);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+          const octave_idx_type nrows = HA.rows();
+
+          HA.xelem(irow + nrows * 0) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 1) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 2) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          HA.xelem(irow + nrows * 3) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 4) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          HA.xelem(irow + nrows * 5) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          HA.xelem(irow + nrows * 6) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          HA.xelem(irow + nrows * 7) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          HA.xelem(irow + nrows * 8) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          HA.xelem(irow + nrows * 9) = 27*eta*((-zeta)-eta+1)*zeta;
+     }
+
+     static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          Hf.xelem(0) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          Hf.xelem(1) = 0;
+          Hf.xelem(2) = 0;
+          Hf.xelem(3) = 0;
+          Hf.xelem(4) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          Hf.xelem(5) = 0;
+          Hf.xelem(6) = 0;
+          Hf.xelem(7) = 0;
+          Hf.xelem(8) = (zeta*(3*zeta-2)*(3*zeta-1))/2.0E+0;
+          Hf.xelem(9) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          Hf.xelem(10) = 0;
+          Hf.xelem(11) = 0;
+          Hf.xelem(12) = 0;
+          Hf.xelem(13) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          Hf.xelem(14) = 0;
+          Hf.xelem(15) = 0;
+          Hf.xelem(16) = 0;
+          Hf.xelem(17) = (eta*(3*eta-2)*(3*eta-1))/2.0E+0;
+          Hf.xelem(18) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(19) = 0;
+          Hf.xelem(20) = 0;
+          Hf.xelem(21) = 0;
+          Hf.xelem(22) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(23) = 0;
+          Hf.xelem(24) = 0;
+          Hf.xelem(25) = 0;
+          Hf.xelem(26) = ((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(27) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(28) = 0;
+          Hf.xelem(29) = 0;
+          Hf.xelem(30) = 0;
+          Hf.xelem(31) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(32) = 0;
+          Hf.xelem(33) = 0;
+          Hf.xelem(34) = 0;
+          Hf.xelem(35) = (9.0E+0*eta*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(36) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          Hf.xelem(37) = 0;
+          Hf.xelem(38) = 0;
+          Hf.xelem(39) = 0;
+          Hf.xelem(40) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          Hf.xelem(41) = 0;
+          Hf.xelem(42) = 0;
+          Hf.xelem(43) = 0;
+          Hf.xelem(44) = (9.0E+0*eta*(3*eta-1)*zeta)/2.0E+0;
+          Hf.xelem(45) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(46) = 0;
+          Hf.xelem(47) = 0;
+          Hf.xelem(48) = 0;
+          Hf.xelem(49) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(50) = 0;
+          Hf.xelem(51) = 0;
+          Hf.xelem(52) = 0;
+          Hf.xelem(53) = (9.0E+0*eta*(3*eta-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(54) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(55) = 0;
+          Hf.xelem(56) = 0;
+          Hf.xelem(57) = 0;
+          Hf.xelem(58) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(59) = 0;
+          Hf.xelem(60) = 0;
+          Hf.xelem(61) = 0;
+          Hf.xelem(62) = (9.0E+0*eta*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          Hf.xelem(63) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          Hf.xelem(64) = 0;
+          Hf.xelem(65) = 0;
+          Hf.xelem(66) = 0;
+          Hf.xelem(67) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          Hf.xelem(68) = 0;
+          Hf.xelem(69) = 0;
+          Hf.xelem(70) = 0;
+          Hf.xelem(71) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1)*zeta)/2.0E+0;
+          Hf.xelem(72) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(73) = 0;
+          Hf.xelem(74) = 0;
+          Hf.xelem(75) = 0;
+          Hf.xelem(76) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(77) = 0;
+          Hf.xelem(78) = 0;
+          Hf.xelem(79) = 0;
+          Hf.xelem(80) = (9.0E+0*((-zeta)-eta+1)*zeta*(3*zeta-1))/2.0E+0;
+          Hf.xelem(81) = 27*eta*((-zeta)-eta+1)*zeta;
+          Hf.xelem(82) = 0;
+          Hf.xelem(83) = 0;
+          Hf.xelem(84) = 0;
+          Hf.xelem(85) = 27*eta*((-zeta)-eta+1)*zeta;
+          Hf.xelem(86) = 0;
+          Hf.xelem(87) = 0;
+          Hf.xelem(88) = 0;
+          Hf.xelem(89) = 27*eta*((-zeta)-eta+1)*zeta          ;
+     }
+
+     static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          dHf_dr.xelem(0) = ((3*zeta-2)*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-2))/2.0E+0;
+          dHf_dr.xelem(1) = 0;
+          dHf_dr.xelem(2) = 0;
+          dHf_dr.xelem(3) = 0;
+          dHf_dr.xelem(4) = ((3*zeta-2)*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-2))/2.0E+0;
+          dHf_dr.xelem(5) = 0;
+          dHf_dr.xelem(6) = 0;
+          dHf_dr.xelem(7) = 0;
+          dHf_dr.xelem(8) = ((3*zeta-2)*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-1))/2.0E+0+(3.0E+0*zeta*(3*zeta-2))/2.0E+0;
+          dHf_dr.xelem(9) = 0;
+          dHf_dr.xelem(10) = 0;
+          dHf_dr.xelem(11) = 0;
+          dHf_dr.xelem(12) = 0;
+          dHf_dr.xelem(13) = 0;
+          dHf_dr.xelem(14) = 0;
+          dHf_dr.xelem(15) = 0;
+          dHf_dr.xelem(16) = 0;
+          dHf_dr.xelem(17) = 0;
+          dHf_dr.xelem(18) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(19) = 0;
+          dHf_dr.xelem(20) = 0;
+          dHf_dr.xelem(21) = 0;
+          dHf_dr.xelem(22) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(23) = 0;
+          dHf_dr.xelem(24) = 0;
+          dHf_dr.xelem(25) = 0;
+          dHf_dr.xelem(26) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(27) = (9.0E+0*eta*(3*zeta-1))/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_dr.xelem(28) = 0;
+          dHf_dr.xelem(29) = 0;
+          dHf_dr.xelem(30) = 0;
+          dHf_dr.xelem(31) = (9.0E+0*eta*(3*zeta-1))/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_dr.xelem(32) = 0;
+          dHf_dr.xelem(33) = 0;
+          dHf_dr.xelem(34) = 0;
+          dHf_dr.xelem(35) = (9.0E+0*eta*(3*zeta-1))/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_dr.xelem(36) = (9.0E+0*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(37) = 0;
+          dHf_dr.xelem(38) = 0;
+          dHf_dr.xelem(39) = 0;
+          dHf_dr.xelem(40) = (9.0E+0*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(41) = 0;
+          dHf_dr.xelem(42) = 0;
+          dHf_dr.xelem(43) = 0;
+          dHf_dr.xelem(44) = (9.0E+0*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(45) = ((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(46) = 0;
+          dHf_dr.xelem(47) = 0;
+          dHf_dr.xelem(48) = 0;
+          dHf_dr.xelem(49) = ((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(50) = 0;
+          dHf_dr.xelem(51) = 0;
+          dHf_dr.xelem(52) = 0;
+          dHf_dr.xelem(53) = ((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_dr.xelem(54) = ((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(55) = 0;
+          dHf_dr.xelem(56) = 0;
+          dHf_dr.xelem(57) = 0;
+          dHf_dr.xelem(58) = ((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(59) = 0;
+          dHf_dr.xelem(60) = 0;
+          dHf_dr.xelem(61) = 0;
+          dHf_dr.xelem(62) = ((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_dr.xelem(63) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0+(9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          dHf_dr.xelem(64) = 0;
+          dHf_dr.xelem(65) = 0;
+          dHf_dr.xelem(66) = 0;
+          dHf_dr.xelem(67) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0+(9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          dHf_dr.xelem(68) = 0;
+          dHf_dr.xelem(69) = 0;
+          dHf_dr.xelem(70) = 0;
+          dHf_dr.xelem(71) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0+(9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0;
+          dHf_dr.xelem(72) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0+(9.0E+0*((-zeta)-eta+1)*(3*zeta-1))/2.0E+0+(2.7E+1*((-zeta)-eta+1)*zeta)/2.0E+0;
+          dHf_dr.xelem(73) = 0;
+          dHf_dr.xelem(74) = 0;
+          dHf_dr.xelem(75) = 0;
+          dHf_dr.xelem(76) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0+(9.0E+0*((-zeta)-eta+1)*(3*zeta-1))/2.0E+0+(2.7E+1*((-zeta)-eta+1)*zeta)/2.0E+0;
+          dHf_dr.xelem(77) = 0;
+          dHf_dr.xelem(78) = 0;
+          dHf_dr.xelem(79) = 0;
+          dHf_dr.xelem(80) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0+(9.0E+0*((-zeta)-eta+1)*(3*zeta-1))/2.0E+0+(2.7E+1*((-zeta)-eta+1)*zeta)/2.0E+0;
+          dHf_dr.xelem(81) = 27*eta*((-zeta)-eta+1)-27*eta*zeta;
+          dHf_dr.xelem(82) = 0;
+          dHf_dr.xelem(83) = 0;
+          dHf_dr.xelem(84) = 0;
+          dHf_dr.xelem(85) = 27*eta*((-zeta)-eta+1)-27*eta*zeta;
+          dHf_dr.xelem(86) = 0;
+          dHf_dr.xelem(87) = 0;
+          dHf_dr.xelem(88) = 0;
+          dHf_dr.xelem(89) = 27*eta*((-zeta)-eta+1)-27*eta*zeta;
+     }
+
+     static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double zeta = rv.xelem(0);
+          const double eta = rv.xelem(1);
+
+          dHf_ds.xelem(0) = 0;
+          dHf_ds.xelem(1) = 0;
+          dHf_ds.xelem(2) = 0;
+          dHf_ds.xelem(3) = 0;
+          dHf_ds.xelem(4) = 0;
+          dHf_ds.xelem(5) = 0;
+          dHf_ds.xelem(6) = 0;
+          dHf_ds.xelem(7) = 0;
+          dHf_ds.xelem(8) = 0;
+          dHf_ds.xelem(9) = ((3*eta-2)*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-2))/2.0E+0;
+          dHf_ds.xelem(10) = 0;
+          dHf_ds.xelem(11) = 0;
+          dHf_ds.xelem(12) = 0;
+          dHf_ds.xelem(13) = ((3*eta-2)*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-2))/2.0E+0;
+          dHf_ds.xelem(14) = 0;
+          dHf_ds.xelem(15) = 0;
+          dHf_ds.xelem(16) = 0;
+          dHf_ds.xelem(17) = ((3*eta-2)*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-1))/2.0E+0+(3.0E+0*eta*(3*eta-2))/2.0E+0;
+          dHf_ds.xelem(18) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(19) = 0;
+          dHf_ds.xelem(20) = 0;
+          dHf_ds.xelem(21) = 0;
+          dHf_ds.xelem(22) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(23) = 0;
+          dHf_ds.xelem(24) = 0;
+          dHf_ds.xelem(25) = 0;
+          dHf_ds.xelem(26) = ((-3.0E+0)*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-3.0E+0)*(3*((-zeta)-eta+1)-2)*((-zeta)-eta+1))/2.0E+0-((3*((-zeta)-eta+1)-2)*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(27) = (9.0E+0*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(28) = 0;
+          dHf_ds.xelem(29) = 0;
+          dHf_ds.xelem(30) = 0;
+          dHf_ds.xelem(31) = (9.0E+0*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(32) = 0;
+          dHf_ds.xelem(33) = 0;
+          dHf_ds.xelem(34) = 0;
+          dHf_ds.xelem(35) = (9.0E+0*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(36) = (9.0E+0*(3*eta-1)*zeta)/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_ds.xelem(37) = 0;
+          dHf_ds.xelem(38) = 0;
+          dHf_ds.xelem(39) = 0;
+          dHf_ds.xelem(40) = (9.0E+0*(3*eta-1)*zeta)/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_ds.xelem(41) = 0;
+          dHf_ds.xelem(42) = 0;
+          dHf_ds.xelem(43) = 0;
+          dHf_ds.xelem(44) = (9.0E+0*(3*eta-1)*zeta)/2.0E+0+(2.7E+1*eta*zeta)/2.0E+0;
+          dHf_ds.xelem(45) = (9.0E+0*(3*eta-1)*((-zeta)-eta+1))/2.0E+0+(2.7E+1*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_ds.xelem(46) = 0;
+          dHf_ds.xelem(47) = 0;
+          dHf_ds.xelem(48) = 0;
+          dHf_ds.xelem(49) = (9.0E+0*(3*eta-1)*((-zeta)-eta+1))/2.0E+0+(2.7E+1*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_ds.xelem(50) = 0;
+          dHf_ds.xelem(51) = 0;
+          dHf_ds.xelem(52) = 0;
+          dHf_ds.xelem(53) = (9.0E+0*(3*eta-1)*((-zeta)-eta+1))/2.0E+0+(2.7E+1*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*eta-1))/2.0E+0;
+          dHf_ds.xelem(54) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(55) = 0;
+          dHf_ds.xelem(56) = 0;
+          dHf_ds.xelem(57) = 0;
+          dHf_ds.xelem(58) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(59) = 0;
+          dHf_ds.xelem(60) = 0;
+          dHf_ds.xelem(61) = 0;
+          dHf_ds.xelem(62) = (9.0E+0*(3*((-zeta)-eta+1)-1)*((-zeta)-eta+1))/2.0E+0+((-2.7E+1)*eta*((-zeta)-eta+1))/2.0E+0+((-9.0E+0)*eta*(3*((-zeta)-eta+1)-1))/2.0E+0;
+          dHf_ds.xelem(63) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0;
+          dHf_ds.xelem(64) = 0;
+          dHf_ds.xelem(65) = 0;
+          dHf_ds.xelem(66) = 0;
+          dHf_ds.xelem(67) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0;
+          dHf_ds.xelem(68) = 0;
+          dHf_ds.xelem(69) = 0;
+          dHf_ds.xelem(70) = 0;
+          dHf_ds.xelem(71) = ((-2.7E+1)*((-zeta)-eta+1)*zeta)/2.0E+0+((-9.0E+0)*(3*((-zeta)-eta+1)-1)*zeta)/2.0E+0;
+          dHf_ds.xelem(72) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(73) = 0;
+          dHf_ds.xelem(74) = 0;
+          dHf_ds.xelem(75) = 0;
+          dHf_ds.xelem(76) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(77) = 0;
+          dHf_ds.xelem(78) = 0;
+          dHf_ds.xelem(79) = 0;
+          dHf_ds.xelem(80) = ((-9.0E+0)*zeta*(3*zeta-1))/2.0E+0;
+          dHf_ds.xelem(81) = 27*((-zeta)-eta+1)*zeta-27*eta*zeta;
+          dHf_ds.xelem(82) = 0;
+          dHf_ds.xelem(83) = 0;
+          dHf_ds.xelem(84) = 0;
+          dHf_ds.xelem(85) = 27*((-zeta)-eta+1)*zeta-27*eta*zeta;
+          dHf_ds.xelem(86) = 0;
+          dHf_ds.xelem(87) = 0;
+          dHf_ds.xelem(88) = 0;
+          dHf_ds.xelem(89) = 27*((-zeta)-eta+1)*zeta-27*eta*zeta;
+     }
+
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          static constexpr double zeta2[] = {0.3333333333333330, 0.0288447332326850, 0.7810368490299260, 0.1417072194148800, 0.0250035347626860, 0.0095408154002990};
+          static constexpr double eta2[] = {0.3333333333333330, 0.4855776333836570, 0.1094815754850370, 0.3079398387641210, 0.2466725606399030, 0.0668032510122000};
+          static constexpr double w2[] = {4.5408995191376998e-02, 1.8362978878233498e-02, 2.2660529717764000e-02, 3.6378958422710002e-02, 1.4163621265528500e-02, 4.7108334818665000e-03};
+
+          static constexpr octave_idx_type perm2[3][3] = {{0, 1, 2}, {1, 0, 2}, {1, 2, 0}};
+          static constexpr octave_idx_type perm3[6][3] = {{2, 1, 0}, {2, 0, 1}, {1, 2, 0}, {1, 0, 2}, {0, 2, 1}, {0, 1, 2}};
+
+          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+               switch (iIntegRule) {
+               case R2:
+                    rgIntegRule[R2].SetNumEvalPoints(25, 2);
+                    rgIntegRule[R2].SetPosition(0, 0, zeta2[0]);
+                    rgIntegRule[R2].SetPosition(0, 1, eta2[0]);
+                    rgIntegRule[R2].SetWeight(0, w2[0]);
+
+                    for (octave_idx_type i = 1; i < 3; ++i) {
+                         for (octave_idx_type j = 0; j < 3; ++j) {
+                              const octave_idx_type idx = (i - 1) * 3 + j + 1;
+
+                              FEM_ASSERT(idx >= 1);
+                              FEM_ASSERT(idx <= 6);
+
+                              const double x[3] = {zeta2[i], eta2[i], 1. - zeta2[i] - eta2[i]};
+
+                              rgIntegRule[R2].SetWeight(idx, w2[i]);
+
+                              for (octave_idx_type k = 0; k < 2; ++k) {
+                                   rgIntegRule[R2].SetPosition(idx, k, x[perm2[j][k]]);
+                              }
+                         }
+                    }
+
+                    for (octave_idx_type i = 3; i < 6; ++i) {
+                         for (octave_idx_type j = 0; j < 6; ++j) {
+                              const octave_idx_type idx = (i - 3) * 6 + j + 7;
+
+                              FEM_ASSERT(idx >= 7);
+                              FEM_ASSERT(idx < 25);
+
+                              const double x[3] = {zeta2[i], eta2[i], 1. - zeta2[i] - eta2[i]};
+
+                              rgIntegRule[R2].SetWeight(idx, w2[i]);
+
+                              for (octave_idx_type k = 0; k < 2; ++k) {
+                                   rgIntegRule[R2].SetPosition(idx, k, x[perm3[j][k]]);
+                              }
+                         }
+                    }
+                    break;
+
+               default:
+                    throw std::logic_error("invalid integration rule");
+               }
+          }
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
+
+          return rgIntegRule[iIntegRule];
+     }
+
+private:
+     enum IntegRuleType {
+          R2 = 0,
+          RNUM
+     };
+
+     static octave_idx_type SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               throw std::runtime_error("tria10: VEC_LOAD_LUMPED not implemented, use VEC_LOAD_CONSISTENT instead");
+          default:
+               return R2;
+          }
+     }
+
+     static array<IntegrationRule, RNUM> rgIntegRule;
+};
+
+array<IntegrationRule, ShapeTria10::RNUM> ShapeTria10::rgIntegRule;
+
 class SurfaceElement: public Element {
 protected:
      SurfaceElement(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
@@ -9386,7 +10811,7 @@ public:
                detJA_2 += std::pow(n_detJA.xelem(l), 2);
           }
 
-          if (detJA_2 < 0.) {
+          if (detJA_2 <= 0.) {
                throw std::runtime_error("surface element: Jacobian of surface element is singular");
           }
 
@@ -9401,7 +10826,7 @@ public:
                + std::pow(n1.xelem(2) * n2.xelem(0) - n1.xelem(0) * n2.xelem(2), 2)
                + std::pow(n1.xelem(0) * n2.xelem(1) - n1.xelem(1) * n2.xelem(0), 2);
 
-          if (detJA < 0.) {
+          if (detJA <= 0.) {
                throw std::runtime_error("surface element: Jacobian of surface element is singular");
           }
 
@@ -10269,36 +11694,43 @@ typedef SurfaceElementImpl<ShapeIso4, PressureLoad> PressureLoadIso4;
 typedef SurfaceElementImpl<ShapeQuad8, PressureLoad> PressureLoadQuad8;
 typedef SurfaceElementImpl<ShapeTria6, PressureLoad> PressureLoadTria6;
 typedef SurfaceElementImpl<ShapeTria6H, PressureLoad> PressureLoadTria6H;
+typedef SurfaceElementImpl<ShapeTria10, PressureLoad> PressureLoadTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, ThermalConvectionBC> ThermalConvectionBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ThermalConvectionBC> ThermalConvectionBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, ThermalConvectionBC> ThermalConvectionBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ThermalConvectionBC> ThermalConvectionBCTria6H;
+typedef SurfaceElementImpl<ShapeTria10, ThermalConvectionBC> ThermalConvectionBCTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, HeatSource> HeatSourceIso4;
 typedef SurfaceElementImpl<ShapeQuad8, HeatSource> HeatSourceQuad8;
 typedef SurfaceElementImpl<ShapeTria6, HeatSource> HeatSourceTria6;
 typedef SurfaceElementImpl<ShapeTria6H, HeatSource> HeatSourceTria6H;
+typedef SurfaceElementImpl<ShapeTria10, HeatSource> HeatSourceTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, ParticleVelocityBC> ParticleVelocityBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ParticleVelocityBC> ParticleVelocityBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, ParticleVelocityBC> ParticleVelocityBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ParticleVelocityBC> ParticleVelocityBCTria6H;
+typedef SurfaceElementImpl<ShapeTria10, ParticleVelocityBC> ParticleVelocityBCTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, AcousticImpedanceBC> AcousticImpedanceBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticImpedanceBC> AcousticImpedanceBCQuad8;
 typedef SurfaceElementImpl<ShapeTria6, AcousticImpedanceBC> AcousticImpedanceBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticImpedanceBC> AcousticImpedanceBCTria6H;
+typedef SurfaceElementImpl<ShapeTria10, AcousticImpedanceBC> AcousticImpedanceBCTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, AcousticBoundary> AcousticBoundaryIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticBoundary> AcousticBoundaryQuad8;
 typedef SurfaceElementImpl<ShapeTria6, AcousticBoundary> AcousticBoundaryTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticBoundary> AcousticBoundaryTria6H;
+typedef SurfaceElementImpl<ShapeTria10, AcousticBoundary> AcousticBoundaryTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, FluidStructInteract> FluidStructInteractIso4;
 typedef SurfaceElementImpl<ShapeQuad8, FluidStructInteract> FluidStructInteractQuad8;
 typedef SurfaceElementImpl<ShapeTria6, FluidStructInteract> FluidStructInteractTria6;
 typedef SurfaceElementImpl<ShapeTria6H, FluidStructInteract> FluidStructInteractTria6H;
+typedef SurfaceElementImpl<ShapeTria10, FluidStructInteract> FluidStructInteractTria10;
 
 class StructForce: public Element {
 public:
@@ -10780,7 +12212,7 @@ template <typename ConvectionElemType>
 void InsertThermalConvElem(const ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const octave_map& load_case, const char* const pszElemName, const octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
      const octave_idx_type iNumNodes = nodes.rows();
      const octave_idx_type iNumLoads = load_case.numel();
-     
+
      const auto iter_convection = elements.seek("convection");
 
      if (iter_convection == elements.end()) {
@@ -10821,7 +12253,7 @@ void InsertThermalConvElem(const ElementTypes::TypeId eltype, const Matrix& node
           throw std::runtime_error("thermal convection: mesh.elements.convection."s + pszElemName + ".nodes must be an integer matrix");
      }
 
-     const int32NDArray elnodes = ov_elnodes.int32_array_value();     
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
 
      const auto iter_h = m_elem_type.seek("h");
@@ -10984,7 +12416,7 @@ void InsertHeatSourceElem(const ElementTypes::TypeId eltype, const Matrix& nodes
                const int32NDArray elnodes = ov_elnodes.int32_array_value();
 
                const octave_idx_type iNumElem = elnodes.rows();
-               
+
                if (i == 0) {
                     iNumElemTot += iNumElem;
                     continue;
@@ -11260,7 +12692,7 @@ void InsertAcousticImpedanceBC(const ElementTypes::TypeId eltype, const Matrix& 
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
-     
+
      NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
 
      for (octave_idx_type k = 0; k < iNumElem; ++k) {
@@ -11385,7 +12817,7 @@ void InsertAcousticBoundary(const ElementTypes::TypeId eltype, const Matrix& nod
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
-     
+
      NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
 
      for (octave_idx_type k = 0; k < iNumElem; ++k) {
@@ -11484,7 +12916,7 @@ void InsertFluidStructElem(const ElementTypes::TypeId eltype, const Matrix& node
 
      const int32NDArray elnodes = ov_elnodes.int32_array_value();
      const octave_idx_type iNumElem = elnodes.rows();
-     
+
      NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
 
      for (octave_idx_type k = 0; k < iNumElem; ++k) {
@@ -11540,6 +12972,11 @@ namespace shape_func_util {
 
      template <>
      struct SelectElemPerSlaveNode<ShapeTria6H> {
+          static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
+     };
+
+     template <>
+     struct SelectElemPerSlaveNode<ShapeTria10> {
           static constexpr octave_idx_type iNumElemPerSlaveNode = 13;
      };
 };
@@ -11835,7 +13272,7 @@ private:
           }
 
           const octave_idx_type iNumNodes = X.rows();
-          
+
           Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
 
           switch (eElemType) {
@@ -11922,10 +13359,10 @@ private:
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
           FEM_ASSERT(dHf.rows() == 3);
-          
+
           const octave_idx_type iNumCoord = X.rows();
           const octave_idx_type iNumNodes = X.columns();
-          
+
           for (octave_idx_type i = 0; i < 3; ++i) {
                double ni = 0.;
 
@@ -12369,6 +13806,9 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           case ElementTypes::ELEM_SFNCON8:
                iNumNodesElem = ShapeQuad8::iGetNumNodes();
                break;
+          case ElementTypes::ELEM_SFNCON10:
+               iNumNodesElem = ShapeTria10::iGetNumNodes();
+               break;
           default:
                FEM_ASSERT(false);
           }
@@ -12462,6 +13902,18 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                          rgElemBlocks,
                                                          dScale);
                break;
+          case ElementTypes::ELEM_SFNCON10:
+               SurfToNodeConstr<ShapeTria10>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                          nodes,
+                                                          nidxmaster,
+                                                          nidxslave,
+                                                          maxdist,
+                                                          eConstrType,
+                                                          uConstraintFlags,
+                                                          eDomain,
+                                                          rgElemBlocks,
+                                                          dScale);
+               break;
           default:
                FEM_ASSERT(false);
           }
@@ -12508,7 +13960,8 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
           case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
           case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
           case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
-          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H: {
+          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+          case ElementTypes::ELEM_PARTICLE_VEL_TRIA10: {
                const auto iterElem = mapPartVel.seek(oElemType.name);
 
                if (iterElem == mapPartVel.end()) {
@@ -12591,7 +14044,8 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
           case ElementTypes::ELEM_ISO20:
           case ElementTypes::ELEM_PENTA15:
           case ElementTypes::ELEM_TET10H:
-          case ElementTypes::ELEM_TET10: {
+          case ElementTypes::ELEM_TET10:
+          case ElementTypes::ELEM_TET20: {
                const auto iter_elem = elements.seek(oElemType.name);
 
                if (iter_elem == elements.end()) {
@@ -12664,7 +14118,8 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
                case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
                case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8:
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6:
-               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H: {
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H:
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA10: {
                     const auto iter_elem = mapAcousticBoundary.seek(oElemType.name);
 
                     if (iter_elem == mapAcousticBoundary.end()) {
@@ -12675,7 +14130,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 
                     const octave_idx_type iNumElem = elem_nodes.rows();
                     const octave_idx_type iNumNodesElem = elem_nodes.columns();
-                    
+
                     switch (eMatType) {
                     case Element::SCA_ACOUSTIC_INTENSITY:
                     case Element::SCA_ACOUSTIC_INTENSITY_C:
@@ -13034,7 +14489,8 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_ISO20:
                case ElementTypes::ELEM_PENTA15:
                case ElementTypes::ELEM_TET10H:
-               case ElementTypes::ELEM_TET10: {
+               case ElementTypes::ELEM_TET10:
+               case ElementTypes::ELEM_TET20: {
                     const auto iter_elem_mat = materials.seek(oElemType.name);
 
                     if (iter_elem_mat == materials.end()) {
@@ -13121,14 +14577,17 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+               case ElementTypes::ELEM_THERM_CONV_TRIA10:
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
                     if (eDomain == DofMap::DO_THERMAL || eDomain == DofMap::DO_ACOUSTICS || eDomain == DofMap::DO_FLUID_STRUCT) {
                          static constexpr char elem_name[][19] = {"convection", "particle_velocity", "acoustic_impedance"};
 
@@ -13143,6 +14602,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_THERM_CONV_QUAD8:
                          case ElementTypes::ELEM_THERM_CONV_TRIA6:
                          case ElementTypes::ELEM_THERM_CONV_TRIA6H:
+                         case ElementTypes::ELEM_THERM_CONV_TRIA10:
                               ielem_name = EL_IDX_CONVECTION;
                               break;
 
@@ -13150,6 +14610,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
                          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
+                         case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
                               ielem_name = EL_IDX_PARTICLE_VEL;
                               break;
 
@@ -13157,6 +14618,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
                               ielem_name = EL_IDX_ACOUSTIC_IMPEDANCE;
                               break;
 
@@ -13416,6 +14878,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_SFNCON10:
                     case ElementTypes::ELEM_THERM_CONSTR:
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                          break;
@@ -13448,6 +14911,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_SFNCON10:
                     case ElementTypes::ELEM_THERM_CONSTR:
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                          const char* const fn = (oElemType.type == ElementTypes::ELEM_JOINT ||
@@ -13471,7 +14935,8 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_SFNCON4:
                          case ElementTypes::ELEM_SFNCON6:
                          case ElementTypes::ELEM_SFNCON6H:
-                         case ElementTypes::ELEM_SFNCON8: {
+                         case ElementTypes::ELEM_SFNCON8:
+                         case ElementTypes::ELEM_SFNCON10: {
                               const auto iter_constr = m_etype.seek("constraint");
 
                               if (iter_constr != m_etype.end()) {
@@ -13498,6 +14963,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    case ElementTypes::ELEM_SFNCON6:
                                    case ElementTypes::ELEM_SFNCON6H:
                                    case ElementTypes::ELEM_SFNCON8:
+                                   case ElementTypes::ELEM_SFNCON10:
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
                                         edof[CS_JOINT].elem_count += ov_fn(j).numel();
@@ -13535,6 +15001,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    case ElementTypes::ELEM_SFNCON6:
                                    case ElementTypes::ELEM_SFNCON6H:
                                    case ElementTypes::ELEM_SFNCON8:
+                                   case ElementTypes::ELEM_SFNCON10:
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
                                         icurrjoints += ov_fn(j).numel();
@@ -13695,7 +15162,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
           rgElemBlocks.reserve(2);
 
-          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON8; ++k) {
+          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON10; ++k) {
                constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
                const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
 
@@ -13784,7 +15251,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           }
 #endif
           const octave_idx_type iNumNodes = nodes.rows();
-          
+
           const auto it_elements = mesh.seek("elements");
 
           if (it_elements == mesh.end()) {
@@ -13845,7 +15312,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           const octave_map load_case(nargin > 3 ? args(3).map_value() : octave_map());
 
           const octave_idx_type iNumLoads = load_case.numel();
-          
+
 #if OCTAVE_MAJOR_VERSION < 6
           if (error_state) {
                throw std::runtime_error("fem_ass_matrix: argument load case must be a struct array");
@@ -13966,11 +15433,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           for (const auto& edofk: edof) {
                const octave_idx_type edofkrows = edofk.rows();
                const octave_idx_type edofkcols = edofk.columns();
-               
+
                for (octave_idx_type j = 0; j < edofkcols; ++j) {
                     for (octave_idx_type i = 0; i < edofkrows; ++i) {
                          const octave_idx_type edofkij = edofk.xelem(i + edofkrows * j).value();
-                         
+
                          if (edofkij > inumdof) {
                               throw std::runtime_error("fem_ass_matrix: dof_map.edof dof index out of range in argument dof_map");
                          }
@@ -14009,6 +15476,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_MASS:
@@ -14040,6 +15508,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          break;
 
                     case Element::VEC_LOAD_CONSISTENT:
@@ -14054,6 +15523,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
 
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
@@ -14063,6 +15533,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          break;
 
                     default:
@@ -14078,6 +15549,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_HEAT_CAPACITY:
@@ -14088,6 +15560,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          break;
 
                     case Element::VEC_LOAD_THERMAL:
@@ -14100,11 +15573,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA10] = true;
 
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA10] = true;
                          break;
 
                     default:
@@ -14122,6 +15597,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_MASS_ACOUSTICS_RE:
@@ -14135,6 +15611,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          break;
 
                     case Element::VEC_SURFACE_NORMAL_VECTOR:
@@ -14142,6 +15619,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          break;
 
                     case Element::VEC_LOAD_ACOUSTICS:
@@ -14153,6 +15631,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          break;
 
@@ -14162,11 +15641,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_DAMPING_ACOUSTICS_IM:
@@ -14174,6 +15655,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10] = true;
                          break;
 
                     default:
@@ -14201,6 +15683,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          break;
 
                     case Element::VEC_LOAD_FLUID_STRUCT:
@@ -14211,6 +15694,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
@@ -14220,11 +15704,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
 
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          break;
 
@@ -14234,10 +15720,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
@@ -14247,6 +15735,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10] = true;
                          break;
 
                     case Element::VEC_SURFACE_NORMAL_VECTOR:
@@ -14254,6 +15743,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          break;
 
                     case Element::VEC_PARTICLE_VELOCITY:
@@ -14265,10 +15755,12 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
+                         rgElemUse[ElementTypes::ELEM_TET20] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA10] = true;
                          break;
 
                     default:
@@ -14297,7 +15789,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_ISO20:
                case ElementTypes::ELEM_PENTA15:
                case ElementTypes::ELEM_TET10H:
-               case ElementTypes::ELEM_TET10: {
+               case ElementTypes::ELEM_TET10:
+               case ElementTypes::ELEM_TET20: {
                     const auto iter_elem = elements.seek(oElemType.name);
 
                     if (iter_elem == elements.end()) {
@@ -14434,6 +15927,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     case ElementTypes::ELEM_TET10:
                          rgElemBlocks.emplace_back(new ElementBlock<Tet10>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
+                         break;
+
+                    case ElementTypes::ELEM_TET20:
+                         rgElemBlocks.emplace_back(new ElementBlock<Tet20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
                          break;
 
                     default:
@@ -14822,7 +16319,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const octave_idx_type iNumConstrEq = C.rows();
                               const octave_idx_type iNumDofConstr = C.columns();
-                              
+
                               const double dScale = ov_Scale.numel() ? ov_Scale.xelem(i).scalar_value() : 1.;
 
 #if OCTAVE_MAJOR_VERSION < 6
@@ -14926,7 +16423,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON4:
                case ElementTypes::ELEM_SFNCON6:
                case ElementTypes::ELEM_SFNCON6H:
-               case ElementTypes::ELEM_SFNCON8: {
+               case ElementTypes::ELEM_SFNCON8:
+               case ElementTypes::ELEM_SFNCON10: {
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
                     SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
@@ -14946,6 +16444,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_PRESSURE_TRIA6H:
                     InsertPressureElem<PressureLoadTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_PRESSURE_TRIA10:
+                    InsertPressureElem<PressureLoadTria10>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
                case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
                     InsertFluidStructElem<FluidStructInteractIso4>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -14957,6 +16458,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
                     InsertFluidStructElem<FluidStructInteractTria6H>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_TRIA10:
+                    InsertFluidStructElem<FluidStructInteractTria10>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_STRUCT_FORCE: {
                     const auto iter_loads = load_case.seek("loads");
@@ -15013,7 +16517,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                              if (inode < 0 || inode >= nodes.rows()) {
                                                   throw std::runtime_error("fem_ass_matrix: node index out of range in load_case.pressure.elements in argument load_case");
                                              }
-                                             
+
                                              for (octave_idx_type m = 0; m < 3; ++m) {
                                                   X.xelem(m + 3 * l) = nodes.xelem(inode, m);
                                              }
@@ -15039,6 +16543,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
                     InsertThermalConvElem<ThermalConvectionBCTria6H>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_THERM_CONV_TRIA10:
+                    InsertThermalConvElem<ThermalConvectionBCTria10>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
                case ElementTypes::ELEM_HEAT_SOURCE_ISO4:
                     InsertHeatSourceElem<HeatSourceIso4>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -15050,6 +16557,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_HEAT_SOURCE_TRIA6H:
                     InsertHeatSourceElem<HeatSourceTria6H>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_TRIA10:
+                    InsertHeatSourceElem<HeatSourceTria10>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
                     InsertParticleVelocityBC<ParticleVelocityBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
@@ -15063,6 +16573,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
                     InsertParticleVelocityBC<ParticleVelocityBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
+               case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
+                    InsertParticleVelocityBC<ParticleVelocityBCTria10>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
+                    break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
@@ -15075,6 +16588,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCTria10>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
+                    break;
                case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
                     InsertAcousticBoundary<AcousticBoundaryIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -15086,6 +16602,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H:
                     InsertAcousticBoundary<AcousticBoundaryTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_TRIA10:
+                    InsertAcousticBoundary<AcousticBoundaryTria10>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                default:
                     FEM_ASSERT(false);
@@ -15351,7 +16870,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_ISO20:
                          case ElementTypes::ELEM_PENTA15:
                          case ElementTypes::ELEM_TET10H:
-                         case ElementTypes::ELEM_TET10: {
+                         case ElementTypes::ELEM_TET10:
+                         case ElementTypes::ELEM_TET20: {
                               const auto iter_elem = elements.seek(oElemType.name);
 
                               if (iter_elem == elements.end()) {
@@ -15362,7 +16882,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               const octave_idx_type iNumElem = elem_nodes.rows();
                               const octave_idx_type iNumNodesElem = elem_nodes.columns();
-                                                            
+
                               const Element::FemMatrixType eMatTypeStressStrain = eMatType == Element::SCA_STRESS_VMIS ? Element::VEC_STRESS_CAUCH : eMatType;
 
                               PostProcData::FieldTypeReal eFieldType;
