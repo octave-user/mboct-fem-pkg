@@ -40,7 +40,7 @@ jobs:
         run: |
            wget http://www.gmsh.info/bin/Linux/gmsh-stable-Linux64.tgz
            tar -zxvf gmsh-stable-Linux64.tgz
-           sudo install gmsh-stable-Linux64/bin/gmsh /usr/local/bin
+           sudo install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
            gmsh --version
 
       # Runs a set of commands using the runners shell
