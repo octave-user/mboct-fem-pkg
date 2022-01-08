@@ -72,6 +72,10 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     cms_opt.refine_max_iter = int32(10);
   endif
 
+  if (~isfield(cms_opt, "pre_scaling"))
+    cms_opt.pre_scaling = false;
+  endif
+  
   if (~isfield(cms_opt, "solver"))
     cms_opt.solver = "pastix";
   endif
@@ -267,6 +271,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
 
   opt_sol.number_of_threads = cms_opt.number_of_threads;
   opt_sol.refine_max_iter = cms_opt.refine_max_iter;
+  opt_sol.pre_scaling = cms_opt.pre_scaling;
   opt_sol.solver = cms_opt.solver;
   opt_sol.verbose = cms_opt.verbose;
   
@@ -275,11 +280,11 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   endif
   
   Kfact = fem_sol_factor(mat_ass.K, opt_sol);
-  
-  for i=1:columns(R_itf)
-    mat_ass.Tred(:, cms_opt.modes.number + i) = (Kfact \ R_itf(:, i))(dof_map.idx_node);
-  endfor
 
+  if (columns(R_itf))
+    mat_ass.Tred(:, cms_opt.modes.number + (1:columns(R_itf))) = (Kfact \ R_itf)(dof_map.idx_node, :);
+  endif
+  
   if (cms_opt.verbose)
     fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
     whos();
@@ -596,7 +601,7 @@ endfunction
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
-%! sol = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
+%! sol = {"pardiso", "pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
@@ -622,6 +627,7 @@ endfunction
 %! 		  cms_opt.algorithm = alg{ialg};
 %! 		  cms_opt.invariants = invariants;
 %! 		  cms_opt.refine_max_iter = iter;
+%!                cms_opt.pre_scaling = true;
 %! 		  [mesh_cms, ...
 %! 		   mat_ass_cms, ...
 %! 		   dof_map_cms, ...
