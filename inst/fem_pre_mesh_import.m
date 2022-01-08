@@ -3624,6 +3624,10 @@ endfunction
 %!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
 %!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
 %!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     fputs(fd, "Mesh.HighOrderIterMax = 200;\n");
+%!     fputs(fd, "Mesh.HighOrderPassMax = 100;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -7109,6 +7113,10 @@ endfunction
 %!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
 %!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
 %!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     fputs(fd, "Mesh.HighOrderIterMax = 200;\n");
+%!     fputs(fd, "Mesh.HighOrderPassMax = 100;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -22261,7 +22269,7 @@ endfunction
 %!   omega = k * c;
 %!   f = omega / (2 * pi);
 %!   lambda = c / f;
-%!   dx = lambda / 25;
+%!   dx = lambda / 40;
 %!   w = dx;
 %!   h = dx;
 %!   A = -70;
@@ -22316,8 +22324,10 @@ endfunction
 %!   fputs(fd, "Physical Volume(\"volume\",3) = {tmp[1]};\n");
 %!   fputs(fd, "Physical Surface(\"input\",1) = {6};\n");
 %!   fputs(fd, "Physical Surface(\"output\",2) = {tmp[0]};\n");
-%!   fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!   fputs(fd, "Mesh.HighOrderIterMax = 200;\n");
+%!   fputs(fd, "Mesh.HighOrderPassMax = 100;\n");
+%!   fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!   fputs(fd, "Mesh.OptimizeThreshold = 0.99;\n");
 %!   fputs(fd, "ReorientMesh Volume{tmp[1]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
@@ -45224,6 +45234,10 @@ endfunction
 %!     fputs(fd, "Physical Surface(\"s2\", 2) = {74, 58, 76, 77, 62, 79, 80, 66, 82, 83, 69, 73};\n");
 %!     fputs(fd, "MeshSize{PointsOf{Volume{1,2,3,4,5,6,7,8,9};}} = dx;\n");
 %!     fputs(fd, "ReorientMesh Volume{1};\n");
+%!     fputs(fd, "Mesh.HighOrderIterMax = 200;\n");
+%!     fputs(fd, "Mesh.HighOrderPassMax = 100;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold = 0.99;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
