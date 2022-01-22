@@ -129,8 +129,16 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
   idx = int32(0);
 
   for i=1:numel(bearing_surf)
-    dx = bearing_surf(i).options.mesh_size;
-    N = [max(4, round(2 * pi * bearing_surf(i).r / dx)), max(3, round(bearing_surf(i).w / dx))];
+    if (isfield(bearing_surf(i).options, "mesh_size"))
+      dx = bearing_surf(i).options.mesh_size;
+      Nx = round(2 * pi * bearing_surf(i).r / dx);
+      Nz = round(bearing_surf(i).w / dx);
+    else
+      Nx = bearing_surf(i).options.number_of_nodes_x;
+      Nz = bearing_surf(i).options.number_of_nodes_z;
+    endif
+    
+    N = [max(4, Nx), max(3, Nz)];
 
     if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
       switch (bearing_surf(i).options.bearing_model)
@@ -146,7 +154,7 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
     bearing_surf(i).grid_x = linspace(0, 2 * pi * bearing_surf(i).r, N(1));
     bearing_surf(i).grid_z = linspace(-0.5 * bearing_surf(i).w, 0.5 * bearing_surf(i).w, N(2));
     idx += (numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z);
-    clear dx N;
+    clear dx N Nx Nz;
   endfor
 endfunction
 
