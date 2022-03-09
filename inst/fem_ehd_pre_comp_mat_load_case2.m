@@ -3261,6 +3261,8 @@ endfunction
 %!        grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);
 %!        cms_opt.nodes.modal.number = rows(mesh.nodes) + 2;
 %!        cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
+%!        cms_opt.floating_frame = false;
+%!        cms_opt.algorithm = "diag-shift-invert";
 %!        bearing_surf(1).group_idx = grp_idx_p1;
 %!        bearing_surf(1).options.reference_pressure = 1e9;
 %!        bearing_surf(1).options.mesh_size = 1e-3;
