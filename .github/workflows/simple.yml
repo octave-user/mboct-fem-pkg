@@ -33,7 +33,7 @@ jobs:
            sudo apt-get install octave liboctave-dev \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
            libmetis-dev octave-nurbs libnlopt-dev \
-           libmkl-full-dev coreutils
+           libmkl-full-dev trilinos-all-dev libopenmpi-dev libptscotch-dev
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -46,14 +46,15 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
-          wget https://public.gitlab.polimi.it/DAER/mbdyn/-/archive/develop/mbdyn-develop.tar.bz2 && \
-          tar -jxvf mbdyn-develop.tar.bz2 && \
-          pushd mbdyn-develop && \
+          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git && \
+          pushd mbdyn && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
-          --enable-octave --enable-sparse_autodiff --enable-autodiff \
-          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native" CPPFLAGS=-I/usr/include/suitesparse \
-          --with-arpack --with-umfpack --without-metis && \
+          --enable-octave \
+          --disable-Werror CXXFLAGS="-O3 -Wall -march=native" \
+          CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
+          LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
+          --with-arpack --with-umfpack --without-metis --with-mpi --with-trilinos && \
           make -j4 && sudo make install && popd
 
       - name: Install mboct-octave-pkg
@@ -79,6 +80,12 @@ jobs:
 
       - name: Install the package
         run: make -C $GITHUB_WORKSPACE CXXFLAGS="-Ofast -Wall -march=native" install_local
+
+      - name: Install fem_pre_mesh_size
+        run: |
+             pushd $GITHUB_WORKSPACE/src
+             ./bootstrap && ./configure && make && sudo make install
+             popd
 
       - name: Run all tests
         run: |

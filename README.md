@@ -21,13 +21,14 @@ In addition to that, there are functions for pre- and post-processing of MBDyn's
   - Generate compliance matrices for elastohydrodynamic journal and slider bearings
 
 # Supported element types and application
-  - 8 node linear hexahedral 3D element (structural, thermal)
-  - 6 node linear pentahedral 3D element (structural, thermal)
-  - 4 node linear tetrahedral 3D element (structural, thermal)
+  - 8 node linear hexahedral 3D element (structural, thermal, acoustics)
+  - 6 node linear pentahedral 3D element (structural, thermal, acoustics)
+  - 4 node linear tetrahedral 3D element (structural, thermal, acoustics)
   - 20 node quadratic hexahedral 3D element (structural, thermal)
   - 15 node quadratic pentahedral 3D element (structural, thermal)
   - 10 node quadratic tetrahedral 3D p-element (structural, thermal)
   - 10 node quadratic tetrahedral 3D h-element (structural, thermal)
+  - 20 node cubic tetrahedral 3D h-element (structural, thermal, acoustics)
   - 4 node linear quadrilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
   - 3 node linear triangular 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)
   - 8 node quadratic quadrilateral 3D surface element (surface to node constraint, pressure load, thermal convection, heat source)

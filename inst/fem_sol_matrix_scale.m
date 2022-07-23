@@ -49,8 +49,8 @@ function [AS, D1, D2] = fem_sol_matrix_scale(A, tol, maxiter)
     DR = sqrt(norm(AS, inf, "rows"));
     DC = sqrt(norm(AS, inf, "cols"));
 
-    D1 ./= max(1, DR);
-    D2 ./= max(1, DC);
+    D1 ./= DR;
+    D2 ./= DC;
     
     AS = diag(D1) * A * diag(D2);
 

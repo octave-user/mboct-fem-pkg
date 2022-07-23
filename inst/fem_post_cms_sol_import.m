@@ -121,7 +121,7 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
   endfor
 endfunction
 
-%!demo
+%!test
 %! ## Rotating thin ring
 %! ## W.Beitz, K.-H.Grote, 1997
 %! ## Dubbel page C41, chapter 6.2
@@ -376,13 +376,25 @@ endfunction
 %!     fputs(fd, "        derivatives max iterations: 10;\n");
 %!     fputs(fd, "        derivatives coefficient: auto;\n");
 %!     fputs(fd, "        output: iterations;\n");
-%!     fputs(fd, "        linear solver: naive, colamd, scale, row max column max, always, max iterations, 100;\n");
-%!     fputs(fd, "        nonlinear solver: line search, default solver options, heavy nonlinear, divergence check, no;\n");
+%!     fputs(fd, "        linear solver: naive, colamd, scale, row max column max, always;\n");
+%!     fputs(fd, "        nonlinear solver: nox, modified, 10,\n");
+%!     fputs(fd, "             keep jacobian matrix,\n");
+%!     fputs(fd, "             inner iterations before assembly, 6,\n");
+%!     fputs(fd, "             jacobian operator, newton krylov,\n");
+%!     fputs(fd, "             solver, line search based,\n");
+%!     fputs(fd, "             forcing term, type 2,\n");
+%!     fputs(fd, "             direction, newton,\n");
+%!     fputs(fd, "             weighted rms absolute tolerance, 0.,\n");
+%!     fputs(fd, "             weighted rms relative tolerance, 0.,\n");
+%!     fputs(fd, "             linear solver, gmres,\n");
+%!     fputs(fd, "             linear solver max iterations, 12,\n");
+%!     fputs(fd, "             krylov subspace size, 12;\n");
 %!     fputs(fd, "        enforce constraint equations: constraint violations;\n");
 %!     fputs(fd, "        threads: assembly, 1;\n");
 %!     fputs(fd, "end: initial value;\n");
 
 %!     fputs(fd, "begin: control data;\n");
+%!     fputs(fd, "       use automatic differentiation;\n");
 %!     fputs(fd, "       default orientation: euler123;\n");
 %!     fputs(fd, "       output frequency: 10;\n");
 %!     fputs(fd, "       output precision: 16;\n");

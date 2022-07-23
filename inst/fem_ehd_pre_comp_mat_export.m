@@ -282,7 +282,7 @@ function [mode_index, D, E] = extract_modes(D, E, z, threshold)
   E = E(mode_index, 1:end - numel(z));
 endfunction
 
-%!demo
+%!test
 %! ############################################################################################################################
 %! ## EHD TEST CASE according
 %! ## Freund, Norman Owen, A thermo-elasto-hydrodynamic study of journal bearings, Doctor of Philosophy thesis, University of
@@ -723,9 +723,18 @@ endfunction
 %!     fputs(fd, "        final time: t1;\n");
 %!     fputs(fd, "        time step: dt;\n");
 %!     fputs(fd, "        method: implicit euler;\n");
-%!     fputs(fd, "        linear solver: umfpack, cc, scale, row max column max, always, max iterations, 2500;\n");
-%!     fputs(fd, "        nonlinear solver: line search, default solver options, moderate nonlinear, divergence check, no;\n");
-%!     fputs(fd, "        tolerance: 1e-4, test, minmax;\n");
+%!     fputs(fd, "        linear solver: umfpack, grad, scale, row max column max, always;\n");
+%!     fputs(fd, "        nonlinear solver: nox,\n");
+%!     fputs(fd, "             jacobian operator, newton,\n");
+%!     fputs(fd, "             solver, line search based,\n");
+%!     fputs(fd, "             forcing term, type 2,\n");
+%!     fputs(fd, "             direction, newton,\n");
+%!     fputs(fd, "             weighted rms absolute tolerance, 0.,\n");
+%!     fputs(fd, "             weighted rms relative tolerance, 0.,\n");
+%!     fputs(fd, "             linear solver, gmres,\n");
+%!     fputs(fd, "             linear solver max iterations, 100,\n");
+%!     fputs(fd, "             krylov subspace size, 100;\n");
+%!     fputs(fd, "        tolerance: 1e-4, test, minmax, 1e-4, test, norm;\n");
 %!     fputs(fd, "        max iterations: 100;\n");
 %!     fputs(fd, "        derivatives tolerance: 1e-3;\n");
 %!     fputs(fd, "        derivatives max iterations: 5;\n");
@@ -734,6 +743,7 @@ endfunction
 %!     fputs(fd, "        threads: assembly, 1;\n");
 %!     fputs(fd, "end: initial value;\n");
 %!     fputs(fd, "begin: control data;\n");
+%!     fputs(fd, "       use automatic differentiation;\n");
 %!     fputs(fd, "       output precision: 16;\n");
 %!     fputs(fd, "       max iterations: 0;\n");
 %!     fputs(fd, "       print: dof stats, to file;\n");
@@ -987,7 +997,7 @@ endfunction
 %!   grid minor on;
 %!   xlim([0,360]);
 %!   xticks(0:30:360);
-%!   title("midplane dimensionless pressure");
+%!   title("midplane nondimensional pressure");
 
 %!   figure("visible", "off");
 %!   hold on;
