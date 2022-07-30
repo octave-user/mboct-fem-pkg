@@ -32794,9 +32794,9 @@ endfunction
 %!   lambda1 = c1 / f;
 %!   lambda2 = c2 / f;
 %!   lambda3 = c3 / f;
-%!   dx1 = lambda1 / 17;
-%!   dx2 = lambda2 / 17;
-%!   dx3 = lambda3 / 17;
+%!   dx1 = lambda1 / 20;
+%!   dx2 = lambda2 / 20;
+%!   dx3 = lambda3 / 20;
 %!   dx = min([dx1, dx2, dx3]);
 %!   alpha = 2.5 * pi / 180;
 %!   v0 = 1e-3 / (unit_meters / unit_second);
