@@ -1,4 +1,4 @@
-// Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
+// Copyright (C) 2018(-2022) Reinhard <octave-user@a1.net>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -852,6 +852,26 @@ struct StrainField {
      Cell rgRefStrain;
 };
 
+struct PreStressField {
+     PreStressField(const octave_map& load_case, const Matrix& nodes) {
+          const auto iterRefStress = load_case.seek("tau0");
+
+          if (iterRefStress != load_case.end()) {
+               rgPreStress = load_case.contents(iterRefStress);
+          }
+
+          for (octave_idx_type i = 0; i < rgPreStress.numel(); ++i) {
+               const octave_value ov_RefStress = rgPreStress.xelem(i);
+
+               if (!(ov_RefStress.isstruct() && ov_RefStress.numel() == 1)) {
+                    throw std::runtime_error("stress field: argument load_case.tau0 must be a scalar struct");
+               }
+          }
+     }
+
+     Cell rgPreStress;
+};
+
 struct GravityLoad {
      explicit GravityLoad(const octave_map& load_case)
           :g(3, 0) {
@@ -882,6 +902,136 @@ struct GravityLoad {
      }
 
      Matrix g;
+};
+
+struct CentrifugalLoad {
+     explicit CentrifugalLoad(const octave_map& load_case)
+          :WxWx(dim_vector(3, 3, 0)), Wx(dim_vector(3, 3, 0)) {
+          const auto iterW = load_case.seek("omega");
+          const auto iterWP = load_case.seek("omegadot");
+          const auto iterWq = load_case.seek("omegaq");
+
+          if (iterW != load_case.end() && iterWq != load_case.end()) {
+               throw std::runtime_error("centrifugal load: only one parameter out of load_case.omega and load_case.omegaq may be provided");
+          }
+
+          if (iterW != load_case.end()) {
+               const Cell cellW = load_case.contents(iterW);
+
+               FEM_ASSERT(cellW.numel() == load_case.numel());
+
+               WxWx.resize(dim_vector(3, 3, load_case.numel()), 0.);
+               Wx.resize(dim_vector(3, 3, load_case.numel()), 0.);
+
+               for (octave_idx_type j = 0; j < load_case.numel(); ++j) {
+                    const octave_value ovW = cellW.xelem(j);
+
+                    if (!(ovW.isreal() && ovW.is_matrix_type() && ovW.rows() == 3 && ovW.columns() == 1)) {
+                         throw std::runtime_error("centrifugal load: load_case.omega must be a real 3x1 vector");
+                    }
+
+                    const ColumnVector Wj = ovW.column_vector_value();
+
+                    SkewWDotSkewW(WxWx, j, Wj);
+                    SkewW(Wx, j, Wj);
+               }
+          } else if (iterWq != load_case.end()) {
+               const Cell cellWq = load_case.contents(iterWq);
+
+               FEM_ASSERT(cellWq.numel() == load_case.numel());
+
+               WxWx.resize(dim_vector(3, 3, load_case.numel()), 0.);
+
+               for (octave_idx_type j = 0; j < load_case.numel(); ++j) {
+                    const octave_value ovWq = cellWq.xelem(j);
+
+                    if (!(ovWq.isreal() && ovWq.is_matrix_type() && ovWq.rows() == 6 && ovWq.columns() == 1)) {
+                         throw std::runtime_error("centrifugal load: load_case.omegaq must be a real 6x1 vector");
+                    }
+
+                    const ColumnVector Wqj = ovWq.column_vector_value();
+
+                    SkewWqSkewWq(WxWx, j, Wqj);
+               }
+          }
+
+          if (iterWP != load_case.end()) {
+               const Cell cellWP = load_case.contents(iterWP);
+
+               FEM_ASSERT(cellWP.numel() == load_case.numel());
+
+               WPx.resize(dim_vector(3, 3, load_case.numel()), 0.);
+
+               for (octave_idx_type j = 0; j < load_case.numel(); ++j) {
+                    const octave_value ovWP = cellWP.xelem(j);
+
+                    if (!(ovWP.isreal() && ovWP.is_matrix_type() && ovWP.rows() == 3 && ovWP.columns() == 1)) {
+                         throw std::runtime_error("angular acceleration load: load_case.omegaP must be a real 3x1 vector");
+                    }
+
+                    const ColumnVector WPj = ovWP.column_vector_value();
+
+                    SkewW(WPx, j, WPj);
+               }
+          }
+     }
+
+     static void SkewWDotSkewW(NDArray& WxWx, octave_idx_type j, const ColumnVector& Wj) {
+          // WxWx = \tilde{\omega} \, \tilde{\omega}
+
+          // Wj = \begin{pmatrix}
+          //      \omega_1
+          //      \omega_2
+          //      \omega_3
+          //      \end{pmatrix}
+
+          WxWx.xelem(0, 0, j) = -std::pow(Wj.xelem(2), 2) - std::pow(Wj.xelem(1), 2);
+          WxWx.xelem(0, 1, j) = Wj.xelem(0) * Wj.xelem(1);
+          WxWx.xelem(0, 2, j) = Wj.xelem(0) * Wj.xelem(2);
+          WxWx.xelem(1, 0, j) = Wj.xelem(0) * Wj.xelem(1);
+          WxWx.xelem(1, 1, j) = -std::pow(Wj.xelem(2), 2) - std::pow(Wj.xelem(0), 2);
+          WxWx.xelem(1, 2, j) = Wj.xelem(1) * Wj.xelem(2);
+          WxWx.xelem(2, 0, j) = Wj.xelem(0) * Wj.xelem(2);
+          WxWx.xelem(2, 1, j) = Wj.xelem(1) * Wj.xelem(2);
+          WxWx.xelem(2, 2, j) = -std::pow(Wj.xelem(1), 2) - std::pow(Wj.xelem(0), 2);
+     }
+
+     static void SkewWqSkewWq(NDArray& WxWx, octave_idx_type j, const ColumnVector& Wqj) {
+          // WxWx = \tilde{\omega} \, \tilde{\omega}
+
+          // Wqj = \begin{pmatrix}
+          //       \omega_1^2
+          //       \omega_2^2
+          //       \omega_3^2
+          //       \omega_1 \, omega_2
+          //       \omega_2 \, \omega_3
+          //       \omega_3 \, \omega_1
+          //       \end{pmatrix}
+
+          WxWx.xelem(0, 0, j) = -Wqj.xelem(2) - Wqj.xelem(1);
+          WxWx.xelem(0, 1, j) = Wqj.xelem(3);
+          WxWx.xelem(0, 2, j) = Wqj.xelem(5);
+          WxWx.xelem(1, 0, j) = Wqj.xelem(3);
+          WxWx.xelem(1, 1, j) = -Wqj.xelem(2) - Wqj.xelem(0);
+          WxWx.xelem(1, 2, j) = Wqj.xelem(4);
+          WxWx.xelem(2, 0, j) = Wqj.xelem(5);
+          WxWx.xelem(2, 1, j) = Wqj.xelem(4);
+          WxWx.xelem(2, 2, j) = -Wqj.xelem(1) - Wqj.xelem(0);
+     }
+
+     static void SkewW(NDArray& Wx, octave_idx_type j, const ColumnVector& Wj) {
+          Wx.xelem(0, 0, j) = 0;
+          Wx.xelem(0, 1, j) = -Wj.xelem(2);
+          Wx.xelem(0, 2, j) = Wj.xelem(1);
+          Wx.xelem(1, 0, j) = Wj.xelem(2);
+          Wx.xelem(1, 1, j) = 0;
+          Wx.xelem(1, 2, j) = -Wj.xelem(0);
+          Wx.xelem(2, 0, j) = -Wj.xelem(1);
+          Wx.xelem(2, 1, j) = Wj.xelem(0);
+          Wx.xelem(2, 2, j) = 0;
+     }
+
+     NDArray WxWx, Wx, WPx;
 };
 
 class PostProcData;
@@ -1132,6 +1282,10 @@ public:
           MAT_DAMPING_FLUID_STRUCT_RE    = (36u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           MAT_DAMPING_FLUID_STRUCT_IM    = (37u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           VEC_LOAD_FLUID_STRUCT          = (38u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
+          MAT_STIFFNESS_TAU0             = (39u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_STIFFNESS_OMEGA            = (40u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_STIFFNESS_OMEGA_DOT        = (41u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          MAT_DAMPING_OMEGA              = (42u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           VEC_COLL_MASS                  = MAT_MASS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_STIFFNESS             = MAT_STIFFNESS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_HEAT_CAPACITY         = MAT_HEAT_CAPACITY | MAT_COLL_PNT_OUTPUT,
@@ -1142,7 +1296,7 @@ public:
           VEC_COLL_STIFF_FLUID_STRUCT    = MAT_STIFFNESS_FLUID_STRUCT_RE | MAT_COLL_PNT_OUTPUT
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 38u;
+     static constexpr unsigned MAT_TYPE_COUNT = 42u;
 
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -1833,7 +1987,7 @@ public:
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:               
+          case MAT_STIFFNESS_SYM_L:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_THERMAL_COND:
           case MAT_DAMPING_ACOUSTICS_RE:
@@ -2101,7 +2255,7 @@ public:
           switch (eMatType) {
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
-          case MAT_STIFFNESS_SYM_L:               
+          case MAT_STIFFNESS_SYM_L:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
                return 8 * 6 + 4 * 6 * 6 * (X.columns() - 1);
           default:
@@ -2738,24 +2892,30 @@ public:
      struct ElementData {
           ElementData(const octave_map& load_case, const Matrix& nodes, const octave_scalar_map& elements)
                :oRefStrain{load_case, nodes},
+                oPreStress{load_case, nodes},
                 oGravity{load_case},
+                oCentrifugal{load_case},
                 oPML{elements} {
           }
 
           const StrainField oRefStrain;
+          const PreStressField oPreStress;
           const GravityLoad oGravity;
+          const CentrifugalLoad oCentrifugal;
           PerfectlyMatchedLayer oPML;
      };
 
      Element3D(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const ElementData& data)
-          :Element(eltype, id, X, material, nodes), eMaterial(material->GetMaterialType()), g{data.oGravity.g} {
+          :Element(eltype, id, X, material, nodes), eMaterial(material->GetMaterialType()), oElemData(data) {
 
           FEM_ASSERT(X.rows() == 3);
 
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumLoadsTemp = data.oRefStrain.rgTemperature.numel();
           const octave_idx_type iNumLoadsStrain = data.oRefStrain.rgRefStrain.numel();
-          iNumPreLoads = std::max(std::max(iNumLoadsTemp, iNumLoadsStrain), data.oGravity.g.columns());
+          const octave_idx_type iNumPreStress = data.oPreStress.rgPreStress.numel();
+
+          iNumPreLoads = std::max(std::max(std::max(iNumLoadsTemp, iNumLoadsStrain), data.oGravity.g.columns()), data.oCentrifugal.WxWx.dim3());
 
           FEM_ASSERT(iNumLoadsTemp && iNumLoadsStrain ? iNumLoadsTemp == iNumLoadsStrain : true);
 
@@ -2796,6 +2956,36 @@ public:
                     for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                          for (octave_idx_type i = 0; i < iNumStrains; ++i) {
                               epsilonRef.xelem(i + iNumStrains * (j + iNumNodes * k)) = epsilonRefk.xelem(id - 1 + iNumElem * (j + iNumNodes * i));
+                         }
+                    }
+               }
+          }
+
+          if (iNumPreStress) {
+               const octave_idx_type iNumStressComp = material->LinearElasticity().rows();
+
+               tauRef.resize(dim_vector(iNumStressComp, iNumNodes, iNumPreStress), 0.);
+
+               for (octave_idx_type k = 0; k < iNumPreStress; ++k) {
+                    const octave_scalar_map maTauRefk = data.oPreStress.rgPreStress.xelem(k).scalar_map_value();
+
+                    const std::string strElemName = ElementTypes::GetType(eltype).name;
+                    const auto iterTauRefk = maTauRefk.seek(strElemName);
+
+                    if (iterTauRefk == maTauRefk.end()) {
+                         continue;
+                    }
+
+                    const NDArray tauRefk = maTauRefk.contents(iterTauRefk).array_value();
+                    const octave_idx_type iNumElem = tauRefk.dim1();
+
+                    if (tauRefk.ndims() != 3 || iNumElem < id || tauRefk.dim2() != iNumNodes || tauRefk.dim3() != iNumStressComp) {
+                         throw std::runtime_error("fem_ass_matrix: invalid number of dimensions for load_case.tau0."s + strElemName);
+                    }
+
+                    for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                         for (octave_idx_type i = 0; i < iNumStressComp; ++i) {
+                              tauRef.xelem(i + iNumStressComp * (j + iNumNodes * k)) = tauRefk.xelem(id - 1 + iNumElem * (j + iNumNodes * i));
                          }
                     }
                }
@@ -2850,6 +3040,32 @@ public:
           case MAT_STIFFNESS_SYM_L:
                pFunc = &Element3D::StiffnessMatrix;
                iNumRows = iNumCols = iNumDof;
+               break;
+
+          case MAT_STIFFNESS_TAU0:
+               pFunc = &Element3D::StiffnessMatrixNL;
+               iNumRows = iNumCols = iNumDof;
+               break;
+
+          case MAT_STIFFNESS_OMEGA:
+               if (oElemData.oCentrifugal.WxWx.numel()) {
+                    pFunc = &Element3D::CentrifugalStiffnessMatrix;
+                    iNumRows = iNumCols = iNumDof;
+               }
+               break;
+
+          case MAT_STIFFNESS_OMEGA_DOT:
+               if (oElemData.oCentrifugal.WPx.numel()) {
+                    pFunc = &Element3D::AngularAccelerationStiffnessMatrix;
+                    iNumRows = iNumCols = iNumDof;
+               }
+               break;
+
+          case MAT_DAMPING_OMEGA:
+               if (oElemData.oCentrifugal.Wx.numel()) {
+                    pFunc = &Element3D::CoriolisDampingMatrix;
+                    iNumRows = iNumCols = iNumDof;
+               }
                break;
 
           case MAT_MASS:
@@ -3075,6 +3291,10 @@ public:
           case MAT_MASS_FLUID_STRUCT_RE:
           case MAT_MASS_FLUID_STRUCT_IM:
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_TAU0:
+          case MAT_STIFFNESS_OMEGA:
+          case MAT_STIFFNESS_OMEGA_DOT:
+          case MAT_DAMPING_OMEGA:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
           case MAT_DAMPING:
@@ -3219,7 +3439,149 @@ protected:
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taun) const=0;
      virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taun) const=0;
      virtual void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const=0;
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const {
+          throw std::runtime_error("function ScalarInterpMatrixDer not implemented for this element type");
+     }
      virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, double detJ, Matrix& invJ, Matrix& Bt) const=0;
+
+     void ScalarInterpMatrixGrad(const ColumnVector& rv, const Matrix& invJ, const Matrix& Hd, Matrix& gradH) const {
+          FEM_ASSERT(rv.rows() == 3);
+          FEM_ASSERT(invJ.rows() == Hd.columns());
+          FEM_ASSERT(gradH.rows() == Hd.rows());
+          FEM_ASSERT(gradH.columns() == invJ.columns());
+          FEM_ASSERT(Hd.rows() == X.columns());
+
+          const octave_idx_type N = Hd.rows();
+          const octave_idx_type M = invJ.columns();
+          const octave_idx_type P = invJ.rows();
+
+          for (octave_idx_type i = 0; i < N; ++i) {
+               for (octave_idx_type j = 0; j < M; ++j) {
+                    double gradHij = 0.;
+
+                    for (octave_idx_type k = 0; k < P; ++k) {
+                         gradHij += Hd.xelem(i, k) * invJ.xelem(j, k);
+                    }
+
+                    gradH.xelem(i, j) = gradHij;
+               }
+          }
+     }
+
+     void StrainMatrixNL(const ColumnVector& rv, const Matrix& gradH, Matrix& BNL) const {
+          FEM_ASSERT(rv.rows() == 3);
+          FEM_ASSERT(gradH.rows() == X.columns());
+          FEM_ASSERT(gradH.columns() == 3);
+          FEM_ASSERT(BNL.columns() == 3 * X.columns());
+          FEM_ASSERT(BNL.rows() == 9);
+
+          const octave_idx_type N = gradH.rows();
+
+          BNL.fill(0.);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    for (octave_idx_type k = 0; k < N; ++k) {
+                         BNL.xelem(i * 3 + j, i + 3 * k) = gradH.xelem(k, j);
+                    }
+               }
+          }
+     }
+
+     void StiffnessMatrixNL(Matrix& KNLe, MeshInfo& oMeshInfo, FemMatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumNodes = nodes.numel();
+          ColumnVector rv(iNumDir);
+          constexpr octave_idx_type iNumStressComp = 6;
+          constexpr octave_idx_type iNumStressCompNL = 9;
+
+          FEM_ASSERT(id >= 1);
+          FEM_ASSERT(iNumDof == 3 * X.columns());
+          FEM_ASSERT(KNLe.rows() == iNumDof);
+          FEM_ASSERT(KNLe.columns() == KNLe.rows());
+          FEM_ASSERT(iNumDir == 3); // FIXME: Jacobian must be a 3x3 matrix
+
+          Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), H(1, iNumNodes);
+          Matrix BNL(iNumStressCompNL, iNumDof), Hd(iNumNodes, iNumDir), gradH(iNumNodes, iNumDir); // FIXME: will not work for Tet10 elements!!
+          Matrix SgBNL(iNumStressCompNL, iNumDof);
+          ColumnVector taug(iNumStressComp);
+          Matrix Sg(iNumStressCompNL, iNumStressCompNL);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               const double detJ = Jacobian(rv, J);
+
+               Inverse3x3(J, detJ, invJ);
+
+               ScalarInterpMatrix(rv, H, 0);
+
+               for (octave_idx_type j = 0; j < iNumStressComp; ++j) {
+                    double taugj = 0.;
+
+                    for (octave_idx_type k = 0; k < iNumNodes; ++k) {
+                         taugj += H.xelem(k) * tauRef.xelem(j + iNumStressComp * k);
+                    }
+
+                    taug.xelem(j) = taugj;
+               }
+
+               for (octave_idx_type j = 0; j < iNumStressCompNL * iNumStressCompNL; ++j) {
+                    Sg.xelem(j) = 0.;
+               }
+
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         Sg.xelem(j * 3 + k, j * 3 + k) = taug.xelem(k);
+                    }
+
+                    Sg.xelem(j * 3,     j * 3 + 1) = Sg.xelem(j * 3 + 1,     j * 3) = taug.xelem(3);
+                    Sg.xelem(j * 3,     j * 3 + 2) = Sg.xelem(j * 3 + 2,     j * 3) = taug.xelem(5);
+                    Sg.xelem(j * 3 + 1, j * 3 + 2) = Sg.xelem(j * 3 + 2, j * 3 + 1) = taug.xelem(4);
+               }
+
+               ScalarInterpMatrixDer(rv, Hd);
+               ScalarInterpMatrixGrad(rv, invJ, Hd, gradH);
+               StrainMatrixNL(rv, gradH, BNL);
+
+               for (octave_idx_type l = 0; l < iNumStressCompNL; ++l) {
+                    for (octave_idx_type m = 0; m < iNumDof; ++m) {
+                         double SgBNLlm = 0.;
+
+                         for (octave_idx_type n = 0; n < iNumStressCompNL; ++n) {
+                              SgBNLlm += detJ * alpha * Sg.xelem(l + iNumStressCompNL * n) * BNL.xelem(n + iNumStressCompNL * m);
+                         }
+
+                         SgBNL.xelem(l + iNumStressCompNL * m) = SgBNLlm;
+                    }
+               }
+
+               for (octave_idx_type l = 0; l < iNumDof; ++l) {
+                    for (octave_idx_type m = l; m < iNumDof; ++m) {
+                         double KNLelm = 0.;
+
+                         for (octave_idx_type n = 0; n < iNumStressCompNL; ++n) {
+                              KNLelm += BNL.xelem(n + iNumStressCompNL * l) * SgBNL.xelem(n + iNumStressCompNL * m);
+                         }
+
+                         KNLe.xelem(l + iNumDof * m) += KNLelm;
+                    }
+               }
+          }
+
+          for (octave_idx_type i = 1; i < iNumDof; ++i) {
+               for (octave_idx_type j = 0; j < i; ++j) {
+                    KNLe.xelem(i + iNumDof * j) = KNLe.xelem(j + iNumDof * i);
+               }
+          }
+     }
 
      void AddMeshInfo(MeshInfo& info, const IntegrationRule& oIntegRule, double detJ) const {
           info.Add(MeshInfo::JACOBIAN_DET, detJ);
@@ -3392,7 +3754,7 @@ protected:
           }
      }
 
-     void GravityLoadVector(Matrix& R, MeshInfo& info, FemMatrixType eMatType) const {
+     void GravityLoadVector(Matrix& R, const Matrix& g, MeshInfo& info, FemMatrixType eMatType) const {
           const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
           const octave_idx_type iNumDof = iGetNumDof(eMatType);
           const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
@@ -3435,9 +3797,161 @@ protected:
           }
      }
 
+     void CentrifugalLoadVector(Matrix& R, const NDArray& WxWx, MeshInfo& info, FemMatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          ColumnVector rv(iNumDir);
+          const double rho = material->Density();
+          const octave_idx_type iNumDisp = X.rows();
+          const octave_idx_type iNumNodes = X.columns();
+
+          FEM_ASSERT(R.rows() == iNumDof);
+          FEM_ASSERT(R.columns() == WxWx.dim3());
+          FEM_ASSERT(WxWx.rows() == iNumDisp);
+
+          Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
+          ColumnVector Xi(iNumDisp), ai(iNumDisp);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               const double detJ = Jacobian(rv, J);
+
+               AddMeshInfo(info, oIntegRule, detJ);
+
+               DispInterpMatrix(rv, H);
+
+               for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+                    double Xik = 0.;
+
+                    for (octave_idx_type j = 0; j < iNumNodes; ++j) {
+                         Xik += H.xelem(k, j * 3 + k) * X.xelem(k, j);
+                    }
+
+                    Xi.xelem(k) = Xik;
+               }
+
+               const double dm = alpha * rho * detJ;
+
+               for (octave_idx_type l = 0; l < WxWx.dim3(); ++l) {
+                    for (octave_idx_type j = 0; j < iNumDisp; ++j) {
+                         double aij = 0.;
+
+                         for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+                              aij += WxWx.xelem(j, k, l) * Xi.xelem(k);
+                         }
+
+                         ai.xelem(j) = aij;
+                    }
+
+                    for (octave_idx_type j = 0; j < iNumDof; ++j) {
+                         double Rijl = 0.;
+
+                         for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+                              Rijl -= H.xelem(k + iNumDisp * j) * dm * ai.xelem(k);
+                         }
+
+                         R.xelem(j + iNumDof * l) += Rijl;
+                    }
+               }
+          }
+     }
+
+     void CentrifugalStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+          const double rho = material->Density();
+
+          RotatingRefFrameMassMatrix(oElemData.oCentrifugal.WxWx, rho, Ke, info, eMatType);
+     }
+
+     void CoriolisDampingMatrix(Matrix& De, MeshInfo& info, FemMatrixType eMatType) const {
+          const double rho = material->Density();
+
+          RotatingRefFrameMassMatrix(oElemData.oCentrifugal.Wx, 2. * rho, De, info, eMatType);
+     }
+
+     void AngularAccelerationStiffnessMatrix(Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+          const double rho = material->Density();
+
+          RotatingRefFrameMassMatrix(oElemData.oCentrifugal.WPx, rho, Ke, info, eMatType);
+     }
+
+     void RotatingRefFrameMassMatrix(const NDArray& AW, const double beta, Matrix& Ke, MeshInfo& info, FemMatrixType eMatType) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          ColumnVector rv(iNumDir);
+          const octave_idx_type iNumDisp = X.rows();
+
+          FEM_ASSERT(iNumDisp == AW.rows());
+          FEM_ASSERT(iNumDisp == AW.columns());
+          FEM_ASSERT(Ke.rows() == iNumDof);
+          FEM_ASSERT(Ke.columns() == iNumDof);
+
+          Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof), AWH(iNumDisp, iNumDof);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               const double detJ = Jacobian(rv, J);
+
+               AddMeshInfo(info, oIntegRule, detJ);
+
+               DispInterpMatrix(rv, H);
+
+               for (octave_idx_type l = 0; l < iNumDof; ++l) {
+                    for (octave_idx_type j = 0; j < iNumDisp; ++j) {
+                         double AWHjl = 0.;
+
+                         for (octave_idx_type k = 0; k < iNumDisp; ++k) {
+                              AWHjl += AW.xelem(j, k) * H.xelem(k, l);
+                         }
+
+                         AWH.xelem(j, l) = AWHjl;
+                    }
+               }
+
+               for (octave_idx_type l = 0; l < iNumDof; ++l) {
+                    for (octave_idx_type m = 0; m < iNumDof; ++m) {
+                         double Kelm = 0.;
+
+                         for (octave_idx_type n = 0; n < iNumDisp; ++n) {
+                              Kelm += H.xelem(n + iNumDisp * l) * AWH.xelem(n + iNumDisp * m);
+                         }
+
+                         Ke.xelem(l + iNumDof * m) += Kelm * alpha * beta * detJ;
+                    }
+               }
+          }
+
+#ifdef DEBUG
+          for (octave_idx_type i = 0; i < Ke.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Ke.columns(); ++j) {
+                    FEM_ASSERT(std::isfinite(Ke(i, j)));
+               }
+          }
+#endif
+     }
+
      void StructuralLoadVector(Matrix& R, MeshInfo& info, FemMatrixType eMatType) const {
-          if (g.columns()) {
-               GravityLoadVector(R, info, eMatType);
+          if (oElemData.oGravity.g.columns()) {
+               GravityLoadVector(R, oElemData.oGravity.g, info, eMatType);
+          }
+
+          if (oElemData.oCentrifugal.WxWx.numel()) {
+               CentrifugalLoadVector(R, oElemData.oCentrifugal.WxWx, info, eMatType);
+          }
+
+          if (oElemData.oCentrifugal.WPx.numel()) {
+               CentrifugalLoadVector(R, oElemData.oCentrifugal.WPx, info, eMatType);
           }
 
           if (epsilonRef.columns() || dTheta.columns()) {
@@ -4834,9 +5348,10 @@ private:
      octave_idx_type iNumPreLoads;
      Matrix dTheta;
      NDArray epsilonRef;
+     NDArray tauRef;
      ComplexMatrix f;
      Matrix e1, e2;
-     const Matrix g;
+     const ElementData& oElemData;
 };
 
 class Iso8: public Element3D
@@ -4994,6 +5509,41 @@ protected:
           H.xelem(69) = 0;
           H.xelem(70) = 0;
           H.xelem(71) = ((r+1)*(1-s)*(1-t))/8.0E+0;
+     }
+
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hd.rows() == 8);
+          FEM_ASSERT(Hd.columns() == 3);
+
+          Hd.xelem(0) = ((s+1)*(t+1))/8.0E+0;
+          Hd.xelem(1) = -((s+1)*(t+1))/8.0E+0;
+          Hd.xelem(2) = -((1-s)*(t+1))/8.0E+0;
+          Hd.xelem(3) = ((1-s)*(t+1))/8.0E+0;
+          Hd.xelem(4) = ((s+1)*(1-t))/8.0E+0;
+          Hd.xelem(5) = -((s+1)*(1-t))/8.0E+0;
+          Hd.xelem(6) = -((1-s)*(1-t))/8.0E+0;
+          Hd.xelem(7) = ((1-s)*(1-t))/8.0E+0;
+          Hd.xelem(8) = ((r+1)*(t+1))/8.0E+0;
+          Hd.xelem(9) = ((1-r)*(t+1))/8.0E+0;
+          Hd.xelem(10) = -((1-r)*(t+1))/8.0E+0;
+          Hd.xelem(11) = -((r+1)*(t+1))/8.0E+0;
+          Hd.xelem(12) = ((r+1)*(1-t))/8.0E+0;
+          Hd.xelem(13) = ((1-r)*(1-t))/8.0E+0;
+          Hd.xelem(14) = -((1-r)*(1-t))/8.0E+0;
+          Hd.xelem(15) = -((r+1)*(1-t))/8.0E+0;
+          Hd.xelem(16) = ((r+1)*(s+1))/8.0E+0;
+          Hd.xelem(17) = ((1-r)*(s+1))/8.0E+0;
+          Hd.xelem(18) = ((1-r)*(1-s))/8.0E+0;
+          Hd.xelem(19) = ((r+1)*(1-s))/8.0E+0;
+          Hd.xelem(20) = -((r+1)*(s+1))/8.0E+0;
+          Hd.xelem(21) = -((1-r)*(s+1))/8.0E+0;
+          Hd.xelem(22) = -((1-r)*(1-s))/8.0E+0;
+          Hd.xelem(23) = -((r+1)*(1-s))/8.0E+0;
      }
 
      virtual void StrainMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& B) const final {
@@ -5919,6 +6469,80 @@ protected:
           B.xelem(359) = (invJ.xelem(0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(3)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(6)*(r+1)*(1-s)*t)/2.0E+0;
      }
 
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+          const double r2 = r * r;
+          const double s2 = s * s;
+          const double t2 = t * t;
+
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hd.rows() == 20);
+          FEM_ASSERT(Hd.columns() == 3);
+
+          Hd.xelem(0) = ((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0;
+          Hd.xelem(1) = (-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)-((s+1)*(t+1))/8.0E+0;
+          Hd.xelem(2) = (-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)-((1-s)*(t+1))/8.0E+0;
+          Hd.xelem(3) = ((1-s)*(t+1))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0;
+          Hd.xelem(4) = ((s+1)*(1-t))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0;
+          Hd.xelem(5) = (-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)-((s+1)*(1-t))/8.0E+0;
+          Hd.xelem(6) = (-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)-((1-s)*(1-t))/8.0E+0;
+          Hd.xelem(7) = ((1-s)*(1-t))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0;
+          Hd.xelem(8) = -(r*(s+1)*(t+1))/2.0E+0;
+          Hd.xelem(9) = -((1-s2)*(t+1))/4.0E+0;
+          Hd.xelem(10) = -(r*(1-s)*(t+1))/2.0E+0;
+          Hd.xelem(11) = ((1-s2)*(t+1))/4.0E+0;
+          Hd.xelem(12) = -(r*(s+1)*(1-t))/2.0E+0;
+          Hd.xelem(13) = -((1-s2)*(1-t))/4.0E+0;
+          Hd.xelem(14) = -(r*(1-s)*(1-t))/2.0E+0;
+          Hd.xelem(15) = ((1-s2)*(1-t))/4.0E+0;
+          Hd.xelem(16) = ((s+1)*(1-t2))/4.0E+0;
+          Hd.xelem(17) = -((s+1)*(1-t2))/4.0E+0;
+          Hd.xelem(18) = -((1-s)*(1-t2))/4.0E+0;
+          Hd.xelem(19) = ((1-s)*(1-t2))/4.0E+0;
+          Hd.xelem(20) = ((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0;
+          Hd.xelem(21) = ((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0;
+          Hd.xelem(22) = (-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0;
+          Hd.xelem(23) = (-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0;
+          Hd.xelem(24) = ((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0;
+          Hd.xelem(25) = ((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0;
+          Hd.xelem(26) = (-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0;
+          Hd.xelem(27) = (-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0;
+          Hd.xelem(28) = ((1-r2)*(t+1))/4.0E+0;
+          Hd.xelem(29) = -((1-r)*s*(t+1))/2.0E+0;
+          Hd.xelem(30) = -((1-r2)*(t+1))/4.0E+0;
+          Hd.xelem(31) = -((r+1)*s*(t+1))/2.0E+0;
+          Hd.xelem(32) = ((1-r2)*(1-t))/4.0E+0;
+          Hd.xelem(33) = -((1-r)*s*(1-t))/2.0E+0;
+          Hd.xelem(34) = -((1-r2)*(1-t))/4.0E+0;
+          Hd.xelem(35) = -((r+1)*s*(1-t))/2.0E+0;
+          Hd.xelem(36) = ((r+1)*(1-t2))/4.0E+0;
+          Hd.xelem(37) = ((1-r)*(1-t2))/4.0E+0;
+          Hd.xelem(38) = -((1-r)*(1-t2))/4.0E+0;
+          Hd.xelem(39) = -((r+1)*(1-t2))/4.0E+0;
+          Hd.xelem(40) = ((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0;
+          Hd.xelem(41) = ((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0;
+          Hd.xelem(42) = ((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0;
+          Hd.xelem(43) = ((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0;
+          Hd.xelem(44) = (-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0;
+          Hd.xelem(45) = (-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0;
+          Hd.xelem(46) = (-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0;
+          Hd.xelem(47) = (-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0;
+          Hd.xelem(48) = ((1-r2)*(s+1))/4.0E+0;
+          Hd.xelem(49) = ((1-r)*(1-s2))/4.0E+0;
+          Hd.xelem(50) = ((1-r2)*(1-s))/4.0E+0;
+          Hd.xelem(51) = ((r+1)*(1-s2))/4.0E+0;
+          Hd.xelem(52) = -((1-r2)*(s+1))/4.0E+0;
+          Hd.xelem(53) = -((1-r)*(1-s2))/4.0E+0;
+          Hd.xelem(54) = -((1-r2)*(1-s))/4.0E+0;
+          Hd.xelem(55) = -((r+1)*(1-s2))/4.0E+0;
+          Hd.xelem(56) = -((r+1)*(s+1)*t)/2.0E+0;
+          Hd.xelem(57) = -((1-r)*(s+1)*t)/2.0E+0;
+          Hd.xelem(58) = -((1-r)*(1-s)*t)/2.0E+0;
+          Hd.xelem(59) = -((r+1)*(1-s)*t)/2.0E+0;
+     }
+
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           return InterpGaussToNodalTpl<double>(eMatType, taug);
      }
@@ -6670,6 +7294,63 @@ protected:
           Bt.xelem(44) = invJ.xelem(5)*(1-t2)-2*invJ.xelem(8)*s*t;
      }
 
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+          const double t2 = t * t;
+
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hd.rows() == 15);
+          FEM_ASSERT(Hd.columns() == 3);
+
+          Hd.xelem(0) = (-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t);
+          Hd.xelem(1) = ((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t);
+          Hd.xelem(2) = 0;
+          Hd.xelem(3) = (-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1);
+          Hd.xelem(4) = ((t+1)*(t+2*r-2))/2.0E+0+r*(t+1);
+          Hd.xelem(5) = 0;
+          Hd.xelem(6) = 2*((-s)-r+1)*(1-t)-2*r*(1-t);
+          Hd.xelem(7) = 2*s*(1-t);
+          Hd.xelem(8) = -2*s*(1-t);
+          Hd.xelem(9) = 2*((-s)-r+1)*(t+1)-2*r*(t+1);
+          Hd.xelem(10) = 2*s*(t+1);
+          Hd.xelem(11) = -2*s*(t+1);
+          Hd.xelem(12) = t2-1;
+          Hd.xelem(13) = 1-t2;
+          Hd.xelem(14) = 0;
+          Hd.xelem(15) = (-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t);
+          Hd.xelem(16) = 0;
+          Hd.xelem(17) = ((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t);
+          Hd.xelem(18) = (-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1);
+          Hd.xelem(19) = 0;
+          Hd.xelem(20) = ((t+1)*(t+2*s-2))/2.0E+0+s*(t+1);
+          Hd.xelem(21) = -2*r*(1-t);
+          Hd.xelem(22) = 2*r*(1-t);
+          Hd.xelem(23) = 2*((-s)-r+1)*(1-t)-2*s*(1-t);
+          Hd.xelem(24) = -2*r*(t+1);
+          Hd.xelem(25) = 2*r*(t+1);
+          Hd.xelem(26) = 2*((-s)-r+1)*(t+1)-2*s*(t+1);
+          Hd.xelem(27) = t2-1;
+          Hd.xelem(28) = 0;
+          Hd.xelem(29) = 1-t2;
+          Hd.xelem(30) = (-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0;
+          Hd.xelem(31) = (-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0;
+          Hd.xelem(32) = (-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0;
+          Hd.xelem(33) = (((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0;
+          Hd.xelem(34) = (r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0;
+          Hd.xelem(35) = (s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0;
+          Hd.xelem(36) = -2*r*((-s)-r+1);
+          Hd.xelem(37) = -2*r*s;
+          Hd.xelem(38) = -2*((-s)-r+1)*s;
+          Hd.xelem(39) = 2*r*((-s)-r+1);
+          Hd.xelem(40) = 2*r*s;
+          Hd.xelem(41) = 2*((-s)-r+1)*s;
+          Hd.xelem(42) = -2*((-s)-r+1)*t;
+          Hd.xelem(43) = -2*r*t;
+          Hd.xelem(44) = -2*s*t;
+     }
+
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const final {
           return InterpGaussToNodalTpl<double>(eMatType, taug);
      }
@@ -7255,6 +7936,46 @@ protected:
           Bt.xelem(29) = invJ.xelem(2)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(8)*r-4*invJ.xelem(5)*r;
      }
 
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hd.rows() == 10);
+          FEM_ASSERT(Hd.columns() == 3);
+
+          Hd.xelem(0) = 0;
+          Hd.xelem(1) = 0;
+          Hd.xelem(2) = 2*t-2*((-t)-s-r+1)+2*s+2*r-1;
+          Hd.xelem(3) = 4*r-1;
+          Hd.xelem(4) = 0;
+          Hd.xelem(5) = -4*t;
+          Hd.xelem(6) = -4*s;
+          Hd.xelem(7) = 4*s;
+          Hd.xelem(8) = 4*t;
+          Hd.xelem(9) = 4*((-t)-s-r+1)-4*r;
+          Hd.xelem(10) = 4*s-1;
+          Hd.xelem(11) = 0;
+          Hd.xelem(12) = 2*t-2*((-t)-s-r+1)+2*s+2*r-1;
+          Hd.xelem(13) = 0;
+          Hd.xelem(14) = 4*t;
+          Hd.xelem(15) = -4*t;
+          Hd.xelem(16) = 4*((-t)-s-r+1)-4*s;
+          Hd.xelem(17) = 4*r;
+          Hd.xelem(18) = 0;
+          Hd.xelem(19) = -4*r;
+          Hd.xelem(20) = 0;
+          Hd.xelem(21) = 4*t-1;
+          Hd.xelem(22) = 2*t-2*((-t)-s-r+1)+2*s+2*r-1;
+          Hd.xelem(23) = 0;
+          Hd.xelem(24) = 4*s;
+          Hd.xelem(25) = 4*((-t)-s-r+1)-4*t;
+          Hd.xelem(26) = -4*s;
+          Hd.xelem(27) = 0;
+          Hd.xelem(28) = 4*r;
+          Hd.xelem(29) = -4*r;
+     }
 private:
      enum IntegRuleType {
           R1 = 0,
@@ -7330,6 +8051,7 @@ private:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_TAU0:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
           case VEC_LOAD_CONSISTENT:
@@ -7349,6 +8071,9 @@ private:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_STIFFNESS_OMEGA:
+          case MAT_STIFFNESS_OMEGA_DOT:
+          case MAT_DAMPING_OMEGA:
           case MAT_MASS_FLUID_STRUCT_RE:
           case MAT_MASS_FLUID_STRUCT_IM:
           case VEC_INERTIA_M1:
@@ -7396,6 +8121,7 @@ public:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_TAU0:
           case VEC_STRESS_CAUCH:
           case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
@@ -7431,6 +8157,9 @@ public:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_STIFFNESS_OMEGA:
+          case MAT_STIFFNESS_OMEGA_DOT:
+          case MAT_DAMPING_OMEGA:
           case MAT_MASS_FLUID_STRUCT_RE:
           case MAT_MASS_FLUID_STRUCT_IM:
           case VEC_INERTIA_M1:
@@ -8020,6 +8749,7 @@ private:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_TAU0:
           case VEC_STRESS_CAUCH:
           case VEC_STRAIN_TOTAL:
           case VEC_LOAD_CONSISTENT:
@@ -8040,6 +8770,9 @@ private:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_STIFFNESS_OMEGA:
+          case MAT_STIFFNESS_OMEGA_DOT:
+          case MAT_DAMPING_OMEGA:
           case MAT_MASS_FLUID_STRUCT_RE:
           case MAT_MASS_FLUID_STRUCT_IM:
           case VEC_INERTIA_M1:
@@ -8878,6 +9611,76 @@ protected:
 
      }
 
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hd.rows() == 20);
+          FEM_ASSERT(Hd.columns() == 3);
+
+          Hd.xelem(0) = ((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(1) = (9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(2) = (9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0;
+          Hd.xelem(3) = ((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0;
+          Hd.xelem(4) = (9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0;
+          Hd.xelem(5) = (9.0E+0*s*(3*s-1))/2.0E+0;
+          Hd.xelem(6) = 0;
+          Hd.xelem(7) = ((-9.0E+0)*s*(3*s-1))/2.0E+0;
+          Hd.xelem(8) = ((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(9) = 27*s*((-t)-s-r+1)-27*r*s;
+          Hd.xelem(10) = (9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0;
+          Hd.xelem(11) = 27*s*t;
+          Hd.xelem(12) = 0;
+          Hd.xelem(13) = -27*s*t;
+          Hd.xelem(14) = ((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0;
+          Hd.xelem(15) = 27*((-t)-s-r+1)*t-27*r*t;
+          Hd.xelem(16) = (9.0E+0*t*(3*t-1))/2.0E+0;
+          Hd.xelem(17) = 0;
+          Hd.xelem(18) = ((-9.0E+0)*t*(3*t-1))/2.0E+0;
+          Hd.xelem(19) = 0;
+          Hd.xelem(20) = ((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(21) = ((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(22) = ((-9.0E+0)*r*(3*r-1))/2.0E+0;
+          Hd.xelem(23) = 0;
+          Hd.xelem(24) = (9.0E+0*r*(3*r-1))/2.0E+0;
+          Hd.xelem(25) = (9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0;
+          Hd.xelem(26) = ((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0;
+          Hd.xelem(27) = (9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0;
+          Hd.xelem(28) = (9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(29) = 27*r*((-t)-s-r+1)-27*r*s;
+          Hd.xelem(30) = 0;
+          Hd.xelem(31) = 27*r*t;
+          Hd.xelem(32) = (9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0;
+          Hd.xelem(33) = 27*((-t)-s-r+1)*t-27*s*t;
+          Hd.xelem(34) = ((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0;
+          Hd.xelem(35) = -27*r*t;
+          Hd.xelem(36) = 0;
+          Hd.xelem(37) = (9.0E+0*t*(3*t-1))/2.0E+0;
+          Hd.xelem(38) = ((-9.0E+0)*t*(3*t-1))/2.0E+0;
+          Hd.xelem(39) = 0;
+          Hd.xelem(40) = ((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(41) = ((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(42) = ((-9.0E+0)*r*(3*r-1))/2.0E+0;
+          Hd.xelem(43) = 0;
+          Hd.xelem(44) = 0;
+          Hd.xelem(45) = 0;
+          Hd.xelem(46) = 0;
+          Hd.xelem(47) = ((-9.0E+0)*s*(3*s-1))/2.0E+0;
+          Hd.xelem(48) = ((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0;
+          Hd.xelem(49) = -27*r*s;
+          Hd.xelem(50) = (9.0E+0*r*(3*r-1))/2.0E+0;
+          Hd.xelem(51) = 27*r*s;
+          Hd.xelem(52) = (9.0E+0*s*(3*s-1))/2.0E+0;
+          Hd.xelem(53) = 27*s*((-t)-s-r+1)-27*s*t;
+          Hd.xelem(54) = ((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0;
+          Hd.xelem(55) = 27*r*((-t)-s-r+1)-27*r*t;
+          Hd.xelem(56) = (9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0;
+          Hd.xelem(57) = (9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0;
+          Hd.xelem(58) = ((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0;
+          Hd.xelem(59) = ((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0;
+     }
 private:
      enum IntegRuleType {
           R1 = 0,
@@ -8925,6 +9728,7 @@ private:
           case MAT_STIFFNESS:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_TAU0:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
           case MAT_DAMPING_FLUID_STRUCT_RE:
@@ -8944,6 +9748,9 @@ private:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
+          case MAT_STIFFNESS_OMEGA:
+          case MAT_STIFFNESS_OMEGA_DOT:
+          case MAT_DAMPING_OMEGA:
           case MAT_MASS_FLUID_STRUCT_RE:
           case MAT_MASS_FLUID_STRUCT_IM:
           case VEC_INERTIA_M1:
@@ -14220,6 +15027,10 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_SYM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_SYM_L", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_STIFFNESS_TAU0", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_STIFFNESS_OMEGA", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_STIFFNESS_OMEGA_DOT", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_DAMPING_OMEGA", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_DAMPING", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_DAMPING_SYM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_DAMPING_SYM_L", "__mboct_fem_pkg__.oct");
@@ -14283,6 +15094,10 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_MAT_STIFFNESS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_STIFFNESS_SYM", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_STIFFNESS_SYM_L", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_STIFFNESS_TAU0", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_STIFFNESS_OMEGA", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_STIFFNESS_OMEGA_DOT", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_MAT_DAMPING_OMEGA", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_DAMPING", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_DAMPING_SYM", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_DAMPING_SYM_L", "__mboct_fem_pkg__.oct", "remove");
@@ -15470,6 +16285,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_STIFFNESS:
                     case Element::MAT_STIFFNESS_SYM:
                     case Element::MAT_STIFFNESS_SYM_L:
+                    case Element::MAT_STIFFNESS_TAU0:
+                    case Element::MAT_STIFFNESS_OMEGA:
+                    case Element::MAT_STIFFNESS_OMEGA_DOT:
+                    case Element::MAT_DAMPING_OMEGA:
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
@@ -16643,6 +17462,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_STIFFNESS:
                case Element::MAT_STIFFNESS_SYM:
                case Element::MAT_STIFFNESS_SYM_L:
+               case Element::MAT_STIFFNESS_TAU0:
+               case Element::MAT_STIFFNESS_OMEGA:
+               case Element::MAT_STIFFNESS_OMEGA_DOT:
+               case Element::MAT_DAMPING_OMEGA:
                case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
                case Element::MAT_STIFFNESS_FLUID_STRUCT_IM:
                case Element::MAT_MASS:
@@ -17089,6 +17912,10 @@ DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_SYM_L, "lower triangular part of the ma
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS, "complete stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_SYM, "upper triangular part of the stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_SYM_L, "lower triangular part of the stiffness matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_TAU0, "stiffness matrix resulting from pre-stress")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_OMEGA, "stiffness matrix resulting from a rotating reference frame with constant angular velocity")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_OMEGA_DOT, "stiffness matrix resulting from a rotating reference frame with constant angular acceleration")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_DAMPING_OMEGA, "damping matrix resulting from a rotating reference frame")
 DEFINE_GLOBAL_CONSTANT(Element, SCA_STRESS_VMIS, "Van Mises stress")
 DEFINE_GLOBAL_CONSTANT(Element, SCA_TOT_MASS, "total mass of all elements")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_INERTIA_M1, "center of mass times total mass of all elements with respect to the origin of the global reference frame")

@@ -42,13 +42,13 @@ function [sol, err, U] = fem_sol_modal(mesh, dof_map, mat_ass, N, varargin)
   if (nargin < 4 || nargout > 3)
     print_usage();
   endif
-  
+
   [U, lambda, err] = fem_sol_eigs(mat_ass.K, mat_ass.M, N, varargin{:});
-  
+
   sol.lambda = lambda;
   sol.f = imag(lambda) / (2 * pi);
-  sol.def = fem_post_def_nodal(mesh, dof_map, U);
-endfunction  
+  sol.def = fem_post_def_nodal(mesh, dof_map, U * diag(1 ./ norm(U, "cols")));
+endfunction
 
 %!demo
 %! close all;

@@ -49,8 +49,8 @@ function TAT = fem_cms_matrix_trans(T, A, mat_type)
         endfor
       endfor
     otherwise
-      TAT = 0.5 * (T.' * A * T);
-      TAT += TAT.';
+      ## unsymmetrical case
+      TAT = T.' * A * T;
   endswitch
 endfunction
 

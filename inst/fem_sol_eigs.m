@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2022) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,9 +14,9 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{U}, @var{lambda}, @var{err}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{tol}, @var{alg}, @var{solver}, @var{num_threads})
-## @deftypefnx {} [@var{@dots{}}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{tol}, @var{alg}, @var{options})
-## Solve the general eigenvalue problem K * U = lambda^2 * M * U.
+## @deftypefn {Function File} [@var{U}, @var{lambda}, @var{err}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{rho}, @var{tolerance}, @var{algorithm}, @var{solver}, @var{num_threads}, @var{problem})
+## @deftypefnx {} [@var{@dots{}}] = fem_sol_eigs(@var{K}, @var{M}, @var{N}, @var{options})
+## Solve the general eigenvalue problem K * U = lambda^2 * M * U or K * U = -lambda * M * U.
 ##
 ## @var{K} @dots{} Assembled stiffness matrix. @var{K} is allowed to be singular provided that @var{K} - @var{rho} * @var{M} is regular.
 ##
@@ -24,72 +24,110 @@
 ##
 ## @var{N} @dots{} Number of modes to compute
 ##
-## @var{tol} @dots{} Tolerance for verification of modes
+## @var{tolerance} @dots{} Tolerance for verification of modes
 ##
 ## @var{rho} @dots{} Shift for eigenvalues (e.g. needed if @var{K} is singular)
 ##
-## @var{alg} @dots{} Algorithm to use: One of ("generic", "unsymmetric", "shift-invert", "symmetric-inverse").
+## @var{algorithm} @dots{} Algorithm to use: One of ("generic", "unsymmetric", "shift-invert", "symmetric-inverse").
 ##
 ## @var{solver} @dots{} Linear solver to use: One of ("pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide").
 ##
 ## @var{num_threads} @dots{} Number of threads to use for the linear solver.
 ##
-## @var{options} @dots{} Options passed to fem_sol_factor
+## @var{problem} @dots{} May be one of ("structural", "acoustic", "thermal", "pressure", "buckling")
+##
+## @var{options} @dots{} Alternative form to pass all or some of the arguments above as a struct
 ##
 ## @seealso{fem_sol_modal}
 ## @end deftypefn
 
-function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_threads)
-  if (nargin < 3 || nargin > 8 || nargout > 3)
+function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
+  if (nargin < 3 || nargin > 9 || nargout > 3)
     print_usage();
   endif
 
-  if (nargin < 5)
-    tol = eps^0.2;
+  if (~(issquare(K) && issquare(M)))
+    error("K and M must be square matrices");
   endif
 
-  if (nargin < 6)
-    alg = "shift-invert";
+  if (~(isreal(K) && isreal(M)))
+    error("K and M must be real");
   endif
 
-  if (nargin < 7)
-    solver = "pastix";
+  if (~all(size(K) == size(M)))
+    error("K and M must have the same size");
   endif
 
-  if (isstruct(solver))
-    opt_lin = solver;
-  else
-    if (nargin < 8)
-      num_threads = int32(1);
+  if (numel(varargin) >= 1)
+    if (isstruct(varargin{1}))
+      options = varargin{1};
+    else
+      options.rho = varargin{1};
+      
+      if (numel(varargin) >= 2)
+        options.tolerance = varargin{2};
+      endif
+
+      if (numel(varargin) >= 3)
+        options.algorithm = varargin{3};
+      endif
+
+      if (numel(varargin) >= 4)
+        options.solver = varargin{4};
+      endif
+
+      if (numel(varargin) >= 5)
+        options.number_of_threads = varargin{5};
+      endif
+
+      if (numel(varargin) >= 6)
+        options.problem = varargin{6};
+      endif
     endif
-    
-    opt_lin.solver = solver;
-    opt_lin.number_of_threads = num_threads;    
+  else
+    options = struct();
   endif
   
-  opts.disp = 0;
-  opts.maxit = 50000;
-  opts.isreal = true;
-
-  if (nargin < 4 || rho == 0)
-    rho = 0;
-    Ksh = K;
-  else
-    Ksh = K - rho * M;
+  if (~isfield(options, "tolerance"))
+    options.tolerance = 1e-4;
   endif
 
-  Kfact = fem_sol_factor(Ksh, opt_lin);
+  if (~isfield(options, "problem"))
+    options.problem = "structural";
+  endif
+
+  if (~isfield(options, "algorithm"))
+    switch (options.problem)
+      case "buckling"
+        options.algorithm = "symmetric-inverse";
+      otherwise
+        options.algorithm = "shift-invert";
+    endswitch
+  endif
+
+  opt_eig.disp = 0;
+  opt_eig.maxit = 50000;
+  opt_eig.isreal = true;
+
+  if (~isfield(options, "rho"))
+    options.rho = 0;
+    Ksh = K;
+  else
+    Ksh = K - options.rho * M;
+  endif
+
+  Kfact = fem_sol_factor(Ksh, options);
 
   rndstate = rand("state");
 
   unwind_protect
     rand("seed", 0);
 
-    switch (alg)
+    switch (options.algorithm)
       case {"generic", "unsymmetric"}
         SIGMA = "LM";
 
-        opts.issym = eigs_sym(Kfact);
+        opt_eig.issym = eigs_sym(Kfact);
 
         eigs_callback = @(x) eigs_func(Kfact, M, x);
 
@@ -97,7 +135,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
         max_iter_eig = int32(10);
 
         while (true)
-          [U, mu, status] = eigs(eigs_callback, columns(M), N, SIGMA, opts);
+          [U, mu, status] = eigs(eigs_callback, columns(M), N, SIGMA, opt_eig);
 
           if (status ~= 0)
             error("eigs failed to converge");
@@ -113,44 +151,57 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
             error("eigs returned complex eigenvectors");
           endif
 
-          opts.v0 = real(U(:, 1));
+          opt_eig.v0 = real(U(:, 1));
         endwhile
 
         U = eigs_post(Kfact, U);
       case {"shift-invert", "symmetric-inverse"}
-        opts.v0 = rand(columns(M), 1);
+        opt_eig.v0 = rand(columns(M), 1);
         op{1} = @(x) M * x;
         op{2} = @(x) Kfact \ x;
-        switch (alg)
+        switch (options.algorithm)
           case "symmetric-inverse"
             SIGMA = "LM";
             op{3} = @(x) Ksh * x;
           otherwise
             SIGMA = 0;
         endswitch
-        [U, mu] = eig_sym(op, columns(M), N, SIGMA, opts);
+        [U, mu] = eig_sym(op, columns(M), N, SIGMA, opt_eig);
       otherwise
-        error("unknown algorithm: \"%s\"", alg);
+        error("unknown algorithm: \"%s\"", options.algorithm);
     endswitch
   unwind_protect_cleanup
     rand("state", rndstate);
   end_unwind_protect
 
-  switch (alg)
+  mu = diag(mu).';
+  
+  switch (options.algorithm)
     case "shift-invert"
-      mu = diag(mu);
     otherwise
-      mu = 1 ./ diag(mu);
+      mu = 1 ./ mu;
   endswitch
 
-  kappa = mu + rho; # Apply a shift in order to work if rigid body modes are present
-  lambda = sqrt(-kappa).';
+  kappa = mu + options.rho; # Apply a shift in order to work if rigid body modes are present
+
+  switch (options.problem)
+    case {"structural", "acoustic"}
+      lambda = sqrt(-kappa);
+      lambda2 = lambda.^2;
+    case {"pressure", "buckling", "thermal"}
+      lambda2 = lambda = -kappa;
+    otherwise
+      error("unknown value for parameter options.problem=\"%s\"", options.problem);
+  endswitch
+  
   [lambda, i_lambda] = sort(lambda);
 
+  lambda2 = lambda2(i_lambda);
+  
   s_U_d = zeros(columns(U), 1);
 
   for i=1:columns(U)
-    s_U_d(i) = sqrt(U(:, i).' * M * U(:, i));
+    s_U_d(i) = sqrt(abs(U(:, i).' * M * U(:, i))); ## abs needed for buckling type problems
   endfor
 
   U /= diag(s_U_d);
@@ -161,11 +212,11 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, rho, tol, alg, solver, num_thr
 
   for i=1:columns(U)
     v1 = K * U(:, i);
-    v2 = M * U(:, i) * lambda(i)^2;
+    v2 = M * U(:, i) * lambda2(i);
     err(i) = norm(v1 + v2) / max(norm(v1), norm(v2));
   endfor
 
-  if (nargout < 3 && max(err) > tol)
+  if (nargout < 3 && max(err) > options.tolerance)
     error("eigs failed to converge: max(err)=%g > tol=%g", max(err), tol);
   endif
 endfunction
@@ -177,12 +228,13 @@ endfunction
 %! toleigs = 0;
 %! solvers = {"pastix", "pardiso", "mumps", "umfpack", "lu", "chol", "mldivide"};
 %! alg={"symmetric-inverse","shift-invert","unsymmetric"};
+%! problems = {"structural", "thermal", "acoustic", "pressure", "buckling"};
 %! t = zeros(numel(alg), numel(solvers));
 %! for k=1:numel(solvers)
 %!   for a=1:numel(alg)
 %!     for j=1:2
 %!       rand("seed", 0);
-%!       for i=1:50
+%!       for i=1:3
 %!         K = sprand(N, N, 0.01) + 10*abs(diag(0.1+rand(N, 1)));
 %!         M = sprand(rows(K), columns(K), 0.01) + 10*abs(diag(0.1+rand(rows(K), 1)));
 %!         K *= K.';
@@ -196,9 +248,40 @@ endfunction
 %!           rho = 0;
 %!         endif
 %!         start = tic();
-%!         [U, lambda, err] = fem_sol_eigs(K, M, n, rho, toleigs, alg{a}, solvers{k});
-%!         t(a, k) += toc(start);
-%!         assert(max(err) < tol);
+%!         for l=1:7
+%!           switch (l)
+%!             case 1
+%!               [U, lambda, err] = fem_sol_eigs(K, M, n, rho, toleigs, alg{a}, solvers{k});
+%!             otherwise
+%!               opt = struct();
+%!               if (l > 2)
+%!                 opt.rho = rho;
+%!               endif
+%!               if (l > 3)
+%!                 opt.tolerance = toleigs;
+%!               endif
+%!               if (l > 4)
+%!                 opt.algorithm = alg{a};
+%!               endif
+%!               if (l > 5)
+%!                 opt.solver = solvers{k};
+%!               endif
+%!               if (l > 6)
+%!                 opt.number_of_threads = int32(4);
+%!               endif
+%!               if (l > 7)
+%!                 for m=1:numel(problems)
+%!                   opt.problem = opt.problem = problems{m};
+%!                   [U, lambda, err] = fem_sol_eigs(K, M, n, opt);
+%!                   assert(max(err) < tol);
+%!                 endfor
+%!               else
+%!                   [U, lambda, err] = fem_sol_eigs(K, M, n, opt);
+%!                   assert(max(err) < tol);
+%!               endif
+%!           endswitch
+%!           t(a, k) += toc(start);
+%!         endfor
 %!       endfor
 %!     endfor
 %!   endfor

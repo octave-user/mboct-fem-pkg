@@ -48,6 +48,9 @@ jobs:
         run: |
           git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git && \
           pushd mbdyn && \
+          git config --global user.email "octave-user@a1.net" && \
+          git config --global user.name "octave-user" && \
+          git merge --no-commit origin/rigid-body-kinematics-update && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
           --enable-octave \
@@ -71,7 +74,7 @@ jobs:
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
+           git clone -b stress-stiffening https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
            make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 

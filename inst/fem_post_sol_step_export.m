@@ -43,7 +43,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
   endif
 
   fd = -1;
-  
+
   unwind_protect
     [fd, msg] = fopen(filename, "w");
 
@@ -61,12 +61,21 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
     for i=1:numel(nodal_fields)
       if (isfield(sol, nodal_fields(i).name))
         x = nodal_fields(i).value(getfield(sol, nodal_fields(i).name));
-        fprintf(fd, "$NodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
-        fprintf(fd, "%d %.16e\n", [1:size(x, 1); x.']);
-        fputs(fd, "$EndNodeData\n");
+        if (isreal(x))
+          fprintf(fd, "$NodeData\n1\n\"%s\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
+          fprintf(fd, "%d %.16e\n", [1:size(x, 1); x.']);
+          fputs(fd, "$EndNodeData\n");
+        else
+          fprintf(fd, "$NodeData\n1\n\"real(%s)\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
+          fprintf(fd, "%d %.16e\n", [1:size(x, 1); real(x.')]);
+          fputs(fd, "$EndNodeData\n");
+          fprintf(fd, "$NodeData\n1\n\"imag(%s)\"\n1\n%e\n3\n%d\n%d\n%d\n", nodal_fields(i).title, t, idx_t - 1, nodal_fields(i).dim, size(x, 1));
+          fprintf(fd, "%d %.16e\n", [1:size(x, 1); imag(x.')]);
+          fputs(fd, "$EndNodeData\n");
+        endif
       endif
     endfor
-    
+
     field_type = {"stress", "strain", "particle_velocity"};
 
     idxtens = int32([1, 4, 6, 4, 2, 5, 6, 5, 3]);
@@ -76,13 +85,13 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
     stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm", "v", "vn"};
     elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h", "tet20"};
     stress_comp = int32([9, 9, 1, 9, 9, 3, 1]);
-    
+
     for n=1:numel(field_type)
-      if (isfield(sol, field_type{n}))        
+      if (isfield(sol, field_type{n}))
         for l=1:numel(stress_field)
           if (isfield(getfield(sol, field_type{n}), stress_field{l}))
             inumelem = int32(0);
-            
+
             for i=1:numel(elem_stress)
               if (isfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i}))
                 tau = getfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i});
@@ -105,14 +114,14 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                     idxnode = int32([1:6]);
                   case "tria10"
                     idxnode = int32([1:10]);
-		  case "quad8"
-		    idxnode = int32([1:8]);
+                  case "quad8"
+                    idxnode = int32([1:8]);
                   case "iso8"
                     idxnode = int32([5:8, 1:4]);
-		  case "iso20"
-		    idxnode = int32([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]);
-		  case "penta15"
-		    idxnode =  int32([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]);
+                  case "iso20"
+                    idxnode = int32([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]);
+                  case "penta15"
+                    idxnode =  int32([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]);
                   case {"tet10", "tet10h"}
                     idxnode = int32([1:8, 10, 9]);
                   case "tet20"
@@ -120,13 +129,13 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                   otherwise
                     error("unknown element type \"%s\"", elem_stress{i});
                 endswitch
-                
+
                 tau = getfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i});
 
                 tauout = zeros(2 + numel(idxnode) * stress_comp(l), rows(tau));
                 tauout(1, :) = inumelem + (1:rows(tau));
                 tauout(2, :) = numel(idxnode);
-                
+
                 for k=1:numel(idxnode)
                   switch (stress_comp(l))
                     case 1
@@ -136,12 +145,12 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                     otherwise
                       taukl = tau(:, idxnode(k), :, idx_sol);
                   endswitch
-                  
+
                   tauout(2 + (k - 1) * stress_comp(l) + (1:stress_comp(l)), :) = reshape(taukl, rows(tau), stress_comp(l)).';
                 endfor
 
                 inumelem += rows(tau);
-                
+
                 format = ["%d %d", repmat(" %.16e", 1, numel(idxnode) * stress_comp(l)), "\n"];
 
                 fprintf(fd, format, tauout);

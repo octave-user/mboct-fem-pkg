@@ -47959,8 +47959,10 @@ endfunction
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.refine_max_iter = int32(20);
-%!   shift = sqrt(eps) * max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M)));
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, sqrt(eps), "shift-invert", opt_sol);
+%!   opt_sol.rho = sqrt(eps) * max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M)));
+%!   opt_sol.tolerance = sqrt(eps);
+%!   opt_sol.algorithm = "shift-invert";
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, opt_sol);
 %!   sol_eig.stress = fem_ass_matrix(mesh, ...
 %!                                   dof_map, ...
 %!                                   [FEM_VEC_STRESS_CAUCH], ...
