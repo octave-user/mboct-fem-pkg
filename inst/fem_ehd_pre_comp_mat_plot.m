@@ -345,7 +345,7 @@ function output_file = gen_pdf_file(hnd, options, output_files)
 
   output_file  = fullfile(out_dir, sprintf("%s_%03d%s", out_name, numel(output_files) + 1, out_ext));
   
-  unlink(output_file);
+  [~] = unlink(output_file);
   print("-dpdf", "-color", "-landscape", "-S1024,768", output_file);
   [info, err] = stat(output_file);
   

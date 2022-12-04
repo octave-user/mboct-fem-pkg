@@ -509,17 +509,17 @@ endfunction
 %!   endif
 %! end_unwind_protect
 %! fprintf(stderr, "meshing ...\n");
-%! unlink([filename, ".msh"]);
+%! [~] = unlink([filename, ".msh"]);
 %! pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %! status = spawn_wait(pid);
 %! if (status ~= 0)
 %!  warning("gmsh failed with status %d", status);
 %! endif
-%! unlink([filename, ".geo"]);
+%! [~] = unlink([filename, ".geo"]);
 %! fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
 %! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
-%! unlink([filename, ".msh"]);
+%! [~] = unlink([filename, ".msh"]);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
 %! load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
@@ -542,7 +542,7 @@ endfunction
 %! if (numel(filename))
 %!   fn = dir([filename, "*"]);
 %!   for i=1:numel(fn)
-%!     unlink(fullfile(fn(i).folder, fn(i).name));
+%!     [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!   endfor
 %! endif
 %! end_unwind_protect

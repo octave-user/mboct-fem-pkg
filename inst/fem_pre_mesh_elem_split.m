@@ -336,7 +336,7 @@ endfunction
 %!   if (numel(opts.print_to_file))
 %!     fn = dir([opts.print_to_file, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

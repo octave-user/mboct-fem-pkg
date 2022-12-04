@@ -187,13 +187,13 @@ endfunction
 %!         warning("gmsh failed with status %d", status);
 %!       endif
 %!     unwind_protect_cleanup
-%!       unlink([filename, ".geo"]);
+%!       [~] = unlink([filename, ".geo"]);
 %!     end_unwind_protect
 %!     fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
 %!     mesh_data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!     fprintf(stderr, "%d nodes\n", rows(mesh_data(1).mesh.nodes));
 %!   unwind_protect_cleanup
-%!     unlink([filename, ".msh"]);
+%!     [~] = unlink([filename, ".msh"]);
 %!   end_unwind_protect
 %! endfor
 %! for i=1:numel(mesh_data)
@@ -234,14 +234,14 @@ endfunction
 %!   imshow(img, map);
 %!   title("Gmsh - stress and deformation");
 %! unwind_protect_cleanup
-%!   unlink([opts.print_to_file, "_001.jpg"]);
+%!   [~] = unlink([opts.print_to_file, "_001.jpg"]);
 %! end_unwind_protect
 %! figure_list();
 %! unwind_protect_cleanup
 %! if (numel(filename))
 %!   fn = dir([filename, "*"]);
 %!   for i=1:numel(fn)
-%!     unlink(fullfile(fn(i).folder, fn(i).name));
+%!     [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!   endfor
 %! endif
 %! end_unwind_protect

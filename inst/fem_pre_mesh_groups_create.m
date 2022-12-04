@@ -254,9 +254,9 @@ endfunction
 %! if (status ~= 0)
 %!  warning("gmsh failed with status %d", status);
 %! endif
-%! unlink([filename, ".geo"]);
+%! [~] = unlink([filename, ".geo"]);
 %! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%! unlink([filename, ".msh"]);
+%! [~] = unlink([filename, ".msh"]);
 %! group_defs(1).id = 1;
 %! group_defs(1).name = "box1";
 %! group_defs(1).R = eye(3);
@@ -321,7 +321,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

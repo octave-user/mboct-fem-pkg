@@ -554,7 +554,7 @@ endfunction
 %!   if (numel(comp_mat_file))
 %!     fn = dir([comp_mat_file, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -760,7 +760,7 @@ endfunction
 %!   if (numel(comp_mat_file))
 %!     fn = dir([comp_mat_file, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

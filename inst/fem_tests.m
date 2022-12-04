@@ -4139,17 +4139,17 @@
 %! geometry.user_data.h = 0.02e-3;
 %! dx = 1e-3 / M;
 %!
-%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t)
+%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t, varargin)
 %!   x = geo.l * r;
 %!   y = geo.w * s;
 %!   z = geo.h * t;
 %! endfunction
 %!
-%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx)
+%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx, varargin)
 %!   p = [];
 %! endfunction
 %!
-%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data)
+%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data, varargin)
 %!   F = [];
 %!   locked = [];
 %! endfunction
@@ -4158,10 +4158,10 @@
 %! geometry.mesh_size.s = linspace(0, 1, max([2, ceil(geometry.user_data.w / dx) + 1]));
 %! geometry.mesh_size.t = linspace(0, 1, max([2, ceil(geometry.user_data.h / dx) + 1]));
 %! geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.l;
-%! geometry.spatial_coordinates = @(r, s, t) feval("cube_geo", geometry.user_data, r, s, t);
-%! geometry.material_selector = @(r, s, t) 1;
-%! geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("boundary_cond_callback", r, s, t, geometry, load_data);
-%! geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
+%! geometry.spatial_coordinates = @(r, s, t, varargin) feval("cube_geo", geometry.user_data, r, s, t);
+%! geometry.material_selector = @(r, s, t, varargin) 1;
+%! geometry.boundary_condition =  @(r, s, t, geometry, load_data, varargin) feval("boundary_cond_callback", r, s, t, geometry, load_data);
+%! geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx, varargin) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
 %! k = 50;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -4241,17 +4241,17 @@
 %!
 %! elem_types = {"iso8", "iso20"};
 
-%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t)
+%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t, varargin)
 %!   x = geo.l * r;
 %!   y = geo.w * s;
 %!   z = geo.h * t;
 %! endfunction
 
-%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx)
+%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx, varargin)
 %!   p = [];
 %! endfunction
 
-%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data)
+%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data, varargin)
 %!   F = [];
 %!   locked = [];
 %! endfunction
@@ -4272,10 +4272,10 @@
 %!   geometry.mesh_size.s = linspace(0, 1, max([2, ceil(geometry.user_data.w / dx) + 1]));
 %!   geometry.mesh_size.t = linspace(0, 1, max([2, ceil(geometry.user_data.h / dx) + 1]));
 %!   geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.l;
-%!   geometry.spatial_coordinates = @(r, s, t) feval("cube_geo", geometry.user_data, r, s, t);
-%!   geometry.material_selector = @(r, s, t) 1;
-%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("boundary_cond_callback", r, s, t, geometry, load_data);
-%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
+%!   geometry.spatial_coordinates = @(r, s, t, varargin) feval("cube_geo", geometry.user_data, r, s, t);
+%!   geometry.material_selector = @(r, s, t, varargin) 1;
+%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data, varargin) feval("boundary_cond_callback", r, s, t, geometry, load_data);
+%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx, varargin) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
 %!   K0 = 5000;
 %!   material.E = 210000e6;
 %!   material.nu = 0.3;

@@ -317,8 +317,8 @@ endfunction
 %!   pid = spawn("gmsh", {post_pro_file});
 %!   status = spawn_wait(pid);
 %!   unwind_protect_cleanup
-%!     unlink(post_pro_file);
-%!     unlink(deformation_file);
+%!     [~] = unlink(post_pro_file);
+%!     [~] = unlink(deformation_file);
 %!   end_unwind_protect
 %!   if (0 ~= status)
 %!     error("gmsh failed with status %d", status);

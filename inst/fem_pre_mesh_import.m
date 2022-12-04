@@ -738,9 +738,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -934,7 +934,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -1001,15 +1001,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
@@ -1142,7 +1142,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -1208,7 +1208,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
@@ -1217,7 +1217,7 @@ endfunction
 %!   cms_opt.algorithm = "unsymmetric";
 %!   mesh.nodes(cms_opt.nodes.modal.number, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
 %!   mesh.nodes([cms_opt.nodes.interfaces.number], :) = [e, 0.5 * b, 0.5 * c, 0, 0, 0];
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   E = 210000e6;
@@ -1265,7 +1265,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -1333,15 +1333,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
@@ -1498,7 +1498,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -1565,15 +1565,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, :) = true;
@@ -1723,7 +1723,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -1791,11 +1791,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   fprintf(stderr, "%d nodes\n", rows(mesh1.nodes));
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -1913,7 +1913,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -1980,9 +1980,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -2107,7 +2107,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -2174,9 +2174,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -2296,7 +2296,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -2363,9 +2363,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -2465,7 +2465,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -2537,15 +2537,15 @@ endfunction
 %!           fclose(fd);
 %!         endif
 %!       end_unwind_protect
-%!       unlink([filename, ".msh"]);
+%!       [~] = unlink([filename, ".msh"]);
 %!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size(m)), "-clmax", sprintf("%g", 1.25 *mesh_size(m)), [filename, ".geo"]});
 %!       status = spawn_wait(pid);
 %!       if (status ~= 0)
 %!         warning("gmsh failed with status %d", status);
 %!       endif
-%!       unlink([filename, ".geo"]);
+%!       [~] = unlink([filename, ".geo"]);
 %!       data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!       unlink([filename, ".msh"]);
+%!       [~] = unlink([filename, ".msh"]);
 %!     endfor
 %!     for i=1:numel(data)
 %!       data(i).mesh.materials.tet10 = ones(rows(data(i).mesh.elements.tet10), 1, "int32");
@@ -2640,7 +2640,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -2728,7 +2728,7 @@ endfunction
 %!               fclose(fd);
 %!             endif
 %!           end_unwind_protect
-%!           unlink([filename, ".msh"]);
+%!           [~] = unlink([filename, ".msh"]);
 %!           if (orange(o) == 1 || i == 1)
 %!             optargs = {"-order", "1"};
 %!           else
@@ -2739,9 +2739,9 @@ endfunction
 %!           if status ~= 0
 %!             warning("gmsh failed with status %d", status);
 %!           endif
-%!           unlink([filename, ".geo"]);
+%!           [~] = unlink([filename, ".geo"]);
 %!           data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!           unlink([filename, ".msh"]);
+%!           [~] = unlink([filename, ".msh"]);
 %!         endfor
 %!         for i=1:numel(data)
 %!           if (isfield(data(i).mesh.elements, "iso8"))
@@ -2857,7 +2857,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -2945,9 +2945,9 @@ endfunction
 %!     if (status ~= 0)
 %!       warning("gmsh failed with status %d", status);
 %!     endif
-%!     unlink([filename, ".geo"]);
+%!     [~] = unlink([filename, ".geo"]);
 %!     data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!     unlink([filename, ".msh"]);
+%!     [~] = unlink([filename, ".msh"]);
 %!   endfor
 %!   data(2).mesh.nodes(:, 1) += a;
 %!   data(3).mesh.nodes(:, 1) += a;
@@ -3101,7 +3101,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -3165,12 +3165,12 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   master_node_idx = int32(rows(mesh.nodes) + 1);
 %!   mesh.nodes(master_node_idx, 1:3) = [a + d, 0, 0];
 %!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, 2, master_node_idx);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6(find([[mesh.groups.tria6].id] == 1)).nodes, :) = true;
 %!   load_case.loaded_nodes = [master_node_idx];
@@ -3266,7 +3266,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -3327,9 +3327,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh1.materials.iso8 = ones(rows(mesh1.elements.iso8), 1, "int32");
 %!   E = 210000e6;
 %!   nu = 0.3;
@@ -3367,8 +3367,8 @@ endfunction
 %!           data(i).mesh.materials.iso8(data(i).mesh.groups.iso8(j).elements) = j;
 %!         endfor
 %!       unwind_protect_cleanup
-%!         unlink([filename, "_in.msh"]);
-%!         unlink([filename, "_out.msh"]);
+%!         [~] = unlink([filename, "_in.msh"]);
+%!         [~] = unlink([filename, "_out.msh"]);
 %!       end_unwind_protect
 %!     else
 %!       data(i).mesh = mesh;
@@ -3425,7 +3425,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -3565,8 +3565,8 @@ endfunction
 %!     fem_post_sol_external(mesh, sol_eig, opts);
 %!   endif
 %! unwind_protect_cleanup
-%!   unlink([filename, ".msh"]);
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".geo"]);
 %! end_unwind_protect
 
 %!test
@@ -3633,15 +3633,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
 %!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
@@ -3708,7 +3708,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -5266,9 +5266,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   group_defs(1).id = 1;
 %!   group_defs(1).name = "box1";
 %!   group_defs(1).R = eye(3);
@@ -5372,7 +5372,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -5442,9 +5442,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -5634,7 +5634,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -5704,15 +5704,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 1);
 %!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, :) = true;
@@ -5870,7 +5870,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -5938,7 +5938,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
@@ -5947,7 +5947,7 @@ endfunction
 %!   cms_opt.algorithm = "shift-invert";
 %!   mesh.nodes(cms_opt.nodes.modal.number, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
 %!   mesh.nodes([cms_opt.nodes.interfaces.number], :) = [e, 0.5 * b, 0.5 * c, 0, 0, 0];
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   E = 210000e6;
@@ -5992,7 +5992,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6053,15 +6053,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 1);
@@ -6132,7 +6132,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6192,15 +6192,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.iso4].id] == 1);
@@ -6259,7 +6259,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6318,15 +6318,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
@@ -6385,7 +6385,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6445,15 +6445,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   E = 210000e6;
@@ -6482,7 +6482,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6540,15 +6540,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   E = 210000e6;
@@ -6577,7 +6577,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6634,15 +6634,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   E = 210000e6;
@@ -6671,7 +6671,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6729,15 +6729,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   E = 210000e6;
@@ -6766,7 +6766,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6826,15 +6826,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   elem_types = {"tria6", "quad8"};
 %!   load_case.pressure = struct();
@@ -6922,7 +6922,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -6981,16 +6981,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tet10h", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
@@ -7053,7 +7053,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7122,16 +7122,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
 %!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
@@ -7198,7 +7198,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7257,15 +7257,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 1);
@@ -7314,7 +7314,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7372,15 +7372,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.iso4].id] == 1);
@@ -7429,7 +7429,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7487,15 +7487,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 1);
@@ -7544,7 +7544,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7601,15 +7601,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
@@ -7658,7 +7658,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7715,16 +7715,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
@@ -7773,7 +7773,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7832,15 +7832,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
 %!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_x).nodes, 1:3) = true;
@@ -7879,7 +7879,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -7944,15 +7944,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
@@ -8026,7 +8026,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8092,15 +8092,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 2);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 3);
@@ -8174,7 +8174,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8239,15 +8239,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.iso4].id] == 2);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 3);
@@ -8321,7 +8321,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8386,15 +8386,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
@@ -8468,7 +8468,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8532,16 +8532,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 3);
@@ -8615,7 +8615,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8676,9 +8676,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.iso8 = zeros(rows(mesh.elements.iso8), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.iso8.id] == 2);
@@ -8728,7 +8728,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8790,9 +8790,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.iso20.id] == 2);
@@ -8842,7 +8842,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -8902,9 +8902,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.penta15 = zeros(rows(mesh.elements.penta15), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.penta15.id] == 2);
@@ -8954,7 +8954,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9013,9 +9013,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10.id] == 2);
@@ -9065,7 +9065,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9124,10 +9124,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10h.id] == 2);
@@ -9177,7 +9177,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9252,10 +9252,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10h.id] == 2);
@@ -9331,7 +9331,7 @@ endfunction
 %!                                        FEM_VEC_STRAIN_TOTAL], ...
 %!                                       load_case2, ...
 %!                                       sol_stat2);
-%!   tol_def = 1e-5;
+%!   tol_def = 5e-5;
 %!   tol_strain = 1e-3;
 %!   tol_stress = 5e-3;
 %!   assert(sol_stat2.def, sol_stat.def, tol_def * max(max(abs(sol_stat.def))));
@@ -9341,7 +9341,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9425,10 +9425,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10h.id] == 2);
@@ -9483,7 +9483,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9567,10 +9567,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10.id] == 2);
@@ -9650,7 +9650,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9718,10 +9718,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -9905,7 +9905,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -9972,16 +9972,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria6h(grp_id_clamp).nodes, :) = true;
@@ -10114,7 +10114,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -10179,7 +10179,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
 %!   cms_opt.modes.number = int32(6);
@@ -10189,7 +10189,7 @@ endfunction
 %!   cms_opt.algorithm = "unsymmetric";
 %!   mesh.nodes(cms_opt.nodes.modal.number, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
 %!   mesh.nodes([cms_opt.nodes.interfaces.number], :) = [e, 0.5 * b, 0.5 * c, 0, 0, 0];
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   E = 210000e6;
@@ -10222,7 +10222,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -10290,16 +10290,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria6h(grp_id_clamp).nodes, :) = true;
@@ -10457,7 +10457,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -10524,16 +10524,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria6h(grp_id_clamp).nodes, :) = true;
@@ -10684,7 +10684,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -10752,12 +10752,12 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
 %!   fprintf(stderr, "%d nodes\n", rows(mesh1.nodes));
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -10875,7 +10875,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -10950,10 +10950,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet10.id] == 2);
@@ -11039,7 +11039,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11107,9 +11107,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -11198,7 +11198,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11266,10 +11266,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -11358,7 +11358,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11427,10 +11427,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -11519,7 +11519,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11579,10 +11579,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -11623,7 +11623,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11683,10 +11683,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -11726,7 +11726,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11787,10 +11787,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -11830,7 +11830,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11892,10 +11892,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -11937,7 +11937,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -11997,10 +11997,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12040,7 +12040,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12100,9 +12100,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12146,7 +12146,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12207,9 +12207,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   if (isfield(mesh.elements, "iso20"))
 %!     mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
@@ -12258,7 +12258,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12318,9 +12318,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12364,7 +12364,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12423,9 +12423,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12469,7 +12469,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12528,10 +12528,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12575,7 +12575,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12634,10 +12634,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12679,7 +12679,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12738,10 +12738,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12783,7 +12783,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12843,9 +12843,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -12887,7 +12887,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -12948,9 +12948,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   if (isfield(mesh.elements, "iso20"))
 %!     mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
@@ -12997,7 +12997,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -13057,9 +13057,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -13103,7 +13103,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -13165,7 +13165,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
@@ -13173,7 +13173,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -13212,7 +13212,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
@@ -13220,7 +13220,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -13269,7 +13269,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -13332,7 +13332,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
 %!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
@@ -13345,7 +13345,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -13385,7 +13385,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
 %!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
@@ -13398,7 +13398,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -13447,7 +13447,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -13510,7 +13510,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(1).mesh.materials.iso8 = ones(rows(mesh_data(1).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
@@ -13518,7 +13518,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -13558,7 +13558,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(2).mesh.materials.iso8 = ones(rows(mesh_data(2).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
@@ -13566,7 +13566,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -13615,7 +13615,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -13676,7 +13676,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
@@ -13684,7 +13684,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -13722,7 +13722,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(2).mesh.materials.tet10 = ones(rows(mesh_data(2).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
@@ -13730,7 +13730,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -13779,7 +13779,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -13840,7 +13840,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
@@ -13849,7 +13849,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -13887,7 +13887,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(2).mesh.materials.tet10h = ones(rows(mesh_data(2).mesh.elements.tet10h), 1, "int32");
@@ -13896,7 +13896,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -13946,7 +13946,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14006,9 +14006,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -14051,7 +14051,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14112,9 +14112,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -14157,7 +14157,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14217,10 +14217,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -14263,7 +14263,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14322,10 +14322,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -14368,7 +14368,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14427,10 +14427,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -14474,7 +14474,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14536,9 +14536,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
 %!   cp = 1;
@@ -14614,7 +14614,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14677,7 +14677,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
 %!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
@@ -14690,7 +14690,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -14730,7 +14730,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
 %!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
@@ -14743,7 +14743,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -14795,7 +14795,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -14857,7 +14857,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
@@ -14865,7 +14865,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -14904,7 +14904,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
@@ -14912,7 +14912,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -14964,7 +14964,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15025,7 +15025,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
@@ -15034,7 +15034,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -15072,7 +15072,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(2).mesh.materials.tet10h = ones(rows(mesh_data(2).mesh.elements.tet10h), 1, "int32");
@@ -15081,7 +15081,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -15133,7 +15133,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15194,7 +15194,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
@@ -15203,7 +15203,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -15241,7 +15241,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(2).mesh.materials.tet10 = ones(rows(mesh_data(2).mesh.elements.tet10), 1, "int32");
@@ -15250,7 +15250,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -15302,7 +15302,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15361,15 +15361,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 1);
@@ -15447,7 +15447,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15505,16 +15505,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6h].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6h].id] == 1);
@@ -15610,7 +15610,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15667,16 +15667,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6h].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6h].id] == 1);
@@ -15760,7 +15760,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15817,16 +15817,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
@@ -15902,7 +15902,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -15971,15 +15971,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   if (isfield(mesh.elements, "iso20"))
@@ -16022,7 +16022,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16092,15 +16092,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   if (isfield(mesh.elements, "iso20"))
@@ -16143,7 +16143,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16213,16 +16213,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -16260,7 +16260,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16330,16 +16330,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -16377,7 +16377,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16446,15 +16446,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   if (isfield(mesh.elements, "iso8"))
@@ -16497,7 +16497,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16556,15 +16556,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.iso4].id] == 1);
@@ -16643,7 +16643,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16704,9 +16704,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
 %!   cp = 1;
@@ -16782,7 +16782,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16843,10 +16843,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
 %!   cp = 1;
@@ -16922,7 +16922,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -16982,10 +16982,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
 %!   cp = 1;
@@ -17061,7 +17061,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -17121,10 +17121,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
 %!   cp = 1;
@@ -17200,7 +17200,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -17261,9 +17261,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -17368,7 +17368,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -17428,9 +17428,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -17535,7 +17535,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -17595,9 +17595,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -17702,7 +17702,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -17769,10 +17769,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "quad8", "iso20", "penta15"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -17878,7 +17878,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -17944,10 +17944,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "quad8", "penta15"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -18052,7 +18052,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -18113,10 +18113,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -18221,7 +18221,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -18282,10 +18282,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -18390,7 +18390,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -18480,11 +18480,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -18534,10 +18534,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -18581,10 +18581,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -18628,10 +18628,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
@@ -18819,7 +18819,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -18909,11 +18909,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -18963,10 +18963,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19010,10 +19010,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19057,10 +19057,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
@@ -19177,7 +19177,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -19268,11 +19268,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19323,10 +19323,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19371,10 +19371,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19419,10 +19419,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
@@ -19543,7 +19543,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -19635,11 +19635,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19691,10 +19691,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19740,10 +19740,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -19789,10 +19789,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
@@ -19925,7 +19925,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -20016,11 +20016,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -20071,10 +20071,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -20119,10 +20119,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -20167,10 +20167,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.iso8 = ones(rows(mesh_data(1).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
@@ -20291,7 +20291,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -20361,10 +20361,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
@@ -20449,7 +20449,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -20518,10 +20518,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -20606,7 +20606,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -20674,9 +20674,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -20761,7 +20761,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -20829,9 +20829,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -20916,7 +20916,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -20975,9 +20975,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -21010,7 +21010,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21070,9 +21070,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -21101,7 +21101,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21162,9 +21162,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   if (isfield(mesh.elements, "iso20"))
@@ -21198,7 +21198,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21257,9 +21257,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   if (isfield(mesh.elements, "iso8"))
@@ -21290,7 +21290,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21349,10 +21349,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -21381,7 +21381,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21459,10 +21459,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -21527,7 +21527,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21600,10 +21600,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 3);
@@ -21670,7 +21670,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21744,10 +21744,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6.id] == 3);
@@ -21814,7 +21814,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -21889,10 +21889,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 3);
@@ -21963,7 +21963,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22032,10 +22032,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   node_idx_input = mesh.groups.quad8(grp_idx_input).nodes;
@@ -22109,7 +22109,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22174,10 +22174,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   node_idx_input = mesh.groups.quad8(grp_idx_input).nodes;
@@ -22234,7 +22234,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22339,10 +22339,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -22480,7 +22480,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22552,10 +22552,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -22612,7 +22612,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22685,10 +22685,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -22745,7 +22745,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22819,10 +22819,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -22879,7 +22879,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -22952,10 +22952,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23012,7 +23012,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23084,9 +23084,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23143,7 +23143,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23216,10 +23216,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23282,7 +23282,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23353,10 +23353,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23417,7 +23417,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23489,10 +23489,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23553,7 +23553,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23623,10 +23623,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23687,7 +23687,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23756,9 +23756,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -23819,7 +23819,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -23886,10 +23886,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
@@ -23963,7 +23963,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24029,9 +24029,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   node_idx_input = mesh.groups.iso4(grp_idx_input).nodes;
@@ -24105,7 +24105,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24172,10 +24172,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
@@ -24249,7 +24249,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24319,10 +24319,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   node_idx_input = mesh.groups.tria6h(grp_idx_input).nodes;
@@ -24398,7 +24398,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24468,10 +24468,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   node_idx_input = mesh.groups.tria6(grp_idx_input).nodes;
@@ -24547,7 +24547,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24623,10 +24623,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
@@ -24705,7 +24705,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24779,10 +24779,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.iso4.id] == 3);
@@ -24849,7 +24849,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -24922,10 +24922,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 3);
@@ -24993,7 +24993,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25066,10 +25066,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6.id] == 3);
@@ -25137,7 +25137,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25211,10 +25211,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 3);
@@ -25282,7 +25282,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25357,10 +25357,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
@@ -25428,7 +25428,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25503,10 +25503,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.iso4.id] == 3);
@@ -25574,7 +25574,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25644,10 +25644,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -25710,7 +25710,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25780,9 +25780,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.iso4.id] == 3);
@@ -25849,7 +25849,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -25918,9 +25918,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.iso4.id] == 3);
@@ -25987,7 +25987,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26059,9 +26059,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
@@ -26133,7 +26133,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26204,9 +26204,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
@@ -26278,7 +26278,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26348,9 +26348,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6.id] == 3);
@@ -26417,7 +26417,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26488,9 +26488,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 3);
@@ -26557,7 +26557,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26630,10 +26630,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -26698,7 +26698,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26769,10 +26769,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -26835,7 +26835,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -26907,10 +26907,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -26973,7 +26973,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27043,10 +27043,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -27109,7 +27109,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27186,10 +27186,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -27247,7 +27247,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27324,10 +27324,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -27395,7 +27395,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27472,10 +27472,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -27554,7 +27554,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27631,10 +27631,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -27713,7 +27713,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27792,10 +27792,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"quad8", "penta15"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -27874,7 +27874,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -27954,10 +27954,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"quad8", "penta15", "iso20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (isfield(mesh.elements, "penta15"))
 %!      mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   endif
@@ -28041,7 +28041,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -28119,9 +28119,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (isfield(mesh.elements, "iso8"))
 %!      mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   endif
@@ -28202,7 +28202,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -28279,9 +28279,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (isfield(mesh.elements, "iso8"))
 %!      mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
 %!   endif
@@ -28362,7 +28362,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -28462,10 +28462,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -28601,7 +28601,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -28702,10 +28702,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -28841,7 +28841,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -28943,10 +28943,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -29082,7 +29082,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -29182,10 +29182,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -29323,7 +29323,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -29418,10 +29418,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_volume1 = find([mesh.groups.iso20.id] == 3);
@@ -29543,7 +29543,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -29636,10 +29636,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_volume1 = find([mesh.groups.iso8.id] == 3);
@@ -29761,7 +29761,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -29891,10 +29891,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   empty_cell = cell(1, 4);
 %!   group_defs = struct("id", empty_cell, ...
 %!                       "name", empty_cell, ...
@@ -30100,7 +30100,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -30187,10 +30187,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_inlet = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_outlet = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -30266,7 +30266,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -30338,10 +30338,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -30455,7 +30455,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -30556,10 +30556,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.quad8.id] == 3);
@@ -30665,7 +30665,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -30788,10 +30788,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.quad8.id] == 3);
@@ -30937,7 +30937,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -31058,10 +31058,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.iso4.id] == 3);
@@ -31207,7 +31207,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -31327,10 +31327,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria6h.id] == 3);
@@ -31476,7 +31476,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -31596,10 +31596,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria6h.id] == 3);
@@ -31745,7 +31745,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -31865,10 +31865,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria6.id] == 3);
@@ -32014,7 +32014,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -32166,9 +32166,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso20.id] == 3);
@@ -32372,7 +32372,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -32514,10 +32514,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "quad8", "penta15"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.penta15.id] == 3);
@@ -32743,7 +32743,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -32884,10 +32884,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet10h.id] == 3);
@@ -33074,7 +33074,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -33218,10 +33218,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet10.id] == 3);
@@ -33410,7 +33410,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -33559,9 +33559,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso8.id] == 3);
@@ -33751,7 +33751,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -33902,9 +33902,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso20.id] == 3);
@@ -34096,7 +34096,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -34166,10 +34166,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
@@ -34232,7 +34232,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -34374,10 +34374,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt.elem_type = {"penta15", "tria6h", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.penta15.id] == 3);
@@ -34608,7 +34608,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -34754,9 +34754,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso8.id] == 3);
@@ -34947,7 +34947,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -35089,10 +35089,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet10h.id] == 3);
@@ -35282,7 +35282,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -35427,10 +35427,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet10.id] == 3);
@@ -35622,7 +35622,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -35694,10 +35694,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -35804,7 +35804,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -35877,10 +35877,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -35987,7 +35987,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -36061,10 +36061,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -36171,7 +36171,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -36243,10 +36243,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -36354,7 +36354,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -36428,10 +36428,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -36539,7 +36539,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -36612,10 +36612,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -36723,7 +36723,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -36795,10 +36795,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -36906,7 +36906,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -36978,10 +36978,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -37089,7 +37089,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -37161,10 +37161,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -37273,7 +37273,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -37404,9 +37404,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso20.id] == 3);
@@ -37609,7 +37609,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -37739,9 +37739,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso8.id] == 3);
@@ -37944,7 +37944,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -38063,9 +38063,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v1_penta15 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2_iso20 = find([mesh.groups.iso20.id] == 2);
@@ -38208,7 +38208,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -38289,9 +38289,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20 = find([mesh.groups.iso20.id] == 1);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.materials.iso20(mesh.groups.iso20(grp_idx_v1_iso20).elements) = 1;
@@ -38333,7 +38333,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -38411,9 +38411,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20 = find([mesh.groups.iso20.id] == 1);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
 %!   mesh.materials.iso20(mesh.groups.iso20(grp_idx_v1_iso20).elements) = 1;
@@ -38448,7 +38448,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -38603,10 +38603,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "penta15", "tet10", "tria6", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);
 %!   grp_idx_v_p_PML_x = find([mesh.groups.penta15.id] == 3);
@@ -38873,7 +38873,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -38939,9 +38939,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_s_clamp = find([mesh.groups.tria6.id] == 3);
 %!   mesh.material_data.E = E1;
@@ -38976,7 +38976,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -39069,10 +39069,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
@@ -39184,7 +39184,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -39276,10 +39276,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
@@ -39391,7 +39391,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -39483,10 +39483,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
@@ -39599,7 +39599,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -39691,10 +39691,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
@@ -39806,7 +39806,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -39898,10 +39898,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
@@ -40014,7 +40014,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -40106,9 +40106,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
@@ -40246,7 +40246,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -40337,9 +40337,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.iso4.id] == 6);
@@ -40477,7 +40477,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -40569,10 +40569,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.tria6h.id] == 6);
@@ -40710,7 +40710,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -40802,10 +40802,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.tria6.id] == 6);
@@ -40943,7 +40943,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -41036,9 +41036,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
@@ -41176,7 +41176,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -41267,9 +41267,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   elem_idx_v2 = mesh.groups.iso20(grp_idx_v2).elements;
@@ -41427,7 +41427,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -41517,9 +41517,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
 %!   elem_idx_v2 = mesh.groups.iso8(grp_idx_v2).elements;
@@ -41677,7 +41677,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -41781,10 +41781,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_wall = find([mesh.groups.quad8.id] == 3);
@@ -41902,7 +41902,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -42004,10 +42004,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_wall = find([mesh.groups.iso4.id] == 3);
@@ -42125,7 +42125,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -42228,10 +42228,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_wall = find([mesh.groups.tria6h.id] == 3);
@@ -42349,7 +42349,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -42453,10 +42453,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_wall = find([mesh.groups.tria6h.id] == 3);
@@ -42574,7 +42574,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -42678,10 +42678,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_wall = find([mesh.groups.tria6.id] == 3);
@@ -42799,7 +42799,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -42892,10 +42892,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
@@ -43007,7 +43007,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -43098,10 +43098,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
@@ -43214,7 +43214,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -43306,10 +43306,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
@@ -43421,7 +43421,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -43514,10 +43514,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
@@ -43629,7 +43629,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -43722,10 +43722,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
@@ -43837,7 +43837,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -43936,9 +43936,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
@@ -44078,7 +44078,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -44176,9 +44176,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 5);
 %!   grp_idx_s3 = find([mesh.groups.iso4.id] == 6);
@@ -44318,7 +44318,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -44465,9 +44465,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso20.id] == 3);
@@ -44579,7 +44579,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -44725,9 +44725,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.penta15.id] == 3);
@@ -44839,7 +44839,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -44984,10 +44984,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet10h.id] == 3);
@@ -45099,7 +45099,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -45248,10 +45248,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet10.id] == 3);
@@ -45363,7 +45363,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -45509,9 +45509,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso8.id] == 3);
@@ -45623,7 +45623,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -45704,9 +45704,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   elem_idx_v1 = mesh.groups.iso20(grp_idx_v1).elements;
@@ -45809,7 +45809,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -45889,9 +45889,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
 %!   elem_idx_v1 = mesh.groups.iso8(grp_idx_v1).elements;
@@ -45994,7 +45994,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -46075,9 +46075,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
 %!   elem_idx_v1 = mesh.groups.tet10(grp_idx_v1).elements;
@@ -46180,7 +46180,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -46261,9 +46261,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
 %!   elem_idx_v1 = mesh.groups.penta15(grp_idx_v1).elements;
@@ -46366,7 +46366,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -46446,10 +46446,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
 %!   elem_idx_v1 = mesh.groups.tet10h(grp_idx_v1).elements;
@@ -46552,7 +46552,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -46648,10 +46648,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_wall = find([mesh.groups.quad8.id] == 3);
@@ -46777,7 +46777,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -46861,9 +46861,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
 %!   elem_idx_v1 = mesh.groups.iso20(grp_idx_v1).elements;
@@ -46964,7 +46964,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -47061,9 +47061,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);
 %!   grp_idx_v_PML = find([mesh.groups.tet10.id] == 3);
@@ -47295,7 +47295,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -47372,10 +47372,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_solid_h = find([mesh.groups.iso20.id] == 2);
 %!   if (isfield(mesh.elements, "penta15"))
@@ -47507,7 +47507,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -47583,10 +47583,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4", "tria3", "penta6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_solid_h = find([mesh.groups.iso8.id] == 2);
 %!   grp_idx_fsi = find([mesh.groups.iso4.id] == 3);
@@ -47684,7 +47684,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -47761,10 +47761,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_solid_h = find([mesh.groups.tet10.id] == 2);
 %!   grp_idx_fsi = find([mesh.groups.tria6.id] == 3);
@@ -47862,7 +47862,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -47920,15 +47920,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   E = 210000;
@@ -47986,7 +47986,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -48052,9 +48052,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet20.id] == 1);
 %!   grp_idx_s_clamp = find([mesh.groups.tria10.id] == 3);
 %!   mesh.material_data.E = E1;
@@ -48089,7 +48089,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -48158,9 +48158,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -48346,7 +48346,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -48405,16 +48405,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria10].id] == 1);
@@ -48473,7 +48473,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -48540,15 +48540,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria10(grp_id_clamp).nodes, :) = true;
@@ -48642,7 +48642,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -48710,15 +48710,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria10(grp_id_clamp).nodes, :) = true;
@@ -48829,7 +48829,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -48896,15 +48896,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
 %!   load_case.locked_dof(mesh.groups.tria10(grp_id_clamp).nodes, :) = true;
@@ -49011,7 +49011,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -49079,11 +49079,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   fprintf(stderr, "%d nodes\n", rows(mesh1.nodes));
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -49201,7 +49201,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -49268,9 +49268,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -49395,7 +49395,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -49462,9 +49462,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
 %!     group_defs(1).name = "box1";
@@ -49576,7 +49576,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -49648,15 +49648,15 @@ endfunction
 %!           fclose(fd);
 %!         endif
 %!       end_unwind_protect
-%!       unlink([filename, ".msh"]);
+%!       [~] = unlink([filename, ".msh"]);
 %!       pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-clmin", sprintf("%g", 0.75 * mesh_size(m)), "-clmax", sprintf("%g", 1.25 *mesh_size(m)), [filename, ".geo"]});
 %!       status = spawn_wait(pid);
 %!       if (status ~= 0)
 %!         warning("gmsh failed with status %d", status);
 %!       endif
-%!       unlink([filename, ".geo"]);
+%!       [~] = unlink([filename, ".geo"]);
 %!       data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!       unlink([filename, ".msh"]);
+%!       [~] = unlink([filename, ".msh"]);
 %!     endfor
 %!     for i=1:numel(data)
 %!       data(i).mesh.materials.tet20 = ones(rows(data(i).mesh.elements.tet20), 1, "int32");
@@ -49751,7 +49751,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50000,7 +50000,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50064,12 +50064,12 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   master_node_idx = int32(rows(mesh.nodes) + 1);
 %!   mesh.nodes(master_node_idx, 1:3) = [a + d, 0, 0];
 %!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, 2, master_node_idx, "tria10");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria10(find([[mesh.groups.tria10].id] == 1)).nodes, :) = true;
 %!   load_case.loaded_nodes = [master_node_idx];
@@ -50165,7 +50165,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50230,15 +50230,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 2);
 %!   load_case.locked_dof(mesh.groups.tria10(grp_id_clamp).nodes, 1:3) = true;
@@ -50304,7 +50304,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50369,7 +50369,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
@@ -50378,7 +50378,7 @@ endfunction
 %!   cms_opt.algorithm = "shift-invert";
 %!   mesh.nodes(cms_opt.nodes.modal.number, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
 %!   mesh.nodes([cms_opt.nodes.interfaces.number], :) = [e, 0.5 * b, 0.5 * c, 0, 0, 0];
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   E = 210000e6;
@@ -50423,7 +50423,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50480,15 +50480,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria10].id] == 1);
@@ -50537,7 +50537,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50601,15 +50601,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria10].id] == 2);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 3);
@@ -50683,7 +50683,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50743,9 +50743,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet20.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet20.id] == 2);
@@ -50795,7 +50795,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -50870,10 +50870,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet20.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet20.id] == 2);
@@ -50965,7 +50965,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51049,10 +51049,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet20.id] == 1);
 %!   grp_id_mat2 = find([mesh.groups.tet20.id] == 2);
@@ -51107,7 +51107,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51175,9 +51175,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -51266,7 +51266,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51326,10 +51326,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -51370,7 +51370,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51429,9 +51429,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -51475,7 +51475,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51534,10 +51534,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -51579,7 +51579,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51640,7 +51640,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(1).mesh.materials.tet20 = ones(rows(mesh_data(1).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
@@ -51648,7 +51648,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -51687,7 +51687,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
 %!   mesh_data(2).mesh.materials.tet20 = ones(rows(mesh_data(2).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
@@ -51695,7 +51695,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -51744,7 +51744,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51803,10 +51803,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.E = 210000e6;
@@ -51849,7 +51849,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -51909,9 +51909,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
 %!   cp = 1;
@@ -51987,7 +51987,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -52048,7 +52048,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(1).mesh.materials.tet20 = ones(rows(mesh_data(1).mesh.elements.tet20), 1, "int32");
@@ -52057,7 +52057,7 @@ endfunction
 %!   mesh_data(1).mesh.material_data.rho = 7850;
 %!   mesh_data(1).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(1).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
 %!     if (fd == -1)
@@ -52095,7 +52095,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
 %!   mesh_data(2).mesh.materials.tet20 = ones(rows(mesh_data(2).mesh.elements.tet20), 1, "int32");
@@ -52104,7 +52104,7 @@ endfunction
 %!   mesh_data(2).mesh.material_data.rho = 7850;
 %!   mesh_data(2).mesh.material_data.k = diag([lambda, lambda, lambda]);
 %!   mesh_data(2).mesh.material_data.cp = 465;
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   opt_merge.group_id = "preserve";
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   thetae = [100, 200];
@@ -52156,7 +52156,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -52213,16 +52213,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.tria10].id] == 1);
@@ -52298,7 +52298,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -52367,16 +52367,16 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -52414,7 +52414,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -52475,10 +52475,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
 %!   cp = 669;
@@ -52583,7 +52583,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -52673,11 +52673,11 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -52727,10 +52727,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -52774,10 +52774,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -52821,10 +52821,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.tet20 = ones(rows(mesh_data(1).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = E;
@@ -53012,7 +53012,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -53071,9 +53071,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -53106,7 +53106,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -53184,10 +53184,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -53252,7 +53252,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -53325,10 +53325,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria10.id] == 3);
@@ -53395,7 +53395,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -53498,10 +53498,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -53639,7 +53639,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -53712,10 +53712,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -53778,7 +53778,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -53848,10 +53848,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   node_idx_input = mesh.groups.tria10(grp_idx_input).nodes;
@@ -53927,7 +53927,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54000,10 +54000,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria10.id] == 3);
@@ -54071,7 +54071,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54144,10 +54144,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -54212,7 +54212,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54281,9 +54281,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_s3 = find([mesh.groups.tria10.id] == 3);
@@ -54350,7 +54350,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54423,10 +54423,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -54491,7 +54491,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54565,10 +54565,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -54626,7 +54626,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54704,10 +54704,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -54775,7 +54775,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -54853,10 +54853,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
@@ -54935,7 +54935,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -55038,10 +55038,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -55179,7 +55179,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -55276,10 +55276,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_volume1 = find([mesh.groups.tet20.id] == 3);
@@ -55405,7 +55405,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -55502,10 +55502,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_volume1 = find([mesh.groups.tet10.id] == 3);
@@ -55631,7 +55631,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -55761,10 +55761,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   empty_cell = cell(1, 4);
 %!   group_defs = struct("id", empty_cell, ...
 %!                       "name", empty_cell, ...
@@ -55970,7 +55970,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -56060,10 +56060,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_inlet = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_outlet = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -56141,7 +56141,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -56217,10 +56217,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -56336,7 +56336,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -56436,10 +56436,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria10.id] == 3);
@@ -56547,7 +56547,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -56667,10 +56667,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria10.id] == 3);
@@ -56816,7 +56816,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -56960,10 +56960,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria10", "tet20"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet20.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.tet20.id] == 3);
@@ -57152,7 +57152,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -57225,10 +57225,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
@@ -57293,7 +57293,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -57368,10 +57368,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
@@ -57480,7 +57480,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -57580,9 +57580,9 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet20.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet20.id] == 2);
 %!   grp_idx_v_PML = find([mesh.groups.tet20.id] == 3);
@@ -57815,7 +57815,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -57922,10 +57922,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.quad8.id] == 3);
@@ -58025,7 +58025,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -58129,10 +58129,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "quad8", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria6h.id] == 3);
@@ -58232,7 +58232,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -58335,10 +58335,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria6h.id] == 3);
@@ -58438,7 +58438,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -58543,10 +58543,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.iso4.id] == 3);
@@ -58646,7 +58646,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -58749,10 +58749,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria6.id] == 3);
@@ -58852,7 +58852,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -58955,10 +58955,10 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_fsi1 = find([mesh.groups.tria10.id] == 3);
@@ -59058,7 +59058,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -59121,15 +59121,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
 %!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
@@ -59215,7 +59215,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -59469,7 +59469,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -59534,15 +59534,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
 %!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
@@ -59628,7 +59628,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -59692,15 +59692,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.iso4].id] == 2);
 %!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp).nodes, 1:3) = true;
@@ -59786,7 +59786,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -59846,15 +59846,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.quad8.nodes, 1:3) = true;
 %!   if (isfield(mesh.elements, "tria6"))
@@ -59901,7 +59901,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -59959,15 +59959,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6.nodes, 1:3) = true;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -60008,7 +60008,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -60072,15 +60072,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
 %!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
@@ -60170,7 +60170,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -60235,15 +60235,15 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-ho_min", "0.9", "-ho_max", "1.1", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   unlink([filename, ".geo"]);
+%!   [~] = unlink([filename, ".geo"]);
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%!   unlink([filename, ".msh"]);
+%!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 2);
 %!   load_case.locked_dof(mesh.groups.tria10(grp_id_clamp).nodes, 1:3) = true;
@@ -60329,7 +60329,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

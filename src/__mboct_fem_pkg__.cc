@@ -2915,7 +2915,7 @@ public:
           const octave_idx_type iNumLoadsStrain = data.oRefStrain.rgRefStrain.numel();
           const octave_idx_type iNumPreStress = data.oPreStress.rgPreStress.numel();
 
-          iNumPreLoads = std::max(std::max(std::max(iNumLoadsTemp, iNumLoadsStrain), data.oGravity.g.columns()), data.oCentrifugal.WxWx.dim3());
+          iNumPreLoads = std::max(std::max(std::max(iNumLoadsTemp, iNumLoadsStrain), data.oGravity.g.columns()), data.oCentrifugal.WxWx.ndims() >= 3 ? data.oCentrifugal.WxWx.dim3() : 1);
 
           FEM_ASSERT(iNumLoadsTemp && iNumLoadsStrain ? iNumLoadsTemp == iNumLoadsStrain : true);
 
@@ -2949,7 +2949,7 @@ public:
                     const NDArray epsilonRefk = maEpsilonRefk.contents(iterEpsilonRefk).array_value();
                     const octave_idx_type iNumElem = epsilonRefk.dim1();
 
-                    if (epsilonRefk.ndims() != 3 || iNumElem < id || epsilonRefk.dim2() != iNumNodes || epsilonRefk.dim3() != iNumStrains) {
+                    if (epsilonRefk.ndims() != 3 || iNumElem < id || epsilonRefk.dim2() != iNumNodes || ((epsilonRefk.ndims() >= 3 ? epsilonRefk.dim3() : 1) != iNumStrains)) {
                          throw std::runtime_error("fem_ass_matrix: invalid number of dimensions for load_case.epsilon0."s + strElemName);
                     }
 
@@ -2979,7 +2979,7 @@ public:
                     const NDArray tauRefk = maTauRefk.contents(iterTauRefk).array_value();
                     const octave_idx_type iNumElem = tauRefk.dim1();
 
-                    if (tauRefk.ndims() != 3 || iNumElem < id || tauRefk.dim2() != iNumNodes || tauRefk.dim3() != iNumStressComp) {
+                    if (tauRefk.ndims() != 3 || iNumElem < id || tauRefk.dim2() != iNumNodes || ((tauRefk.ndims() >= 3 ? tauRefk.dim3() : 1) != iNumStressComp)) {
                          throw std::runtime_error("fem_ass_matrix: invalid number of dimensions for load_case.tau0."s + strElemName);
                     }
 
@@ -3254,7 +3254,7 @@ public:
 
           (this->*pFunc)(Ae, info, eMatType);
 
-          FEM_TRACE("\nid:" << id << "\n" << ((eMaterial == Material::MAT_TYPE_SOLID) ? "solid" : "fluid") << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n");
+          //FEM_TRACE("\nid:" << id << "\n" << ((eMaterial == Material::MAT_TYPE_SOLID) ? "solid" : "fluid") << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n");
 
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
@@ -3805,9 +3805,9 @@ protected:
           const double rho = material->Density();
           const octave_idx_type iNumDisp = X.rows();
           const octave_idx_type iNumNodes = X.columns();
-
+          const octave_idx_type iNumLoads = WxWx.ndims() >= 3 ? WxWx.dim3() : 1;
           FEM_ASSERT(R.rows() == iNumDof);
-          FEM_ASSERT(R.columns() == WxWx.dim3());
+          FEM_ASSERT(R.columns() == iNumLoads);
           FEM_ASSERT(WxWx.rows() == iNumDisp);
 
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
@@ -3838,7 +3838,7 @@ protected:
 
                const double dm = alpha * rho * detJ;
 
-               for (octave_idx_type l = 0; l < WxWx.dim3(); ++l) {
+               for (octave_idx_type l = 0; l < iNumLoads; ++l) {
                     for (octave_idx_type j = 0; j < iNumDisp; ++j) {
                          double aij = 0.;
 
@@ -4062,6 +4062,7 @@ protected:
           const octave_idx_type iNumDisp = X.rows();
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumNodesMesh = U.dim1();
+          const octave_idx_type iNumModes = U.ndims() >= 3 ? U.dim3() : 1;
 
           ColumnVector rv(iNumDir);
 
@@ -4070,7 +4071,7 @@ protected:
           FEM_ASSERT(U.dim2() == 6);
           FEM_ASSERT(Inv3.ndims() == 2);
           FEM_ASSERT(Inv3.rows() == 3);
-          FEM_ASSERT(Inv3.columns() == U.dim3());
+          FEM_ASSERT(Inv3.columns() == iNumModes);
           FEM_ASSERT(iNumDisp == Inv3.rows());
 
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
@@ -4088,7 +4089,7 @@ protected:
 
                const double dmi = alpha * rho * detJ;
 
-               for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+               for (octave_idx_type j = 0; j < iNumModes; ++j) {
                     for (octave_idx_type l = 0; l < iNumDisp; ++l) {
                          double Uil = 0.;
 
@@ -4112,13 +4113,14 @@ protected:
           const octave_idx_type iNumDisp = X.rows();
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumNodesMesh = U.dim1();
+          const octave_idx_type iNumModes = U.ndims() >= 3 ? U.dim3() : 1;
           ColumnVector rv(iNumDir);
 
           FEM_ASSERT(U.ndims() == 3);
           FEM_ASSERT(U.dim2() >= iNumDisp);
           FEM_ASSERT(U.dim2() == 6);
           FEM_ASSERT(Inv4.rows() == 3);
-          FEM_ASSERT(Inv4.columns() == U.dim3());
+          FEM_ASSERT(Inv4.columns() == iNumModes);
           FEM_ASSERT(iNumDisp == Inv4.rows());
 
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
@@ -4137,7 +4139,7 @@ protected:
 
                const double dmi = alpha * rho * detJ;
 
-               for (octave_idx_type j = 0; j < U.dim3(); ++j) {
+               for (octave_idx_type j = 0; j < iNumModes; ++j) {
                     for (octave_idx_type l = 0; l < iNumDisp; ++l) {
                          Ui.xelem(l) = 0.;
                          fi.xelem(l) = 0.;
@@ -4166,7 +4168,7 @@ protected:
           const octave_idx_type iNumDisp = X.rows();
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-          const octave_idx_type iNumModes = U.dim3();
+          const octave_idx_type iNumModes = U.ndims() >= 3 ? U.dim3() : 1;
           const octave_idx_type iNumNodesMesh = U.dim1();
 
           ColumnVector rv(iNumDir);
@@ -4176,8 +4178,8 @@ protected:
           FEM_ASSERT(U.dim2() == 6);
           FEM_ASSERT(Inv5.ndims() == 3);
           FEM_ASSERT(Inv5.dim1() == 3);
-          FEM_ASSERT(Inv5.dim2() == U.dim3());
-          FEM_ASSERT(Inv5.dim3() == U.dim3());
+          FEM_ASSERT(Inv5.dim2() == iNumModes);
+          FEM_ASSERT(Inv5.dim3() == iNumModes);
           FEM_ASSERT(iNumDisp == Inv5.dim1());
 
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
@@ -4227,7 +4229,7 @@ protected:
           const octave_idx_type iNumDisp = X.rows();
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumNodesMesh = U.dim1();
-          const octave_idx_type iNumModes = U.dim3();
+          const octave_idx_type iNumModes = U.ndims() >= 3 ? U.dim3() : 1;
           ColumnVector rv(iNumDir);
 
           FEM_ASSERT(X.rows() == 3);
@@ -4237,7 +4239,7 @@ protected:
           FEM_ASSERT(Inv8.ndims() == 3);
           FEM_ASSERT(Inv8.dim1() == 3);
           FEM_ASSERT(Inv8.dim2() == 3);
-          FEM_ASSERT(Inv8.dim3() == U.dim3());
+          FEM_ASSERT(Inv8.dim3() == iNumModes);
           FEM_ASSERT(iNumDisp == Inv8.dim1());
 
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
@@ -4292,7 +4294,7 @@ protected:
           const octave_idx_type iNumNodes = nodes.numel();
           const octave_idx_type iNumNodesMesh = U.dim1();
           const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
-          const octave_idx_type iNumModes = U.dim3();
+          const octave_idx_type iNumModes = U.ndims() >= 3 ? U.dim3() : 1;
           ColumnVector rv(iNumDir);
 
           FEM_ASSERT(U.ndims() == 3);
@@ -4301,8 +4303,8 @@ protected:
           FEM_ASSERT(Inv9.ndims() == 4);
           FEM_ASSERT(Inv9.dim1() == 3);
           FEM_ASSERT(Inv9.dim2() == 3);
-          FEM_ASSERT(Inv9.dim3() == U.dim3());
-          FEM_ASSERT(Inv9.dims()(3) == U.dim3());
+          FEM_ASSERT(Inv9.dim3() == iNumModes);
+          FEM_ASSERT(Inv9.dims()(3) == iNumModes);
           FEM_ASSERT(iNumDisp == Inv9.dim1());
 
           Matrix J(iNumDir, iNumDir), H(iNumDisp, iNumDof);
@@ -4334,8 +4336,8 @@ protected:
           }
 
           for (octave_idx_type i = 0; i < iNumGauss; ++i) {
-               for (octave_idx_type j = 0; j < U.dim3(); ++j) {
-                    for (octave_idx_type k = 0; k < U.dim3(); ++k) {
+               for (octave_idx_type j = 0; j < iNumModes; ++j) {
+                    for (octave_idx_type k = 0; k < iNumModes; ++k) {
                          const octave_idx_type jk = j + k * Inv9.dim3();
 
                          atomic_fetch_add_float(Inv9.xelem(0 + 3 * (0 + 3 * jk)), (-Ui.xelem(2 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(2 + iNumDisp * (k + iNumModes * i)) - Ui.xelem(1 + iNumDisp * (j + iNumModes * i)) * Ui.xelem(1 + iNumDisp * (k + iNumModes * i))) * dmi.xelem(i));
@@ -12676,7 +12678,13 @@ public:
           octave_idx_type iWorkSpace = 0;
 
           for (auto i = rgElements.begin(); i != rgElements.end(); ++i) {
-               iWorkSpace += i->ElementType::iGetWorkSpaceSize(eMatType);
+               const octave_idx_type iCurrWorkSpace = i->ElementType::iGetWorkSpaceSize(eMatType);
+
+               FEM_TRACE("eMatType=" << eMatType << " element=" << i - rgElements.begin() + 1  << " iGetWorkSpaceSize():" << iCurrWorkSpace << "\n");
+
+               FEM_ASSERT(iCurrWorkSpace >= 0);
+
+               iWorkSpace += iCurrWorkSpace;
           }
 
           return iWorkSpace;
@@ -17737,7 +17745,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               FEM_ASSERT(oElemStressStrain.dims()(0) == iNumElem);
                               FEM_ASSERT(oElemStressStrain.dims()(1) == iNumNodesElem);
                               FEM_ASSERT(oElemStressStrain.dims()(2) == iNumStress);
-                              FEM_ASSERT(oElemStressStrain.dims()(3) == iNumSteps);
+                              FEM_ASSERT(oElemStressStrain.ndims() > 3 ? oElemStressStrain.dims()(3) == iNumSteps : iNumSteps == 1);
 
                               Array<octave_idx_type> iStressStrain(dim_vector(iNumNodes, 1), 0);
 
