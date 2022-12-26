@@ -62,11 +62,11 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
   
   for i=1:numel(group_idx)
     inode = [msh_groups(group_idx{i}).nodes];
-    inode_tr = zeros(rows(mesh.nodes), 1, "int32");
+    inode_tr = zeros(1, rows(mesh.nodes), "int32");
     inode_tr(inode) = 1:numel(inode);
     ielno = getfield(mesh.elements, elem_type)([msh_groups(group_idx{i}).elements], :);
     press_elem.elements = inode_tr(ielno);
-    press_elem.p = ones(rows(press_elem.elements), columns(press_elem.elements));
+    press_elem.p = repmat(1, rows(press_elem.elements), columns(press_elem.elements));
     load_case_i.pressure = setfield(struct(), elem_type, press_elem);
     dof_map_i.ndof = [reshape(1:(numel(inode) * 3), numel(inode), 3), zeros(numel(inode), 3)];
     dof_map_i.totdof = numel(inode) * 3;
