@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -59,9 +59,9 @@ function fem_post_mesh_export(filename, mesh, options, load_case, dof_map)
   if (nargin < 5)
     switch (options.format)
       case "apdl"
-	dof_map = fem_ass_dof_map(mesh, load_case);
+        dof_map = fem_ass_dof_map(mesh, load_case);
       otherwise
-	dof_map = struct();
+        dof_map = struct();
     endswitch
   endif
 
@@ -76,11 +76,11 @@ function fem_post_mesh_export(filename, mesh, options, load_case, dof_map)
 
     switch (options.format)
       case "gmsh"
-	fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map);
+        fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map);
       case "apdl"
-	fem_export_apdl(fd, filename, mesh, options, load_case, dof_map);
+        fem_export_apdl(fd, filename, mesh, options, load_case, dof_map);
       otherwise
-	error("unknown format \"%s\"", options.format);
+        error("unknown format \"%s\"", options.format);
     endswitch
   unwind_protect_cleanup
     if (fd ~= -1)
@@ -146,10 +146,10 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
       fprintf(fd, "eblock,%d,,,%d\n", 10, numel(mesh.elements.rbe3(i).elements.tria6));
       fprintf(fd, "(15i9)\n");
       fprintf(fd, "%9d%9d%9d%9d%9d%9d%9d%9d%9d%9d%9d%9d%9d\n", ...
-	      [ielem_num + (1:numel(mesh.elements.rbe3(i).elements.tria6));
-	       repmat(cid, 3, numel(mesh.elements.rbe3(i).elements.tria6));
-	       zeros(1, numel(mesh.elements.rbe3(i).elements.tria6));
-	       mesh.elements.tria6(mesh.elements.rbe3(i).elements.tria6, [1, 2, 3, 3, 4, 5, 3, 6]).']);
+              [ielem_num + (1:numel(mesh.elements.rbe3(i).elements.tria6));
+               repmat(cid, 3, numel(mesh.elements.rbe3(i).elements.tria6));
+               zeros(1, numel(mesh.elements.rbe3(i).elements.tria6));
+               mesh.elements.tria6(mesh.elements.rbe3(i).elements.tria6, [1, 2, 3, 3, 4, 5, 3, 6]).']);
       fprintf(fd, "%d\n", -1);
       fprintf(fd, "tshape\n");
 
@@ -171,55 +171,55 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
       joint_type = "simple";
 
       for j=1:rows(mesh.elements.joints(i).C)
-	[dof, fact] = find(mesh.elements.joints(i).C(j, :));
+        [dof, fact] = find(mesh.elements.joints(i).C(j, :));
 
-	if (numel(fact) > 1)
-	  joint_type = "generic";
-	  break;
-	endif
+        if (numel(fact) > 1)
+          joint_type = "generic";
+          break;
+        endif
       endfor
 
       switch (joint_type)
-	case "simple"
-	  for j=1:rows(mesh.elements.joints(i).C)
-	    if (isfield(load_case, "joints"))
-	      D = load_case.joints(i).U(j);
-	    else
-	      D = 0;
-	    endif
+        case "simple"
+          for j=1:rows(mesh.elements.joints(i).C)
+            if (isfield(load_case, "joints"))
+              D = load_case.joints(i).U(j);
+            else
+              D = 0;
+            endif
 
-	    [equ, dof, fact] = find(mesh.elements.joints(i).C(j, :));
-	    inode = floor((dof - 1) / 6) + 1;
-	    idof = mod((dof - 1), 6) + 1;
+            [equ, dof, fact] = find(mesh.elements.joints(i).C(j, :));
+            inode = floor((dof - 1) / 6) + 1;
+            idof = mod((dof - 1), 6) + 1;
 
-	    fprintf(fd, "D,%d,%s,%.16e\n", mesh.elements.joints(i).nodes(inode), {"UX","UY","UZ","ROTX","ROTY","ROTZ"}{idof}, D / fact);
-	  endfor
-	case "generic"
-	  for j=1:rows(mesh.elements.joints(i).C)
-	    if (isfield(load_case, "joints"))
-	      D = load_case.joints(i).U(j);
-	    else
-	      D = 0;
-	    endif
+            fprintf(fd, "D,%d,%s,%.16e\n", mesh.elements.joints(i).nodes(inode), {"UX","UY","UZ","ROTX","ROTY","ROTZ"}{idof}, D / fact);
+          endfor
+        case "generic"
+          for j=1:rows(mesh.elements.joints(i).C)
+            if (isfield(load_case, "joints"))
+              D = load_case.joints(i).U(j);
+            else
+              D = 0;
+            endif
 
-	    fprintf(fd, "CE,NEXT,%.16e", D);
+            fprintf(fd, "CE,NEXT,%.16e", D);
 
-	    inode = int32(0);
+            inode = int32(0);
 
-	    for k=1:numel(mesh.elements.joints(i).nodes)
-	      for l=1:6
-		C = mesh.elements.joints(i).C(j, (k - 1) * 6 + l);
-		if (C ~= 0 && dof_map.ndof(mesh.elements.joints(i).nodes(k), l) > 0)
-		  if (++inode > 3)
-		    fprintf(fd, "\nCE,HIGH,%.16e", D);
-		    inode = int32(0);
-		  endif
-		  fprintf(fd, ",%d,%s,%.16e", mesh.elements.joints(i).nodes(k), {"UX","UY","UZ","ROTX","ROTY","ROTZ"}{l}, C);
-		endif
-	      endfor
-	    endfor
-	    fprintf(fd, "\n");
-	  endfor
+            for k=1:numel(mesh.elements.joints(i).nodes)
+              for l=1:6
+                C = mesh.elements.joints(i).C(j, (k - 1) * 6 + l);
+                if (C ~= 0 && dof_map.ndof(mesh.elements.joints(i).nodes(k), l) > 0)
+                  if (++inode > 3)
+                    fprintf(fd, "\nCE,HIGH,%.16e", D);
+                    inode = int32(0);
+                  endif
+                  fprintf(fd, ",%d,%s,%.16e", mesh.elements.joints(i).nodes(k), {"UX","UY","UZ","ROTX","ROTY","ROTZ"}{l}, C);
+                endif
+              endfor
+            endfor
+            fprintf(fd, "\n");
+          endfor
       endswitch
     endfor
   endif
@@ -232,12 +232,12 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
       fprintf(fd, "TYPE,%d\n", ielem_type);
 
       fprintf(fd, "EN,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", [ielem_num + (1:rows(load_case.pressure.tria6.elements));
-						      load_case.pressure.tria6.elements(:, [1, 2, 3, 3, 4, 5, 3, 6]).']);
+                                                      load_case.pressure.tria6.elements(:, [1, 2, 3, 3, 4, 5, 3, 6]).']);
 
       fprintf(fd, "\n");
 
       fprintf(fd, "SFE,%d,1,PRES,0,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e,%.16e\n", [double(ielem_num) + (1:rows(load_case.pressure.tria6.p));
-								load_case.pressure.tria6.p(:, [1, 2, 3, 3, 4, 5, 3, 6]).']);
+                                                                load_case.pressure.tria6.p(:, [1, 2, 3, 3, 4, 5, 3, 6]).']);
 
       ielem_num += rows(load_case.pressure.tria6.elements);
     endif
@@ -248,7 +248,7 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
 
     for i=1:rows(load_case.loads)
       for j=1:columns(load_case.loads)
-	fprintf(fd, "F,%d,%s,%.16e\n", load_case.loaded_nodes(i), {"FX","FY","FZ","MX","MY","MZ"}{j}, load_case.loads(i, j));
+        fprintf(fd, "F,%d,%s,%.16e\n", load_case.loaded_nodes(i), {"FX","FY","FZ","MX","MY","MZ"}{j}, load_case.loads(i, j));
       endfor
     endfor
 
@@ -262,9 +262,9 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
       fprintf(fd, "\n!! NODAL CONSTRAINTS\n\n");
 
       for i=1:numel(inode)
-	if (dof_map.ndof(inode(i), idof(i)) ~= -1)
-	  fprintf(fd, "D,%d,%s,0\n", inode(i), {"UX", "UY", "UZ", "ROTX", "ROTY", "ROTZ"}{idof(i)});
-	endif
+        if (dof_map.ndof(inode(i), idof(i)) ~= -1)
+          fprintf(fd, "D,%d,%s,0\n", inode(i), {"UX", "UY", "UZ", "ROTX", "ROTY", "ROTZ"}{idof(i)});
+        endif
       endfor
     endif
 
@@ -285,8 +285,8 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
 endfunction
 
 function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
-  persistent gmsh_elem_types = {"iso8", "iso20", "iso4", "quad8", "tet4", "tet10", ...
-				"tria6", "tria3", "beam2", "beam3", "penta15", "tet10h", "tet20", "tria6h", "tria10"};
+  persistent gmsh_elem_types = {"iso8", "iso20", "iso20r", "iso4", "quad8", "tet4", "tet10", ...
+                                "tria6", "tria3", "beam2", "beam3", "penta15", "tet10h", "tet20", "tria6h", "tria10"};
 
   if (~isfield(options, "elem_types"))
     options.elem_types = gmsh_elem_types;
@@ -297,7 +297,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   for i=1:numel(options.elem_types)
     switch (options.elem_types{i})
       case gmsh_elem_types
-	valid_elem_type(i) = true;
+        valid_elem_type(i) = true;
     endswitch
   endfor
 
@@ -311,12 +311,12 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   for i=1:numel(elem_types)
     switch (elem_types{i})
       case options.elem_types
-	elem_i = getfield(mesh.elements, elem_types{i});
-	if (isstruct(elem_i))
-	  inumelem += numel(elem_i);
-	elseif (ismatrix(elem_i))
-	  inumelem += rows(elem_i);
-	endif
+        elem_i = getfield(mesh.elements, elem_types{i});
+        if (isstruct(elem_i))
+          inumelem += numel(elem_i);
+        elseif (ismatrix(elem_i))
+          inumelem += rows(elem_i);
+        endif
     endswitch
   endfor
 
@@ -327,8 +327,8 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
 
     for i=1:numel(group_types)
       switch (group_types{i})
-	case options.elem_types
-	  inumgroups += numel(getfield(mesh.groups, group_types{i}));
+        case options.elem_types
+          inumgroups += numel(getfield(mesh.groups, group_types{i}));
       endswitch
     endfor
   else
@@ -342,19 +342,19 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     groups = getfield(mesh.groups, group_types{i});
 
     switch (group_types{i})
-      case {"iso8", "iso20", "tet10", "penta15", "tet10h", "tet20"}
-	group_dim = 3;
+      case {"iso8", "iso20", "iso20r", "tet10", "penta15", "tet10h", "tet20"}
+        group_dim = 3;
       case {"iso4", "quad8", "tria6", "tria3", "tria6h", "tria10"}
-	group_dim = 2;
+        group_dim = 2;
       case {"beam2", "beam3"}
-	group_dim = 1;
+        group_dim = 1;
       otherwise
-	continue;
+        continue;
     endswitch
 
     for j=1:numel(groups)
       if (any(isspace(groups(j).name)))
-	error("spaces in group names (%s) are not allowed for gmsh format", groups(j).name);
+        error("spaces in group names (%s) are not allowed for gmsh format", groups(j).name);
       endif
       fprintf(fd, "%d %d \"%s\"\n", group_dim, groups(j).id, groups(j).name);
     endfor
@@ -373,54 +373,57 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   for i=1:numel(elem_types)
     switch (elem_types{i})
       case "iso8"
-	elem_type_id = 5;
-	elem_node_order([5:8, 1:4]) = 1:8;
+        elem_type_id = 5;
+        elem_node_order([5:8, 1:4]) = 1:8;
       case "iso20"
-	elem_type_id = 17;
-	elem_node_order([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]) = 1:20;
+        elem_type_id = 17;
+        elem_node_order([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]) = 1:20;
+      case "iso20r"
+        elem_type_id = 17;
+        elem_node_order([1,2,3,4,5,6,7,8,9,12,14,10,17,19,20,18,11,13,15,16]) = 1:20;
       case "penta15"
-	elem_type_id = 18;
-	elem_node_order([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]) = 1:15;
+        elem_type_id = 18;
+        elem_node_order([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]) = 1:15;
       case "iso4"
-	elem_type_id = 3;
-	elem_node_order = 1:4;
+        elem_type_id = 3;
+        elem_node_order = 1:4;
       case "quad8"
-	elem_type_id = 16;
-	elem_node_order = 1:8;
+        elem_type_id = 16;
+        elem_node_order = 1:8;
       case {"tria6", "tria6h"}
-	elem_type_id = 9;
-	elem_node_order = 1:6;
+        elem_type_id = 9;
+        elem_node_order = 1:6;
       case "tria3"
-	elem_type_id = 2;
-	elem_node_order = 1:3;
+        elem_type_id = 2;
+        elem_node_order = 1:3;
       case "tria10"
         elem_type_id = 21;
         elem_node_order = 1:10;
       case {"tet10", "tet10h"}
-	elem_type_id = 11;
-	elem_node_order([1:8, 10, 9]) = 1:10;
+        elem_type_id = 11;
+        elem_node_order([1:8, 10, 9]) = 1:10;
       case "tet20"
         elem_type_id = 29;
         elem_node_order([1,5,6,2,7,8,3,9,10,17,16,20,14,19,12,18,15,13,11,4]) = 1:20;
       case "tet4"
-	elem_type_id = 4;
-	elem_node_order = 1:4;
+        elem_type_id = 4;
+        elem_node_order = 1:4;
       case "beam2"
-	elem_type_id = 1;
-	elem_node_order = 1:2;
+        elem_type_id = 1;
+        elem_node_order = 1:2;
       case "beam3"
-	elem_type_id = 8;
-	elem_node_order = 1:3;
+        elem_type_id = 8;
+        elem_node_order = 1:3;
       otherwise
-	continue
+        continue
     endswitch
 
     switch (elem_types{i})
       case {"beam2", "beam3"}
-	beam_elem = getfield(mesh.elements, elem_types{i});
-	elem_nodes = reshape([beam_elem.nodes], numel(elem_node_order), numel(beam_elem)).';
+        beam_elem = getfield(mesh.elements, elem_types{i});
+        elem_nodes = reshape([beam_elem.nodes], numel(elem_node_order), numel(beam_elem)).';
       otherwise
-	elem_nodes = getfield(mesh.elements, elem_types{i});
+        elem_nodes = getfield(mesh.elements, elem_types{i});
     endswitch
 
     elem_groups = zeros(rows(elem_nodes), 1, "int32");
@@ -429,7 +432,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     if (isfield(mesh, "groups") && isfield(mesh.groups, elem_types{i}))
       groups = getfield(mesh.groups, elem_types{i});
       for j=1:numel(groups)
-	elem_tags(3:4, groups(j).elements) = groups(j).id;
+        elem_tags(3:4, groups(j).elements) = groups(j).id;
       endfor
     endif
 
@@ -442,8 +445,8 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
 
     format = [format, "\n"];
     fprintf(fd, format, [inumelem + (1:rows(elem_nodes));
-			 elem_tags;
-			 elem_nodes(:, elem_node_order).']);
+                         elem_tags;
+                         elem_nodes(:, elem_node_order).']);
     inumelem += rows(elem_nodes);
     clear elem_node_order elem_type_id;
   endfor

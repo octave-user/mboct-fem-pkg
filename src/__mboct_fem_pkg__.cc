@@ -6745,14 +6745,14 @@ public:
 
           static constexpr double r[2][M] = {{r1, r2, r3, r4, r5, r6, r7}, {0, 1, 0, 0.5,  0.5,    0}};
           static constexpr double s[2][M] = {{s1, s2, s3, s4, s5, s6, s7}, {0, 0, 1,   0,  0.5,  0.5}};
-          static constexpr double w[2][M] = {{w1, w2, w3, w4, w5, w6, w7}, {1./3., 1./3., 1./3., 1./3., 1./3., 1./3.}};
+          static constexpr double w[2][M] = {{w1, w2, w3, w4, w5, w6, w7}, {1./6., 1./6., 1./6., 1./6., 1./6., 1./6.}};
           static constexpr double t[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
           static constexpr double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
           const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints()) {
-               rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(M * N, 3);
+               rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(oIRT.iNumPoints * N, 3);
 
                for (octave_idx_type i = 0; i < oIRT.iNumPoints; ++i) {
                     for (octave_idx_type j = 0; j < N; ++j) {

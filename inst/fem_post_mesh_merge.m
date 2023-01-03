@@ -46,7 +46,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   num_nodes = int32(0);
   num_mat = int32(0);
 
-  empty_cell = cell(1, 12);
+  empty_cell = cell(1, 13);
   
   elem_types = struct("name", empty_cell, "have_mat", empty_cell);
 
@@ -74,7 +74,9 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   elem_types(11).have_mat = true;
   elem_types(12).name = "tria10";
   elem_types(12).have_mat = false;
-
+  elem_types(13).name = "iso20r";
+  elem_types(13).have_mat = true;
+  
   for i=1:numel(mesh_data)
     if (nargout >= 2)
       dof_map.totdof += mesh_data(i).dof_map.totdof;
