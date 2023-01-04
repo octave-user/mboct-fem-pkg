@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -39,59 +39,25 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
   endif
 
   empty_cell = cell(1, numel(group_id));
-  
+
   rbe3 = struct("nodes", empty_cell, "weight", empty_cell, "elements", empty_cell);
 
   if (numel(group_id) ~= numel(master_node_idx))
     error("numel(group_id) does not match numel(master_node_idx)");
   endif
-  
-  group_idx = cell(1, numel(group_id));
 
   msh_groups = getfield(mesh.groups, elem_type);
-  
-  for i=1:numel(group_id)
-    group_idx_i = find([msh_groups.id] == group_id(i));
 
-    if (numel(group_idx_i) == 0)
-      error("no elements found with id %d", group_id(i));
-    endif
+  [F, group_idx] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type);
 
-    group_idx{i} = group_idx_i;
-  endfor
-  
   for i=1:numel(group_idx)
-    inode = [msh_groups(group_idx{i}).nodes];
-    inode_tr = zeros(1, rows(mesh.nodes), "int32");
-    inode_tr(inode) = 1:numel(inode);
-    ielno = getfield(mesh.elements, elem_type)([msh_groups(group_idx{i}).elements], :);
-    press_elem.elements = inode_tr(ielno);
-    press_elem.p = repmat(1, rows(press_elem.elements), columns(press_elem.elements));
-    load_case_i.pressure = setfield(struct(), elem_type, press_elem);
-    dof_map_i.ndof = [reshape(1:(numel(inode) * 3), numel(inode), 3), zeros(numel(inode), 3)];
-    dof_map_i.totdof = numel(inode) * 3;
-    dof_map_i.domain = FEM_DO_STRUCTURAL;
-    mesh_i.nodes = mesh.nodes(inode, :);
-    mesh_i.elements = struct();
-    mesh_i.materials = struct();
-    mesh_i.material_data = struct("E", [], "nu", [], "C", [], "rho", [])([]);
-    mat_ass_i.R = fem_ass_matrix(mesh_i, ...
-                                 dof_map_i, ...
-                                 [FEM_VEC_LOAD_CONSISTENT], ...
-                                 load_case_i);
-
-    F = norm(mat_ass_i.R(dof_map_i.ndof(:, 1:3)), "rows");
-    rbe3(i).nodes = int32([master_node_idx(i), inode]);
-    rbe3(i).weight = F.';
+    rbe3(i).nodes = int32([master_node_idx(i), [msh_groups(group_idx{i}).nodes]]);
+    rbe3(i).weight = norm(F{i}, "rows").';
     rbe3(i).elements = setfield(struct(), elem_type, [msh_groups(group_idx{i}).elements]);
-    
-    if (any(rbe3(i).weight < 0))
-      error("negative weight factor detected");
-    endif
   endfor
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -195,7 +161,7 @@ endfunction
 %! endif
 %! end_unwind_protect
 
-%!demo
+%!test
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -296,7 +262,7 @@ endfunction
 %! endif
 %! end_unwind_protect
 
-%!demo
+%!test
 %! close all;
 %! filename = "";
 %! unwind_protect
