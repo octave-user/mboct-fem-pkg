@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2022) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -30,13 +30,17 @@
 ## @seealso{fem_sol_modal_damped}
 ## @end deftypefn
 
-function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol)
-  if (nargin < 4 || nargin > 5 || nargout > 2)
+function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts)
+  if (nargin < 4 || nargin > 6 || nargout > 2)
     print_usage();
   endif
 
   if (nargin < 5)
     opt_linsol = struct();
+  endif
+
+  if (nargin < 6)
+    opts = struct();
   endif
 
   if (~(ismatrix(K) && ismatrix(D) && ismatrix(M) && isscalar(N) && isstruct(opt_linsol)))
@@ -50,26 +54,36 @@ function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol)
   if (~(isreal(K) && isreal(D) && isreal(M)))
     error("K, D and M must be real");
   endif
-  
+
   if (~all(size(K) == size(D) & size(K) == size(M)))
     error("K, D and must have the same size");
   endif
-  
-  Kfact = fem_sol_factor(K, opt_linsol);
-  
-  SIGMA = "LM";
 
-  opts.disp = 0;
-  opts.maxit = 50000;
+  Kfact = fem_sol_factor(K, opt_linsol);
+
+  SIGMA = "LI";
+
+  if (~isfield(opts, "disp"))
+    opts.disp = 0;
+  endif
+
+  if (~isfield(opts, "maxit"))
+    opts.maxit = 50000;
+  endif
+
+  if (~isfield(opts, "p"))
+    opts.p = 2 * N;
+  endif
+
   opts.isreal = true;
   opts.issym = false;
-  opts.p = 2 * N;
+
   callback = @(x) eigs_callback(Kfact, D, M, x);
 
   rndstate = rand("state");
 
   unwind_protect
-    rand("seed", 0);  
+    rand("seed", 0);
     [U, kappa, status] = eigs(callback, 2 * columns(M), N, SIGMA, opts);
   unwind_protect_cleanup
     rand("state", rndstate);
@@ -84,9 +98,9 @@ function y = eigs_callback(Kfact, D, M, x)
   ndof = columns(M);
   idx1 = 1:ndof;
   idx2 = ndof + idx1;
-  
+
   y = zeros(size(x));
-  
+
   y(idx1, :) = -x(idx2, :);
   y(idx2, :) = Kfact \ (M * x(idx1, :) + D * x(idx2, :));
 endfunction

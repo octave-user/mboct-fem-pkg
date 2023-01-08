@@ -421,7 +421,11 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     switch (elem_types{i})
       case {"beam2", "beam3"}
         beam_elem = getfield(mesh.elements, elem_types{i});
-        elem_nodes = reshape([beam_elem.nodes], numel(elem_node_order), numel(beam_elem)).';
+        if (isstruct(beam_elem))
+          elem_nodes = reshape([beam_elem.nodes], numel(elem_node_order), numel(beam_elem)).';
+        else
+          elem_nodes = beam_elem;
+        endif
       otherwise
         elem_nodes = getfield(mesh.elements, elem_types{i});
     endswitch
