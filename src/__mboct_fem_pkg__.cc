@@ -14929,19 +14929,19 @@ SurfaceAreaPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
 
                     const octave_scalar_map mapElem = ovElem.scalar_map_value();
 
-                    const auto iterNodes = mapElem.seek("nodes");
+                    const auto iterElemNodes = mapElem.seek("elements");
 
-                    if (iterNodes == mapElem.end()) {
-                         throw std::runtime_error("surface area: field load_case(i).pressure."s + oElemType.name + ".nodes not found");
+                    if (iterElemNodes == mapElem.end()) {
+                         throw std::runtime_error("surface area: field load_case(i).pressure."s + oElemType.name + ".elements not found");
                     }
                     
-                    const octave_value ovNodes = mapElem.contents(iterNodes);
+                    const octave_value ovElemNodes = mapElem.contents(iterElemNodes);
 
-                    if (!(ovNodes.is_matrix_type() && ovNodes.isinteger() && ovNodes.columns() == oElemType.min_nodes)) {
-                         throw std::runtime_error("surface area: number of columns does not match for field load_case(i).pressure."s + oElemType.name + ".nodes");
+                    if (!(ovElemNodes.is_matrix_type() && ovElemNodes.isinteger() && ovElemNodes.columns() == oElemType.min_nodes)) {
+                         throw std::runtime_error("surface area: number of columns does not match for field load_case(i).pressure."s + oElemType.name + ".elements");
                     }
 
-                    const int32NDArray elemNodes = ovNodes.int32_array_value();
+                    const int32NDArray elemNodes = ovElemNodes.int32_array_value();
 
                     oSolution.SetField(PostProcData::VEC_EL_SURFACE_AREA_RE,
                                        oElemType.type,
