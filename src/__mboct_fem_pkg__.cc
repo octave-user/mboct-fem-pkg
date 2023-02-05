@@ -14891,11 +14891,11 @@ SurfaceAreaPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
           case ElementTypes::ELEM_PRESSURE_TRIA6H:
           case ElementTypes::ELEM_PRESSURE_TRIA10:
                break;
-               
+
           default:
                continue;
           }
-          
+
           const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(eltype);
 
           FEM_ASSERT(oElemType.type == eltype);
