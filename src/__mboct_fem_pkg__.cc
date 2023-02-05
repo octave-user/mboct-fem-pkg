@@ -13033,7 +13033,7 @@ void InsertPressureElem(const ElementTypes::TypeId eltype, const Matrix& nodes, 
                                         }
                                    }
 
-                                   pElem->Insert(k + 1,
+                                   pElem->Insert(++iNumElements,
                                                  X,
                                                  nullptr,
                                                  elements.index(idx_vector::make_range(k, 1, 1),
@@ -14873,103 +14873,49 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
      return mapSurfaceNormalVectorElem;
 }
 
-octave_map
+octave_scalar_map
 SurfaceAreaPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
                     const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
-                    const octave_map& load_case,
                     const Matrix& nodes,
                     PostProcData& oSolution,
                     const ParallelOptions& oParaOpt) {
-     octave_map mapSurfaceAreaElem;
+     octave_scalar_map mapSurfaceAreaElem;
 
-     const auto iterPressure = load_case.seek("pressure");
+     for (const auto& pElemBlock: rgElemBlocks) {
+          const ElementTypes::TypeId eltype = pElemBlock->GetElementType();
 
-     if (iterPressure == load_case.end()) {
-          return mapSurfaceAreaElem;
+          switch (eltype) {
+          case ElementTypes::ELEM_PRESSURE_ISO4:
+          case ElementTypes::ELEM_PRESSURE_QUAD8:
+          case ElementTypes::ELEM_PRESSURE_TRIA6:
+          case ElementTypes::ELEM_PRESSURE_TRIA6H:
+          case ElementTypes::ELEM_PRESSURE_TRIA10:
+               break;
+               
+          default:
+               continue;
+          }
+          
+          const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(eltype);
+
+          FEM_ASSERT(oElemType.type == eltype);
+          FEM_ASSERT(oElemType.min_nodes == oElemType.max_nodes);
+          FEM_ASSERT(oElemType.min_nodes > 0);
+
+          const octave_idx_type iNumNodes = oElemType.min_nodes;
+          const octave_idx_type iNumElem = pElemBlock->iGetNumElem();
+
+          oSolution.SetField(PostProcData::VEC_EL_SURFACE_AREA_RE,
+                             oElemType.type,
+                             NDArray(dim_vector(iNumElem, iNumNodes), 0.));
+
+          pElemBlock->PostProcElem(Element::VEC_SURFACE_AREA, oSolution, oParaOpt);
+
+          const NDArray Aelem = oSolution.GetField(PostProcData::VEC_EL_SURFACE_AREA_RE, oElemType.type);
+
+          mapSurfaceAreaElem.assign(oElemType.name, Aelem);
      }
 
-     const Cell cellPressure = load_case.contents(iterPressure);
-     Cell cellArea(cellPressure.dims());
-     
-     for (octave_idx_type i = 0; i < cellPressure.numel(); ++i) {
-          const octave_value ovPressure = cellPressure.xelem(i);
-          
-          if (!(ovPressure.isstruct() && ovPressure.numel() == 1)) {
-               throw std::runtime_error("surface area: load_case(i).pressure must be a scalar struct");
-          }
-
-          const octave_scalar_map mapPressure = ovPressure.scalar_map_value();
-          octave_scalar_map mapArea;
-          
-          for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
-               const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
-
-               if (!rgElemUse[oElemType.type]) {
-                    continue;
-               }
-
-               switch (oElemType.type) {
-               case ElementTypes::ELEM_PRESSURE_ISO4:
-               case ElementTypes::ELEM_PRESSURE_QUAD8:
-               case ElementTypes::ELEM_PRESSURE_TRIA6:
-               case ElementTypes::ELEM_PRESSURE_TRIA6H:
-               case ElementTypes::ELEM_PRESSURE_TRIA10: {
-                    const auto iterPressure = mapPressure.seek(oElemType.name);
-
-                    if (iterPressure == mapPressure.end()) {
-                         continue;
-                    }
-
-                    const octave_value ovElem = mapPressure.contents(iterPressure);
-
-                    if (!(ovElem.isstruct() && ovElem.numel() == 1)) {
-                         throw std::runtime_error("surface area: load_case(i).pressure."s + oElemType.name + " must be a scalar struct");
-                    }
-
-                    const octave_scalar_map mapElem = ovElem.scalar_map_value();
-
-                    const auto iterElemNodes = mapElem.seek("elements");
-
-                    if (iterElemNodes == mapElem.end()) {
-                         throw std::runtime_error("surface area: field load_case(i).pressure."s + oElemType.name + ".elements not found");
-                    }
-                    
-                    const octave_value ovElemNodes = mapElem.contents(iterElemNodes);
-
-                    if (!(ovElemNodes.is_matrix_type() && ovElemNodes.isinteger() && ovElemNodes.columns() == oElemType.min_nodes)) {
-                         throw std::runtime_error("surface area: number of columns does not match for field load_case(i).pressure."s + oElemType.name + ".elements");
-                    }
-
-                    const int32NDArray elemNodes = ovElemNodes.int32_array_value();
-
-                    oSolution.SetField(PostProcData::VEC_EL_SURFACE_AREA_RE,
-                                       oElemType.type,
-                                       NDArray(dim_vector(elemNodes.rows(),
-                                                          elemNodes.columns()),
-                                               0.));
-
-
-                    for (const auto& pElemBlock: rgElemBlocks) {
-                         if (pElemBlock->GetElementType() == oElemType.type) {
-                              pElemBlock->PostProcElem(Element::VEC_SURFACE_AREA, oSolution, oParaOpt);
-                         }
-                    }
-
-                    const NDArray Aelem = oSolution.GetField(PostProcData::VEC_EL_SURFACE_AREA_RE, oElemType.type);
-
-                    mapArea.assign(oElemType.name, Aelem);
-               } break;
-                    
-               default:
-                    break;
-               }
-          }
-
-          cellArea.xelem(i) = mapArea;
-     }
-
-     mapSurfaceAreaElem.assign("area", cellArea);
-     
      return mapSurfaceAreaElem;
 }
 
@@ -16511,7 +16457,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
-                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;                         
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          break;
                     default:
                          throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
@@ -16690,15 +16636,15 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          break;
-                         
+
                     case Element::VEC_SURFACE_AREA:
                          rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
-                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;                         
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          break;
-                         
+
                     case Element::MAT_DAMPING_FLUID_STRUCT_RE:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
@@ -18021,7 +17967,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution, oParaOpt));
                     break;
                case Element::VEC_SURFACE_AREA:
-                    retval.append(SurfaceAreaPostProc(rgElemUse, rgElemBlocks, load_case, nodes, oSolution, oParaOpt));
+                    retval.append(SurfaceAreaPostProc(rgElemUse, rgElemBlocks, nodes, oSolution, oParaOpt));
                     break;
                default:
                     throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
