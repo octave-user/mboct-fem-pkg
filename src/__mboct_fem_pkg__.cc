@@ -11587,7 +11587,7 @@ public:
 
           ColumnVector rv(iNumDir);
           Matrix HA(1, iNumNodes);
-          ColumnVector n1(3), n2(3), n_detJA(3);
+          ColumnVector n1(3), n2(3);
           Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof);
 
           for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
@@ -11603,9 +11603,8 @@ public:
 
                SurfaceTangentVector(dHf_dr, n1);
                SurfaceTangentVector(dHf_ds, n2);
-               SurfaceNormalVector(n1, n2, n_detJA);
 
-               const double detJA = JacobianDet(n_detJA);
+               const double detJA = JacobianDet(n1, n2);
 
                for (octave_idx_type m = 0; m < iNumNodes; ++m) {
                     Ael.xelem(id - 1 + iNumElem * m) += alpha * detJA * HA.xelem(m);
