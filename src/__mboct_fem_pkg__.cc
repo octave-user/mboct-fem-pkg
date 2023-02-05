@@ -11606,14 +11606,8 @@ public:
 
                const double detJA = JacobianDet(n1, n2);
 
-               double HA_p = 0.;
-
                for (octave_idx_type m = 0; m < iNumNodes; ++m) {
-                    HA_p += HA.xelem(m);
-               }
-
-               for (octave_idx_type m = 0; m < iNumNodes; ++m) {
-                    Ael.xelem(id - 1 + iNumElem * m) += alpha * detJA * HA_p * HA.xelem(m);
+                    Ael.xelem(id - 1 + iNumElem * m) += alpha * detJA * HA.xelem(m);
                }
           }
      }
