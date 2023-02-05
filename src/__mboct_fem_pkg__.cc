@@ -1,4 +1,4 @@
-// Copyright (C) 2018(-2022) Reinhard <octave-user@a1.net>
+// Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -1286,6 +1286,7 @@ public:
           MAT_STIFFNESS_OMEGA            = (40u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           MAT_STIFFNESS_OMEGA_DOT        = (41u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           MAT_DAMPING_OMEGA              = (42u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          VEC_SURFACE_AREA               = (43u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
           VEC_COLL_MASS                  = MAT_MASS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_STIFFNESS             = MAT_STIFFNESS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_HEAT_CAPACITY         = MAT_HEAT_CAPACITY | MAT_COLL_PNT_OUTPUT,
@@ -1296,7 +1297,7 @@ public:
           VEC_COLL_STIFF_FLUID_STRUCT    = MAT_STIFFNESS_FLUID_STRUCT_RE | MAT_COLL_PNT_OUTPUT
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 42u;
+     static constexpr unsigned MAT_TYPE_COUNT = 43u;
 
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -1393,6 +1394,7 @@ public:
           MAT_G_STRUCT_INERTIA_INV9_RE,      // MBDyn's modal invariant 9
           VEC_EL_SURFACE_NORMAL_VECTOR_RE,   // surface normal vector at elements
           VEC_EL_COLLOC_POINTS_RE,           // Cartesion coordinates of collocation points
+          VEC_EL_SURFACE_AREA_RE,            // Surface area needed as weight factors for RBE3 elements
           FIELD_COUNT_RE,
           UNKNOWN_FIELD_RE = ~0u
      };
@@ -11512,7 +11514,9 @@ public:
           case VEC_SURFACE_NORMAL_VECTOR:
                SurfaceNormalVectorElem(oSolution.GetField(PostProcData::VEC_EL_SURFACE_NORMAL_VECTOR_RE, eltype), eMatType);
                break;
-
+          case VEC_SURFACE_AREA:
+               SurfaceAreaElem(oSolution.GetField(PostProcData::VEC_EL_SURFACE_AREA_RE, eltype), eMatType);
+               break;
           default:
                break;
           }
@@ -11566,6 +11570,45 @@ public:
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < iNumNodes; ++i) {
                     nel.xelem(id - 1 + iNumElem * (i + iNumNodes * j)) = nn.xelem(i + iNumNodes * j);
+               }
+          }
+     }
+
+     void SurfaceAreaElem(NDArray& Ael, FemMatrixType eMatType) const {
+          FEM_ASSERT(Ael.ndims() == 2);
+          FEM_ASSERT(Ael.dim1() >= id);
+          FEM_ASSERT(Ael.dim2() == nodes.numel());
+
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumDof = 3 * iNumNodes;
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumElem = Ael.dim1();
+
+          ColumnVector rv(iNumDir);
+          Matrix HA(1, iNumNodes);
+          ColumnVector n1(3), n2(3), n_detJA(3);
+          Matrix dHf_dr(3, iNumDof), dHf_ds(3, iNumDof);
+
+          for (octave_idx_type i = 0; i < oIntegRule.iGetNumEvalPoints(); ++i) {
+               const double alpha = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA);
+
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
+               SurfaceNormalVector(n1, n2, n_detJA);
+
+               const double detJA = JacobianDet(n_detJA);
+
+               for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                    Ael.xelem(id - 1 + iNumElem * m) += alpha * detJA * HA.xelem(m);
                }
           }
      }
@@ -14831,6 +14874,106 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
      return mapSurfaceNormalVectorElem;
 }
 
+octave_map
+SurfaceAreaPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
+                    const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                    const octave_map& load_case,
+                    const Matrix& nodes,
+                    PostProcData& oSolution,
+                    const ParallelOptions& oParaOpt) {
+     octave_map mapSurfaceAreaElem;
+
+     const auto iterPressure = load_case.seek("pressure");
+
+     if (iterPressure == load_case.end()) {
+          return mapSurfaceAreaElem;
+     }
+
+     const Cell cellPressure = load_case.contents(iterPressure);
+     Cell cellArea(cellPressure.dims());
+     
+     for (octave_idx_type i = 0; i < cellPressure.numel(); ++i) {
+          const octave_value ovPressure = cellPressure.xelem(i);
+          
+          if (!(ovPressure.isstruct() && ovPressure.numel() == 1)) {
+               throw std::runtime_error("surface area: load_case(i).pressure must be a scalar struct");
+          }
+
+          const octave_scalar_map mapPressure = ovPressure.scalar_map_value();
+          octave_scalar_map mapArea;
+          
+          for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+               const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
+
+               if (!rgElemUse[oElemType.type]) {
+                    continue;
+               }
+
+               switch (oElemType.type) {
+               case ElementTypes::ELEM_PRESSURE_ISO4:
+               case ElementTypes::ELEM_PRESSURE_QUAD8:
+               case ElementTypes::ELEM_PRESSURE_TRIA6:
+               case ElementTypes::ELEM_PRESSURE_TRIA6H:
+               case ElementTypes::ELEM_PRESSURE_TRIA10: {
+                    const auto iterPressure = mapPressure.seek(oElemType.name);
+
+                    if (iterPressure == mapPressure.end()) {
+                         continue;
+                    }
+
+                    const octave_value ovElem = mapPressure.contents(iterPressure);
+
+                    if (!(ovElem.isstruct() && ovElem.numel() == 1)) {
+                         throw std::runtime_error("surface area: load_case(i).pressure."s + oElemType.name + " must be a scalar struct");
+                    }
+
+                    const octave_scalar_map mapElem = ovElem.scalar_map_value();
+
+                    const auto iterNodes = mapElem.seek("nodes");
+
+                    if (iterNodes == mapElem.end()) {
+                         throw std::runtime_error("surface area: field load_case(i).pressure."s + oElemType.name + ".nodes not found");
+                    }
+                    
+                    const octave_value ovNodes = mapElem.contents(iterNodes);
+
+                    if (!(ovNodes.is_matrix_type() && ovNodes.isinteger() && ovNodes.columns() == oElemType.min_nodes)) {
+                         throw std::runtime_error("surface area: number of columns does not match for field load_case(i).pressure."s + oElemType.name + ".nodes");
+                    }
+
+                    const int32NDArray elemNodes = ovNodes.int32_array_value();
+
+                    oSolution.SetField(PostProcData::VEC_EL_SURFACE_AREA_RE,
+                                       oElemType.type,
+                                       NDArray(dim_vector(elemNodes.rows(),
+                                                          elemNodes.columns()),
+                                               0.));
+
+
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         if (pElemBlock->GetElementType() == oElemType.type) {
+                              pElemBlock->PostProcElem(Element::VEC_SURFACE_AREA, oSolution, oParaOpt);
+                         }
+                    }
+
+                    const NDArray Aelem = oSolution.GetField(PostProcData::VEC_EL_SURFACE_AREA_RE, oElemType.type);
+
+                    mapArea.assign(oElemType.name, Aelem);
+               } break;
+                    
+               default:
+                    break;
+               }
+          }
+
+          cellArea.xelem(i) = mapArea;
+     }
+
+     mapSurfaceAreaElem.assign("area", cellArea);
+     
+     return mapSurfaceAreaElem;
+}
+
 template <typename T>
 octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
                                    const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
@@ -15072,6 +15215,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_SURFACE_NORMAL_VECTOR", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_VEC_SURFACE_AREA", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_MASS_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_MASS_FLUID_STRUCT_IM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct");
@@ -15139,6 +15283,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_SCA_ACOUSTIC_INTENSITY_C", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_SURFACE_NORMAL_VECTOR", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_VEC_SURFACE_AREA", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_MASS_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_MASS_FLUID_STRUCT_IM", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_MAT_STIFFNESS_FLUID_STRUCT_RE", "__mboct_fem_pkg__.oct", "remove");
@@ -16362,7 +16507,13 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
                          break;
-
+                    case Element::VEC_SURFACE_AREA:
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;                         
+                         break;
                     default:
                          throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
                     }
@@ -16540,7 +16691,15 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
                          break;
-
+                         
+                    case Element::VEC_SURFACE_AREA:
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;                         
+                         break;
+                         
                     case Element::MAT_DAMPING_FLUID_STRUCT_RE:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
@@ -17862,6 +18021,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::VEC_SURFACE_NORMAL_VECTOR:
                     retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution, oParaOpt));
                     break;
+               case Element::VEC_SURFACE_AREA:
+                    retval.append(SurfaceAreaPostProc(rgElemUse, rgElemBlocks, load_case, nodes, oSolution, oParaOpt));
+                    break;
                default:
                     throw std::runtime_error("fem_ass_matrix: invalid value for argument matrix_type");
                }
@@ -17948,6 +18110,7 @@ DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY, "acoustic intensity and 
 DEFINE_GLOBAL_CONSTANT(Element, VEC_PARTICLE_VELOCITY_C, "complex acoustic particle velocity")
 DEFINE_GLOBAL_CONSTANT(Element, SCA_ACOUSTIC_INTENSITY_C, "acoustic intensity and sound power for complex solutions")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_SURFACE_NORMAL_VECTOR, "surface normal vector at elements")
+DEFINE_GLOBAL_CONSTANT(Element, VEC_SURFACE_AREA, "surface area for pressure loads")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_FLUID_STRUCT_RE, "real fluid-structure interaction stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_FLUID_STRUCT_IM, "imaginary fluid-structure interaction stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_FLUID_STRUCT_RE, "real fluid-structure interaction mass matrix")
