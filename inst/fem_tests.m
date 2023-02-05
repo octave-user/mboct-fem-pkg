@@ -1646,7 +1646,11 @@
 %! C = 40e-3;
 %! scale = 10e-3;
 %! num_modes = int32(6);
-%! do_plot = fem_tests_enable_plotting();
+%! if (exist("fem_tests_enable_plotting"))
+%!   do_plot = fem_tests_enable_plotting();
+%! else
+%!   do_plot = false;
+%! endif
 %! X = [-0.5 * a, -0.5 * b, c + C;
 %!      0.5 * a, -0.5 * b, c + C;
 %!      0.5 * a,  0.5 * b, c + C;
@@ -1685,9 +1689,14 @@
 %! mesh.materials.iso8 = int32([1; 2]);
 %! load_case_dof.locked_dof = false(size(mesh.nodes));
 %! load_case_dof.locked_dof(13:16, 1:3) = true;
-%! load_case(1).pressure.iso4.elements = int32([1,2,3,4]);
-%! load_case(1).pressure.iso4.p = repmat(p, 1, 4);
+%! load_case(1).pressure.iso4.elements = int32([1,2,3,4;
+%!                                              9,10,11,12]);
+%! load_case(1).pressure.iso4.p = repmat(p, 2, 4);
 %! load_case(1).g = [0; 0; -9.81];
+%! load_case(2).pressure.iso4.elements = int32([5,6,7,8;
+%!                                              13,14,15,16]);
+%! load_case(2).pressure.iso4.p = repmat(p, 2, 4);
+%! load_case(2).g = [0; 0; -9.81];
 %! dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %! [mat_ass.K, ...
 %!  mat_ass.M, ...
@@ -1695,6 +1704,7 @@
 %!  mat_ass.dm, ...
 %!  mat_ass.S, ...
 %!  mat_ass.J, ...
+%!  mat_ass.surface, ...
 %!  mat_ass.mat_info, ...
 %!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -1703,10 +1713,12 @@
 %!                                       FEM_VEC_LOAD_CONSISTENT, ...
 %!                                       FEM_SCA_TOT_MASS, ...
 %!                                       FEM_VEC_INERTIA_M1, ...
-%!                                       FEM_MAT_INERTIA_J], ...
+%!                                       FEM_MAT_INERTIA_J, ...
+%!                                       FEM_VEC_SURFACE_AREA], ...
 %!                                      load_case);
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
+%! assert(sum(sum(mat_ass.surface.iso4)), 2 * (a * b + A * B));
 %! if (do_plot)
 %!   figure("visible", "off");
 %!   fem_post_sol_plot(mesh, sol_stat, scale / max(norm(sol_stat.def(:, 1:3), "rows")), 1);
