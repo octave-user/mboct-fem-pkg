@@ -13033,7 +13033,7 @@ void InsertPressureElem(const ElementTypes::TypeId eltype, const Matrix& nodes, 
                                         }
                                    }
 
-                                   pElem->Insert(++iNumElements,
+                                   pElem->Insert(k + 1,
                                                  X,
                                                  nullptr,
                                                  elements.index(idx_vector::make_range(k, 1, 1),
