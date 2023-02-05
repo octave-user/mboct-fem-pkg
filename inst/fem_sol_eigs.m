@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2022) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -63,7 +63,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
       options = varargin{1};
     else
       options.rho = varargin{1};
-      
+
       if (numel(varargin) >= 2)
         options.tolerance = varargin{2};
       endif
@@ -87,7 +87,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
   else
     options = struct();
   endif
-  
+
   if (~isfield(options, "tolerance"))
     options.tolerance = 1e-4;
   endif
@@ -175,7 +175,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
   end_unwind_protect
 
   mu = diag(mu).';
-  
+
   switch (options.algorithm)
     case "shift-invert"
     otherwise
@@ -193,11 +193,11 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
     otherwise
       error("unknown value for parameter options.problem=\"%s\"", options.problem);
   endswitch
-  
+
   [lambda, i_lambda] = sort(lambda);
 
   lambda2 = lambda2(i_lambda);
-  
+
   s_U_d = zeros(columns(U), 1);
 
   for i=1:columns(U)
@@ -217,7 +217,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
   endfor
 
   if (nargout < 3 && max(err) > options.tolerance)
-    error("eigs failed to converge: max(err)=%g > tol=%g", max(err), tol);
+    error("eigs failed to converge: max(err)=%g > tol=%g", max(err), options.tolerance);
   endif
 endfunction
 
