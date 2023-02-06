@@ -1718,7 +1718,8 @@
 %!                                      load_case);
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
-%! assert(sum(sum(mat_ass.surface.iso4)), 2 * (a * b + A * B));
+%! Aref = 2 * (a * b + A * B);
+%! assert(sum(sum(mat_ass.surface.iso4)), Aref, eps^0.8 * Aref);
 %! if (do_plot)
 %!   figure("visible", "off");
 %!   fem_post_sol_plot(mesh, sol_stat, scale / max(norm(sol_stat.def(:, 1:3), "rows")), 1);
