@@ -14,7 +14,7 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{F}, @var{group_idx}] = fem_pre_mesh_nodal_pressure_load(@var{mesh}, @var{group_id}, @var{elem_type})
+## @deftypefn {Function File} [@var{F}, @var{group_idx}, @var{weight}] = fem_pre_mesh_nodal_pressure_load(@var{mesh}, @var{group_id}, @var{elem_type})
 ##
 ## Compute unit pressure loads for surface elements
 ##
@@ -24,14 +24,20 @@
 ##
 ## @var{elem_type} @dots{} the element type addressed by @var{group_id} (e.g. "tria6", "tria6h", "iso4", "quad8")
 ##
+## @var{F} @dots{} resulting nodal load
+##
+## @var{group_idx} @dots{} index of all element groups identified by @var{group_id}
+##
+## @var{weight} @dots{} resulting weight factors based on the affected surface area
+##
 ## @end deftypefn
 
-function [F, group_idx] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type)
-  if (nargin < 3 || nargout > 2)
+function [F, group_idx, weight] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type)
+  if (nargin < 3 || nargout > 3)
     print_usage();
   endif
 
-  F = group_idx = cell(1, numel(group_id));
+  F = group_idx = weight = cell(1, numel(group_id));
 
   msh_groups = getfield(mesh.groups, elem_type);
 
@@ -60,10 +66,22 @@ function [F, group_idx] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_
     mesh_i.elements = struct();
     mesh_i.materials = struct();
     mesh_i.material_data = struct("E", cell(0, 0), "nu", cell(0, 0), "C", cell(0, 0), "rho", cell(0, 0));
-    mat_ass_i.R = fem_ass_matrix(mesh_i, ...
-                                 dof_map_i, ...
-                                 [FEM_VEC_LOAD_CONSISTENT], ...
-                                 load_case_i);
+    [mat_ass_i.R, ...
+     mat_ass_i.surface] = fem_ass_matrix(mesh_i, ...
+                                         dof_map_i, ...
+                                         [FEM_VEC_LOAD_CONSISTENT, ...
+                                          FEM_VEC_SURFACE_AREA], ...
+                                         load_case_i);
+    if (nargout >= 3)
+      elem_surf = getfield(mat_ass_i.surface, elem_type);
+      weight{i} = zeros(1, rows(mesh_i.nodes));
+
+      for j=1:columns(press_elem.elements)
+        for k=1:rows(press_elem.elements)
+          weight{i}(press_elem.elements(k, j)) += elem_surf(k, j); ## Cannot be vectorized because we can have duplicate nodes
+        endfor
+      endfor
+    endif
 
     F{i} = full(mat_ass_i.R(dof_map_i.ndof(:, 1:3)));
   endfor

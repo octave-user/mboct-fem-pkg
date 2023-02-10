@@ -48,16 +48,17 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
 
   msh_groups = getfield(mesh.groups, elem_type);
 
-  [F, group_idx] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type);
+  [F, group_idx, weight] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type);
 
   for i=1:numel(group_idx)
     rbe3(i).nodes = int32([master_node_idx(i), [msh_groups(group_idx{i}).nodes]]);
-    rbe3(i).weight = norm(F{i}, "rows").';
+    rbe3(i).weight = weight{i}.';
     rbe3(i).elements = setfield(struct(), elem_type, [msh_groups(group_idx{i}).elements]);
   endfor
 endfunction
 
 %!test
+%! ## TEST1
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -162,6 +163,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST2
 %! close all;
 %! filename = "";
 %! unwind_protect
@@ -263,6 +265,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
+%! ## TEST3
 %! close all;
 %! filename = "";
 %! unwind_protect
