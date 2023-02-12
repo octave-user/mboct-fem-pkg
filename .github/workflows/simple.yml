@@ -50,6 +50,8 @@ jobs:
           pushd mbdyn && \
           git checkout rigid_body_displacement_joint && git pull && \
           git checkout solid-element && \
+          git config --local user.email mbdyn-user@a1.net && \
+          git config --local user.name mbdyn-user && \
           git merge --no-commit rigid_body_displacement_joint && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
