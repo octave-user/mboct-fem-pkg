@@ -46,8 +46,11 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
-          git clone -b solid-element https://public.gitlab.polimi.it/DAER/mbdyn.git && \
+          git clone https://public.gitlab.polimi.it/DAER/mbdyn.git && \
           pushd mbdyn && \
+          git checkout rigid_body_displacement_joint && git pull && \
+          git checkout solid-element && \
+          git merge --no-commit rigid_body_displacement_joint && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
           --enable-octave \
@@ -71,7 +74,7 @@ jobs:
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
+           git clone -b solid-element https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
            make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
