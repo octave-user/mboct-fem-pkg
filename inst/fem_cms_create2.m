@@ -3785,7 +3785,7 @@ endfunction
 %!           fputs(fd, "        derivatives tolerance: 1e-6, 1;\n");
 %!           fputs(fd, "        strategy: factor, 0.8, 3, 1.25, 3, 3, 6;\n");
 %!           fputs(fd, "        output: iterations, solver condition number, stat, yes, cpu time;\n");
-%!           fputs(fd, "        linear solver: umfpack, grad, scale, iterative, always, max iterations, 100;\n");
+%!           fputs(fd, "        linear solver: umfpack, grad, scale, iterative, always, max iterations, 0;\n");
 %!           fputs(fd, "        nonlinear solver: nox, modified, 100,\n");
 %!           fputs(fd, "             keep jacobian matrix,\n");
 %!           fputs(fd, "             inner iterations before assembly, 6,\n");
@@ -3800,9 +3800,9 @@ endfunction
 %!           fputs(fd, "             weighted rms absolute tolerance, 0*1e-3,\n");
 %!           fputs(fd, "             weighted rms relative tolerance, 0*1e-3,\n");
 %!           fputs(fd, "             linear solver, gmres,\n");
-%!           fputs(fd, "             linear solver max iterations, 300,\n");
+%!           fputs(fd, "             linear solver max iterations, 30,\n");
 %!           fputs(fd, "             minimum step, 1e-12,\n");
-%!           fputs(fd, "             krylov subspace size, 300;\n");
+%!           fputs(fd, "             krylov subspace size, 30;\n");
 %!           fputs(fd, "        enforce constraint equations: constraint violations;\n");
 %!           switch (l)
 %!           case 3
