@@ -3536,7 +3536,7 @@ endfunction
 %!   cms_opt.nodes.interfaces.name = "node_id_interface1";
 %!   mesh.nodes(cms_opt.nodes.modal.number, 1:3) = [0, 0, 0];
 %!   mesh.nodes(cms_opt.nodes.interfaces.number, 1:3) = [a + d, 0, 0];
-%!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, [1, 2], [cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number], "quad8");
+%!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, [2], [cms_opt.nodes.interfaces.number], "quad8");
 %!   cms_opt.refine_max_iter = 30;
 %!   cms_opt.pre_scaling = false;
 %!   cms_opt.solver = "pardiso";
@@ -3548,6 +3548,8 @@ endfunction
 %!   cms_opt.update_binary = true;
 %!   cms_opt.invariants = true;
 %!   load_case_dof.locked_dof = false(size(mesh.nodes));
+%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_clamp).nodes, 1:3) = true;
+%!   load_case_dof.locked_dof(cms_opt.nodes.modal.number, 1:3) = true;
 %!   [mesh_cms, mat_ass_cms, dof_map_cms, sol_eig_cms, cms_opt, sol_tau_cms] = fem_cms_create2(mesh, load_case_dof, cms_opt);
 %!   fem_cms_export(filename, mesh_cms, dof_map_cms, mat_ass_cms, cms_opt);
 %!   pert.omega = [1e2; 3e2; 2e2] / (SI_unit_rad / SI_unit_second);
@@ -3658,8 +3660,7 @@ endfunction
 %!             opt_mbd_mesh.struct_nodes.reference_frame = "ref_id_clamp";
 %!             opt_mbd_mesh.struct_nodes.type = repmat(MBDYN_NODE_TYPE_DYNAMIC_STRUCT_DISP, rows(mesh.nodes), 1);
 %!             opt_mbd_mesh.struct_nodes.type(cms_opt.nodes.interfaces.number) = MBDYN_NODE_TYPE_STATIC_STRUCT;
-%!             opt_mbd_mesh.struct_nodes.type(cms_opt.nodes.modal.number) = MBDYN_NODE_TYPE_STATIC_STRUCT;
-%!             opt_mbd_mesh.joints.number = 1;
+%!             opt_mbd_mesh.struct_nodes.type(cms_opt.nodes.modal.number) = MBDYN_NODE_TYPE_STATIC_STRUCT_DISP;
 %!             opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
 %!             opt_mbd_mesh = mbdyn_pre_solid_write_const_laws(mesh, csl_file, opt_mbd_mesh);
 %!             opt_mbd_mesh = mbdyn_pre_solid_write_elements(mesh, load_case_dof, elem_file, opt_mbd_mesh);
@@ -3813,8 +3814,7 @@ endfunction
 %!           fputs(fd, "    output matrices, \n");
 %!           fputs(fd, "    output eigenvectors,\n");
 %!           fputs(fd, "        output geometry,\n");
-%!           fputs(fd, "        mode, smallest magnitude,\n");
-%!           fprintf(fd, "        lower frequency limit, %g, upper frequency limit, %g,\n", 0.1 / SI_unit_second^-1, 100000 / SI_unit_second^-1);
+%!           fprintf(fd, "        lower frequency limit, %g, upper frequency limit, %g,\n", 1. / SI_unit_second^-1, 100000 / SI_unit_second^-1);
 %!           switch (l)
 %!             case 1
 %!               fputs(fd, "    use lapack, balance, permute, suffix format, \"%02d\";\n");
@@ -4027,8 +4027,6 @@ endfunction
 %!               fputs(fd, ";\n");
 %!             case 2
 %!               fputs(fd, "joint: joint_id_ground, clamp, node_id_beam1, node, node;\n");
-%!             case 3
-%!               fprintf(fd, "joint: joint_id_ground, clamp, %d, node, node;\n", cms_opt.nodes.modal.number);
 %!           endswitch
 %!           switch (l)
 %!             case 1
@@ -4131,6 +4129,8 @@ endfunction
 %!     endfor
 %!   endfor
 %!   load_case_dof.locked_dof = false(size(mesh.nodes));
+%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_clamp).nodes, 1:3) = true;
+%!   load_case_dof.locked_dof(cms_opt.nodes.modal.number, 1:3) = true;
 %!   mesh.elements.joints.nodes = cms_opt.nodes.modal.number;
 %!   mesh.elements.joints.C = eye(6);
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
