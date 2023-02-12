@@ -46,7 +46,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
-          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git && \
+          git clone -b solid-element https://public.gitlab.polimi.it/DAER/mbdyn.git && \
           pushd mbdyn && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
