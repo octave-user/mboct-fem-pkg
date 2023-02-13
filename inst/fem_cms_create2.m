@@ -3439,7 +3439,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test
 %! ## TEST7
 %! filename = "";
 %! unwind_protect
@@ -3811,15 +3811,15 @@ endfunction
 %!             fputs(fd, "        threads: assembly, 1;\n");
 %!           endswitch
 %!           fputs(fd, "    eigenanalysis: list, 1, t1,\n");
-%!           fputs(fd, "    output matrices, \n");
+%!           #fputs(fd, "    output matrices, \n");
 %!           fputs(fd, "    output eigenvectors,\n");
-%!           fputs(fd, "        output geometry,\n");
-%!           fprintf(fd, "        lower frequency limit, %g, upper frequency limit, %g,\n", 1. / SI_unit_second^-1, 100000 / SI_unit_second^-1);
+%!           #fputs(fd, "        output geometry,\n");
+%!           fprintf(fd, "        lower frequency limit, %g, upper frequency limit, %g,\n", 1. / SI_unit_second^-1, 10000 / SI_unit_second^-1);
 %!           switch (l)
 %!             case 1
 %!               fputs(fd, "    use lapack, balance, permute, suffix format, \"%02d\";\n");
 %!             case {2, 3}
-%!               fprintf(fd, "    use arpack,%d,%d,0.,suffix format,\"%%02d\";\n", 4 * cms_opt.modes.number, 8 * cms_opt.modes.number + 1);
+%!               fprintf(fd, "    use arpack,%d,%d,0.,suffix format,\"%%02d\";\n", cms_opt.modes.number, 2 * cms_opt.modes.number + 1);
 %!           endswitch
 %!           fputs(fd, "end: initial value;\n");
 %!           fputs(fd, "begin: control data;\n");
