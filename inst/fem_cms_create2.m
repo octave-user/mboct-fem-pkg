@@ -3811,9 +3811,9 @@ endfunction
 %!             fputs(fd, "        threads: assembly, 1;\n");
 %!           endswitch
 %!           fputs(fd, "    eigenanalysis: list, 1, t1,\n");
-%!           #fputs(fd, "    output matrices, \n");
 %!           fputs(fd, "    output eigenvectors,\n");
-%!           #fputs(fd, "        output geometry,\n");
+%!           fputs(fd, "    # output matrices, \n");
+%!           fputs(fd, "        output geometry,\n");
 %!           fprintf(fd, "        lower frequency limit, %g, upper frequency limit, %g,\n", 1. / SI_unit_second^-1, 10000 / SI_unit_second^-1);
 %!           switch (l)
 %!             case 1
