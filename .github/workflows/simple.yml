@@ -52,7 +52,8 @@ jobs:
           git checkout solid-element && \
           git config --local user.email mbdyn-user@a1.net && \
           git config --local user.name mbdyn-user && \
-          git merge --no-commit rigid_body_displacement_joint && \
+          git merge rigid_body_displacement_joint && \
+          git merge genel-clamp-from-node && \
           ./bootstrap.sh && \
           ./configure --with-static-modules \
           --enable-octave \

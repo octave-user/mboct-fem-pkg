@@ -3649,7 +3649,6 @@ endfunction
 %!               param(j, k).gamma(1) = 80 * pi / 180;
 %!           endswitch
 %!       endswitch
-%!       param(j, k).gamma = zeros(3,1); ## for clamp
 %!       for l=1:3
 %!         switch (l)
 %!           case 3
@@ -4241,7 +4240,7 @@ endfunction
 %!     endfor
 %!   endfor
 %!   tol_abs = [0, 0, 0] / SI_unit_second^-1;
-%!   tol_rel = [0.3e-2, 3.5e-2, 0.3e-2];
+%!   tol_rel = [0.3e-2, 3e-2, 3e-2];
 %!   tol_disp_rel = 3e-2;
 %!   err_u_modal = err_v_modal = zeros(size(param));
 %!   printf("deformation/velocity:\n");
