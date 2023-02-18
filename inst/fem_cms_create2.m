@@ -3441,6 +3441,7 @@ endfunction
 
 %!test
 %! ## TEST7
+%! printf("fem_cms_create2: test7\n");
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -3460,7 +3461,7 @@ endfunction
 %!   h = c;
 %!   options.interactive = false;
 %!   options.plot = true;
-%!   options.verbose = false;
+%!   options.verbose = true;
 %!   options.number_of_beams = int32(40);
 %!   options.number_of_threads = int32(4);
 %!   if (options.plot)
@@ -3796,8 +3797,8 @@ endfunction
 %!           fputs(fd, "             verbose, yes,\n");
 %!           fputs(fd, "             forcing term, type 2,\n");
 %!           fputs(fd, "             direction, newton,\n");
-%!           fputs(fd, "             weighted rms absolute tolerance, 0*1e-3,\n");
-%!           fputs(fd, "             weighted rms relative tolerance, 0*1e-3,\n");
+%!           fputs(fd, "             weighted rms absolute tolerance, 0,\n");
+%!           fputs(fd, "             weighted rms relative tolerance, 0,\n");
 %!           fputs(fd, "             linear solver, gmres,\n");
 %!           fputs(fd, "             linear solver max iterations, 30,\n");
 %!           fputs(fd, "             minimum step, 1e-12,\n");
