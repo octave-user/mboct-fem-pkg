@@ -3461,7 +3461,7 @@ endfunction
 %!   h = c;
 %!   options.interactive = false;
 %!   options.plot = true;
-%!   options.verbose = true;
+%!   options.verbose = false;
 %!   options.number_of_beams = int32(40);
 %!   options.number_of_threads = int32(4);
 %!   if (options.plot)
