@@ -161,6 +161,14 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     endif
   endfor
 
+  for i=1:numel(load_case)
+    for j=1:numel(load_case(i).joints)
+      if (isempty(load_case(i).joints(j).U))
+        load_case(i).joints(j).U = zeros(rows(mesh.elements.joints(j).C), 1);
+      endif
+    endfor
+  endfor
+
   if (cms_opt.num_modes_itf > 0)
     ## Reduce memory consumption: do not duplicate load_case.locked_dof!
     load_case_itf = repmat(setfield(load_case(1), "locked_dof", []), 1, cms_opt.num_modes_itf - 1);
@@ -440,7 +448,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     endfor
 
     dX = mesh.nodes(:, 1:3) - mesh.nodes(cms_opt.nodes.modal.number, 1:3);
-    
+
     A(1:6:end, 5) = dX(:, 3);
     A(2:6:end, 4) = -dX(:, 3);
     A(1:6:end, 6) = -dX(:, 2);
@@ -449,13 +457,13 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     A(3:6:end, 5) = -dX(:, 1);
 
     idxtrans = zeros(3 * rows(mesh.nodes), 1, "int32");
-    
+
     for j=1:3
       idxtrans(j:3:end) = j:6:6 * rows(mesh.nodes);
     endfor
 
     idxmodal = (cms_opt.nodes.modal.number - 1) * 6 + (1:6);
-    
+
     A(idxmodal, :) = 0;
     Adisp = A(idxtrans, :);
 
