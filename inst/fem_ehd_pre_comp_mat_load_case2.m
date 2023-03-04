@@ -701,7 +701,7 @@ endfunction
 %!    interfaces = {"rigid", "flexible"};
 %!    tol_red = [5e-2, 2e-2];
 %!    num_modes_cms = int32([0, 10]);
-%!    num_modes = [50, 15];
+%!    num_modes = [50, 30];
 %!    for k=1:numel(num_modes_cms)
 %!      for j=1:numel(interfaces)
 %!        clear Fred Ritf bearing_surf cms_opt comp_mat dof_map_comb dof_map_post err_red
@@ -815,7 +815,7 @@ endfunction
 %!        bearing_surf(2).R = eye(3);
 %!        bearing_surf(2).relative_tolerance = 0;
 %!        bearing_surf(2).absolute_tolerance = sqrt(eps) * 0.5 * d;
-%!        bearing_surf(2).options.number_of_modes = num_modes;
+%!        bearing_surf(2).options.number_of_modes = num_modes(j);
 %!        bearing_surf(2).master_node_no = cms_opt.nodes.modal.number;
 %!        mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(2).X0.';
 %!        mesh.nodes(cms_opt.nodes.interfaces.number, 1:3) = bearing_surf(1).X0.';
@@ -1839,7 +1839,7 @@ endfunction
 %!    interfaces = {"rigid", "flexible"};
 %!    tol_red = [5e-2, 2e-2];
 %!    num_modes_cms = int32([0, 10]);
-%!    num_modes = [50, 15];
+%!    num_modes = [50, 30];
 %!    for k=1:numel(num_modes_cms)
 %!      for j=1:numel(interfaces)
 %!        clear Fred Ritf bearing_surf cms_opt comp_mat dof_map_comb dof_map_post err_red
@@ -1953,7 +1953,7 @@ endfunction
 %!        bearing_surf(2).R = eye(3);
 %!        bearing_surf(2).relative_tolerance = 0;
 %!        bearing_surf(2).absolute_tolerance = sqrt(eps) * 0.5 * d;
-%!        bearing_surf(2).options.number_of_modes = num_modes;
+%!        bearing_surf(2).options.number_of_modes = num_modes(j);
 %!        bearing_surf(2).master_node_no = cms_opt.nodes.modal.number;
 %!        mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(2).X0.';
 %!        mesh.nodes(cms_opt.nodes.interfaces.number, 1:3) = bearing_surf(1).X0.';
