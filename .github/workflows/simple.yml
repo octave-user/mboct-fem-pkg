@@ -26,13 +26,57 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
+      - name: Install build dependencies for GNU/Octave
+        run: |
+           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
+           sudo apt-get update
+           sudo apt-get build-dep octave
+           sudo apt-get install mercurial \
+           libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
+           libmetis-dev libnlopt-dev \
+           trilinos-all-dev libopenmpi-dev libptscotch-dev libsuitesparse-dev libqrupdate-dev
+
+      # Runs a single command using the runners shell
+      - name: Clone GNU/Octave
+        run: |
+           hg clone https://www.octave.org/hg/octave octave
+           pushd octave
+           hg checkout stable
+           popd
+
+      # Runs a single command using the runners shell
+      - name: Compile GNU/Octave
+        run: |
+           pushd octave
+           ./bootstrap
+           ./configure --disable-java
+           make -j4
+           popd
+
+      # Runs a single command using the runners shell
+      - name: Check GNU/Octave
+        run: |
+           pushd octave
+           make check 2>&1 | tee fntests.out
+           awk -F ' ' 'BEGIN{ failed=9999; } /^  FAIL\>/{ failed = $2; } END { if (failed != 0) exit 1; }' fntests.out
+           popd
+
+      # Runs a single command using the runners shell
       - name: Install GNU/Octave
         run: |
-           sudo apt-get update && \
-           sudo apt-get install octave liboctave-dev \
-           libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
-           libmetis-dev octave-nurbs libnlopt-dev \
-           libmkl-full-dev trilinos-all-dev libopenmpi-dev libptscotch-dev
+           pushd octave
+           sudo make install
+           popd
+
+      # Runs a single command using the runners shell
+      - name: Install nurbs
+        run: |
+           sudo octave --eval "pkg install -verbose -forge nurbs"
+
+      # Runs a single command using the runners shell
+      - name: Install MKL
+        run: |
+           sudo apt-get install libmkl-full-dev ## Should be installed after GNU/Octave in order to avoid race conditions
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -43,22 +87,63 @@ jobs:
            gmsh --version
 
       # Runs a set of commands using the runners shell
-      - name: Install MBDyn
+      - name: Clone MBDyn
         run: |
-          git clone https://public.gitlab.polimi.it/DAER/mbdyn.git && \
-          pushd mbdyn && \
-          git checkout solid-element && \
-          git config --local user.email mbdyn-user@a1.net && \
-          git config --local user.name mbdyn-user && \
-          git merge --no-commit origin/rigid_body_displacement_joint && \
-          ./bootstrap.sh && \
+          git clone https://public.gitlab.polimi.it/DAER/mbdyn.git
+          pushd mbdyn
+          git checkout solid-element
+          git config --local user.email mbdyn-user@a1.net
+          git config --local user.name mbdyn-user
+          git merge origin/rigid_body_displacement_joint
+          popd
+
+      # Runs a set of commands using the runners shell
+      - name: Compile MBDyn
+        run: |
+          pushd mbdyn
+          ./bootstrap.sh
           ./configure --with-static-modules \
           --enable-octave \
           --disable-Werror CXXFLAGS="-O3 -Wall -march=native" \
           CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
           LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
-          --with-arpack --with-umfpack --without-metis --with-mpi --with-trilinos && \
-          make -j4 && sudo make install && popd
+          --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+          make -j4
+          popd
+
+      # Runs a set of commands using the runners shell
+      - name: Check MBDyn
+        run: |
+          pushd mbdyn
+          for cmd in "libraries/libmbmath/sp_gradient_test" \
+                     "libraries/libmbmath/dgeequtest" \
+                     "libraries/libmbmath/itertest" \
+                     "libraries/libmbmath/matmultest" \
+                     "libraries/libmbmath/subtest" \
+                     "libraries/libmbwrap/arptest" \
+                     "libraries/libmbwrap/cctest -m umfpack" \
+                     "libraries/libmbwrap/cctest -m y12" \
+                     "libraries/libmbwrap/wraptest -m umfpack" \
+                     "libraries/libmbwrap/wraptest -m pardiso" \
+                     "libraries/libmbwrap/wraptest -m pardiso_64" \
+                     "libraries/libmbwrap/wraptest -m naive" \
+                     "libraries/libmbwrap/wraptest -m lapack" \
+                     "libraries/libmbwrap/wraptest -m qr" \
+                     "libraries/libmbwrap/wraptest -m spqr" \
+                     "libraries/liby12/y12test" ; do
+               printf "running command: \"%s\"\n" "${cmd}"
+               ${cmd}
+               rc=$?
+               printf "status: %d\n" ${rc}
+          done
+          popd
+
+      # Runs a set of commands using the runners shell
+      - name: Install MBDyn
+        run: |
+          pushd mbdyn
+          sudo make install
+          popd
 
       - name: Install mboct-octave-pkg
         run: |

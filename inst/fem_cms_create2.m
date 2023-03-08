@@ -1,3 +1,41 @@
+## Copyright (C) 2019(-2023) Reinhard <octave-user@a1.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+## -*- texinfo -*-
+## @deftypefn {Function File} [@var{mesh}, @var{mat_ass}, @var{dof_map}, @var{sol_eig}, @var{cms_opt}, @var{sol_tau}] = fem_cms_create2(@var{mesh}, @var{load_case}, @var{cms_opt})
+## Build a reduced order model by using the Craig Bampton approach. That model can be exported to MBDyn by means of fem_cms_export.
+##
+## @var{mesh} @dots{} Finite element mesh data structure containing constraints for the modal node
+##
+## @var{load_case}.locked_dof @dots{} Boolean matrix of constrained degrees of freedom
+##
+## @var{cms_opt}.nodes.modal @dots{} Struct containing node number and node name of the modal node. Appropriate constraints must be defined for that node in @var{mesh} or @var{load_case}
+##
+## @var{cms_opt}.nodes.interfaces @dots{} Struct array containing node numbers and node names for interface nodes accessible to MBDyn. Static mode shapes will be generated for those nodes.
+##
+## @var{cms_opt}.verbose @dots{} Enable verbose output
+##
+## @var{cms_opt}.algorithm @dots{} Algorithm used for eigenanalysis
+##
+## @var{cms_opt}.number_of_threads @dots{} Number of threads used for linear solver and assembly
+##
+## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver
+##
+## @seealso{fem_cms_export}
+## @end deftypefn
+
 function [mesh, mat_ass_itf, dof_map_itf, sol_eig_itf, cms_opt, sol_tau] = fem_cms_create2(mesh, load_case_dof, cms_opt)
   if (~isfield(cms_opt, "modes"))
     cms_opt.modes = struct();
@@ -3663,7 +3701,8 @@ endfunction
 %!             opt_mbd_mesh.struct_nodes.type(cms_opt.nodes.modal.number) = MBDYN_NODE_TYPE_STATIC_STRUCT_DISP;
 %!             opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
 %!             opt_mbd_mesh = mbdyn_pre_solid_write_const_laws(mesh, csl_file, opt_mbd_mesh);
-%!             opt_mbd_mesh = mbdyn_pre_solid_write_elements(mesh, load_case_dof, elem_file, opt_mbd_mesh);
+%!             load_case_empty = struct();
+%!             opt_mbd_mesh = mbdyn_pre_solid_write_elements(mesh, load_case_dof, load_case_empty, elem_file, opt_mbd_mesh);
 %!         endswitch
 %!         fd = -1;
 %!         unwind_protect
@@ -4352,6 +4391,565 @@ endfunction
 %!       lambda_red_s = 1j * lambda_red_s(:, 1) + lambda_red_s(:, 2);
 %!       assert(lambda_red_s(1:K), lambda_s(1:K), tol * norm(lambda_s(1:K)));
 %!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   if (~isempty(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       if (0 ~= unlink(fullfile(fn(i).folder, fn(i).name)))
+%!         warning("failed to remove file \"%s\"", fn(i).name);
+%!       endif
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST8
+%! printf("fem_cms_create2: test8\n");
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   h = [10e-3; 10e-3; 10e-3];
+%!   geometry.zF = 0;
+%!   geometry.l = 10e-3;
+%!   geometry.w = 10e-3;
+%!   geometry.h = 10e-3;
+%!   geometry.a = 0;
+%!   t1 = 1;
+%!   t2 = 0;
+%!   dt = t1 / 100;
+%!   dto = t1 / 50;
+%!   model = "static";
+%!   method = "implicit euler";
+%!   options.verbose = false;
+%!   f_rigid_body_load = false;
+%!   f_rigid_body_clamp = false;
+%!   material.E = 210000e6;
+%!   material.ET = 2100e6;
+%!   material.sigmayv = 235000e6;
+%!   material.nu = 0.3;
+%!   material.rho = 7850;
+%!   material.beta = 0;
+%!   elem_types = {"iso8", "iso20", "iso20r", "penta15", "tet10h"};
+%!   mat_types = {"linear elastic generic", "neo hookean", "bilinear isotropic hardening"};
+%!   f_transfinite_mesh = [false, true];
+%!   for idx_transfinite=1:numel(f_transfinite_mesh)
+%!   for idx_mat_type=1:numel(mat_types)
+%!     material.type = mat_types{idx_mat_type};
+%!     for idx_elem_type=1:numel(elem_types)
+%!       elem_type = elem_types{idx_elem_type};
+%!       switch (elem_type)
+%!       case "tet10h"
+%!         if (f_transfinite_mesh(idx_transfinite))
+%!           continue;
+%!         endif
+%!       endswitch
+%!       file_prefix = sprintf("%s_%d_%d_%d", filename, idx_transfinite, idx_mat_type, idx_elem_type);
+%!       geo_file = [file_prefix, "_gmsh.geo"];
+%!       mesh_file = [file_prefix, "_gmsh.msh"];
+%!       nodes_file = [file_prefix, "_mbd.nod"];
+%!       elem_file = [file_prefix, "_mbd.elm"];
+%!       set_file = [file_prefix, "_mbd.set"];
+%!       csl_file = [file_prefix, "_mbd.csl"];
+%!       control_file = [file_prefix, "_mbd.con"];
+%!       initial_value_file = [file_prefix, "_mbd.inv"];
+%!       input_file = [file_prefix, "_mbd_inp.mbdyn"];
+%!       output_file = [file_prefix, "_mbd_out"];
+%!       opt_mbd.output_file = output_file;
+%!       if (~options.verbose)
+%!         opt_mbd.logfile = [opt_mbd.output_file, ".stdout"];
+%!       endif
+%!       opt_mbd.mbdyn_command = "mbdyn -C";
+%!       opt_mbd.f_run_mbdyn = true;
+%!       R = eye(3);
+%!       F = R * [0.;
+%!                0.;
+%!                0];
+%!       px = -material.sigmayv * 1.5;
+%!       py = -material.sigmayv * 0.3;
+%!       pz = -material.sigmayv * 0.2;
+%!       M = R * [0;
+%!                0;
+%!                0];
+%!       apply_symmetry_bound_cond = true;
+%!       W = R * [0; 0; 0];
+%!       WP = R * [0; 0; 0];
+%!       XPP = R * [0; 0; 0];
+%!       g = R * [0; 0; 0];
+%!       switch (elem_type)
+%!         case "iso8"
+%!           mesh_order = 1;
+%!           elem_type_solid = {elem_type};
+%!           elem_type_surf = {"iso4"};
+%!         case "iso20"
+%!           mesh_order = 2;
+%!           elem_type_solid = {"iso20", "penta15"};
+%!           elem_type_surf = {"quad8", "tria6h"};
+%!         case "iso20r"
+%!           mesh_order = 2;
+%!           elem_type_solid = {"iso20r", "penta15"}
+%!           elem_type_surf = {"quad8", "tria6h"};
+%!         case "penta15"
+%!           mesh_order = 2;
+%!           elem_type_solid = {elem_type};
+%!           elem_type_surf = {"quad8", "tria6h"};
+%!         case "tet10h"
+%!           mesh_order = 2;
+%!           elem_type_solid = {elem_type};
+%!           elem_type_surf = {"tria6h"};
+%!         otherwise
+%!           error("unknown element type \"%s\"", elem_type);
+%!       endswitch
+%!       fd = -1;
+%!       unwind_protect
+%!         [fd, msg] = fopen(geo_file, "w");
+%!         if (fd == -1)
+%!           error("failed to open file \"%s.geo\"", geo_file);
+%!         endif
+%!         fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!         fprintf(fd, "a=%g;\n", geometry.l);
+%!         fprintf(fd, "b=%g;\n", geometry.w);
+%!         fprintf(fd, "c=%g;\n", geometry.h);
+%!         fprintf(fd, "hx = %g;\n", h(1));
+%!         fprintf(fd, "hy = %g;\n", h(2));
+%!         fprintf(fd, "hz = %g;\n", h(3));
+%!         switch (elem_type)
+%!           case {"iso20", "iso20r", "penta15"}
+%!             fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
+%!         endswitch
+%!         fprintf(fd, "Mesh.ElementOrder = %d;\n", mesh_order);
+%!         fputs(fd, "Point(1) = { 0, -0.5 * b, -0.5 * c};\n");
+%!         fputs(fd, "Point(2) = { a, -0.5 * b, -0.5 * c};\n");
+%!         fputs(fd, "Point(3) = { a,  0.5 * b, -0.5 * c};\n");
+%!         fputs(fd, "Point(4) = { 0,  0.5 * b, -0.5 * c};\n");
+%!         fputs(fd, "Line(1) = {4,3};\n");
+%!         fputs(fd, "Line(2) = {3,2};\n");
+%!         fputs(fd, "Line(3) = {2,1};\n");
+%!         fputs(fd, "Line(4) = {1,4};\n");
+%!         if (f_transfinite_mesh(idx_transfinite))
+%!           fprintf(fd, "Transfinite Curve(1) = Max(2, Round(a / hx) + 1);\n");
+%!           fprintf(fd, "Transfinite Curve(2) = Max(2, Round(b / hy) + 1);\n");
+%!           fprintf(fd, "Transfinite Curve(3) = Max(2, Round(a / hx) + 1);\n");
+%!           fprintf(fd, "Transfinite Curve(4) = Max(2, Round(b / hy) + 1);\n");
+%!         endif
+%!         fputs(fd, "Line Loop(5) = {2,3,4,1};\n");
+%!         fputs(fd, "Plane Surface(6) = {5};\n");
+%!         if (f_transfinite_mesh(idx_transfinite))
+%!           fputs(fd, "Transfinite Surface(6) = {2,3,4,1};\n");
+%!         endif
+%!         fputs(fd, "tmp[] = Extrude {0,0.0,c} {\n");
+%!         switch (elem_type)
+%!           case "tet10h"
+%!             fputs(fd, "  Surface{6};\n");
+%!           otherwise
+%!             switch (elem_type)
+%!               case "iso20r"
+%!                 num_layers = 2; ## because of hourglass instability
+%!               otherwise
+%!                 num_layers = 1;
+%!             endswitch
+%!             fprintf(fd, "  Surface{6}; Layers{Max(%d, Round(c/hz))}; Recombine;\n", num_layers);
+%!         endswitch
+%!         fputs(fd, "};\n");
+%!         switch (elem_type)
+%!           case {"iso8", "iso20", "iso20r"}
+%!             fputs(fd, "Recombine Surface{6, tmp[0]};\n");
+%!           otherwise
+%!             fprintf(fd, "MeshSize{PointsOf{Volume{tmp[1]};}} = %.16e;\n", mean(h));
+%!         endswitch
+%!         switch (elem_type)
+%!           case "tet10h"
+%!             fputs(fd, "Mesh.HighOrderOptimize=1;\n");
+%!             fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!         endswitch
+%!         fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
+%!         fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[4]};\n");
+%!         fputs(fd, "Physical Surface(\"load-x\",3) = {tmp[2]};\n");
+%!         fputs(fd, "Physical Surface(\"load-y\",6) = {tmp[5]};\n");
+%!         fputs(fd, "Physical Surface(\"load-z\",7) = {tmp[0]};\n");
+%!         fputs(fd, "Physical Surface(\"symmetry-xy\",4) = {6};\n");
+%!         fputs(fd, "Physical Surface(\"symmetry-xz\",5) = {tmp[3]};\n");
+%!       unwind_protect_cleanup
+%!         if (fd ~= -1)
+%!           fclose(fd);
+%!         endif
+%!       end_unwind_protect
+%!       pid = spawn("gmsh", {"-format", "msh2", "-3", geo_file});
+%!       status = spawn_wait(pid);
+%!       if (status ~= 0)
+%!         warning("gmsh failed with status %d", status);
+%!       endif
+%!       opt_msh.elem_type = {elem_type_solid{:}, elem_type_surf{:}};
+%!       mesh = fem_pre_mesh_import(mesh_file, "gmsh", opt_msh);
+%!       opt_mbd_mesh = struct();
+%!       switch (model)
+%!         case "dynamic"
+%!           opt_mbd_mesh.struct_nodes.type = repmat(MBDYN_NODE_TYPE_DYNAMIC_STRUCT_DISP, rows(mesh.nodes), 1);
+%!         case "static"
+%!           opt_mbd_mesh.struct_nodes.type = repmat(MBDYN_NODE_TYPE_STATIC_STRUCT_DISP, rows(mesh.nodes), 1);
+%!       endswitch
+%!       grp_idx_volume = zeros(1, numel(elem_type_solid), "int32");
+%!       for i=1:numel(elem_type_solid)
+%!         if (~isfield(mesh.groups, elem_type_solid{i}))
+%!           continue;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_solid{i}).id] == 1);
+%!         if (isempty(idx))
+%!           continue;
+%!         endif
+%!         grp_idx_volume(i) = idx;
+%!       endfor
+%!       grp_idx_load_x = grp_idx_load_y = grp_idx_load_z = grp_idx_clamp = grp_idx_symmetry_xy = grp_idx_symmetry_xz = zeros(1, numel(elem_type_surf), "int32");
+%!       for i=1:numel(elem_type_surf)
+%!         if (~isfield(mesh.groups, elem_type_surf{i}))
+%!           continue;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 2);
+%!         if (~isempty(idx))
+%!           grp_idx_clamp(i) = idx;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 3);
+%!         if (~isempty(idx))
+%!           grp_idx_load_x(i) = idx;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 4);
+%!         if (~isempty(idx))
+%!           grp_idx_symmetry_xy(i) = idx;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 5);
+%!         if (~isempty(idx))
+%!           grp_idx_symmetry_xz(i) = idx;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 6);
+%!         if (~isempty(idx))
+%!           grp_idx_load_y(i) = idx;
+%!         endif
+%!         idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 7);
+%!         if (~isempty(idx))
+%!           grp_idx_load_z(i) = idx;
+%!         endif
+%!       endfor
+%!       if (~f_rigid_body_load)
+%!         for i=1:numel(elem_type_surf)
+%!           if (grp_idx_load_x(i) > 0)
+%!             [Fpress, grp_idx_press, weight_press] = fem_pre_mesh_nodal_pressure_load(mesh, 3, elem_type_surf{i});
+%!             mesh_group_i = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_x(i));
+%!             load_case.loaded_nodes = mesh_group_i.nodes(:);
+%!             load_case.loads = zeros(numel(load_case.loaded_nodes), 3);
+%!             for j=1:3
+%!               load_case.loads(:, j) = F(j) * weight_press{1} / sum(weight_press{1});
+%!               load_case.loads(:, j + 3) = M(j) * weight_press{1} / sum(weight_press{1});
+%!             endfor
+%!             break
+%!           endif
+%!         endfor
+%!       else
+%!         load_case.loads = zeros(0, 6);
+%!         load_case.loaded_nodes = [];
+%!       endif
+%!       if (f_rigid_body_load || f_rigid_body_clamp)
+%!         inum_elem_rbe3 = 0;
+%!         inode_idx_rb = zeros(2, 1);
+%!         ielem_idx_rb = zeros(2, 1);
+%!       endif
+%!       if (f_rigid_body_load)
+%!         inode_idx_rb(1) = rows(mesh.nodes) + 1;
+%!         ielem_idx_rb(1) = ++inum_elem_rbe3;
+%!         opt_mbd_mesh.struct_nodes.type(inode_idx_rb(1)) = MBDYN_NODE_TYPE_STATIC_STRUCT;
+%!         mesh.nodes(inode_idx_rb(1), 1:3) = [geometry.l + geometry.a, 0, 0];
+%!         mesh.elements.rbe3(ielem_idx_rb(1)) = fem_pre_mesh_rbe3_from_surf(mesh, 3, inode_idx_rb(1), elem_type_surf{1});
+%!       endif
+%!       if (f_rigid_body_clamp)
+%!         inode_idx_rb(2) = rows(mesh.nodes) + 1;
+%!         ielem_idx_rb(2) = ++inum_elem_rbe3;
+%!         opt_mbd_mesh.struct_nodes.type(inode_idx_rb(2)) = MBDYN_NODE_TYPE_STATIC_STRUCT;
+%!         mesh.nodes(inode_idx_rb(2), 1:3) = [0, 0, 0];
+%!         mesh.elements.rbe3(ielem_idx_rb(2)) = fem_pre_mesh_rbe3_from_surf(mesh, 2, inode_idx_rb(2), elem_type_surf{1});
+%!       endif
+%!       load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
+%!       if (~f_rigid_body_clamp)
+%!         for i=1:numel(elem_type_surf)
+%!           if (~grp_idx_clamp(i))
+%!             continue;
+%!           endif
+%!           load_case_dof.locked_dof(getfield(mesh.groups, elem_type_surf{i})(grp_idx_clamp(i)).nodes, 1:3) = true;
+%!         endfor
+%!       endif
+%!       mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
+%!       load_case.g = g - XPP;
+%!       load_case.omega = W;
+%!       load_case.omegadot = WP;
+%!       if (apply_symmetry_bound_cond)
+%!         load_case_dof.locked_dof(:, :) = false;
+%!         for i=1:numel(elem_type_surf)
+%!           if (grp_idx_clamp(i))
+%!             load_case_dof.locked_dof(getfield(mesh.groups, elem_type_surf{i})(grp_idx_clamp(i)).nodes, 1) = true;
+%!           endif
+%!           if (grp_idx_symmetry_xz(i))
+%!             load_case_dof.locked_dof(getfield(mesh.groups, elem_type_surf{i})(grp_idx_symmetry_xz(i)).nodes, 2) = true;
+%!           endif
+%!           if (grp_idx_symmetry_xy(i))
+%!             load_case_dof.locked_dof(getfield(mesh.groups, elem_type_surf{i})(grp_idx_symmetry_xy(i)).nodes, 3) = true;
+%!           endif
+%!         endfor
+%!       endif
+%!       mesh.material_data = material;
+%!       mesh.materials = struct();
+%!       for i=1:numel(elem_type_solid)
+%!         if (~isfield(mesh.elements, elem_type_solid{i}))
+%!           continue;
+%!         endif
+%!         elem_mat = zeros(rows(getfield(mesh.elements, elem_type_solid{i})), 1, "int32");
+%!         elem_mat(getfield(mesh.groups, elem_type_solid{i})(grp_idx_volume(i)).elements) = 1;
+%!         mesh.materials = setfield(mesh.materials, elem_type_solid{i}, elem_mat);
+%!       endfor
+%!       opt_mbd_mesh.forces.time_function = "string, \"Time / t1 * (Time <= t1) + (1 - (Time - t1) / t1) * (Time > t1)\"";
+%!       if (px || py || pz)
+%!         opt_mbd_mesh.pressure_loads.time_function = opt_mbd_mesh.forces.time_function;
+%!         load_case.pressure = struct();
+%!         for i=1:numel(grp_idx_load_x)
+%!           if (~isfield(mesh.elements, elem_type_surf{i}))
+%!             continue;
+%!           endif
+%!           if (grp_idx_load_x(i) > 0)
+%!             elem_px = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_x(i)).elements;
+%!           else
+%!             elem_px = [];
+%!           endif
+%!           if (grp_idx_load_y(i) > 0)
+%!             elem_py = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_y(i)).elements;
+%!           else
+%!             elem_py = [];
+%!           endif
+%!           if (grp_idx_load_z(i) > 0)
+%!             elem_pz = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_z(i)).elements;
+%!           else
+%!             elem_pz = [];
+%!           endif
+%!           elem_nodes = [getfield(mesh.elements, elem_type_surf{i})(elem_px, :);
+%!                         getfield(mesh.elements, elem_type_surf{i})(elem_py, :);
+%!                         getfield(mesh.elements, elem_type_surf{i})(elem_pz, :)];
+%!           elem_press = [repmat(px, numel(elem_px), columns(elem_nodes));
+%!                         repmat(py, numel(elem_py), columns(elem_nodes));
+%!                         repmat(pz, numel(elem_pz), columns(elem_nodes))];
+%!           load_case.pressure = setfield(load_case.pressure, ...
+%!                                         elem_type_surf{i}, ...
+%!                                         struct("elements", elem_nodes, ...
+%!                                                "p", elem_press));
+%!         endfor
+%!       endif
+%!       opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
+%!       opt_mbd_mesh = mbdyn_pre_solid_write_const_laws(mesh, csl_file, opt_mbd_mesh);
+%!       opt_mbd_mesh = mbdyn_pre_solid_write_elements(mesh, load_case_dof, load_case, elem_file, opt_mbd_mesh);
+%!       idx_joint = int32(0);
+%!       if (f_rigid_body_load || f_rigid_body_clamp)
+%!         unwind_protect
+%!           [fd, msg] = fopen(elem_file, "at");
+%!           if (fd == -1)
+%!             error("failed to open file \"%s\": %s", elem_file, msg);
+%!           endif
+%!           if (f_rigid_body_load)
+%!             ++idx_joint;
+%!             fprintf(fd, "force: %d, absolute, %d,\n", ++opt_mbd_mesh.forces.number, inode_idx_rb(1));
+%!             fprintf(fd, "\tposition, reference, node, 0., 0., %.16e,\n", geometry.zF);
+%!             fputs(fd, "\tcomponent");
+%!             for i=1:3
+%!               fprintf(fd, ", mult, %s, const, %.16e", opt_mbd_mesh.forces.time_function, F(i));
+%!             endfor
+%!             fputs(fd, ";\n\n");
+%!             fprintf(fd, "couple: %d, absolute, %d,\n", ++opt_mbd_mesh.forces.number, inode_idx_rb(1));
+%!             fprintf(fd, "\tposition, reference, node, 0., 0., %.16e,\n", geometry.zF);
+%!             fputs(fd, "\tcomponent");
+%!             for i=1:3
+%!               fprintf(fd, ", mult, %s, const, %.16e", opt_mbd_mesh.forces.time_function, M(i));
+%!             endfor
+%!             fputs(fd, ";\n\n");
+%!           endif
+%!           if (f_rigid_body_clamp)
+%!             ++idx_joint;
+%!             fprintf(fd, "joint: %d, clamp, %d, node, node;\n\n", ++idx_joint, inode_idx_rb(2));
+%!           endif
+%!         unwind_protect_cleanup
+%!           if (fd ~= -1)
+%!             fclose(fd);
+%!           endif
+%!           fd = -1;
+%!         end_unwind_protect
+%!       endif
+%!       unwind_protect
+%!         [fd, msg] = fopen(set_file, "wt");
+%!         if (fd == -1)
+%!           error("failed to open file \"%s\": %s", set_file, msg);
+%!         endif
+%!         fprintf(fd, "set: integer number_of_nodes = %d;\n", opt_mbd_mesh.struct_nodes.number);
+%!         fprintf(fd, "set: integer number_of_solids = %d;\n", opt_mbd_mesh.solids.number);
+%!         fprintf(fd, "set: integer number_of_genels = %d;\n", opt_mbd_mesh.genels.number);
+%!         fprintf(fd, "set: integer number_of_forces = %d;\n", opt_mbd_mesh.forces.number);
+%!         fprintf(fd, "set: integer number_of_joints = %d;\n", idx_joint);
+%!         fprintf(fd, "set: integer number_of_pressure_loads = %d;\n", opt_mbd_mesh.pressure_loads.number);
+%!         fprintf(fd, "set: real t1 = %.16e;\n", t1);
+%!         fprintf(fd, "set: real t2 = %.16e;\n", t2);
+%!         fprintf(fd, "set: real dt = %.16e;\n", dt);
+%!         fprintf(fd, "set: real dto = %.16e;\n", dto);
+%!         for i=1:3
+%!           fprintf(fd, "set: real g%s = %.16e;\n", {"x","y","z"}{i}, g(i));
+%!         endfor
+%!         for i=1:3
+%!           fprintf(fd, "set: real W%s = %.16e;\n", {"x","y","z"}{i}, W(i));
+%!         endfor
+%!         for i=1:3
+%!           fprintf(fd, "set: real WP%s = %.16e;\n", {"x","y","z"}{i}, WP(i));
+%!         endfor
+%!         for i=1:3
+%!           fprintf(fd, "set: real XPP%s = %.16e;\n", {"x","y","z"}{i}, XPP(i));
+%!         endfor
+%!       unwind_protect_cleanup
+%!         if (fd ~= -1)
+%!           fclose(fd);
+%!         endif
+%!         fd = -1;
+%!       end_unwind_protect
+%!       unwind_protect
+%!         [fd, msg] = fopen(control_file, "wt");
+%!         if (fd == -1)
+%!           error("failed to open file \"%s\": %s", control_file, msg);
+%!         endif
+%!         switch (model)
+%!           case "static"
+%!             fprintf(fd, "model: %s;\n", model);
+%!           case "dynamic"
+%!             fprintf(fd, "# model: %s;\n", model);
+%!         endswitch
+%!         if (norm(W) || norm(XPP) || norm(WP))
+%!           fputs(fd, " rigid body kinematics: drive,\n");
+%!           fputs(fd, " angular velocity, component,\n");
+%!           fputs(fd, " mult, time, const, Wx / t1,\n");
+%!           fputs(fd, " mult, time, const, Wy / t1,\n");
+%!           fputs(fd, " mult, time, const, Wz / t1,\n");
+%!           fputs(fd, " acceleration, component,\n");
+%!           fputs(fd, " mult, time, const, XPPx / t1,\n");
+%!           fputs(fd, " mult, time, const, XPPy / t1,\n");
+%!           fputs(fd, " mult, time, const, XPPz / t1,\n");
+%!           fputs(fd, " angular acceleration, component,\n");
+%!           fputs(fd, " mult, time, const, WPx / t1,\n");
+%!           fputs(fd, " mult, time, const, WPy / t1,\n");
+%!           fputs(fd, " mult, time, const, WPz / t1;\n");
+%!         endif
+%!       unwind_protect_cleanup
+%!         if (fd ~= -1)
+%!           fclose(fd);
+%!         endif
+%!         fd = -1;
+%!       end_unwind_protect
+%!       unwind_protect
+%!         [fd, msg] = fopen(initial_value_file, "wt");
+%!         if (fd == -1)
+%!           error("failed to open file \"%s\": %s", initial_value_file, msg);
+%!         endif
+%!         fprintf(fd, "method: %s;\n", method);
+%!       unwind_protect_cleanup
+%!         if (fd ~= -1)
+%!           fclose(fd);
+%!         endif
+%!         fd = -1;
+%!       end_unwind_protect
+%!       fd = -1;
+%!       unwind_protect
+%!         [fd, msg] = fopen(input_file, "wt");
+%!         if (fd == -1)
+%!           error("failed to open file \"%s\": %s", input_file, msg);
+%!         endif
+%!         fprintf(fd, "include: \"%s\";\n", set_file);
+%!         fprintf(fd, "begin: data;\n");
+%!         fprintf(fd, "        problem: initial value; # the default\n");
+%!         fprintf(fd, "end: data;\n");
+%!         fprintf(fd, "begin: initial value;\n");
+%!         fprintf(fd, "        initial time: 0;\n");
+%!         fprintf(fd, "        final time: t1 + t2;\n");
+%!         fprintf(fd, "        time step: dt;\n");
+%!         fprintf(fd, "        time step: dt;\n");
+%!         fprintf(fd, "        max iterations: 50;\n");
+%!         fprintf(fd, "        tolerance: 1e-4, test, minmax, 1e-4, test, minmax;\n");
+%!         fprintf(fd, "        output: messages;\n");
+%!         fprintf(fd, "        output: iterations, solver condition number, stat, yes;\n");
+%!         fprintf(fd, "        nonlinear solver: nox,\n");
+%!         fprintf(fd, "                          modified, 30,\n");
+%!         fprintf(fd, "                          keep jacobian matrix,\n");
+%!         fprintf(fd, "                          use preconditioner as solver, no,\n");
+%!         fprintf(fd, "                          linesearch method, backtrack,\n");
+%!         fprintf(fd, "                          direction, newton,\n");
+%!         fprintf(fd, "                          jacobian operator, newton krylov,\n");
+%!         fprintf(fd, "                          forcing term, type 2,\n");
+%!         fprintf(fd, "                          linear solver tolerance, 1e-8,\n");
+%!         fprintf(fd, "                          inner iterations before assembly, 15,\n");
+%!         fprintf(fd, "                          linear solver max iterations, 300,\n");
+%!         fprintf(fd, "                          krylov subspace size, 300,\n");
+%!         fprintf(fd, "                          minimum step, 1e-6,\n");
+%!         fprintf(fd, "                          recovery step type, constant,\n");
+%!         fprintf(fd, "                          recovery step, 1e-6,\n");
+%!         fprintf(fd, "                          verbose, 3,\n");
+%!         fprintf(fd, "                          print convergence info, no;\n");
+%!         fprintf(fd, "        linear solver: umfpack, grad, scale, iterative, always, max iterations, 0;\n");
+%!         fprintf(fd, "        derivatives coefficient: 1e-6, auto;\n");
+%!         fprintf(fd, "        derivatives tolerance: 1e-5, 1e-5;\n");
+%!         fprintf(fd, "        derivatives max iterations: 10;\n");
+%!         fprintf(fd, "        threads: assembly, 4;\n");
+%!         fprintf(fd, "        threads: solver, 4;\n");
+%!         fprintf(fd, "        output: cpu time;\n");
+%!         fprintf(fd, "        include: \"%s\";\n", initial_value_file);
+%!         fprintf(fd, "end: initial value;\n");
+%!         fprintf(fd, "begin: control data;\n");
+%!         fprintf(fd, "       skip initial joint assembly;\n");
+%!         fprintf(fd, "       output precision: 16;\n");
+%!         fprintf(fd, "       output meter: closest next, 0., forever, dto;\n");
+%!         fprintf(fd, "       include: \"%s\";\n", control_file);
+%!         fprintf(fd, "       default output: all, solids, accelerations;\n");
+%!         fprintf(fd, "       structural nodes: number_of_nodes;\n");
+%!         fprintf(fd, "       solids: number_of_solids;\n");
+%!         fprintf(fd, "       genels: number_of_genels;\n");
+%!         fprintf(fd, "       forces: number_of_forces;\n");
+%!         fprintf(fd, "       pressure loads: number_of_pressure_loads;\n");
+%!         fprintf(fd, "       joints: number_of_joints;\n");
+%!         fprintf(fd, "       gravity;\n");
+%!         fprintf(fd, "       use automatic differentiation;\n");
+%!         fprintf(fd, "end: control data;\n");
+%!         fprintf(fd, "include: \"%s\";\n", csl_file);
+%!         fprintf(fd, "begin: nodes;\n");
+%!         fprintf(fd, "       include: \"%s\";\n", nodes_file);
+%!         fprintf(fd, "end: nodes;\n");
+%!         fprintf(fd, "begin: elements;\n");
+%!         fprintf(fd, "       include: \"%s\";\n", elem_file);
+%!         fprintf(fd, "       gravity: uniform, gx, gy, gz, string, \"Time / t1\";\n");
+%!         fprintf(fd, "end: elements;\n");
+%!       unwind_protect_cleanup
+%!         if (fd ~= -1)
+%!           fclose(fd);
+%!         endif
+%!         fd = -1;
+%!       end_unwind_protect
+%!       if (options.verbose)
+%!         shell(sprintf("cat \"%s\"", input_file));
+%!       endif
+%!       info = mbdyn_solver_run(input_file, opt_mbd);
+%!       [mesh_sol, sol] = mbdyn_post_load_output_sol(output_file);
+%!       tau_ref = [-px; -py; -pz; 0; 0; 0];
+%!       tol = 1e-11;
+%!       for i=1:numel(elem_type_solid)
+%!         if (~isfield(mesh.elements, elem_type_solid{i}))
+%!           continue;
+%!         endif
+%!         tau_res = getfield(sol.stress.tau, elem_type_solid{i});
+%!         for j=1:size(tau_res, 1)
+%!           for k=1:size(tau_res, 2)
+%!             assert(tau_res(j, k, :, end)(:), tau_ref, tol * norm(tau_ref));
+%!           endfor
+%!         endfor
+%!       endfor
+%!     endfor
+%!   endfor
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (~isempty(filename))
