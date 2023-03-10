@@ -3496,7 +3496,7 @@ endfunction
 %!   b = 40e-3 / SI_unit_meter;
 %!   c = 10e-3 / SI_unit_meter;
 %!   d = 0e-3 / SI_unit_meter;
-%!   h = c;
+%!   h = 2 * c;
 %!   options.interactive = false;
 %!   options.plot = true;
 %!   options.verbose = false;
@@ -4437,6 +4437,8 @@ endfunction
 %!   mat_types = {"linear elastic generic", "neo hookean", "bilinear isotropic hardening"};
 %!   f_transfinite_mesh = [true, false];
 %!   boundary_cond = {"symmetry", "three point"};
+%!   load_type = {"traction", "pressure"};
+%!   for idx_load_type=1:numel(load_type)
 %!   for idx_boundary_cond=1:numel(boundary_cond)
 %!     for idx_transfinite=1:numel(f_transfinite_mesh)
 %!       for idx_mat_type=1:numel(mat_types)
@@ -4573,9 +4575,12 @@ endfunction
 %!             endswitch
 %!             fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
 %!             fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[4]};\n");
-%!             fputs(fd, "Physical Surface(\"load-x\",3) = {tmp[2],tmp[4]};\n");
-%!             fputs(fd, "Physical Surface(\"load-y\",6) = {tmp[5],tmp[3]};\n");
-%!             fputs(fd, "Physical Surface(\"load-z\",7) = {tmp[0],6};\n");
+%!             fputs(fd, "Physical Surface(\"load+x\",3) = {tmp[2]};\n");
+%!             fputs(fd, "Physical Surface(\"load+y\",6) = {tmp[5]};\n");
+%!             fputs(fd, "Physical Surface(\"load+z\",7) = {tmp[0]};\n");
+%!             fputs(fd, "Physical Surface(\"load-x\",8) = {tmp[4]};\n");
+%!             fputs(fd, "Physical Surface(\"load-y\",9) = {tmp[3]};\n");
+%!             fputs(fd, "Physical Surface(\"load-z\",10) = {6};\n");
 %!             fputs(fd, "Physical Surface(\"symmetry-xy\",4) = {6};\n");
 %!             fputs(fd, "Physical Surface(\"symmetry-xz\",5) = {tmp[3]};\n");
 %!           unwind_protect_cleanup
@@ -4608,7 +4613,8 @@ endfunction
 %!             endif
 %!             grp_idx_volume(i) = idx;
 %!           endfor
-%!           grp_idx_load_x = grp_idx_load_y = grp_idx_load_z = grp_idx_clamp = grp_idx_symmetry_xy = grp_idx_symmetry_xz = zeros(1, numel(elem_type_surf), "int32");
+%!           grp_idx_load_px = grp_idx_load_py = grp_idx_load_pz = grp_idx_clamp = grp_idx_symmetry_xy = grp_idx_symmetry_xz = zeros(1, numel(elem_type_surf), "int32");
+%!           grp_idx_load_mx = grp_idx_load_my = grp_idx_load_mz = zeros(1, numel(elem_type_surf), "int32");
 %!           for i=1:numel(elem_type_surf)
 %!             if (~isfield(mesh.groups, elem_type_surf{i}))
 %!               continue;
@@ -4619,7 +4625,7 @@ endfunction
 %!             endif
 %!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 3);
 %!             if (~isempty(idx))
-%!               grp_idx_load_x(i) = idx;
+%!               grp_idx_load_px(i) = idx;
 %!             endif
 %!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 4);
 %!             if (~isempty(idx))
@@ -4631,19 +4637,31 @@ endfunction
 %!             endif
 %!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 6);
 %!             if (~isempty(idx))
-%!               grp_idx_load_y(i) = idx;
+%!               grp_idx_load_py(i) = idx;
 %!             endif
 %!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 7);
 %!             if (~isempty(idx))
-%!               grp_idx_load_z(i) = idx;
+%!               grp_idx_load_pz(i) = idx;
+%!             endif
+%!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 8);
+%!             if (~isempty(idx))
+%!               grp_idx_load_mx(i) = idx;
+%!             endif
+%!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 9);
+%!             if (~isempty(idx))
+%!               grp_idx_load_my(i) = idx;
+%!             endif
+%!             idx = find([getfield(mesh.groups, elem_type_surf{i}).id] == 10);
+%!             if (~isempty(idx))
+%!               grp_idx_load_mz(i) = idx;
 %!             endif
 %!           endfor
 %!           if (~f_rigid_body_load)
 %!             if (norm(F) > 0 || norm(M) > 0)
 %!               for i=1:numel(elem_type_surf)
-%!                 if (grp_idx_load_x(i) > 0)
+%!                 if (grp_idx_load_px(i) > 0)
 %!                   [Fpress, grp_idx_press, weight_press] = fem_pre_mesh_nodal_pressure_load(mesh, 3, elem_type_surf{i});
-%!                   mesh_group_i = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_x(i));
+%!                   mesh_group_i = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_px(i));
 %!                   load_case.loaded_nodes = mesh_group_i.nodes(:);
 %!                   load_case.loads = zeros(numel(load_case.loaded_nodes), 3);
 %!                   for j=1:3
@@ -4729,35 +4747,73 @@ endfunction
 %!           if (px || py || pz)
 %!             opt_mbd_mesh.pressure_loads.time_function = opt_mbd_mesh.forces.time_function;
 %!             load_case.pressure = struct();
-%!             for i=1:numel(grp_idx_load_x)
+%!             load_case.traction = struct();
+%!             for i=1:numel(grp_idx_load_px)
 %!               if (~isfield(mesh.elements, elem_type_surf{i}))
 %!                 continue;
 %!               endif
-%!               if (grp_idx_load_x(i) > 0)
-%!                 elem_px = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_x(i)).elements;
+%!               if (grp_idx_load_px(i) > 0)
+%!                 elem_px = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_px(i)).elements;
 %!               else
 %!                 elem_px = [];
 %!               endif
-%!               if (grp_idx_load_y(i) > 0)
-%!                 elem_py = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_y(i)).elements;
+%!               if (grp_idx_load_py(i) > 0)
+%!                 elem_py = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_py(i)).elements;
 %!               else
 %!                 elem_py = [];
 %!               endif
-%!               if (grp_idx_load_z(i) > 0)
-%!                 elem_pz = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_z(i)).elements;
+%!               if (grp_idx_load_pz(i) > 0)
+%!                 elem_pz = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_pz(i)).elements;
 %!               else
 %!                 elem_pz = [];
 %!               endif
+%!               if (grp_idx_load_mx(i) > 0)
+%!                 elem_mx = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_mx(i)).elements;
+%!               else
+%!                 elem_mx = [];
+%!               endif
+%!               if (grp_idx_load_my(i) > 0)
+%!                 elem_my = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_my(i)).elements;
+%!               else
+%!                 elem_my = [];
+%!               endif
+%!               if (grp_idx_load_mz(i) > 0)
+%!                 elem_mz = getfield(mesh.groups, elem_type_surf{i})(grp_idx_load_mz(i)).elements;
+%!               else
+%!                 elem_mz = [];
+%!               endif
 %!               elem_nodes = [getfield(mesh.elements, elem_type_surf{i})(elem_px, :);
 %!                             getfield(mesh.elements, elem_type_surf{i})(elem_py, :);
-%!                             getfield(mesh.elements, elem_type_surf{i})(elem_pz, :)];
-%!               elem_press = [repmat(px, numel(elem_px), columns(elem_nodes));
-%!                             repmat(py, numel(elem_py), columns(elem_nodes));
-%!                             repmat(pz, numel(elem_pz), columns(elem_nodes))];
-%!               load_case.pressure = setfield(load_case.pressure, ...
-%!                                             elem_type_surf{i}, ...
-%!                                             struct("elements", elem_nodes, ...
-%!                                                    "p", elem_press));
+%!                             getfield(mesh.elements, elem_type_surf{i})(elem_pz, :);
+%!                             getfield(mesh.elements, elem_type_surf{i})(elem_mx, :);
+%!                             getfield(mesh.elements, elem_type_surf{i})(elem_my, :);
+%!                             getfield(mesh.elements, elem_type_surf{i})(elem_mz, :)];
+%!               switch (load_type{idx_load_type})
+%!               case "pressure"
+%!                 elem_press = [repmat(px, numel(elem_px), columns(elem_nodes));
+%!                               repmat(py, numel(elem_py), columns(elem_nodes));
+%!                               repmat(pz, numel(elem_pz), columns(elem_nodes));
+%!                               repmat(px, numel(elem_mx), columns(elem_nodes));
+%!                               repmat(py, numel(elem_my), columns(elem_nodes));
+%!                               repmat(pz, numel(elem_mz), columns(elem_nodes))];
+%!                 load_case.pressure = setfield(load_case.pressure, ...
+%!                                               elem_type_surf{i}, ...
+%!                                               struct("elements", elem_nodes, ...
+%!                                                      "p", elem_press));
+%!               case "traction"
+%!                 elem_trac = zeros(rows(elem_nodes), columns(elem_nodes), 3);
+%!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 1) = -px;
+%!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 2) = -py;
+%!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 3) = -pz;
+%!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 1) =  px;
+%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 2) =  py;
+%!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 3) =  pz;
+%!                 ioffset += numel(elem_mz);
+%!                 load_case.traction = setfield(load_case.traction, ...
+%!                                               elem_type_surf{i}, ...
+%!                                               struct("elements", elem_nodes, ...
+%!                                                      "f", elem_trac));
+%!               endswitch
 %!             endfor
 %!           endif
 %!           opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
@@ -4809,6 +4865,7 @@ endfunction
 %!             fprintf(fd, "set: integer number_of_forces = %d;\n", opt_mbd_mesh.forces.number);
 %!             fprintf(fd, "set: integer number_of_joints = %d;\n", idx_joint);
 %!             fprintf(fd, "set: integer number_of_pressure_loads = %d;\n", opt_mbd_mesh.pressure_loads.number);
+%!             fprintf(fd, "set: integer number_of_traction_loads = %d;\n", opt_mbd_mesh.traction_loads.number);
 %!             fprintf(fd, "set: real t1 = %.16e;\n", t1);
 %!             fprintf(fd, "set: real t2 = %.16e;\n", t2);
 %!             fprintf(fd, "set: real dt = %.16e;\n", dt);
@@ -4931,6 +4988,7 @@ endfunction
 %!             fprintf(fd, "       genels: number_of_genels;\n");
 %!             fprintf(fd, "       forces: number_of_forces;\n");
 %!             fprintf(fd, "       pressure loads: number_of_pressure_loads;\n");
+%!             fprintf(fd, "       traction loads: number_of_traction_loads;\n");
 %!             fprintf(fd, "       joints: number_of_joints;\n");
 %!             fprintf(fd, "       gravity;\n");
 %!             fprintf(fd, "       use automatic differentiation;\n");
@@ -4950,7 +5008,10 @@ endfunction
 %!             fd = -1;
 %!           end_unwind_protect
 %!           if (options.verbose)
-%!             shell(sprintf("cat \"%s\"", input_file));
+%!             shell(sprintf("cat \"%s\" | nl", input_file));
+%!             shell(sprintf("cat \"%s\" | nl", nodes_file));
+%!             shell(sprintf("cat \"%s\" | nl", csl_file));
+%!             shell(sprintf("cat \"%s\" | nl", elem_file));
 %!           endif
 %!           info = mbdyn_solver_run(input_file, opt_mbd);
 %!           [mesh_sol, sol] = mbdyn_post_load_output_sol(output_file);
@@ -4976,6 +5037,7 @@ endfunction
 %!         endfor
 %!       endfor
 %!     endfor
+%!   endfor
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (~isempty(filename))
