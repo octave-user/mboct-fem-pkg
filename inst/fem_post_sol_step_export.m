@@ -83,7 +83,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                    "van Mises stress", "discontinuous strain", "continuous strain", ...
                    "particle velocity vector", "particle velocity normal"};
     stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm", "v", "vn"};
-    elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h", "tet20", "iso20r"};
+    elem_stress = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h", "tet20", "iso20r", "quad8r"};
     stress_comp = int32([9, 9, 1, 9, 9, 3, 1]);
 
     for n=1:numel(field_type)
@@ -116,6 +116,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                     idxnode = int32([1:10]);
                   case "quad8"
                     idxnode = int32([1:8]);
+                  case "quad8r"
+                    idxnode = int32([3,4,1,2,7,8,5,6]);
                   case "iso8"
                     idxnode = int32([5:8, 1:4]);
                   case "iso20"

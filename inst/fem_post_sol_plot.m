@@ -60,7 +60,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
   endif
 
   if (~isfield(options, "elem_types"))
-    options.elem_types = {"iso8", "iso20", "tet10", "rbe3", "tria6", "iso4", "quad8", "tria3", "tria6h"};
+    options.elem_types = {"iso8", "iso20", "tet10", "rbe3", "tria6", "iso4", "quad8", "tria3", "tria6h", "quad8r"};
   endif
 
   if (~isfield(options, "elem_groups"))
@@ -89,7 +89,7 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
         inumfaces += 36 * rows(elements);	
       case "iso4"
         inumfaces += 2 * rows(elements);
-      case "quad8"
+      case {"quad8", "quad8r"}
 	inumfaces += 6 * rows(elements);
       case {"tet10", "tet10h"}
         inumfaces += 16 * rows(elements);
@@ -179,6 +179,13 @@ function fem_post_sol_plot(mesh, sol, scale, idx_sol, options)
 		 4, 8, 7;
 		 5, 6, 7;
 		 5, 7, 8];
+      case "quad8r"
+	faces = [1, 5, 8;
+		 2, 6, 5;
+		 3, 7, 6;
+		 4, 8, 7;
+		 5, 6, 7;
+		 5, 7, 8]([3,4,1,2,7,8,5,6], :);
       case {"tet10", "tet10h"}
         faces = [1, 5, 8; ## 1
                  5, 2, 8;
