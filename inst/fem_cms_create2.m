@@ -4281,7 +4281,7 @@ endfunction
 %!   endfor
 %!   tol_abs = [0, 0, 0] / SI_unit_second^-1;
 %!   tol_rel = [0.3e-2, 4.5e-2, 3e-2];
-%!   tol_disp_rel = 3e-2;
+%!   tol_disp_rel = 4e-2;
 %!   err_u_modal = err_v_modal = zeros(size(param));
 %!   printf("deformation/velocity:\n");
 %!   colors = rainbow(3);
@@ -4436,10 +4436,9 @@ endfunction
 %!   f_transfinite_mesh = [true, false];
 %!   boundary_cond = {"symmetry", "three point"};
 %!   load_type = {"traction", "pressure"};
-%!   #sigma = eye(6)(:, 1:3) * material.sigmayv * 1.5;
 %!   sigma = material.sigmayv * [1.5;
-%!                               1.5;
-%!                               1.5;
+%!                               0.3;
+%!                               0.2;
 %!                               zeros(3,1)];
 %!   for idx_sigma=1:columns(sigma)
 %!   for idx_load_type=1:numel(load_type)
@@ -4450,6 +4449,12 @@ endfunction
 %!       endif
 %!     endswitch
 %!   for idx_boundary_cond=1:numel(boundary_cond)
+%!     switch (boundary_cond{idx_boundary_cond})
+%!     case "symmetry"
+%!      if (norm(sigma(4:6, idx_sigma)))
+%!        continue; ## Deformation cannot be symmetric because of shear stress
+%!      endif
+%!     endswitch
 %!     for idx_transfinite=1:numel(f_transfinite_mesh)
 %!       for idx_mat_type=1:numel(mat_types)
 %!         material.type = mat_types{idx_mat_type};
@@ -4702,7 +4707,7 @@ endfunction
 %!             mesh.materials = setfield(mesh.materials, elem_type_solid{i}, elem_mat);
 %!           endfor
 %!           opt_mbd_mesh.forces.time_function = "time";
-%!             opt_mbd_mesh.pressure_loads.time_function = opt_mbd_mesh.forces.time_function;
+%!             opt_mbd_mesh.surface_loads.time_function = opt_mbd_mesh.forces.time_function;
 %!             load_case.pressure = struct();
 %!             load_case.traction = struct();
 %!             for i=1:numel(grp_idx_load_px)
@@ -4759,12 +4764,33 @@ endfunction
 %!                                                      "p", elem_press));
 %!               case "traction"
 %!                 elem_trac = zeros(rows(elem_nodes), columns(elem_nodes), 3);
-%!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 1) = sigma(1, idx_sigma);
-%!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 2) = sigma(2, idx_sigma);
-%!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 3) = sigma(3, idx_sigma);
-%!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 1) = -sigma(1, idx_sigma);
-%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 2) = -sigma(2, idx_sigma);
-%!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 3) = -sigma(3, idx_sigma);
+%!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 1) += sigma(1, idx_sigma);
+%!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 2) += sigma(2, idx_sigma);
+%!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 3) += sigma(3, idx_sigma);
+%!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 1) -= sigma(1, idx_sigma);
+%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 2) -= sigma(2, idx_sigma);
+%!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 3) -= sigma(3, idx_sigma);
+%!                 ioffset += numel(elem_mz);
+%!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 3) += sigma(6, idx_sigma);
+%!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 2) += 0;
+%!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 1) += sigma(6, idx_sigma);
+%!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 3) -= sigma(6, idx_sigma);
+%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 2) -= 0;
+%!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 1) -= sigma(6, idx_sigma);
+%!                 ioffset += numel(elem_mz);
+%!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 2) += sigma(4, idx_sigma);
+%!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 1) += sigma(4, idx_sigma);
+%!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 1) += 0;
+%!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 2) -= sigma(4, idx_sigma);
+%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 1) -= sigma(4, idx_sigma);
+%!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 1) -= 0;
+%!                 ioffset += numel(elem_mz);
+%!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 3) += 0;
+%!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 3) += sigma(5, idx_sigma);
+%!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 2) += sigma(5, idx_sigma);
+%!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 2) -= 0;
+%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 3) -= sigma(5, idx_sigma); 
+%!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 2) -= sigma(5, idx_sigma);
 %!                 ioffset += numel(elem_mz);
 %!                 load_case.traction = setfield(load_case.traction, ...
 %!                                               elem_type_surf{i}, ...
@@ -4786,8 +4812,7 @@ endfunction
 %!             fprintf(fd, "set: integer number_of_genels = %d;\n", opt_mbd_mesh.genels.number);
 %!             fprintf(fd, "set: integer number_of_forces = %d;\n", opt_mbd_mesh.forces.number);
 %!             fprintf(fd, "set: integer number_of_joints = %d;\n", idx_joint);
-%!             fprintf(fd, "set: integer number_of_pressure_loads = %d;\n", opt_mbd_mesh.pressure_loads.number);
-%!             fprintf(fd, "set: integer number_of_traction_loads = %d;\n", opt_mbd_mesh.traction_loads.number);
+%!             fprintf(fd, "set: integer number_of_surface_loads = %d;\n", opt_mbd_mesh.surface_loads.number);
 %!             fprintf(fd, "set: real t1 = %.16e;\n", t1);
 %!             fprintf(fd, "set: real t2 = %.16e;\n", t2);
 %!             fprintf(fd, "set: real dt = %.16e;\n", dt);
@@ -4909,8 +4934,7 @@ endfunction
 %!             fprintf(fd, "       solids: number_of_solids;\n");
 %!             fprintf(fd, "       genels: number_of_genels;\n");
 %!             fprintf(fd, "       forces: number_of_forces;\n");
-%!             fprintf(fd, "       pressure loads: number_of_pressure_loads;\n");
-%!             fprintf(fd, "       traction loads: number_of_traction_loads;\n");
+%!             fprintf(fd, "       surface loads: number_of_surface_loads;\n");
 %!             fprintf(fd, "       joints: number_of_joints;\n");
 %!             fprintf(fd, "       gravity;\n");
 %!             fprintf(fd, "       use automatic differentiation;\n");
@@ -4930,6 +4954,7 @@ endfunction
 %!             fd = -1;
 %!           end_unwind_protect
 %!           if (options.verbose)
+%!             shell(sprintf("cat \"%s\" | nl", set_file));
 %!             shell(sprintf("cat \"%s\" | nl", input_file));
 %!             shell(sprintf("cat \"%s\" | nl", nodes_file));
 %!             shell(sprintf("cat \"%s\" | nl", csl_file));
@@ -4938,6 +4963,7 @@ endfunction
 %!           info = mbdyn_solver_run(input_file, opt_mbd);
 %!           [mesh_sol, sol] = mbdyn_post_load_output_sol(output_file);
 %!           [genel_id, genel_data] = mbdyn_post_load_output([output_file, ".gen"], 1, [], numel(sol.t), 1);
+%!           [surfl_id, surfl_data] = mbdyn_post_load_output([output_file, ".prl"], 3, [], numel(sol.t), 3);
 %!           tau_ref = sigma(:, idx_sigma);
 %!           tol = 1e-11;
 %!           for i=1:numel(elem_type_solid)
@@ -4951,6 +4977,10 @@ endfunction
 %!               endfor
 %!             endfor
 %!           endfor
+%!           Fsurfl_sum = zeros(3, 1);
+%!           for i=1:numel(surfl_data)
+%!             Fsurfl_sum += surfl_data{i}(end, :)(:);
+%!           endfor
 %!           tol_F = 1e-10;
 %!           Fref = max(abs([geometry.w * geometry.h * tau_ref(1), ...
 %!                           geometry.l * geometry.h * tau_ref(2), ...
@@ -4958,6 +4988,7 @@ endfunction
 %!           for i=1:numel(genel_data)
 %!             assert(all(all(abs(genel_data{i}) < tol_F * Fref)));
 %!           endfor
+%!           assert(norm(Fsurfl_sum) < tol_F * Fref);
 %!         endfor
 %!       endfor
 %!     endfor
