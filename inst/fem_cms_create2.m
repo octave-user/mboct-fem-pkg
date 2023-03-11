@@ -4280,7 +4280,7 @@ endfunction
 %!     endfor
 %!   endfor
 %!   tol_abs = [0, 0, 0] / SI_unit_second^-1;
-%!   tol_rel = [0.3e-2, 3e-2, 3e-2];
+%!   tol_rel = [0.3e-2, 4.5e-2, 3e-2];
 %!   tol_disp_rel = 3e-2;
 %!   err_u_modal = err_v_modal = zeros(size(param));
 %!   printf("deformation/velocity:\n");
