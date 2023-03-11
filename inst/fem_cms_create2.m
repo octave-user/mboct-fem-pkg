@@ -4420,8 +4420,7 @@ endfunction
 %!   geometry.a = 0;
 %!   t1 = 1;
 %!   t2 = 0;
-%!   dt = t1 / 100;
-%!   dto = t1 / 50;
+%!   dt = t1 / 20;
 %!   model = "static";
 %!   method = "implicit euler";
 %!   options.verbose = false;
@@ -4435,7 +4434,7 @@ endfunction
 %!   mat_types = {"linear elastic generic", "neo hookean", "bilinear isotropic hardening"};
 %!   f_transfinite_mesh = [true, false];
 %!   boundary_cond = {"symmetry", "three point"};
-%!   load_type = {"traction", "pressure"};
+%!   load_type = {"traction_abs", "traction", "pressure"};
 %!   sigma = material.sigmayv * [1.5;
 %!                               0.3;
 %!                               0.2;
@@ -4710,6 +4709,7 @@ endfunction
 %!             opt_mbd_mesh.surface_loads.time_function = opt_mbd_mesh.forces.time_function;
 %!             load_case.pressure = struct();
 %!             load_case.traction = struct();
+%!             load_case.traction_abs = struct();
 %!             for i=1:numel(grp_idx_load_px)
 %!               if (~isfield(mesh.elements, elem_type_surf{i}))
 %!                 continue;
@@ -4762,7 +4762,7 @@ endfunction
 %!                                               elem_type_surf{i}, ...
 %!                                               struct("elements", elem_nodes, ...
 %!                                                      "p", elem_press));
-%!               case "traction"
+%!               case {"traction", "traction_abs"}
 %!                 elem_trac = zeros(rows(elem_nodes), columns(elem_nodes), 3);
 %!                 ioffset = 0;               elem_trac(ioffset + (1:numel(elem_px)), :, 1) += sigma(1, idx_sigma);
 %!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 2) += sigma(2, idx_sigma);
@@ -4792,10 +4792,12 @@ endfunction
 %!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 3) -= sigma(5, idx_sigma); 
 %!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 2) -= sigma(5, idx_sigma);
 %!                 ioffset += numel(elem_mz);
-%!                 load_case.traction = setfield(load_case.traction, ...
+%!                 load_case = setfield(load_case, ...
+%!                                      load_type{idx_load_type}, ...
+%!                                      setfield(getfield(load_case, load_type{idx_load_type}), ...
 %!                                               elem_type_surf{i}, ...
 %!                                               struct("elements", elem_nodes, ...
-%!                                                      "f", elem_trac));
+%!                                                      "f", elem_trac)));
 %!               endswitch
 %!             endfor
 %!           opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
@@ -4816,7 +4818,6 @@ endfunction
 %!             fprintf(fd, "set: real t1 = %.16e;\n", t1);
 %!             fprintf(fd, "set: real t2 = %.16e;\n", t2);
 %!             fprintf(fd, "set: real dt = %.16e;\n", dt);
-%!             fprintf(fd, "set: real dto = %.16e;\n", dto);
 %!             for i=1:3
 %!               fprintf(fd, "set: real g%s = %.16e;\n", {"x","y","z"}{i}, g(i));
 %!             endfor
@@ -4927,7 +4928,6 @@ endfunction
 %!             fprintf(fd, "begin: control data;\n");
 %!             fprintf(fd, "       skip initial joint assembly;\n");
 %!             fprintf(fd, "       output precision: 16;\n");
-%!             fprintf(fd, "       output meter: closest next, 0., forever, dto;\n");
 %!             fprintf(fd, "       include: \"%s\";\n", control_file);
 %!             fprintf(fd, "       default output: all, solids, accelerations;\n");
 %!             fprintf(fd, "       structural nodes: number_of_nodes;\n");
