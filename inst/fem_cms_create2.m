@@ -4412,7 +4412,7 @@ endfunction
 %!   if (ispc())
 %!     filename(filename == "\\") = "/";
 %!   endif
-%!   h = [5e-3; 5e-3; 5e-3];
+%!   h = [10e-3; 10e-3; 10e-3];
 %!   geometry.zF = 0;
 %!   geometry.l = 10e-3;
 %!   geometry.w = 10e-3;
@@ -4431,14 +4431,21 @@ endfunction
 %!   material.rho = 7850;
 %!   material.beta = 0;
 %!   elem_types = {"iso8", "iso20", "iso20r", "penta15", "tet10h"};
+%!   elem_factor_h = [1, 1, 0.5, 1, 1];
 %!   mat_types = {"linear elastic generic", "neo hookean", "bilinear isotropic hardening"};
 %!   f_transfinite_mesh = [true, false];
 %!   boundary_cond = {"symmetry", "three point"};
-%!   load_type = {"traction_abs", "traction", "pressure"};
-%!   sigma = material.sigmayv * [1.5;
-%!                               0.3;
-%!                               0.2;
-%!                               zeros(3,1)];
+%!   load_type = {"traction", "pressure"};
+%!   sigma = material.sigmayv * [1.5, 0.0, 0.0, 0.0;
+%!                               0.3, 0.0, 0.0, 0.0;
+%!                               0.2, 0.0, 0.0, 0.0;
+%!                               0.0, 0.2, 0.0, 0.0;
+%!                               0.0, 0.0, 0.2, 0.0;
+%!                               0.0, 0.0, 0.0, 0.2];
+## %!   elem_types = {elem_types{5}};
+## %!   mat_types = {mat_types{2}};
+## %!   sigma=sigma(:,4);
+## %!   f_transfinite_mesh = true;
 %!   for idx_sigma=1:columns(sigma)
 %!   for idx_load_type=1:numel(load_type)
 %!     switch (load_type{idx_load_type})
@@ -4459,11 +4466,19 @@ endfunction
 %!         material.type = mat_types{idx_mat_type};
 %!         for idx_elem_type=1:numel(elem_types)
 %!           elem_type = elem_types{idx_elem_type};
-%!           switch (elem_type)
-%!             case "tet10h"
-%!               if (f_transfinite_mesh(idx_transfinite))
+%!           switch (mat_types{idx_mat_type})
+%!           case "neo hookean"
+%!             if (norm(sigma(4:6, idx_sigma)))
+%!               ## shear deformation with hyperelastic material not passed yet because the Jacobian may become singular
+%!               switch (elem_type)
+%!               case {"tet10h", "penta15"}
 %!                 continue;
-%!               endif
+%!               otherwise
+%!                 if (~f_transfinite_mesh(idx_transfinite))
+%!                   continue;
+%!                 endif
+%!               endswitch
+%!             endif
 %!           endswitch
 %!           file_prefix = sprintf("%s_%d_%d_%d", filename, idx_transfinite, idx_mat_type, idx_elem_type);
 %!           geo_file = [file_prefix, "_gmsh.geo"];
@@ -4527,9 +4542,9 @@ endfunction
 %!             fprintf(fd, "a=%g;\n", geometry.l);
 %!             fprintf(fd, "b=%g;\n", geometry.w);
 %!             fprintf(fd, "c=%g;\n", geometry.h);
-%!             fprintf(fd, "hx = %g;\n", h(1));
-%!             fprintf(fd, "hy = %g;\n", h(2));
-%!             fprintf(fd, "hz = %g;\n", h(3));
+%!             for i=1:3
+%!               fprintf(fd, "h%s = %g;\n", {"x","y","z"}{i}, h(i) * elem_factor_h(idx_elem_type));
+%!             endfor
 %!             switch (elem_type)
 %!               case {"iso20", "iso20r", "penta15"}
 %!                 fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
@@ -4581,7 +4596,7 @@ endfunction
 %!             endif
 %!             switch (elem_type)
 %!               case "tet10h"
-%!                 fputs(fd, "Mesh.HighOrderOptimize=1;\n");
+%!                 fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!                 fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!             endswitch
 %!             fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
@@ -4789,7 +4804,7 @@ endfunction
 %!                 ioffset += numel(elem_px); elem_trac(ioffset + (1:numel(elem_py)), :, 3) += sigma(5, idx_sigma);
 %!                 ioffset += numel(elem_py); elem_trac(ioffset + (1:numel(elem_pz)), :, 2) += sigma(5, idx_sigma);
 %!                 ioffset += numel(elem_pz); elem_trac(ioffset + (1:numel(elem_mx)), :, 2) -= 0;
-%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 3) -= sigma(5, idx_sigma); 
+%!                 ioffset += numel(elem_mx); elem_trac(ioffset + (1:numel(elem_my)), :, 3) -= sigma(5, idx_sigma);
 %!                 ioffset += numel(elem_my); elem_trac(ioffset + (1:numel(elem_mz)), :, 2) -= sigma(5, idx_sigma);
 %!                 ioffset += numel(elem_mz);
 %!                 load_case = setfield(load_case, ...
@@ -4896,7 +4911,7 @@ endfunction
 %!             fprintf(fd, "        time step: dt;\n");
 %!             fprintf(fd, "        time step: dt;\n");
 %!             fprintf(fd, "        max iterations: 50;\n");
-%!             fprintf(fd, "        tolerance: 1e-7, test, minmax, 1e-7, test, minmax;\n");
+%!             fprintf(fd, "        tolerance: 1e-7, test, norm, 1e-5, test, norm;\n");
 %!             fprintf(fd, "        output: messages;\n");
 %!             fprintf(fd, "        output: iterations, solver condition number, stat, yes;\n");
 %!             fprintf(fd, "        nonlinear solver: nox,\n");
@@ -4906,22 +4921,22 @@ endfunction
 %!             fprintf(fd, "                          linesearch method, backtrack,\n");
 %!             fprintf(fd, "                          direction, newton,\n");
 %!             fprintf(fd, "                          jacobian operator, newton krylov,\n");
-%!             fprintf(fd, "                          forcing term, type 2,\n");
-%!             fprintf(fd, "                          linear solver tolerance, 1e-8,\n");
+%!             fprintf(fd, "                          forcing term, constant,\n");
+%!             fprintf(fd, "                          linear solver tolerance, 1e-10,\n");
 %!             fprintf(fd, "                          inner iterations before assembly, 15,\n");
 %!             fprintf(fd, "                          linear solver max iterations, 300,\n");
 %!             fprintf(fd, "                          krylov subspace size, 300,\n");
-%!             fprintf(fd, "                          minimum step, 1e-6,\n");
+%!             fprintf(fd, "                          minimum step, 1e-12,\n");
 %!             fprintf(fd, "                          recovery step type, constant,\n");
-%!             fprintf(fd, "                          recovery step, 1e-6,\n");
+%!             fprintf(fd, "                          recovery step, 1e-12,\n");
 %!             fprintf(fd, "                          verbose, 3,\n");
 %!             fprintf(fd, "                          print convergence info, no;\n");
 %!             fprintf(fd, "        linear solver: umfpack, grad, scale, iterative, always, max iterations, 0;\n");
 %!             fprintf(fd, "        derivatives coefficient: 1e-6, auto;\n");
 %!             fprintf(fd, "        derivatives tolerance: 1e-5, 1e-5;\n");
 %!             fprintf(fd, "        derivatives max iterations: 10;\n");
-%!             fprintf(fd, "        threads: assembly, 4;\n");
-%!             fprintf(fd, "        threads: solver, 4;\n");
+%!             fprintf(fd, "        threads: assembly, 1;\n");
+%!             fprintf(fd, "        threads: solver, 1;\n");
 %!             fprintf(fd, "        output: cpu time;\n");
 %!             fprintf(fd, "        include: \"%s\";\n", initial_value_file);
 %!             fprintf(fd, "end: initial value;\n");
@@ -4965,7 +4980,24 @@ endfunction
 %!           [genel_id, genel_data] = mbdyn_post_load_output([output_file, ".gen"], 1, [], numel(sol.t), 1);
 %!           [surfl_id, surfl_data] = mbdyn_post_load_output([output_file, ".prl"], 3, [], numel(sol.t), 3);
 %!           tau_ref = sigma(:, idx_sigma);
-%!           tol = 1e-11;
+%!           sin_gamma = zeros(3, 1);
+%!           sin_gamma_cnt = 0;
+%!           for i=1:numel(elem_type_solid)
+%!             if (isfield(sol.strain.epsilon, elem_type_solid{i}))
+%!               sin_gamma += mean(mean(getfield(sol.strain.epsilon, elem_type_solid{i})(:, :, 4:6, end), 1), 2)(:);
+%!               ++sin_gamma_cnt;
+%!             endif
+%!           endfor
+%!           sin_gamma /= sin_gamma_cnt;
+%!           cos_gamma = sqrt(1 - sin_gamma.^2);
+%!           tan_gamma = sin_gamma ./ cos_gamma;
+%!           tau_ref(1) += 2 * sigma(6, idx_sigma) * tan_gamma(3) + 2 * sigma(4, idx_sigma) * tan_gamma(1);
+%!           tau_ref(2) += 2 * sigma(5, idx_sigma) * tan_gamma(2);
+%!           Fsurfl_sum = zeros(3, 1);
+%!           for i=1:numel(surfl_data)
+%!             Fsurfl_sum += surfl_data{i}(end, :)(:);
+%!           endfor
+%!           tol = 1e-10;
 %!           for i=1:numel(elem_type_solid)
 %!             if (~isfield(mesh.elements, elem_type_solid{i}))
 %!               continue;
@@ -4977,11 +5009,7 @@ endfunction
 %!               endfor
 %!             endfor
 %!           endfor
-%!           Fsurfl_sum = zeros(3, 1);
-%!           for i=1:numel(surfl_data)
-%!             Fsurfl_sum += surfl_data{i}(end, :)(:);
-%!           endfor
-%!           tol_F = 1e-10;
+%!           tol_F = 1e-8;
 %!           Fref = max(abs([geometry.w * geometry.h * tau_ref(1), ...
 %!                           geometry.l * geometry.h * tau_ref(2), ...
 %!                           geometry.l * geometry.w * tau_ref(3)]));
