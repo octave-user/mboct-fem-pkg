@@ -4514,7 +4514,7 @@ endfunction
 %!                   elem_type_surf = {"quad8", "tria6h"};
 %!                 case "iso20r"
 %!                   mesh_order = 2;
-%!                   elem_type_solid = {"iso20r", "penta15"}
+%!                   elem_type_solid = {"iso20r", "penta15"};
 %!                   elem_type_surf = {"quad8r", "tria6h"};
 %!                 case "penta15"
 %!                   mesh_order = 2;
