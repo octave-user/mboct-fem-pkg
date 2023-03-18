@@ -4420,7 +4420,7 @@ endfunction
 %!   geometry.a = 0;
 %!   t1 = 1;
 %!   t2 = 0;
-%!   dt = t1 / 20;
+%!   dt = t1 / 50;
 %!   model = "static";
 %!   method = "implicit euler";
 %!   options.verbose = false;
@@ -4442,10 +4442,10 @@ endfunction
 %!                               0.0, 0.2, 0.0, 0.0;
 %!                               0.0, 0.0, 0.2, 0.0;
 %!                               0.0, 0.0, 0.0, 0.2];
-## %!   elem_types = {elem_types{5}};
-## %!   mat_types = {mat_types{2}};
-## %!   sigma=sigma(:,4);
-## %!   f_transfinite_mesh = true;
+%!   #elem_types = {elem_types{5}};
+%!   mat_types = {mat_types{1}};
+%!   #sigma=sigma(:,2);
+%!   f_transfinite_mesh = true;
 %!   for idx_sigma=1:columns(sigma)
 %!   for idx_load_type=1:numel(load_type)
 %!     switch (load_type{idx_load_type})
@@ -4498,10 +4498,10 @@ endfunction
 %!           opt_mbd.mbdyn_command = "mbdyn -C";
 %!           opt_mbd.f_run_mbdyn = true;
 %!           R = eye(3);
-%!           F = R * [0.;
+%!           F1 = R * [0.;
 %!                    0.;
 %!                    0];
-%!           M = R * [0;
+%!           M1 = R * [0;
 %!                    0;
 %!                    0];
 %!           W = R * [0; 0; 0];
@@ -4690,6 +4690,11 @@ endfunction
 %!           grp_idx_p1 = find((mesh.nodes(:, 1) == 0) & (mesh.nodes(:, 2) == -0.5 * geometry.w) & (mesh.nodes(:, 3) == -0.5 * geometry.h));
 %!           grp_idx_p2 = find((mesh.nodes(:, 1) == geometry.l) & (mesh.nodes(:, 2) == -0.5 * geometry.w) & (mesh.nodes(:, 3) == -0.5 * geometry.h));
 %!           grp_idx_p3 = find((mesh.nodes(:, 1) == geometry.l) & (mesh.nodes(:, 2) == 0.5 * geometry.w) & (mesh.nodes(:, 3) == -0.5 * geometry.h));
+%!           grp_idx_p4 = find((mesh.nodes(:, 1) == 0) & (mesh.nodes(:, 2) == 0.5 * geometry.w) & (mesh.nodes(:, 3) == -0.5 * geometry.h));
+%!           grp_idx_p5 = find((mesh.nodes(:, 1) == 0) & (mesh.nodes(:, 2) == -0.5 * geometry.w) & (mesh.nodes(:, 3) == 0.5 * geometry.h));
+%!           grp_idx_p6 = find((mesh.nodes(:, 1) == geometry.l) & (mesh.nodes(:, 2) == -0.5 * geometry.w) & (mesh.nodes(:, 3) == 0.5 * geometry.h));
+%!           grp_idx_p7 = find((mesh.nodes(:, 1) == geometry.l) & (mesh.nodes(:, 2) == 0.5 * geometry.w) & (mesh.nodes(:, 3) == 0.5 * geometry.h));
+%!           grp_idx_p8 = find((mesh.nodes(:, 1) == 0) & (mesh.nodes(:, 2) == 0.5 * geometry.w) & (mesh.nodes(:, 3) == 0.5 * geometry.h));
 %!           switch (boundary_cond{idx_boundary_cond})
 %!             case "symmetry"
 %!               for i=1:numel(elem_type_surf)
@@ -4706,7 +4711,7 @@ endfunction
 %!             case "three point"
 %!               load_case_dof.locked_dof(grp_idx_p1, 1:3) = true;
 %!               load_case_dof.locked_dof(grp_idx_p2, 2:3) = true;
-%!               load_case_dof.locked_dof(grp_idx_p3, 3) = true;
+%!               load_case_dof.locked_dof(grp_idx_p4, 3) = true;
 %!             otherwise
 %!               error("unkown boundary condition");
 %!           endswitch
@@ -4979,14 +4984,51 @@ endfunction
 %!           [mesh_sol, sol] = mbdyn_post_load_output_sol(output_file);
 %!           [genel_id, genel_data] = mbdyn_post_load_output([output_file, ".gen"], 1, [], numel(sol.t), 1);
 %!           [surfl_id, surfl_data] = mbdyn_post_load_output([output_file, ".prl"], 3, [], numel(sol.t), 3);
+%!           F11 = (sol.def(grp_idx_p2, 1, :)(:) - sol.def(grp_idx_p1, 1, :)(:)) ./ (mesh.nodes(grp_idx_p2, 1, :)(:) - mesh.nodes(grp_idx_p1, 1, end)(:)) + 1;
+%!           F22 = (sol.def(grp_idx_p4, 2, :)(:) - sol.def(grp_idx_p1, 2, :)(:)) ./ (mesh.nodes(grp_idx_p4, 2, :)(:) - mesh.nodes(grp_idx_p1, 2, end)(:)) + 1;
+%!           F33 = (sol.def(grp_idx_p5, 3, :)(:) - sol.def(grp_idx_p1, 3, :)(:)) ./ (mesh.nodes(grp_idx_p5, 3, :)(:) - mesh.nodes(grp_idx_p1, 3, end)(:)) + 1;
+%!           F12 = (sol.def(grp_idx_p4, 1, :)(:) - sol.def(grp_idx_p1, 1, :)(:)) ./ (mesh.nodes(grp_idx_p4, 2, :)(:) - mesh.nodes(grp_idx_p1, 2, end)(:));
+%!           F31 = (sol.def(grp_idx_p2, 3, :)(:) - sol.def(grp_idx_p1, 3, :)(:)) ./ (mesh.nodes(grp_idx_p2, 1, :)(:) - mesh.nodes(grp_idx_p1, 1, end)(:));
+%!           F32 = (sol.def(grp_idx_p4, 3, :)(:) - sol.def(grp_idx_p1, 3, :)(:)) ./ (mesh.nodes(grp_idx_p4, 2, :)(:) - mesh.nodes(grp_idx_p1, 2, end)(:));
+%!           F21 = (sol.def(grp_idx_p2, 2, :)(:) - sol.def(grp_idx_p1, 2, :)(:)) ./ (mesh.nodes(grp_idx_p2, 1, :)(:) - mesh.nodes(grp_idx_p1, 1, end)(:));
+%!           F13 = (sol.def(grp_idx_p5, 1, :)(:) - sol.def(grp_idx_p1, 1, :)(:)) ./ (mesh.nodes(grp_idx_p5, 3, :)(:) - mesh.nodes(grp_idx_p1, 3, end)(:));
+%!           F23 = (sol.def(grp_idx_p5, 2, :)(:) - sol.def(grp_idx_p1, 2, :)(:)) ./ (mesh.nodes(grp_idx_p5, 3, :)(:) - mesh.nodes(grp_idx_p1, 3, end)(:));
+%!           F = zeros(3, 3, numel(sol.t));
+%!           for i=1:numel(sol.t)
+%!             F(1, 1, :) = F11;
+%!             F(1, 2, :) = F12;
+%!             F(1, 3, :) = F13;
+%!             F(2, 1, :) = F21;
+%!             F(2, 2, :) = F22;
+%!             F(2, 3, :) = F23;
+%!             F(3, 1, :) = F31;
+%!             F(3, 2, :) = F32;
+%!             F(3, 3, :) = F33;
+%!           endfor
+%!           G = zeros(size(F));
+%!           for i=1:numel(sol.t)
+%!             G(:, :, i) = 0.5 * (F(:, :, i).' * F(:, :, i) - eye(3));
+%!           endfor
+%!           Epsilon = epsilon = zeros(6, size(G, 3));
+%!           for i=1:3
+%!             epsilon(i, :) = sqrt(1 + 2 * G(i, i, :)(:).') - 1;
+%!             Epsilon(i, :) = G(i, i, :)(:).';
+%!           endfor
+%!           epsilon(4, :) = 2 * G(1, 2, :)(:).' ./ (1 + epsilon(1, :) + epsilon(2, :));
+%!           epsilon(5, :) = 2 * G(2, 3, :)(:).' ./ (1 + epsilon(2, :) + epsilon(3, :));
+%!           epsilon(6, :) = 2 * G(3, 1, :)(:).' ./ (1 + epsilon(3, :) + epsilon(1, :));
+%!           Epsilon(4, :) = 2 * G(1, 2, :)(:).'; 
+%!           Epsilon(5, :) = 2 * G(2, 3, :)(:).';
+%!           Epsilon(6, :) = 2 * G(3, 1, :)(:).'; 
 %!           tau_ref = sigma(:, idx_sigma);
-%!           sin_gamma = zeros(3, 1);
+%!           sin_gamma = zeros(3, 1, numel(sol.t));
 %!           sin_gamma_cnt = 0;
 %!           for i=1:numel(elem_type_solid)
-%!             if (isfield(sol.strain.epsilon, elem_type_solid{i}))
-%!               sin_gamma += mean(mean(getfield(sol.strain.epsilon, elem_type_solid{i})(:, :, 4:6, end), 1), 2)(:);
-%!               ++sin_gamma_cnt;
+%!             if (~isfield(sol.strain.epsilon, elem_type_solid{i}))
+%!               continue;
 %!             endif
+%!             sin_gamma += mean(mean(getfield(sol.strain.epsilon, elem_type_solid{i})(:, :, 4:6, end), 1), 2)(:);
+%!             ++sin_gamma_cnt;
 %!           endfor
 %!           sin_gamma /= sin_gamma_cnt;
 %!           cos_gamma = sqrt(1 - sin_gamma.^2);
@@ -5017,6 +5059,46 @@ endfunction
 %!             assert(all(all(abs(genel_data{i}) < tol_F * Fref)));
 %!           endfor
 %!           assert(norm(Fsurfl_sum) < tol_F * Fref);
+%!           tol_epsilon = 1e-10;
+%!           for j=1:numel(elem_type_solid)
+%!             if (~isfield(sol.strain.epsilonm, elem_type_solid{j}))
+%!               continue;
+%!             endif
+%!             epsilon_res = getfield(sol.strain.epsilonm, elem_type_solid{j});
+%!             for i=1:numel(sol.t)
+%!               for k=1:size(epsilon_res, 1)
+%!                 for l=1:size(epsilon_res, 2)
+%!                   assert(epsilon_res(k, l, :, i)(:), epsilon(:, i), tol_epsilon);
+%!                 endfor
+%!               endfor
+%!             endfor
+%!           endfor
+%!           switch (mesh.material_data.type)
+%!           case "linear elastic generic"
+%!             C = fem_pre_mat_isotropic(mesh.material_data.E, mesh.material_data.nu);
+%!             sigma_res = C * Epsilon;
+%!           otherwise
+%!             continue;
+%!           endswitch
+%!           S_res = zeros(3, 3, numel(sol.t));
+%!           for i=1:3
+%!             S_res(i, i, :) = sigma_res(i, :);
+%!           endfor
+%!           S_res(1, 2, :) = S_res(2, 1, :) = sigma_res(4, :);
+%!           S_res(2, 3, :) = S_res(3, 2, :) = sigma_res(5, :);
+%!           S_res(3, 1, :) = S_res(1, 3, :) = sigma_res(6, :);
+%!           tau_res = zeros(3, 3, numel(sol.t));
+%!           for i=1:numel(sol.t)
+%!             tau_res(:, :, i) = F(:, :, i) * S_res(:, :, i) * F(:, :, i).' / det(F(:, :, i));
+%!           endfor
+%!           Tau_res = zeros(6, numel(sol.t));
+%!           for i=1:3
+%!             Tau_res(i, :) = tau_res(i, i, :);
+%!           endfor
+%!           Tau_res(4, :) = tau_res(1, 2, :);
+%!           Tau_res(5, :) = tau_res(2, 3, :);
+%!           Tau_res(6, :) = tau_res(3, 1, :);
+%!           assert(Tau_res(:, end), tau_ref, tol * norm(tau_ref));
 %!         endfor
 %!       endfor
 %!     endfor
