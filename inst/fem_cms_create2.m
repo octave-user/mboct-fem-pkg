@@ -4985,7 +4985,7 @@ endfunction
 %!               Epsilon(5, :) = 2 * G(2, 3, :)(:).';
 %!               Epsilon(6, :) = 2 * G(3, 1, :)(:).';
 %!               tau_ref = sigma(:, idx_sigma);
-%!               sin_gamma = zeros(3, 1, numel(sol.t));
+%!               sin_gamma = zeros(3, 1);
 %!               sin_gamma_cnt = 0;
 %!               for i=1:numel(elem_type_solid)
 %!                 if (~isfield(sol.strain.epsilon, elem_type_solid{i}))
