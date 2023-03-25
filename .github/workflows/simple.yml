@@ -130,7 +130,8 @@ jobs:
                      "libraries/libmbwrap/wraptest -m lapack" \
                      "libraries/libmbwrap/wraptest -m qr" \
                      "libraries/libmbwrap/wraptest -m spqr" \
-                     "libraries/liby12/y12test" ; do
+                     "libraries/liby12/y12test" \
+                     "mbdyn/struct/solidshapetest" ; do
                printf "running command: \"%s\"\n" "${cmd}"
                ${cmd}
                rc=$?
