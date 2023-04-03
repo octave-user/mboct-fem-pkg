@@ -1618,7 +1618,7 @@ endfunction
 %! param.l1 = 120e-3 / SI_unit_meter;
 %! param.l2 = 100e-3 / SI_unit_meter;
 %! param.l3 = 15e-3 / SI_unit_meter;
-%! param.h = 5e-3 / SI_unit_meter;
+%! param.h = 10e-3 / SI_unit_meter;
 %! param.h3 = 10e-3 / SI_unit_meter;
 %! OMEGA = 2 * pi * [0, 50,   0,   0;
 %!                   0,  0, 150,   0;
@@ -1630,6 +1630,7 @@ endfunction
 %! OMEGA = OMEGA(:, idx);
 %! OMEGADOT = OMEGADOT(:, idx);
 %! options.post_proc_modes = false;
+%! options.verbose = false;
 %! opt_solver.pre_scaling = true;
 %! opt_solver.refine_max_iter = int32(100);
 %! opt_solver.solver = "pardiso";
@@ -1637,7 +1638,6 @@ endfunction
 %! opt_solver.symmetric = false; ## FEM_MAT_STIFFNESS_OMEGA_DOT makes it unsymmetric
 %! I1 = param.d1^4 * pi / 64;
 %! I2 = param.d2^4 * pi / 64;
-
 %! alpha = d11 = param.l1 * param.l2^2 / (3 * param.E12 * I1) + (param.l2^3 - param.l3^3) / (3 * param.E12 * I2);
 %! delta = gamma = d12 = param.l1 * param.l2 / (3 * param.E12 * I1) + (param.l2^2 - param.l3^2) / (2 * param.E12 * I2);
 %! beta = d22 = param.l1 / (3 * param.E12 * I1) + (param.l2 - param.l3) / (param.E12 * I2);
@@ -1906,13 +1906,14 @@ endfunction
 %!       fputs(fd, "    # output matrices, \n");
 %!       fputs(fd, "    # parameter, 1e-3, ## use default estimate\n");
 %!       fputs(fd, "    output eigenvectors,\n");
-%!       fputs(fd, "         output geometry,\n");
+%!       fputs(fd, "         # output geometry,\n");
 %!       fprintf(fd, "         lower frequency limit, %e,\n", 0.01 / (SI_unit_second^-1));
+%!       fprintf(fd, "         upper frequency limit, %e,\n", 1000 / (SI_unit_second^-1));
 %!       fprintf(fd, "    use arpack,%d,%d,0.,suffix format, \"%%02d\";\n", 2 * options.number_of_modes, options.number_of_modes * 10);
 %!       fputs(fd, "    nonlinear solver: nox, modified, 100, keep jacobian matrix, jacobian operator, newton krylov, forcing term, type 2, forcing term min tolerance, 1e-8, forcing term max tolerance, 1e-3;\n");
 %!       fputs(fd, " end: initial value;\n");
 %!       fputs(fd, " begin: control data;\n");
-%!       fputs(fd, "    output meter: closest next, 0., forever, t1 / 100;\n");
+%!       fputs(fd, "    output meter: closest next, 0., forever, t1 / 20;\n");
 %!       fputs(fd, "        use automatic differentiation;\n");
 %!       fputs(fd, "        rigid body kinematics: drive, angular velocity,\n");
 %!       fputs(fd, "        component,\n");
@@ -1985,7 +1986,9 @@ endfunction
 %!       endif
 %!       fd = -1;
 %!     end_unwind_protect
-%!     ##opt_mbdyn.logfile = [filename, ".stdout"];
+%!     if (~options.verbose)
+%!       opt_mbdyn.logfile = [filename, ".stdout"];
+%!     endif
 %!     opt_mbdyn.output_file = [filename, "_mbdyn"];
 %!     info_mbdyn = mbdyn_solver_run(mbdyn_file, opt_mbdyn);
 %!     [mesh_sol(i), sol(i)] = mbdyn_post_load_output_sol(opt_mbdyn.output_file);
@@ -2048,7 +2051,7 @@ endfunction
 %! param.l1 = 120e-3 / SI_unit_meter;
 %! param.l2 = 100e-3 / SI_unit_meter;
 %! param.l3 = 15e-3 / SI_unit_meter;
-%! param.h = 5e-3 / SI_unit_meter;
+%! param.h = 40e-3 / SI_unit_meter;
 %! param.h3 = 10e-3 / SI_unit_meter;
 %! OMEGA = 2 * pi * [0, 50,   0,   0;
 %!                   0,  0, 150,   0;
@@ -2060,6 +2063,7 @@ endfunction
 %! OMEGA = OMEGA(:, idx);
 %! OMEGADOT = OMEGADOT(:, idx);
 %! options.post_proc_modes = false;
+%! options.verbose = false;
 %! opt_solver.pre_scaling = true;
 %! opt_solver.refine_max_iter = int32(100);
 %! opt_solver.solver = "pardiso";
@@ -2067,7 +2071,6 @@ endfunction
 %! opt_solver.symmetric = false; ## FEM_MAT_STIFFNESS_OMEGA_DOT makes it unsymmetric
 %! I1 = param.d1^4 * pi / 64;
 %! I2 = param.d2^4 * pi / 64;
-
 %! alpha = d11 = param.l1 * param.l2^2 / (3 * param.E12 * I1) + (param.l2^3 - param.l3^3) / (3 * param.E12 * I2);
 %! delta = gamma = d12 = param.l1 * param.l2 / (3 * param.E12 * I1) + (param.l2^2 - param.l3^2) / (2 * param.E12 * I2);
 %! beta = d22 = param.l1 / (3 * param.E12 * I1) + (param.l2 - param.l3) / (param.E12 * I2);
@@ -2341,13 +2344,14 @@ endfunction
 %!       fputs(fd, "    # output matrices, \n");
 %!       fputs(fd, "    # parameter, 1e-3, ## use default estimate\n");
 %!       fputs(fd, "    output eigenvectors,\n");
-%!       fputs(fd, "         output geometry,\n");
+%!       fputs(fd, "         # output geometry,\n");
 %!       fprintf(fd, "         lower frequency limit, %e,\n", 0.01 / (SI_unit_second^-1));
+%!       fprintf(fd, "         upper frequency limit, %e,\n", 1000 / (SI_unit_second^-1));
 %!       fprintf(fd, "    use arpack,%d,%d,0.,suffix format, \"%%02d\";\n", 2 * options.number_of_modes, options.number_of_modes * 10);
-%!       fputs(fd, "    nonlinear solver: nox, modified, 100, keep jacobian matrix, jacobian operator, newton krylov, forcing term, type 2, forcing term min tolerance, 1e-8, forcing term max tolerance, 1e-3;\n");
+%!       fputs(fd, "    nonlinear solver: nox, modified, 100, keep jacobian matrix, jacobian operator, newton krylov, forcing term, type 2, forcing term min tolerance, 1e-8, forcing term max tolerance, 1e-3, inner iterations before assembly, 30;\n");
 %!       fputs(fd, " end: initial value;\n");
 %!       fputs(fd, " begin: control data;\n");
-%!       fputs(fd, "    output meter: closest next, 0., forever, t1 / 100;\n");
+%!       fputs(fd, "    output meter: closest next, 0., forever, t1 / 20;\n");
 %!       fputs(fd, "        use automatic differentiation;\n");
 %!       fputs(fd, "        rigid body kinematics: drive, angular velocity,\n");
 %!       fputs(fd, "        component,\n");
@@ -2420,7 +2424,9 @@ endfunction
 %!       endif
 %!       fd = -1;
 %!     end_unwind_protect
-%!     ##opt_mbdyn.logfile = [filename, ".stdout"];
+%!     if (~options.verbose)
+%!       opt_mbdyn.logfile = [filename, ".stdout"];
+%!     endif
 %!     opt_mbdyn.output_file = [filename, "_mbdyn"];
 %!     info_mbdyn = mbdyn_solver_run(mbdyn_file, opt_mbdyn);
 %!     [mesh_sol(i), sol(i)] = mbdyn_post_load_output_sol(opt_mbdyn.output_file);
