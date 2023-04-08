@@ -60,6 +60,9 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     rbe3(i).elements = struct();
 
     for j=1:numel(elem_type)
+      if (~isfield(mesh.groups, elem_type{j}))
+        continue;
+      endif
       msh_groups = getfield(mesh.groups, elem_type{j});
       rbe3(i).elements = setfield(rbe3(i).elements, elem_type{j}, [msh_groups(group_idx{i, j}).elements]);
     endfor

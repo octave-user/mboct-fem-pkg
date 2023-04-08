@@ -48,6 +48,9 @@ function [F, group_idx, weight, node_id] = fem_pre_mesh_nodal_pressure_load(mesh
     inum_nodes = int32(0);
 
     for j=1:numel(elem_type)
+      if (~isfield(mesh.groups, elem_type{j}))
+        continue;
+      endif
       msh_groups = getfield(mesh.groups, elem_type{j});
 
       group_idx_ij = find([msh_groups.id] == group_id(i));
@@ -57,7 +60,7 @@ function [F, group_idx, weight, node_id] = fem_pre_mesh_nodal_pressure_load(mesh
       endif
 
       group_idx{i, j} = group_idx_ij;
-      inum_nodes += numel(msh_groups(group_idx{i, j}).nodes);
+      inum_nodes += numel([[msh_groups(group_idx{i, j})].nodes]);
 
       clear msh_groups group_idx_ij;
     endfor
@@ -66,13 +69,17 @@ function [F, group_idx, weight, node_id] = fem_pre_mesh_nodal_pressure_load(mesh
     inum_nodes = int32(0);
 
     for j=1:numel(elem_type)
+      if (~isfield(mesh.groups, elem_type{j}))
+        continue;
+      endif
+
       msh_groups = getfield(mesh.groups, elem_type{j});
 
       if (isempty(group_idx{i, j}))
         continue;
       endif
 
-      nodes_j = msh_groups(group_idx{i, j}).nodes;
+      nodes_j = [[msh_groups(group_idx{i, j})].nodes];
 
       node_id{i}((1:numel(nodes_j)) + inum_nodes) = nodes_j;
       inum_nodes += numel(nodes_j);
@@ -96,6 +103,11 @@ function [F, group_idx, weight, node_id] = fem_pre_mesh_nodal_pressure_load(mesh
       inode = node_id{i};
       inode_tr = zeros(1, rows(mesh.nodes), "int32");
       inode_tr(inode) = 1:numel(inode);
+
+      if (~isfield(mesh.groups, elem_type{j}))
+        continue;
+      endif
+
       msh_groups = getfield(mesh.groups, elem_type{j});
       ielno = getfield(mesh.elements, elem_type{j})([msh_groups(group_idx{i, j}).elements], :);
       press_elem.elements = inode_tr(ielno);
