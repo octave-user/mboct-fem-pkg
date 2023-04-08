@@ -38,6 +38,10 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     elem_type = "tria6";
   endif
 
+  if (~iscell(elem_type))
+    elem_type = {elem_type};
+  endif
+
   empty_cell = cell(1, numel(group_id));
 
   rbe3 = struct("nodes", empty_cell, "weight", empty_cell, "elements", empty_cell);
@@ -46,14 +50,19 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     error("numel(group_id) does not match numel(master_node_idx)");
   endif
 
-  msh_groups = getfield(mesh.groups, elem_type);
+  ##msh_groups = getfield(mesh.groups, elem_type);
 
-  [F, group_idx, weight] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type);
+  [F, group_idx, weight, node_id] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type);
 
-  for i=1:numel(group_idx)
-    rbe3(i).nodes = int32([master_node_idx(i), [msh_groups(group_idx{i}).nodes]]);
+  for i=1:numel(node_id)
+    rbe3(i).nodes = int32([master_node_idx(i), node_id{i}]);
     rbe3(i).weight = weight{i}.';
-    rbe3(i).elements = setfield(struct(), elem_type, [msh_groups(group_idx{i}).elements]);
+    rbe3(i).elements = struct();
+
+    for j=1:numel(elem_type)
+      msh_groups = getfield(mesh.groups, elem_type{j});
+      rbe3(i).elements = setfield(rbe3(i).elements, elem_type{j}, [msh_groups(group_idx{i, j}).elements]);
+    endfor
   endfor
 endfunction
 
