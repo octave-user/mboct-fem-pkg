@@ -3472,6 +3472,197 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
+%!test
+%! ## TEST 10
+%! close all;
+%! ## Define the unit system
+%! SI_unit_meter = 1e-3;
+%! SI_unit_second = 1;
+%! SI_unit_kilogram = 1e3;
+%! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
+%! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
+%! param.alpha = 0 / (1 / SI_unit_second);
+%! param.beta = 0 / (SI_unit_second);
+%! param.E = 1e6 / SI_unit_pascal;
+%! param.nu = 0.3;
+%! param.G = param.E / (2 * (1 + param.nu));
+%! param.rho = 1000 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.d1 = 10e-3 / SI_unit_meter;
+%! param.h1 = 5e-3 / SI_unit_meter;
+%! param.h2 = 5e-3 / SI_unit_meter;
+%! param.z0 = 10e-3 / SI_unit_meter;
+%! param.vz0 = -30 / (SI_unit_meter / SI_unit_second);
+%! param.gz = -9.81 / (SI_unit_meter / SI_unit_second^2);
+%! param.t1 = 0.001 / SI_unit_second;
+%! param.N = 1000;
+%! options.verbose = true;
+%! options.do_plot = false;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   mbdyn_file = [filename, ".mbdyn"];
+%!   elem_file = [filename, ".elm"];
+%!   nodes_file = [filename, ".nod"];
+%!   csl_file = [filename, ".csl"];
+%!   geometry_file = [filename, ".geo"];
+%!   unwind_protect
+%!     [fd, msg] = fopen(geometry_file, "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\"", geometry_file);
+%!     endif
+%!     fn = fieldnames(param);
+%!     for i=1:length(fn)
+%!       fprintf(fd, "%s = %.3e;\n", fn{i}, getfield(param, fn{i}));
+%!     endfor
+%!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "Sphere(1) = {0, 0, z0, 0.5 * d1};\n");
+%!     fputs(fd, "Physical Volume(1) = {1};\n");
+%!     fputs(fd, "Physical Surface(1) = {1};\n");
+%!     fputs(fd, "Mesh.ElementOrder = 2;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{1};}} = h1;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Surface{1};}} = h2;\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh 3;\n");
+%!     fputs(fd, "Mesh.Format = 1;\n");
+%!     fprintf(fd, "Save \"%s.msh\";\n", filename);
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!     fd = -1;
+%!   end_unwind_protect
+%!   fprintf(stderr, "meshing ...\n");
+%!   pid = spawn("gmsh", {"-0", "-format", "msh2", geometry_file});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   fprintf(stderr, "loading mesh ...\n");
+%!   opt_msh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   node_id_ground = rows(mesh.nodes) + 1;
+%!   mesh.nodes(node_id_ground, 1:3) = zeros(1, 3);
+%!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.materials.tet10h([mesh.groups.tet10h(find([[mesh.groups.tet10h.id] == 1])).elements]) = 1;
+%!   mesh.material_data(1).rho = param.rho;
+%!   mesh.material_data(1).E = param.E;
+%!   mesh.material_data(1).nu = param.nu;
+%!   mesh.material_data(1).type = "neo hookean";
+%!   opt_mbd_mesh = struct();
+%!   opt_mbd_mesh.struct_nodes.type = repmat(MBDYN_NODE_TYPE_DYNAMIC_STRUCT_DISP, rows(mesh.nodes), 1);
+%!   opt_mbd_mesh.struct_nodes.type(node_id_ground) = MBDYN_NODE_TYPE_STATIC_STRUCT;
+%!   opt_mbd_mesh.struct_nodes.reference_frame = "ref_id_sphere";
+%!   opt_mbd_mesh.joints.number = 1;
+%!   opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
+%!   opt_mbd_mesh = mbdyn_pre_solid_write_const_laws(mesh, csl_file, opt_mbd_mesh);
+%!   load_case_dof.locked_dof = false(size(mesh.nodes));
+%!   load_case_empty = struct();
+%!   opt_mbd_mesh = mbdyn_pre_solid_write_elements(mesh, load_case_dof, load_case_empty, elem_file, opt_mbd_mesh);
+%!   node_id_cont = mesh.groups.tria6h(1).nodes;
+%!   unwind_protect
+%!     [fd, msg] = fopen(mbdyn_file, "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s\"", mbdyn_file);
+%!     endif
+%!     fputs(fd, "set: integer ref_id_sphere = 1000;\n");
+%!     fputs(fd, "set: integer drive_id_E = 2000;\n");
+%!     fprintf(fd, " set: real t1 = %g;\n", param.t1);
+%!     fprintf(fd, " set: real gz = %g;\n", param.gz);
+%!     fprintf(fd, " set: real z0 = %g;\n", param.z0);
+%!     fprintf(fd, " set: real vz0 = %g;\n", param.vz0);
+%!     fprintf(fd, " set: integer N = %d;\n", param.N);
+%!     fprintf(fd, " set: integer node_id_ground = %d;\n", node_id_ground);
+%!     fputs(fd, " begin: data;\n");
+%!     fputs(fd, "    problem: initial value; # the default\n");
+%!     fputs(fd, " end: data;\n");
+%!     fputs(fd, " begin: initial value;\n");
+%!     fputs(fd, "    initial time: 0;\n");
+%!     fputs(fd, "    final time: t1;\n");
+%!     fputs(fd, "    time step: t1 / N;\n");
+%!     fputs(fd, "    min time step: t1 / N / 100;\n");
+%!     fputs(fd, "    max time step: t1 / N;\n");
+%!     fputs(fd, " strategy: factor, 0.8, 1, 1.25, 3, 5, 10;\n");
+%!     fputs(fd, "    max iterations: 10000;\n");
+%!     fputs(fd, "    tolerance: 1.e-3, test, norm, 1e-3, test, norm;\n");
+%!     fputs(fd, "    linear solver: pardiso, grad, max iterations, 100;\n");
+%!     fputs(fd, "    method: implicit euler;\n");
+%!     fputs(fd, "         derivatives tolerance: 1e-4;\n");
+%!     fputs(fd, "         derivatives max iterations: 10;\n");
+%!     fputs(fd, "         derivatives coefficient: 1e-9, auto;\n");
+%!     fputs(fd, "         output: iterations, cpu time, solver condition number, stat, yes;\n");
+%!     fputs(fd, "    nonlinear solver: mcp newton min fb;\n");
+%!     fputs(fd, "         threads: assembly, 4;\n");
+%!     fputs(fd, "         threads: solver, 4;\n");
+%!     fputs(fd, " end: initial value;\n");
+%!     fputs(fd, " begin: control data;\n");
+%!     fputs(fd, "    output meter: closest next, 0., forever, t1 / 100;\n");
+%!     fputs(fd, "        use automatic differentiation;\n");
+%!     fprintf(fd, "    structural nodes: %d;\n", opt_mbd_mesh.struct_nodes.number);
+%!     fprintf(fd, "    joints: %d;\n", opt_mbd_mesh.joints.number);
+%!     fprintf(fd, "    solids: %d;\n", opt_mbd_mesh.solids.number);
+%!     fprintf(fd, "    loadable elements: %d;\n", numel(node_id_cont));
+%!     fputs(fd, "      gravity;\n");
+%!     fputs(fd, " end: control data;\n");
+%!     fputs(fd, "reference: ref_id_sphere,\n");
+%!     fputs(fd, "  position, reference, global, null,\n");
+%!     fputs(fd, "  orientation, reference, global, eye,\n");
+%!     fputs(fd, "  velocity, reference, global, 0., 0., vz0,\n");
+%!     fputs(fd, "  angular velocity, reference, global, null;\n");
+%!     fputs(fd, " begin: nodes;\n");
+%!     fprintf(fd, "include: \"%s\";\n", nodes_file);
+%!     fputs(fd, " end: nodes;\n");
+%!     fprintf(fd, "include: \"%s\";\n", csl_file);
+%!     fputs(fd, " begin: elements;\n");
+%!     fprintf(fd, "include: \"%s\";\n", elem_file);
+%!     for i=1:numel(node_id_cont)
+%!       fprintf(fd, "user defined: %d, unilateral disp in plane,\n", i);
+%!       fprintf(fd, "node1, %d,\n", node_id_cont(i));
+%!       fputs(fd, "    offset, 1,\n");
+%!       fputs(fd, "    reference, node, null,\n");
+%!       fputs(fd, "    enable mcp, yes,\n");
+%!       fputs(fd, " node2, node_id_ground,\n");
+%!       fputs(fd, " offset, reference, node, null,\n");
+%!       fputs(fd, " hinge, 3, 0, 0, 1,\n");
+%!       fputs(fd, "        1, 1, 0, 0;\n");
+%!     endfor
+%!     fputs(fd, "  joint: 1, clamp, node_id_ground, node, node;\n");
+%!     fputs(fd, "  gravity: uniform, component, 0., 0., gz;\n");
+%!     fprintf(fd, "drive caller: drive_id_E, array, %d", rows(mesh.elements.tet10h));
+%!     for i=1:rows(mesh.elements.tet10h)
+%!       fprintf(fd, ",\n    element, %d, solid, string, \"E\", direct", i);
+%!     endfor
+%!     fputs(fd, ",\n  output, yes;\n\n");
+%!     fputs(fd, " end: elements;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!     fd = -1;
+%!   end_unwind_protect
+%!   if (~options.verbose)
+%!     opt_mbdyn.logfile = [filename, ".stdout"];
+%!   endif
+%!   #shell(sprintf("cat \"%s\"", nodes_file));
+%!   opt_mbdyn.output_file = [filename, "_mbdyn"];
+%!   info_mbdyn = mbdyn_solver_run(mbdyn_file, opt_mbdyn);
+%!   [mesh_sol, sol] = mbdyn_post_load_output_sol(opt_mbdyn.output_file);
+%!   [drive_id, drive_data] = mbdyn_post_load_output_drv(opt_mbdyn.output_file);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       if (0 ~= unlink(fullfile(fn(i).folder, fn(i).name)))
+%!         warning("failed to remove file \"%s\"", fn(i).name);
+%!       endif
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
 %!demo
 %! close all;
 %! SI_unit_m = 1e-3;
