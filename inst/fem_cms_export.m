@@ -3481,22 +3481,37 @@ endfunction
 %! SI_unit_kilogram = 1e3;
 %! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
 %! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
+%! SI_unit_joule = SI_unit_newton * SI_unit_meter;
 %! param.alpha = 0 / (1 / SI_unit_second);
 %! param.beta = 0 / (SI_unit_second);
-%! param.E = 1e6 / SI_unit_pascal;
+%! param.E = 10e6 / SI_unit_pascal;
 %! param.nu = 0.3;
 %! param.G = param.E / (2 * (1 + param.nu));
 %! param.rho = 1000 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.h2 = 0.625e-3 / SI_unit_meter;
 %! param.d1 = 10e-3 / SI_unit_meter;
-%! param.h1 = 5e-3 / SI_unit_meter;
-%! param.h2 = 5e-3 / SI_unit_meter;
-%! param.z0 = 10e-3 / SI_unit_meter;
-%! param.vz0 = -30 / (SI_unit_meter / SI_unit_second);
-%! param.gz = -9.81 / (SI_unit_meter / SI_unit_second^2);
-%! param.t1 = 0.001 / SI_unit_second;
-%! param.N = 1000;
-%! options.verbose = true;
+%! param.d2 = param.d1 - 2 * param.h2;
+%! param.l1 = param.h2;
+%! param.h1 = param.h2;
+%! param.z0 = 5e-3 / SI_unit_meter;
+%! param.vz0 = 0 / (SI_unit_meter / SI_unit_second);
+%! param.g = 9.81 / (SI_unit_meter / SI_unit_second^2);
+%! param.Zeta = -80 * pi / 180;
+%! param.t1 = 0.1 / SI_unit_second;
+%! param.N = 100;
+%! param.mus = 0.5;
+%! param.muc = 0.5;
+%! param.vs = 1 / (SI_unit_meter / SI_unit_second);
+%! param.kv = 0 / (SI_unit_pascal / (SI_unit_meter / SI_unit_second));
+%! param.i = 1;
+%! param.sigma0x = 1e4 / SI_unit_meter^-1;
+%! param.sigma0y = 1e4 / SI_unit_meter^-1;
+%! param.sigma1x = 0 / (SI_unit_second * SI_unit_meter^-1);
+%! param.sigma1y = 0 / (SI_unit_second * SI_unit_meter^-1);
+%! param.sn = realmax() / (SI_unit_newton / SI_unit_meter);
+%! options.verbose = false;
 %! options.do_plot = false;
+%! options.var_step_size = false;
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -3519,11 +3534,13 @@ endfunction
 %!       fprintf(fd, "%s = %.3e;\n", fn{i}, getfield(param, fn{i}));
 %!     endfor
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fputs(fd, "Sphere(1) = {0, 0, z0, 0.5 * d1};\n");
-%!     fputs(fd, "Physical Volume(1) = {1};\n");
+%!     fputs(fd, "Cylinder(1) = {0, 0, z0, 0, l1, 0, 0.5 * d1};\n");
+%!     fputs(fd, "Cylinder(2) = {0, 0, z0, 0, l1, 0, 0.5 * d2};\n");
+%!     fputs(fd, "BooleanDifference(3) = { Volume{1}; Delete; }{ Volume{2}; Delete; };\n");
+%!     fputs(fd, "Physical Volume(1) = {3};\n");
 %!     fputs(fd, "Physical Surface(1) = {1};\n");
 %!     fputs(fd, "Mesh.ElementOrder = 2;\n");
-%!     fputs(fd, "MeshSize{PointsOf{Volume{1};}} = h1;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{3};}} = h1;\n");
 %!     fputs(fd, "MeshSize{PointsOf{Surface{1};}} = h2;\n");
 %!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
 %!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
@@ -3571,12 +3588,8 @@ endfunction
 %!     endif
 %!     fputs(fd, "set: integer ref_id_sphere = 1000;\n");
 %!     fputs(fd, "set: integer drive_id_E = 2000;\n");
-%!     fprintf(fd, " set: real t1 = %g;\n", param.t1);
-%!     fprintf(fd, " set: real gz = %g;\n", param.gz);
-%!     fprintf(fd, " set: real z0 = %g;\n", param.z0);
-%!     fprintf(fd, " set: real vz0 = %g;\n", param.vz0);
-%!     fprintf(fd, " set: integer N = %d;\n", param.N);
 %!     fprintf(fd, " set: integer node_id_ground = %d;\n", node_id_ground);
+%!     mbdyn_pre_write_param_file(fd, param);
 %!     fputs(fd, " begin: data;\n");
 %!     fputs(fd, "    problem: initial value; # the default\n");
 %!     fputs(fd, " end: data;\n");
@@ -3584,9 +3597,11 @@ endfunction
 %!     fputs(fd, "    initial time: 0;\n");
 %!     fputs(fd, "    final time: t1;\n");
 %!     fputs(fd, "    time step: t1 / N;\n");
-%!     fputs(fd, "    min time step: t1 / N / 100;\n");
-%!     fputs(fd, "    max time step: t1 / N;\n");
-%!     fputs(fd, " strategy: factor, 0.8, 1, 1.25, 3, 5, 10;\n");
+%!     if (options.var_step_size)
+%!       fputs(fd, "    min time step: t1 / N / 100;\n");
+%!       fputs(fd, "    max time step: t1 / N;\n");
+%!       fputs(fd, " strategy: factor, 0.8, 1, 1.25, 3, 5, 10;\n");
+%!     endif
 %!     fputs(fd, "    max iterations: 10000;\n");
 %!     fputs(fd, "    tolerance: 1.e-3, test, norm, 1e-3, test, norm;\n");
 %!     fputs(fd, "    linear solver: pardiso, grad, max iterations, 100;\n");
@@ -3624,14 +3639,24 @@ endfunction
 %!       fprintf(fd, "node1, %d,\n", node_id_cont(i));
 %!       fputs(fd, "    offset, 1,\n");
 %!       fputs(fd, "    reference, node, null,\n");
+%!       fputs(fd, "    stiffness, sn,\n");
 %!       fputs(fd, "    enable mcp, yes,\n");
 %!       fputs(fd, " node2, node_id_ground,\n");
 %!       fputs(fd, " offset, reference, node, null,\n");
 %!       fputs(fd, " hinge, 3, 0, 0, 1,\n");
-%!       fputs(fd, "        1, 1, 0, 0;\n");
+%!       fputs(fd, "        1, 1, 0, 0,\n");
+%!       fputs(fd, " coulomb friction coefficient, muc,\n");
+%!       fputs(fd, " static friction coefficient, mus,\n");
+%!       fputs(fd, " sliding velocity coefficient, vs,\n");
+%!       fputs(fd, " sliding velocity exponent, i,\n");
+%!       fputs(fd, " micro slip stiffness x, sigma0x,\n");
+%!       fputs(fd, " micro slip stiffness y, sigma0y,\n");
+%!       fputs(fd, " micro slip damping x, sigma1x,\n");
+%!       fputs(fd, " micro slip damping y, sigma1y,\n");
+%!       fputs(fd, " viscous friction coefficient, kv;\n");
 %!     endfor
 %!     fputs(fd, "  joint: 1, clamp, node_id_ground, node, node;\n");
-%!     fputs(fd, "  gravity: uniform, component, 0., 0., gz;\n");
+%!     fputs(fd, "  gravity: uniform, component, g * cos(Zeta), 0., g * sin(Zeta);\n");
 %!     fprintf(fd, "drive caller: drive_id_E, array, %d", rows(mesh.elements.tet10h));
 %!     for i=1:rows(mesh.elements.tet10h)
 %!       fprintf(fd, ",\n    element, %d, solid, string, \"E\", direct", i);
@@ -3647,11 +3672,35 @@ endfunction
 %!   if (~options.verbose)
 %!     opt_mbdyn.logfile = [filename, ".stdout"];
 %!   endif
-%!   #shell(sprintf("cat \"%s\"", nodes_file));
 %!   opt_mbdyn.output_file = [filename, "_mbdyn"];
 %!   info_mbdyn = mbdyn_solver_run(mbdyn_file, opt_mbdyn);
 %!   [mesh_sol, sol] = mbdyn_post_load_output_sol(opt_mbdyn.output_file);
 %!   [drive_id, drive_data] = mbdyn_post_load_output_drv(opt_mbdyn.output_file);
+%!
+%!   ra = 0.5 * param.d1;
+%!   ri = 0.5 * param.d2;
+%!   h = param.l1;
+%!   m = param.rho * pi * (ra^2 - ri^2) * h;
+%!   J = m * (ra^2 + ri^2) / 2;
+%!   mred = m + J / ra^2;
+%!   Phi = param.Zeta + pi / 2;
+%!   qddot = m * param.g * sin(Phi) / mred;
+%!   qdot = qddot * sol.t;
+%!   q = 0.5 * qddot * sol.t.^2;
+%!   Wkin = 0.5 * mred * qdot.^2;
+%!   if (options.do_plot)
+%!     figure("visible", "off");
+%!     hold on;
+%!     plot(sol.t * SI_unit_second, Wkin * SI_unit_joule, "-x;Wkin_r_e_f;0");
+%!     plot(sol.t * SI_unit_second, drive_data{1} * SI_unit_joule, "-o;Wkin;1");
+%!     xlabel("t [s]");
+%!     ylabel("W [J]");
+%!     grid on;
+%!     grid minor on;
+%!     title("kinetic energy versus time");
+%!   endif
+%!   tol = 2e-2;
+%!   assert(drive_data{1}, Wkin, tol * max(abs(Wkin)));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
