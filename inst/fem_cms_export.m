@@ -3509,7 +3509,7 @@ endfunction
 %! param.sigma1x = 0 / (SI_unit_second * SI_unit_meter^-1);
 %! param.sigma1y = 0 / (SI_unit_second * SI_unit_meter^-1);
 %! param.sn = realmax() / (SI_unit_newton / SI_unit_meter);
-%! options.verbose = false;
+%! options.verbose = true;
 %! options.do_plot = false;
 %! options.var_step_size = false;
 %! filename = "";
