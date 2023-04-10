@@ -4434,7 +4434,7 @@ endfunction
 %!   material.nu = 0.3;
 %!   material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
 %!   elem_types = {"iso8", "iso20", "iso20r", "penta15", "tet10h"};
-%!   mat_types = {"linear elastic generic", "neo hookean", "bilinear isotropic hardening"};
+%!   mat_types = {"linear elastic generic", "neo hookean elastic", "bilinear isotropic hardening"};
 %!   f_transfinite_mesh = [true, false];
 %!   boundary_cond = {"symmetry", "three point"};
 %!   load_type = {"traction", "pressure"};
@@ -4473,7 +4473,7 @@ endfunction
 %!                   elem_factor_h = 1;
 %!               endswitch
 %!               switch (mat_types{idx_mat_type})
-%!                 case "neo hookean"
+%!                 case "neo hookean elastic"
 %!                   if (norm(sigma(4:6, idx_sigma)))
 %!                     ## shear deformation with hyperelastic material not passed yet because the Jacobian may become singular
 %!                     switch (elem_type)
@@ -5054,7 +5054,7 @@ endfunction
 %!                   S_res(1, 2, :) = S_res(2, 1, :) = sigma_res(4, :);
 %!                   S_res(2, 3, :) = S_res(3, 2, :) = sigma_res(5, :);
 %!                   S_res(3, 1, :) = S_res(1, 3, :) = sigma_res(6, :);
-%!                 case "neo hookean"
+%!                 case "neo hookean elastic"
 %!                   mu = mesh.material_data.E / (2 * (1 + mesh.material_data.nu));
 %!                   lambda = mesh.material_data.E * mesh.material_data.nu / ((1 + mesh.material_data.nu ) * (1 - 2 * mesh.material_data.nu));
 %!                   for i=1:numel(sol.t)
