@@ -856,7 +856,7 @@ endfunction
 
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   group_defs(1).id = 1;
 %!   group_defs(1).name = "bearing1";
 %!   group_defs(1).R = eye(3);
@@ -892,7 +892,6 @@ endfunction
 %!   group_defs(3).geometry.zmax = 0.5 * param.w;
 
 %!   groups = fem_pre_mesh_groups_create(mesh, group_defs, options.geo_tol);
-
 %!   mesh.groups.tria6 = groups.tria6;
 
 %!   cms_opt.modes.number = int32(options.number_of_modes);
@@ -1482,6 +1481,7 @@ endfunction
 %!   endif
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -1740,6 +1740,7 @@ endfunction
 %!   endif
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -2176,6 +2177,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"quad8", "iso20", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -2546,6 +2548,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"quad8", "iso20", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -2796,6 +2799,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"iso4", "iso8", "tria3", "penta6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -3052,6 +3056,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"tria6h", "tet10h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -3299,6 +3304,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"quad8", "iso20r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_idx_bearing1 = rows(mesh.nodes) + 1;
 %!   node_idx_bearing2 = rows(mesh.nodes) + 2;
 %!   X1 = [0; 0; 0];
@@ -3578,6 +3584,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"iso8", "iso4", "tet4", "penta6", "tria3"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_id_ground = rows(mesh.nodes) + 1;
 %!   mesh.nodes(node_id_ground, 1:3) = zeros(1, 3);
 %!   mesh.materials.iso8 = zeros(rows(mesh.elements.iso8), 1, "int32");
@@ -3865,6 +3872,7 @@ endfunction
 %!   fprintf(stderr, "loading mesh ...\n");
 %!   opt_msh.elem_type = {"iso20", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
+%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   node_id_ground = rows(mesh.nodes) + 1;
 %!   mesh.nodes(node_id_ground, 1:3) = zeros(1, 3);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");

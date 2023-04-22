@@ -28,6 +28,7 @@ Preprocessing
         fem_pre_mesh_groups_create
         fem_pre_mesh_import
         fem_pre_mesh_rbe3_from_surf
+        fem_pre_mesh_reorder
         fem_pre_mesh_struct_create
         fem_pre_mesh_unstruct_create
 
