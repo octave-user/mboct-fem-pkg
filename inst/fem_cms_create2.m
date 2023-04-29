@@ -4888,7 +4888,7 @@ endfunction
 %!                 fprintf(fd, "        time step: dt;\n");
 %!                 fprintf(fd, "        time step: dt;\n");
 %!                 fprintf(fd, "        max iterations: 50;\n");
-%!                 fprintf(fd, "        tolerance: 1e-12, test, sepnorm, 1e-7, test, norm;\n");
+%!                 fprintf(fd, "        tolerance: 1e-12, test, sepnorm, 1e-8, test, norm;\n");
 %!                 fprintf(fd, "        output: messages;\n");
 %!                 fprintf(fd, "        output: iterations, solver condition number, stat, yes;\n");
 %!                 fprintf(fd, "        nonlinear solver: nox,\n");
@@ -4899,7 +4899,7 @@ endfunction
 %!                 fprintf(fd, "                          direction, newton,\n");
 %!                 fprintf(fd, "                          jacobian operator, newton krylov,\n");
 %!                 fprintf(fd, "                          forcing term, constant,\n");
-%!                 fprintf(fd, "                          linear solver tolerance, 1e-10,\n");
+%!                 fprintf(fd, "                          linear solver tolerance, 1e-12,\n");
 %!                 fprintf(fd, "                          inner iterations before assembly, 15,\n");
 %!                 fprintf(fd, "                          linear solver max iterations, 300,\n");
 %!                 fprintf(fd, "                          krylov subspace size, 300,\n");
