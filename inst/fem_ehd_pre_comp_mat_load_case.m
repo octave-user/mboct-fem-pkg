@@ -221,7 +221,7 @@ endfunction
 %! endif
 
 %! fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %! grp_id_p1 = find([[mesh.groups.tria6].id] == 3);

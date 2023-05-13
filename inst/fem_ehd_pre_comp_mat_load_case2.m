@@ -571,7 +571,7 @@ endfunction
 %!            error("gmsh failed with status %d", status);
 %!          endif
 %!          fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!          mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!          mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!          fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!          cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
 %!          cms_opt.solver = "mldivide";
@@ -783,7 +783,7 @@ endfunction
 %!          error("gmsh failed with status %d", status);
 %!        endif
 %!        fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!        mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!        mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!        fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!        grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!        grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);
@@ -1021,7 +1021,7 @@ endfunction
 %!      error("gmsh failed with status %d", status);
 %!    endif
 %!    fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!    mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!    mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!    fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!    grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!    grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);
@@ -1324,7 +1324,7 @@ endfunction
 %!      error("gmsh failed with status %d", status);
 %!    endif
 %!    fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!    mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!    mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!    fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!    grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!    cms_opt.nodes.modal.number = rows(mesh.nodes) + 2;
@@ -1609,7 +1609,7 @@ endfunction
 %!      error("gmsh failed with status %d", status);
 %!    endif
 %!    fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!    mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!    mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!    fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!    grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!    cms_opt.nodes.modal.number = rows(mesh.nodes) + 3;
@@ -1921,7 +1921,7 @@ endfunction
 %!          error("gmsh failed with status %d", status);
 %!        endif
 %!        fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!        mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!        mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!        fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!        grp_idx_p1 = find([[mesh.groups.tria10].id] == grp_id_p1);
 %!        grp_idx_p2 = find([[mesh.groups.tria10].id] == grp_id_p2);
@@ -2147,7 +2147,7 @@ endfunction
 %!            error("gmsh failed with status %d", status);
 %!          endif
 %!          fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!          mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!          mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!          fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!          cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
 %!          cms_opt.solver = "mldivide";
@@ -2352,7 +2352,7 @@ endfunction
 %!      error("gmsh failed with status %d", status);
 %!    endif
 %!    fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!    mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!    mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!    fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!    grp_idx_p1 = find([[mesh.groups.tria10].id] == grp_id_p1);
 %!    grp_idx_p2 = find([[mesh.groups.tria10].id] == grp_id_p2);
@@ -2656,7 +2656,7 @@ endfunction
 %!      error("gmsh failed with status %d", status);
 %!    endif
 %!    fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!    mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!    mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!    fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!    grp_idx_p1 = find([[mesh.groups.tria10].id] == grp_id_p1);
 %!    cms_opt.nodes.modal.number = rows(mesh.nodes) + 2;
@@ -2942,7 +2942,7 @@ endfunction
 %!      error("gmsh failed with status %d", status);
 %!    endif
 %!    fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!    mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!    mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!    fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!    grp_idx_p1 = find([[mesh.groups.tria10].id] == grp_id_p1);
 %!    cms_opt.nodes.modal.number = rows(mesh.nodes) + 3;
@@ -3255,7 +3255,7 @@ endfunction
 %!          error("gmsh failed with status %d", status);
 %!        endif
 %!        fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!        mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!        mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!        fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!        grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!        grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);

@@ -255,7 +255,7 @@ endfunction
 %!  warning("gmsh failed with status %d", status);
 %! endif
 %! [~] = unlink([filename, ".geo"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! [~] = unlink([filename, ".msh"]);
 %! group_defs(1).id = 1;
 %! group_defs(1).name = "box1";

@@ -226,7 +226,7 @@ endfunction
 %!   endif
 
 %!   fprintf(stderr, "loading mesh ...\n");
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 
 %!   group_defs(1).id = 1;
 %!   group_defs(1).name = "inner_diameter";

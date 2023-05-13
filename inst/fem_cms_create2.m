@@ -487,7 +487,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data.E = 70000e6 / SI_unit_pascal;
 %!   mesh.material_data.nu = 0.3;
@@ -1408,7 +1408,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
@@ -1852,7 +1852,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
@@ -2299,7 +2299,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
@@ -3563,7 +3563,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data.E = 70000e6 / SI_unit_pascal;
 %!   mesh.material_data.nu = 0.3;

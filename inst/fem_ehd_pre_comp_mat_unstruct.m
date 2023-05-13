@@ -538,7 +538,7 @@ endfunction
 %!  error("gmsh failed with status %d", status);
 %! endif
 
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 1);

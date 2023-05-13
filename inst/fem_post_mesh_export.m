@@ -527,7 +527,7 @@ endfunction
 %! endif
 %! [~] = unlink([filename, ".geo"]);
 %! fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %! [~] = unlink([filename, ".msh"]);
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);

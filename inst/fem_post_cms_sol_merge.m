@@ -190,7 +190,7 @@ endfunction
 %!       [~] = unlink([filename, ".geo"]);
 %!     end_unwind_protect
 %!     fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!     mesh_data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!     mesh_data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!     fprintf(stderr, "%d nodes\n", rows(mesh_data(1).mesh.nodes));
 %!   unwind_protect_cleanup
 %!     [~] = unlink([filename, ".msh"]);

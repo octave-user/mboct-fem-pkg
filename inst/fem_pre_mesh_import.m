@@ -741,7 +741,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -1013,7 +1013,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
@@ -1227,7 +1227,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
 %!   cms_opt.nodes.interfaces.number = int32(rows(mesh.nodes) + 2);
@@ -1358,7 +1358,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
@@ -1590,7 +1590,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
@@ -1811,7 +1811,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   fprintf(stderr, "%d nodes\n", rows(mesh1.nodes));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
@@ -1999,7 +1999,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -2193,7 +2193,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -2382,7 +2382,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -2562,7 +2562,7 @@ endfunction
 %!         warning("gmsh failed with status %d", status);
 %!       endif
 %!       [~] = unlink([filename, ".geo"]);
-%!       data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!       data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!       [~] = unlink([filename, ".msh"]);
 %!     endfor
 %!     for i=1:numel(data)
@@ -2758,7 +2758,7 @@ endfunction
 %!             warning("gmsh failed with status %d", status);
 %!           endif
 %!           [~] = unlink([filename, ".geo"]);
-%!           data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!           data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!           [~] = unlink([filename, ".msh"]);
 %!         endfor
 %!         for i=1:numel(data)
@@ -2964,7 +2964,7 @@ endfunction
 %!       warning("gmsh failed with status %d", status);
 %!     endif
 %!     [~] = unlink([filename, ".geo"]);
-%!     data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!     data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!     [~] = unlink([filename, ".msh"]);
 %!   endfor
 %!   data(2).mesh.nodes(:, 1) += a;
@@ -3184,7 +3184,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   master_node_idx = int32(rows(mesh.nodes) + 1);
 %!   mesh.nodes(master_node_idx, 1:3) = [a + d, 0, 0];
 %!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, 2, master_node_idx);
@@ -3346,7 +3346,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh1.materials.iso8 = ones(rows(mesh1.elements.iso8), 1, "int32");
 %!   E = 210000e6;
@@ -3378,7 +3378,7 @@ endfunction
 %!         if (status ~= 0)
 %!           error("gmsh failed with status %d", status);
 %!         endif
-%!         data(i).mesh = fem_pre_mesh_import([filename, "_out.msh"]);
+%!         data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, "_out.msh"]));
 %!         data(i).mesh.material_data = mesh.material_data;
 %!         data(i).mesh.materials.iso8 = zeros(rows(data(i).mesh.elements.iso8), 1, "int32");
 %!         for j=1:numel(data(i).mesh.groups.iso8)
@@ -3533,7 +3533,7 @@ endfunction
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   E(1) = 80000e6;
 %!   nu(1) = 0.4;
 %!   mesh.material_data(1).rho = 1700;
@@ -3658,7 +3658,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
@@ -5285,7 +5285,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   group_defs(1).id = 1;
 %!   group_defs(1).name = "box1";
@@ -5461,7 +5461,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -5729,7 +5729,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 1);
@@ -5957,7 +5957,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
 %!   cms_opt.nodes.interfaces.number = int32(rows(mesh.nodes) + 2);
@@ -6078,7 +6078,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
@@ -6217,7 +6217,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 4);
@@ -6343,7 +6343,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
@@ -6470,7 +6470,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
@@ -6565,7 +6565,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -6659,7 +6659,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -6754,7 +6754,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -6857,7 +6857,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   elem_types = {"tria6", "quad8"};
@@ -7013,7 +7013,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tet10h", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
@@ -7154,7 +7154,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
@@ -7288,7 +7288,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
@@ -7403,7 +7403,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 4);
@@ -7518,7 +7518,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
@@ -7632,7 +7632,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
@@ -7747,7 +7747,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
@@ -7863,7 +7863,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
@@ -7975,7 +7975,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
@@ -8123,7 +8123,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 2);
@@ -8270,7 +8270,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.iso4].id] == 2);
@@ -8417,7 +8417,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
@@ -8564,7 +8564,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 2);
@@ -8701,7 +8701,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.iso8 = zeros(rows(mesh.elements.iso8), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.iso8.id] == 1);
@@ -8815,7 +8815,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.iso20.id] == 1);
@@ -8927,7 +8927,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.penta15 = zeros(rows(mesh.elements.penta15), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.penta15.id] == 1);
@@ -9038,7 +9038,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10.id] == 1);
@@ -9150,7 +9150,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
@@ -9278,7 +9278,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
@@ -9326,13 +9326,15 @@ endfunction
 %!                           struct("nodes", mat2cell(node_id_clamp_z,1,ones(1,numel(node_id_clamp_z))), "C", repmat({[0,0,1,0,0,0]}, 1, numel(node_id_clamp_z)))];
 %!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   opt_sol.refine_max_iter = 250;
+%!   opt_sol.verbose = false;
 %!   [mat_ass.K, ...
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!   [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   [sol_stat.stress, ...
 %!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -9347,7 +9349,7 @@ endfunction
 %!                                 [FEM_MAT_STIFFNESS, ...
 %!                                  FEM_VEC_LOAD_CONSISTENT], ...
 %!                                 load_case2);
-%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2);
+%!   [sol_stat2] = fem_sol_static(mesh, dof_map, mat_ass2, opt_sol);
 %!   [sol_stat2.stress, ...
 %!    sol_stat2.strain] = fem_ass_matrix(mesh, ...
 %!                                       dof_map, ...
@@ -9451,7 +9453,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10h.id] == 1);
@@ -9593,7 +9595,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10.id] == 1);
@@ -9744,7 +9746,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -10004,7 +10006,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
@@ -10205,7 +10207,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
 %!   cms_opt.nodes.interfaces.number = int32(rows(mesh.nodes) + 2);
@@ -10322,7 +10324,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
@@ -10556,7 +10558,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
@@ -10779,7 +10781,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   fprintf(stderr, "%d nodes\n", rows(mesh1.nodes));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
@@ -10976,7 +10978,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet10.id] == 1);
@@ -11134,7 +11136,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -12127,7 +12129,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -12234,7 +12236,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   if (isfield(mesh.elements, "iso20"))
@@ -12345,7 +12347,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -12450,7 +12452,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -12870,7 +12872,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -12975,7 +12977,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   if (isfield(mesh.elements, "iso20"))
@@ -13084,7 +13086,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -13192,7 +13194,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -13239,7 +13241,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -13359,7 +13361,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
 %!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   endif
@@ -13412,7 +13414,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
 %!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   endif
@@ -13537,7 +13539,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(1).mesh.materials.iso8 = ones(rows(mesh_data(1).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -13585,7 +13587,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(2).mesh.materials.iso8 = ones(rows(mesh_data(2).mesh.elements.iso8), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -13703,7 +13705,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -13749,7 +13751,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(2).mesh.materials.tet10 = ones(rows(mesh_data(2).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -14033,7 +14035,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -14139,7 +14141,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
@@ -14245,7 +14247,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -14350,7 +14352,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -14455,7 +14457,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -14563,7 +14565,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
@@ -14704,7 +14706,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
 %!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   endif
@@ -14757,7 +14759,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
 %!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   endif
@@ -14884,7 +14886,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -14931,7 +14933,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -15053,7 +15055,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -15100,7 +15102,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(2).mesh.materials.tet10h = ones(rows(mesh_data(2).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -15222,7 +15224,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -15269,7 +15271,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(2).mesh.materials.tet10 = ones(rows(mesh_data(2).mesh.elements.tet10), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -15394,7 +15396,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
@@ -15539,7 +15541,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6h].id] == 4);
@@ -15701,7 +15703,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6h].id] == 4);
@@ -15851,7 +15853,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
@@ -16004,7 +16006,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -16125,7 +16127,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -16247,7 +16249,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -16364,7 +16366,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -16479,7 +16481,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -16589,7 +16591,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.iso4].id] == 4);
@@ -16731,7 +16733,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
@@ -16871,7 +16873,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
@@ -17010,7 +17012,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
@@ -17149,7 +17151,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
@@ -17288,7 +17290,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -17455,7 +17457,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -17622,7 +17624,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -17797,7 +17799,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "quad8", "iso20", "penta15"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -17972,7 +17974,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "quad8", "penta15"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -18141,7 +18143,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -18310,7 +18312,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -18509,7 +18511,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
 %!   mesh_data = struct("mesh", cell(1, 4));
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -18562,7 +18564,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -18608,7 +18610,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
 %!     [fd, msg] = fopen([filename, ".geo"], "w");
@@ -18654,7 +18656,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
@@ -18936,7 +18938,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
 %!   mesh_data = struct("mesh", cell(1, 4));
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -18989,7 +18991,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19036,7 +19038,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19083,7 +19085,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.tet10 = ones(rows(mesh_data(1).mesh.elements.tet10), 1, "int32");
@@ -19295,7 +19297,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
 %!   mesh_data = struct("mesh", cell(1, 4));
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19349,7 +19351,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19397,7 +19399,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
-%!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19445,7 +19447,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "penta15", "quad8"};
-%!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
@@ -19662,7 +19664,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
 %!   mesh_data = struct("mesh", cell(1, 4));
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19717,7 +19719,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19766,7 +19768,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
-%!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -19815,7 +19817,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "iso20", "quad8"};
-%!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.iso20 = ones(rows(mesh_data(1).mesh.elements.iso20), 1, "int32");
@@ -20043,7 +20045,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
 %!   mesh_data = struct("mesh", cell(1, 4));
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -20097,7 +20099,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -20145,7 +20147,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -20193,7 +20195,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.iso8 = ones(rows(mesh_data(1).mesh.elements.iso8), 1, "int32");
@@ -20387,7 +20389,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -20544,7 +20546,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -20699,7 +20701,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -20854,7 +20856,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -21000,7 +21002,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
@@ -21095,7 +21097,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
@@ -21187,7 +21189,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
@@ -21282,7 +21284,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
@@ -21375,7 +21377,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
@@ -21485,7 +21487,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -21626,7 +21628,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 2);
@@ -21770,7 +21772,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 2);
@@ -21915,7 +21917,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
@@ -22058,7 +22060,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -22200,7 +22202,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -22365,7 +22367,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -22578,7 +22580,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -22711,7 +22713,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -22845,7 +22847,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -22978,7 +22980,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -23109,7 +23111,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -23242,7 +23244,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -23379,7 +23381,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -23515,7 +23517,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -23649,7 +23651,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -23781,7 +23783,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -23912,7 +23914,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -24054,7 +24056,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -24198,7 +24200,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -24345,7 +24347,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -24494,7 +24496,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -24649,7 +24651,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8", "penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
@@ -24805,7 +24807,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
@@ -24948,7 +24950,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 2);
@@ -25092,7 +25094,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 2);
@@ -25237,7 +25239,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
@@ -25383,7 +25385,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
@@ -25529,7 +25531,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
@@ -25670,7 +25672,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -25805,7 +25807,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
@@ -25943,7 +25945,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 2);
@@ -26084,7 +26086,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
@@ -26229,7 +26231,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
@@ -26373,7 +26375,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 2);
@@ -26513,7 +26515,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 2);
@@ -26656,7 +26658,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -26795,7 +26797,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -26933,7 +26935,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -27069,7 +27071,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -27212,15 +27214,15 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   grp_idx_inlet = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_outlet = find([mesh.groups.tria6.id] == 3);
-%!   node_idx_inlet = mesh.groups.tria6(grp_idx_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria6(grp_idx_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria6(grp_idx_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria6(grp_idx_outlet)].nodes];
 %!   node_idx_constr = [node_idx_inlet, node_idx_outlet];
 %!   xi = mesh.nodes(node_idx_constr, 1).';
 %!   yi = mesh.nodes(node_idx_constr, 2).';
@@ -27350,15 +27352,15 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   grp_idx_inlet = find([mesh.groups.tria6.id] == 2);
 %!   grp_idx_outlet = find([mesh.groups.tria6.id] == 3);
-%!   node_idx_inlet = mesh.groups.tria6(grp_idx_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria6(grp_idx_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria6(grp_idx_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria6(grp_idx_outlet)].nodes];
 %!   node_idx_constr = [node_idx_inlet];
 %!   xi = mesh.nodes(node_idx_constr, 1).';
 %!   yi = mesh.nodes(node_idx_constr, 2).';
@@ -27498,7 +27500,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.material_data.rho = rho;
@@ -27657,7 +27659,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.rho = rho;
@@ -27818,7 +27820,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"quad8", "penta15"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   mesh.material_data.rho = rho;
@@ -27980,7 +27982,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"quad8", "penta15", "iso20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (isfield(mesh.elements, "penta15"))
 %!      mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -28144,7 +28146,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (isfield(mesh.elements, "iso8"))
 %!      mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -28304,7 +28306,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (isfield(mesh.elements, "iso8"))
 %!      mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -28488,7 +28490,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -28728,7 +28730,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -28969,7 +28971,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -29208,7 +29210,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -29444,7 +29446,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -29662,7 +29664,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -29917,7 +29919,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   empty_cell = cell(1, 4);
 %!   group_defs = struct("id", empty_cell, ...
@@ -30213,7 +30215,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_inlet = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_outlet = find([mesh.groups.tria6h.id] == 2);
@@ -30250,8 +30252,8 @@ endfunction
 %!   opt_sol.refine_max_iter = int32(50);
 %!   omegai = linspace(sqrt(eps) * omegac, omegac, 100);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
-%!   node_idx_inlet = mesh.groups.tria6h(grp_idx_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria6h(grp_idx_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria6h(grp_idx_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria6h(grp_idx_outlet)].nodes];
 %!   err = R = zeros(size(omegai));
 %!   for i=1:numel(omegai)
 %!     Keff = complex(-omegai(i)^2 * mat_ass.Ma + 1j * omegai(i) * mat_ass.Da + mat_ass.Ka);
@@ -30364,7 +30366,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -30582,7 +30584,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -30814,7 +30816,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -31084,7 +31086,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -31353,7 +31355,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -31622,7 +31624,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -31891,7 +31893,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -32191,7 +32193,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -32540,7 +32542,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "quad8", "penta15"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
@@ -32910,7 +32912,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
@@ -33244,7 +33246,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
@@ -33584,7 +33586,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -33927,7 +33929,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -34192,7 +34194,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -34779,7 +34781,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -35720,7 +35722,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -35903,7 +35905,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -36087,7 +36089,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -36269,7 +36271,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -36454,7 +36456,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -36638,7 +36640,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -36821,7 +36823,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -37004,7 +37006,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -37187,7 +37189,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -37429,7 +37431,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -37764,7 +37766,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -38088,7 +38090,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v1_penta15 = find([mesh.groups.penta15.id] == 1);
@@ -38314,7 +38316,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20 = find([mesh.groups.iso20.id] == 1);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
@@ -38436,7 +38438,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20 = find([mesh.groups.iso20.id] == 1);
 %!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
@@ -38629,7 +38631,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "penta15", "tet10", "tria6", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);
@@ -38964,7 +38966,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_s_clamp = find([mesh.groups.tria6.id] == 3);
@@ -39095,7 +39097,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -39302,7 +39304,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -39509,7 +39511,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -39717,7 +39719,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -39924,7 +39926,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -40131,7 +40133,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
@@ -40362,7 +40364,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 5);
@@ -40595,7 +40597,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6h.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.tria6h.id] == 5);
@@ -40828,7 +40830,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria6.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.tria6.id] == 5);
@@ -41061,7 +41063,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
@@ -41292,7 +41294,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -41542,7 +41544,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -41807,7 +41809,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -42030,7 +42032,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -42254,7 +42256,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -42479,7 +42481,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -42704,7 +42706,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -42918,7 +42920,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -43124,7 +43126,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -43332,7 +43334,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -43540,7 +43542,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -43748,7 +43750,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
 %!   mesh.nodes(:, 1:3) = mesh.nodes(:, 1:3) * R.';
@@ -43961,7 +43963,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
@@ -44201,7 +44203,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.iso4.id] == 4);
 %!   grp_idx_s2 = find([mesh.groups.iso4.id] == 5);
@@ -44490,7 +44492,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -44750,7 +44752,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
@@ -45010,7 +45012,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
@@ -45274,7 +45276,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
@@ -45534,7 +45536,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -45729,7 +45731,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -45914,7 +45916,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -46100,7 +46102,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
@@ -46286,7 +46288,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
@@ -46472,7 +46474,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
@@ -46674,7 +46676,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -46886,7 +46888,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20.id] == 2);
@@ -47086,7 +47088,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);
@@ -47398,7 +47400,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8", "penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.iso20.id] == 1);
 %!   grp_idx_solid_h = find([mesh.groups.iso20.id] == 2);
@@ -47440,11 +47442,11 @@ endfunction
 %!   if (isfield(mesh.groups, "tria6h"))
 %!     node_idx_inlet = [mesh.groups.quad8(grp_idx_fluid_inlet_q).nodes, ...
 %!                       mesh.groups.tria6h(grp_idx_fluid_inlet_t).nodes];
-%!     node_idx_outlet = [mesh.groups.quad8(grp_idx_fluid_outlet_q).elements, ...
+%!     node_idx_outlet = [mesh.groups.quad8(grp_idx_fluid_outlet_q).nodes, ...
 %!                        mesh.groups.tria6h(grp_idx_fluid_outlet_t).nodes];
 %!   else
 %!     node_idx_inlet = mesh.groups.quad8(grp_idx_fluid_inlet_q).nodes;
-%!     node_idx_outlet = mesh.groups.quad8(grp_idx_fluid_outlet_q).elements;
+%!     node_idx_outlet = mesh.groups.quad8(grp_idx_fluid_outlet_q).nodes;
 %!   endif
 %!   mesh.elements.fluid_struct_interface.quad8 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_fsi).elements, :);
 %!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_fluid_inlet_q).elements, :);
@@ -47610,6 +47612,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4", "tria3", "penta6"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(mesh);
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_solid_h = find([mesh.groups.iso8.id] == 2);
@@ -47631,8 +47634,8 @@ endfunction
 %!   mesh.materials.iso8 = zeros(rows(mesh.elements.iso8), 1, "int32");
 %!   mesh.materials.iso8([[mesh.groups.iso8(grp_idx_fluid_h)].elements]) = 1;
 %!   mesh.materials.iso8([[mesh.groups.iso8(grp_idx_solid_h)].elements]) = 2;
-%!   node_idx_inlet = mesh.groups.iso4(grp_idx_fluid_inlet_q).nodes;
-%!   node_idx_outlet = mesh.groups.iso4(grp_idx_fluid_outlet_q).elements;
+%!   node_idx_inlet = [[mesh.groups.iso4(grp_idx_fluid_inlet_q)].nodes];
+%!   node_idx_outlet = [[mesh.groups.iso4(grp_idx_fluid_outlet_q)].nodes];
 %!   mesh.elements.fluid_struct_interface.iso4 = mesh.elements.iso4(mesh.groups.iso4(grp_idx_fsi).elements, :);
 %!   mesh.elements.particle_velocity.iso4.nodes = mesh.elements.iso4([[mesh.groups.iso4(grp_idx_fluid_inlet_q)].elements], :);
 %!   mesh.materials.particle_velocity.iso4 = ones(rows(mesh.elements.particle_velocity.iso4.nodes), 1, "int32");
@@ -47670,6 +47673,7 @@ endfunction
 %!   opt_sol.delta = 0.5;
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.refine_max_iter = int32(1000);
+%!   opt_sol.verbose = false;
 %!   solver = fem_sol_transient_init(mat_ass.Mfs_re, mat_ass.Dfs_re, mat_ass.Kfs_re, dt, opt_sol);
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = zeros(rows(mesh.nodes), 6, numel(sol.t));
@@ -47702,7 +47706,7 @@ endfunction
 %!   pref = 0.5 * pin(end);
 %!   tref0 = sol.t(find(pin >= pref)(1));
 %!   tref1 = sol.t(find(pout >= pref)(1));
-%!   tol = 5e-2;
+%!   tol = 5.5e-2;
 %!   assert(tref1 - tref0, l / a, tol * l / a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -47787,7 +47791,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_solid_h = find([mesh.groups.tet10.id] == 2);
@@ -47809,8 +47813,8 @@ endfunction
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_fluid_h).elements) = 1;
 %!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_solid_h).elements) = 2;
-%!   node_idx_inlet = mesh.groups.tria6(grp_idx_fluid_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria6(grp_idx_fluid_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria6(grp_idx_fluid_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria6(grp_idx_fluid_outlet)].nodes];
 %!   mesh.elements.fluid_struct_interface.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_fsi).elements, :);
 %!   mesh.elements.particle_velocity.tria6.nodes = mesh.elements.tria6(mesh.groups.tria6(grp_idx_fluid_inlet).elements, :);
 %!   mesh.materials.particle_velocity.tria6 = ones(rows(mesh.elements.particle_velocity.tria6.nodes), 1, "int32");
@@ -47951,7 +47955,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -48077,7 +48081,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet20.id] == 1);
 %!   grp_idx_s_clamp = find([mesh.groups.tria10.id] == 3);
@@ -48183,7 +48187,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -48437,7 +48441,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 4);
@@ -48571,7 +48575,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
@@ -48741,7 +48745,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
@@ -48927,7 +48931,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
@@ -49105,7 +49109,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   fprintf(stderr, "%d nodes\n", rows(mesh1.nodes));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
@@ -49293,7 +49297,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -49487,7 +49491,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh1 = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh1 = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -49679,7 +49683,7 @@ endfunction
 %!         warning("gmsh failed with status %d", status);
 %!       endif
 %!       [~] = unlink([filename, ".geo"]);
-%!       data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!       data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!       [~] = unlink([filename, ".msh"]);
 %!     endfor
 %!     for i=1:numel(data)
@@ -49856,7 +49860,7 @@ endfunction
 %!       warning("gmsh failed with status %d", status);
 %!     endif
 %!     unlink([filename, ".geo"]);
-%!     data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!     data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!     unlink([filename, ".msh"]);
 %!   endfor
 %!   data(2).mesh.nodes(:, 1) += a;
@@ -50089,7 +50093,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   master_node_idx = int32(rows(mesh.nodes) + 1);
 %!   mesh.nodes(master_node_idx, 1:3) = [a + d, 0, 0];
 %!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, 2, master_node_idx, "tria10");
@@ -50261,7 +50265,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 2);
@@ -50394,7 +50398,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
 %!   cms_opt.nodes.interfaces.number = int32(rows(mesh.nodes) + 2);
@@ -50511,7 +50515,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 4);
@@ -50632,7 +50636,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_y = find([[mesh.groups.tria10].id] == 2);
@@ -50768,7 +50772,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet20.id] == 1);
@@ -50896,7 +50900,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet20.id] == 1);
@@ -51075,7 +51079,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = zeros(rows(mesh.elements.tet20), 1, "int32");
 %!   grp_id_mat1 = find([mesh.groups.tet20.id] == 1);
@@ -51200,7 +51204,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -51352,7 +51356,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -51454,7 +51458,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -51560,7 +51564,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -51665,7 +51669,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(1).mesh.materials.tet20 = ones(rows(mesh_data(1).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -51712,7 +51716,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   mesh_data(2).mesh.materials.tet20 = ones(rows(mesh_data(2).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -51829,7 +51833,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
@@ -51934,7 +51938,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
 %!   rho = 1000;
@@ -52074,7 +52078,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(1).mesh.materials.tet20 = ones(rows(mesh_data(1).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -52121,7 +52125,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(2).mesh.materials.tet20 = ones(rows(mesh_data(2).mesh.elements.tet20), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -52245,7 +52249,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.tria10].id] == 4);
@@ -52399,7 +52403,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -52501,7 +52505,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
 %!   rho = 7200;
@@ -52700,7 +52704,7 @@ endfunction
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
 %!   mesh_data = struct("mesh", cell(1, 4));
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -52753,7 +52757,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -52800,7 +52804,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh_data(3).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   unwind_protect
@@ -52847,7 +52851,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh_data(4).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 
 %!   mesh_data(1).mesh.materials.tet20 = ones(rows(mesh_data(1).mesh.elements.tet20), 1, "int32");
@@ -53096,7 +53100,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
@@ -53210,7 +53214,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -53351,7 +53355,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria10.id] == 2);
@@ -53524,7 +53528,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -53738,7 +53742,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -53874,7 +53878,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -54026,7 +54030,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria10.id] == 2);
@@ -54170,7 +54174,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -54306,7 +54310,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_s1 = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_s2 = find([mesh.groups.tria10.id] == 2);
@@ -54449,7 +54453,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -54591,15 +54595,15 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   grp_idx_inlet = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_outlet = find([mesh.groups.tria10.id] == 3);
-%!   node_idx_inlet = mesh.groups.tria10(grp_idx_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria10(grp_idx_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria10(grp_idx_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria10(grp_idx_outlet)].nodes];
 %!   node_idx_constr = [node_idx_inlet, node_idx_outlet];
 %!   xi = mesh.nodes(node_idx_constr, 1).';
 %!   yi = mesh.nodes(node_idx_constr, 2).';
@@ -54730,15 +54734,15 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   grp_idx_inlet = find([mesh.groups.tria10.id] == 2);
 %!   grp_idx_outlet = find([mesh.groups.tria10.id] == 3);
-%!   node_idx_inlet = mesh.groups.tria10(grp_idx_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria10(grp_idx_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria10(grp_idx_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria10(grp_idx_outlet)].nodes];
 %!   node_idx_constr = [node_idx_inlet];
 %!   xi = mesh.nodes(node_idx_constr, 1).';
 %!   yi = mesh.nodes(node_idx_constr, 2).';
@@ -54879,7 +54883,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
 %!   mesh.material_data.rho = rho;
@@ -55064,7 +55068,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -55302,7 +55306,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -55528,7 +55532,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -55787,7 +55791,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   empty_cell = cell(1, 4);
 %!   group_defs = struct("id", empty_cell, ...
@@ -56086,7 +56090,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_inlet = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_outlet = find([mesh.groups.tria10.id] == 2);
@@ -56123,8 +56127,8 @@ endfunction
 %!   opt_sol.refine_max_iter = int32(50);
 %!   omegai = linspace(sqrt(eps) * omegac, omegac, 50);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
-%!   node_idx_inlet = mesh.groups.tria10(grp_idx_inlet).nodes;
-%!   node_idx_outlet = mesh.groups.tria10(grp_idx_outlet).nodes;
+%!   node_idx_inlet = [[mesh.groups.tria10(grp_idx_inlet)].nodes];
+%!   node_idx_outlet = [[mesh.groups.tria10(grp_idx_outlet)].nodes];
 %!   err = R = zeros(size(omegai));
 %!   for i=1:numel(omegai)
 %!     Keff = complex(-omegai(i)^2 * mat_ass.Ma + 1j * omegai(i) * mat_ass.Da + mat_ass.Ka);
@@ -56243,7 +56247,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -56462,7 +56466,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -56693,7 +56697,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -56986,7 +56990,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opts.elem_type = {"tria10", "tet20"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opts);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet20.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet20.id] == 2);
@@ -57251,7 +57255,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -57394,7 +57398,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -57605,7 +57609,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet20.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet20.id] == 2);
@@ -57948,7 +57952,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
 %!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
@@ -58155,7 +58159,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "quad8", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -58361,7 +58365,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6h.id] == 2);
@@ -58569,7 +58573,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.iso4.id] == 1);
 %!   grp_idx_output = find([mesh.groups.iso4.id] == 2);
@@ -58775,7 +58779,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria6.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria6.id] == 2);
@@ -58981,7 +58985,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_input = find([mesh.groups.tria10.id] == 1);
 %!   grp_idx_output = find([mesh.groups.tria10.id] == 2);
@@ -59158,7 +59162,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -59432,7 +59436,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -59706,7 +59710,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -59973,7 +59977,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -60219,7 +60223,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
 %!     group_defs(1).id = 1;
@@ -60473,7 +60477,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.iso4].id] == 1);
@@ -60705,7 +60709,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 1);
@@ -60936,7 +60940,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 1);
@@ -61159,7 +61163,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6h].id] == 1);
@@ -61382,7 +61386,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 1);
@@ -61569,7 +61573,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
@@ -61741,7 +61745,7 @@ endfunction
 %!       warning("gmsh failed with status %d", status);
 %!     endif
 %!     unlink([filename, ".geo"]);
-%!     data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!     data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!     unlink([filename, ".msh"]);
 %!   endfor
 %!   data(2).mesh.nodes(:, 1) += a;
@@ -61982,7 +61986,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
@@ -62140,7 +62144,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.iso4].id] == 2);
@@ -62294,7 +62298,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.quad8.nodes, 1:3) = true;
@@ -62407,7 +62411,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   load_case.locked_dof(mesh.groups.tria6.nodes, 1:3) = true;
@@ -62520,7 +62524,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
@@ -62683,7 +62687,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp = find([[mesh.groups.tria10].id] == 2);

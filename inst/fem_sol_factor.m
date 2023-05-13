@@ -55,7 +55,7 @@ function Afact = fem_sol_factor(A, options)
   endif
 
   if (~isfield(options, "refine_max_iter"))
-    options.refine_max_iter = int32(3);
+    options.refine_max_iter = int32(10);
   endif
 
   if (~isfield(options, "epsilon_refinement"))
