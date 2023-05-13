@@ -34,10 +34,26 @@ function [mesh, PERM, IPERM] = fem_pre_mesh_reorder(mesh, options)
   endif
 
   if (~isfield(options, "algorithm"))
-    options.algorithm = "metis";
+    options.algorithm = "ndmetis";
   endif
 
   options.elem_type = {"tet10", "tria6", "tet10h", "tria6h", "tet20", "tria10", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "iso20r", "quad8r", "penta15", "pyra5"};
+
+  algorithm = {"ndmetis", "csymamd", "symamd", "amd", "symrcm"};
+
+  algorithm_found = false;
+
+  for i=1:numel(algorithm)
+    if (fem_sol_check_func(options.algorithm))
+      algorithm_found = true;
+      break;
+    endif
+    options.algorithm = algorithm{i};
+  endfor
+
+  if (~algorithm_found)
+    error("fem_pre_mesh_reorder failed because no algorithm is available");
+  endif
 
   num_nz = int32(0);
   num_el = int32(0);
@@ -74,9 +90,9 @@ function [mesh, PERM, IPERM] = fem_pre_mesh_reorder(mesh, options)
   endfor
 
   switch (options.algorithm)
-    case "metis"
-      [PERM, IPERM] = ndmetis(rows(mesh.nodes), EPTR, EIND);
-    case {"symrcm", "csymamd", "symamd"}
+    case "ndmetis"
+      [PERM, IPERM] = feval(options.algorithm, rows(mesh.nodes), EPTR, EIND);
+    case {"symrcm", "csymamd", "symamd", "amd"}
       num_nz = sum((EPTR(2:end) - EPTR(1:end-1)).^2);
 
       RIDX = CIDX = zeros(num_nz, 1, "int32");
@@ -171,7 +187,7 @@ endfunction
 %!   g(i) += sum(x(mesh.groups.iso4(i).nodes));
 %! endfor
 %!
-%! algorithm = {"metis", "symrcm", "csymamd", "symamd"};
+%! algorithm = {"metis", "amd", "symrcm", "csymamd", "symamd"};
 %!
 %! for j=1:numel(algorithm)
 %!   [mesh2, perm, iperm] = fem_pre_mesh_reorder(mesh, struct("algorithm", algorithm{j}));
