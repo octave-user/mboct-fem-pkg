@@ -24,9 +24,9 @@ function Afact = fem_fact_scale(A, opts)
   endif
 
   [AS, Afact.D1, Afact.D2] = fem_sol_matrix_scale(A, opts.scale_tol, opts.scale_max_iter);
-  
+
   opts.pre_scaling = false; ## avoid infinite recursion
-  
+
   Afact.ASfact = fem_sol_factor(AS, opts);
 
   Afact = class(Afact, "fem_fact_scale");

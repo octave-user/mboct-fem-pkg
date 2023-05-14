@@ -6016,7 +6016,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 22: patch test of iso20
+%! ## TEST 22: static patch test of iso20
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6156,7 +6156,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 23: patch test of iso8
+%! ## TEST 23: static patch test of iso8
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6283,7 +6283,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 24: patch test of tet10
+%! ## TEST 24: static patch test of tet10
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6409,7 +6409,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 25: patch test of iso20
+%! ## TEST 25: dynamic patch test of iso20
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6429,7 +6429,6 @@ endfunction
 %!     a = 8e-3;
 %!     b = 15e-3;
 %!     c = 12e-3;
-%!     shift = 1e-4;
 %!     mesh_size = 7e-3;
 %!     scale_def = 1e-3;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -6485,16 +6484,21 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_MAT_MASS], ...
 %!                                load_case);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, shift);
+%!   opt_modal.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
+%!   opt_modal.solver = "pastix";
+%!   opt_modal.refine_max_iter = int32(250);
+%!   opt_modal.pre_scaling = true;
+%!   opt_modal.verbose = false;
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, opt_modal);
 %!   sol_eig.def *= scale_def / max(max(max(abs(sol_eig.def))));
 %!   [sol_eig.stress] = fem_ass_matrix(mesh, ...
 %!                                     dof_map, ...
 %!                                     [FEM_VEC_STRESS_CAUCH], ...
 %!                                     load_case, ...
 %!                                     sol_eig);
-%!   tolt = eps^0.5;
+%!   tolt = eps^0.6;
 %!   assert(max(max(max(max(abs(sol_eig.stress.tau.iso20(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.iso20(:, :, :, 7:end)))))));
-%!   tolf = eps^0.3;
+%!   tolf = eps^0.4;
 %!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -6506,7 +6510,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 26: patch test of iso8
+%! ## TEST 26: dynamic patch test of iso8
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6526,7 +6530,6 @@ endfunction
 %!     a = 8e-3;
 %!     b = 15e-3;
 %!     c = 12e-3;
-%!     shift = 1e-4;
 %!     mesh_size = 7e-3;
 %!     scale_def = 1e-3;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -6580,7 +6583,12 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_MAT_MASS], ...
 %!                                load_case);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, shift);
+%!   opt_modal.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
+%!   opt_modal.solver = "pastix";
+%!   opt_modal.refine_max_iter = int32(250);
+%!   opt_modal.pre_scaling = true;
+%!   opt_modal.verbose = false;
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, opt_modal);
 %!   sol_eig.def *= scale_def / max(max(max(abs(sol_eig.def))));
 %!   [sol_eig.stress] = fem_ass_matrix(mesh, ...
 %!                                     dof_map, ...
@@ -6601,7 +6609,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 27: patch test of tet10
+%! ## TEST 27: dynamic patch test of tet10
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6621,7 +6629,6 @@ endfunction
 %!     a = 8e-3;
 %!     b = 15e-3;
 %!     c = 12e-3;
-%!     shift = 1e-4;
 %!     mesh_size = 7e-3;
 %!     scale_def = 1e-3;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -6674,7 +6681,12 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_MAT_MASS], ...
 %!                                load_case);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, shift);
+%!   opt_modal.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
+%!   opt_modal.solver = "pastix";
+%!   opt_modal.refine_max_iter = int32(250);
+%!   opt_modal.pre_scaling = true;
+%!   opt_modal.verbose = false;
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, opt_modal);
 %!   sol_eig.def *= scale_def / max(max(max(abs(sol_eig.def))));
 %!   [sol_eig.stress] = fem_ass_matrix(mesh, ...
 %!                                     dof_map, ...
@@ -6695,7 +6707,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 28: patch test of penta15
+%! ## TEST 28: dynamic patch test of penta15
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6715,7 +6727,6 @@ endfunction
 %!     a = 8e-3;
 %!     b = 15e-3;
 %!     c = 12e-3;
-%!     shift = 1e-4;
 %!     mesh_size = 7e-3;
 %!     scale_def = 1e-3;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -6773,7 +6784,12 @@ endfunction
 %!                                 FEM_MAT_MASS_LUMPED, ...
 %!                                 FEM_SCA_TOT_MASS], ...
 %!                                load_case);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, shift);
+%!   opt_modal.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
+%!   opt_modal.solver = "pastix";
+%!   opt_modal.refine_max_iter = int32(250);
+%!   opt_modal.pre_scaling = true;
+%!   opt_modal.verbose = false;
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, opt_modal);
 %!   sol_eig.def *= scale_def / max(max(max(abs(sol_eig.def))));
 %!   [sol_eig.stress] = fem_ass_matrix(mesh, ...
 %!                                     dof_map, ...
@@ -6782,7 +6798,7 @@ endfunction
 %!                                     sol_eig);
 %!   tolt = eps^0.5;
 %!   assert(max(max(max(max(abs(sol_eig.stress.tau.penta15(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.penta15(:, :, :, 7:end)))))));
-%!   tolf = eps^0.3;
+%!   tolf = eps^0.4;
 %!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
 %!   assert(sum(sum(mat_ass.M)) / 3, mat_ass.dm, 1e-10 * mat_ass.dm);
 %!   assert(sum(sum(mat_ass.Mdiag)) / 3, mat_ass.dm, 5e-2 * mat_ass.dm);
@@ -6796,7 +6812,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 29: patch test of penta15
+%! ## TEST 29: static patch test of penta15
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -6952,7 +6968,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 30: patch test of tet10h
+%! ## TEST 30: static patch test of tet10h
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -37327,14 +37343,15 @@ endfunction
 %!   unit_watt = unit_newton * unit_meters / unit_second;
 %!   r0 = 200e-3 / unit_meters;
 %!   r1 = 300e-3 / unit_meters;
-%!   r2 = 310e-3 / unit_meters;
+%!   r2 = 300.5e-3 / unit_meters; ## according to the assumptions of the reference solution,
+%!                                ## the solid layer should be a thin membrane with constant velocity along the thickness direction
 %!   r3 = 400e-3 / unit_meters;
 %!   c1 = 1400 / (unit_meters / unit_second);
 %!   rho1 = 1000 / (unit_kilograms / unit_meters^3);
 %!   eta1 = 0 / (unit_pascal * unit_second);
 %!   zeta1 = 0 / (unit_pascal * unit_second);
-%!   E2 = 70000e6 / unit_pascal;
-%!   rho2 = 1700 / (unit_kilograms / unit_meters^3);
+%!   E2 = 10 * 210000e6 / unit_pascal; # higher stiffness to make deformations of the solid almost static
+%!   rho2 = 50 * 7850 / (unit_kilograms / unit_meters^3); # higher density in order to increase the pressure difference across solid domain
 %!   nu2 = 0.3;
 %!   K2 = E2 / (3 * (1 - 2 * nu2));
 %!   c2 = sqrt(K2 / rho2);
@@ -37351,7 +37368,7 @@ endfunction
 %!   lambda1 = c1 / f;
 %!   lambda2 = c2 / f;
 %!   lambda3 = c3 / f;
-%!   dx1 = lambda1 / 100;
+%!   dx1 = lambda1 / 200;
 %!   dx2 = lambda2 / 100;
 %!   dx3 = lambda3 / 100;
 %!   dx = min([dx1, dx2, dx3]);
@@ -37542,8 +37559,9 @@ endfunction
 %!   idxPhi = idxPhi(idxPhi1);
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(50);
+%!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
+%!   opt_sol.pre_scaling = true;
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
 %!   Z = fem_sol_factor(Keff, opt_sol) \ Reff;
@@ -37590,7 +37608,7 @@ endfunction
 %!   [r, idx] = sort(norm(mesh.nodes(:, 1:3), "rows"));
 %!   vref = real(v(r, sol.t));
 %!   pref = real(p(r, sol.t));
-%!   for i=1:numel(Psi)
+%!   for i=1:3:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
 %!     plot(r * unit_meters, vr(idx, i) * unit_meters / unit_second, "-;vr;1");
@@ -37601,7 +37619,7 @@ endfunction
 %!     grid minor on;
 %!     title(sprintf("velocity distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
-%!   for i=1:numel(Psi)
+%!   for i=1:3:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
 %!     plot(r * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;1");
@@ -37625,7 +37643,7 @@ endfunction
 %!   title("sound power versus time");
 %!   xlabel("t [s]");
 %!   ylabel("P [W]");
-%!   tol = 2.5e-2;
+%!   tol = 2e-3;
 %!   idx2 = find(r < r1 | r > r2);
 %!   assert(vr(idx, :), vref, tol * max(max(abs(vref))));
 %!   assert(sol.p(idx(idx2), :), pref(idx2,:), tol * max(max(abs(pref))));
@@ -47896,7 +47914,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 256: patch test of tet20
+%! ## TEST 256: dynamic patch test of tet20
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -47913,10 +47931,10 @@ endfunction
 %!     if (fd == -1)
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
-%!     a = 5;
-%!     b = 300;
+%!     a = 10;
+%!     b = 10;
 %!     c = 10;
-%!     mesh_size = 5;
+%!     mesh_size = 10;
 %!     N = 20;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "a = %g;\n", a);
@@ -47986,8 +48004,8 @@ endfunction
 %!   opt_sol.number_of_threads = int32(4);
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;
-%!   opt_sol.refine_max_iter = int32(20);
-%!   opt_sol.rho = sqrt(eps) * max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M)));
+%!   opt_sol.refine_max_iter = int32(250);
+%!   opt_sol.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
 %!   opt_sol.tolerance = sqrt(eps);
 %!   opt_sol.algorithm = "shift-invert";
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, opt_sol);
@@ -48380,7 +48398,7 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 259: patch test of tet20
+%! ## TEST 259: static patch test of tet20
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -61499,6 +61517,105 @@ endfunction
 %!   if (do_plot)
 %!     figure_list();
 %!   endif
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!test
+%! ## TEST 329: dynamic patch test of tet10h
+%! do_plot = false;
+%! if (do_plot)
+%!   close all;
+%! endif
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     if (fd == -1)
+%!       error("failed to open file \"%s.geo\"", filename);
+%!     endif
+%!     a = 8e-3;
+%!     b = 15e-3;
+%!     c = 12e-3;
+%!     mesh_size = 7e-3;
+%!     scale_def = 1e-3;
+%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fprintf(fd, "a = %g;\n", a);
+%!     fprintf(fd, "b = %g;\n", b);
+%!     fprintf(fd, "c = %g;\n", c);
+%!     fprintf(fd, "h = %g;\n", mesh_size);
+%!     fputs(fd, "Point(1) = {0,0,0,h};\n");
+%!     fputs(fd, "Point(2) = {a,0,0,h};\n");
+%!     fputs(fd, "Point(3) = {a,b,0,h};\n");
+%!     fputs(fd, "Point(4) = {0,b,0,h};\n");
+%!     fputs(fd, "Line(1) = {1,2};\n");
+%!     fputs(fd, "Line(2) = {2,3};\n");
+%!     fputs(fd, "Line(3) = {3,4};\n");
+%!     fputs(fd, "Line(4) = {4,1};\n");
+%!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
+%!     fputs(fd, "Plane Surface(6) = {5};\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   [~] = unlink([filename, ".msh"]);
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   status = spawn_wait(pid);
+%!   if (status ~= 0)
+%!     warning("gmsh failed with status %d", status);
+%!   endif
+%!   [~] = unlink([filename, ".geo"]);
+%!   opt_msh.elem_type = {"tet10h", "tria6h"};
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
+%!   [~] = unlink([filename, ".msh"]);
+%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   E = 210000e6;
+%!   nu = 0.3;
+%!   mesh.material_data.rho = 7850;
+%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.K, ...
+%!    mat_ass.M] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS, ...
+%!                                 FEM_MAT_MASS], ...
+%!                                load_case);
+%!   opt_modal.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
+%!   opt_modal.solver = "pastix";
+%!   opt_modal.refine_max_iter = int32(250);
+%!   opt_modal.pre_scaling = true;
+%!   opt_modal.verbose = false;
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 10, opt_modal);
+%!   sol_eig.def *= scale_def / max(max(max(abs(sol_eig.def))));
+%!   [sol_eig.stress] = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     [FEM_VEC_STRESS_CAUCH], ...
+%!                                     load_case, ...
+%!                                     sol_eig);
+%!   tolf = eps^0.3;
+%!   tolt = eps^0.4;
+%!   assert(max(max(max(max(abs(sol_eig.stress.tau.tet10h(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.tet10h(:, :, :, 7:end)))))));
+%!   assert(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
