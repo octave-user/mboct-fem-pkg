@@ -11312,7 +11312,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -11473,7 +11473,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
@@ -11625,7 +11625,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -11729,7 +11729,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -11833,7 +11833,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"penta15", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
@@ -11938,7 +11938,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso20", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
@@ -12043,7 +12043,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
@@ -12574,7 +12574,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -12680,7 +12680,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -12784,7 +12784,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10", "tria6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 50;
 %!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -13886,7 +13886,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh_data(1).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(1).mesh.materials.tet10h = ones(rows(mesh_data(1).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
@@ -13933,7 +13933,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tria6h", "tet10h"};
-%!   mesh_data(2).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh_data(2).mesh.materials.tet10h = ones(rows(mesh_data(2).mesh.elements.tet10h), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
@@ -34418,7 +34418,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt.elem_type = {"penta15", "tria6h", "quad8"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.penta15.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.penta15.id] == 2);
@@ -35133,7 +35133,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt.elem_type = {"tria6h", "tet10h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10h.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10h.id] == 2);
@@ -35471,7 +35471,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt.elem_type = {"tria6", "tet10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.tet10.id] == 2);
@@ -47629,7 +47629,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"iso8", "iso4", "tria3", "penta6"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh = fem_pre_mesh_reorder(mesh);
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.iso8.id] == 1);

@@ -2732,8 +2732,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
 %!   mesh.material_data(1).nu = param.nu1;
@@ -3157,8 +3156,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   opt_mesh.elem_type = {"tet20", "tria10"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
 %!   mesh.material_data(1).nu = param.nu1;
@@ -3564,7 +3562,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   mesh = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data.E = 70000e6 / SI_unit_pascal;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 2700 / (SI_unit_kilogram / SI_unit_meter^3);
@@ -4622,7 +4619,7 @@ endfunction
 %!                 warning("gmsh failed with status %d", status);
 %!               endif
 %!               opt_msh.elem_type = {elem_type_solid{:}, elem_type_surf{:}};
-%!               mesh = fem_pre_mesh_import(mesh_file, "gmsh", opt_msh);
+%!               mesh = fem_pre_mesh_reorder(fem_pre_mesh_import(mesh_file, "gmsh", opt_msh));
 %!               [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!               opt_mbd_mesh = struct();
 %!               switch (model)

@@ -294,7 +294,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", 3, repmat(deltaPML / layersPML, 1, layersPML));
 %!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
@@ -490,7 +490,7 @@ endfunction
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh);
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   N = ceil((r2 - r1) / dx);
 %!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", 3, [repmat((r2 - r1) / N, 1, N), r3 - r2]);
@@ -696,7 +696,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);

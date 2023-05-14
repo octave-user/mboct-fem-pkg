@@ -123,7 +123,7 @@ endfunction
 %!  warning("gmsh failed with status %d", status);
 %! endif
 %! unlink([filename, ".geo"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! node_id_ground = rows(mesh.nodes) + 1;
 %! node_id_load = rows(mesh.nodes) + 2;
 %! mesh.nodes(node_id_ground, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
@@ -227,7 +227,7 @@ endfunction
 %!  warning("gmsh failed with status %d", status);
 %! endif
 %! unlink([filename, ".geo"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! node_id_ground = rows(mesh.nodes) + 1;
 %! node_id_load = rows(mesh.nodes) + 2;
 %! mesh.nodes(node_id_ground, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
@@ -329,7 +329,7 @@ endfunction
 %!  warning("gmsh failed with status %d", status);
 %! endif
 %! unlink([filename, ".geo"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! node_id_ground = rows(mesh.nodes) + 1;
 %! node_id_load = rows(mesh.nodes) + 2;
 %! mesh.nodes(node_id_ground, :) = [d, 0.5 * b, 0.5 * c, 0, 0, 0];
