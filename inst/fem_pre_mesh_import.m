@@ -30910,7 +30910,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -31180,7 +31180,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -31449,7 +31449,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -31718,7 +31718,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -31987,7 +31987,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -32330,7 +32330,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -32716,7 +32716,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -33047,7 +33047,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -33381,7 +33381,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -33721,7 +33721,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -34067,7 +34067,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -34581,7 +34581,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -34919,7 +34919,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -35255,7 +35255,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -35593,7 +35593,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -37570,7 +37570,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -37784,7 +37784,7 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
+%!   [mesh] = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso8.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso8.id] == 2);
@@ -37905,7 +37905,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -56793,7 +56793,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
@@ -57127,7 +57127,7 @@ endfunction
 %!   sol.p = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.def = sol.vel = zeros(rows(mesh.nodes), 6, numel(sol.t));
 %!   sol.p(idxPhi1, :) = real(-1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
-%!   sol.Phi = zeros(rows(mesh.nodes), numel(sol.t));
+%!   sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), numel(sol.t));
 %!   sol.Phi(idxPhi1, :) = real(Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   sol.PhiP(idxPhi1, :) = real(1j * omega * Z(idxPhi, :) .* exp(1j * omega * sol.t));
 %!   [sol.particle_velocity, ...
