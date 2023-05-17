@@ -40227,6 +40227,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -40458,6 +40459,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -40691,6 +40693,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -40924,6 +40927,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -41157,6 +41161,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -41401,6 +41406,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -41651,6 +41657,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -44060,6 +44067,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
@@ -44300,6 +44308,7 @@ endfunction
 %!     Psi = linspace(0, 2 * pi, 37);
 %!     idx = dof_map.ndof(:, 1);
 %!     iact = find(idx > 0);
+%!     solC.Phi = solC.PhiP = zeros(rows(dof_map.ndof), columns(Phi));
 %!     solC.Phi(iact, :) = Phi(idx(iact), :);
 %!     solC.PhiP(iact, :) = 1j * omega * Phi(idx(iact), :);
 %!     [solC.particle_velocity, ...
