@@ -1572,7 +1572,7 @@ endfunction
 %! geo.t = 0.0625 * 25.4e-3;
 %! N = 39;
 %!
-%! function [x, y, z] = sphere_geo(geo, r, s, t)
+%! function [x, y, z] = sphere_geo(geo, r, s, t, varagrin)
 %!   R = 0.5 * geo.D - r * geo.t;
 %!   Zeta = s;
 %!   Psi = t;
@@ -1581,12 +1581,12 @@ endfunction
 %!   z = R * sin(Zeta);
 %! endfunction
 %!
-%! function [F, locked] = sphere_bound(r, s, t, geo, load_data)
+%! function [F, locked] = sphere_bound(r, s, t, geo, load_data, varargin)
 %!   F = [];
 %!   locked = false(1, 3);
 %! endfunction
 %!
-%! function p = sphere_pressure(r, s, t, geo, load_data, perm_idx)
+%! function p = sphere_pressure(r, s, t, geo, load_data, perm_idx, varargin)
 %!   p = [];
 %!   if (r == 1)
 %!     p(perm_idx) = load_data.pressure;
@@ -1600,10 +1600,10 @@ endfunction
 %!   geometry.mesh_size.t = linspace(-180 * pi / 180, 180 * pi / 180, 36);
 %!   load_data.pressure = 1;
 %!   geometry.sewing.tolerance = sqrt(eps) * 0.5 * geo.D;
-%!   geometry.spatial_coordinates = @(r, s, t) feval("sphere_geo", geo, r, s, t);
-%!   geometry.material_selector = @(r, s, t) 1;
-%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("sphere_bound", r, s, t, geo, load_data);
-%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("sphere_pressure", r, s, t, geo, load_data, perm_idx);
+%!   geometry.spatial_coordinates = @(r, s, t, varargin) feval("sphere_geo", geo, r, s, t);
+%!   geometry.material_selector = @(r, s, t, varargin) 1;
+%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data, varargin) feval("sphere_bound", r, s, t, geo, load_data);
+%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx, varargin) feval("sphere_pressure", r, s, t, geo, load_data, perm_idx);
 %!   options.elem_type = "iso20";
 %!   [mesh, load_case] = fem_pre_mesh_struct_create(geometry, load_data, material, options);
 %!   [dof_map] = fem_ass_dof_map(mesh, load_case);
