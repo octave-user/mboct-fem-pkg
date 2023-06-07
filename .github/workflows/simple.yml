@@ -91,11 +91,10 @@ jobs:
         run: |
           git clone https://public.gitlab.polimi.it/DAER/mbdyn.git
           pushd mbdyn
-          git checkout solid-element
+          git checkout develop
           git config --local user.email mbdyn-user@a1.net
           git config --local user.name mbdyn-user
           git merge origin/rigid_body_displacement_joint
-          git merge origin/module-uni_in_plane-disp
           popd
 
       # Runs a set of commands using the runners shell
