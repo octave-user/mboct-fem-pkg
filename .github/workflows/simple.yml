@@ -91,7 +91,7 @@ jobs:
         run: |
           git clone https://public.gitlab.polimi.it/DAER/mbdyn.git
           pushd mbdyn
-          git checkout update-beamad
+          git checkout develop
           git config --local user.email mbdyn-user@a1.net
           git config --local user.name mbdyn-user
           git merge origin/rigid_body_displacement_joint
