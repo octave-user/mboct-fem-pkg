@@ -15573,7 +15573,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          }
 
                          const octave_value ov_elem_type = m_elem_name.contents(iter_surf_elem_type);
-                         
+
                          octave_value ov_elnodes;
 
                          switch (oElemType.type) {
@@ -15630,6 +15630,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         return retval;
                                    }
 
+
                                    octave_idx_type iDofIndex = -1;
 
                                    switch (eDomain) {
@@ -15638,7 +15639,19 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         iDofIndex = 0;
                                         break;
                                    case DofMap::DO_FLUID_STRUCT:
-                                        iDofIndex = 6;
+                                        switch (oElemType.type) {
+                                        case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
+                                        case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
+                                        case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
+                                        case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
+                                        case ElementTypes::ELEM_FLUID_STRUCT_TRIA10:
+                                             for (octave_idx_type l = 0; l < 3; ++l) {
+                                                  dof_in_use.xelem(idxnode - 1, l) = true;
+                                             }
+                                             [[fallthrouh]];
+                                        default:
+                                             iDofIndex = 6;
+                                        }
                                         break;
                                    default:
                                         throw std::logic_error("fem_ass_dof_map: domain not supported");
