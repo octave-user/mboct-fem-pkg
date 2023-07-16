@@ -15648,7 +15648,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                              for (octave_idx_type l = 0; l < 3; ++l) {
                                                   dof_in_use.xelem(idxnode - 1, l) = true;
                                              }
-                                             [[fallthrouh]];
+                                             [[fallthrough]];
                                         default:
                                              iDofIndex = 6;
                                         }
