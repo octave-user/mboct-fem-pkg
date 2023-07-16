@@ -15560,6 +15560,20 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          const octave_value ov_elem_name = m_elements.contents(iter_elem_name);
 
+                         if (!(ov_elem_name.isstruct() && ov_elem_name.numel() == 1)) {
+                              throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + " must be a scalar struct");
+                         }
+
+                         const octave_scalar_map m_elem_name = ov_elem_name.scalar_map_value();
+
+                         const auto iter_surf_elem_type = m_elem_name.seek(oElemType.name);
+
+                         if (iter_surf_elem_type == m_elem_name.end()) {
+                              break;
+                         }
+
+                         const octave_value ov_elem_type = m_elem_name.contents(iter_surf_elem_type);
+                         
                          octave_value ov_elnodes;
 
                          switch (oElemType.type) {
@@ -15568,27 +15582,13 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA10: {
-                              ov_elnodes = ov_elem_name;
+                              ov_elnodes = ov_elem_type;
 
                               if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == oElemType.max_nodes)) {
                                    throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + " must be an integer matrix");
                               }
                          } break;
                          default: {
-                              if (!(ov_elem_name.isstruct() && ov_elem_name.numel() == 1)) {
-                                   throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + " must be a scalar struct");
-                              }
-
-                              const octave_scalar_map m_elem_name = ov_elem_name.scalar_map_value();
-
-                              const auto iter_surf_elem_type = m_elem_name.seek(oElemType.name);
-
-                              if (iter_surf_elem_type == m_elem_name.end()) {
-                                   break;
-                              }
-
-                              const octave_value ov_elem_type = m_elem_name.contents(iter_surf_elem_type);
-
                               if (!(ov_elem_type.isstruct() && ov_elem_type.numel() == 1)) {
                                    throw std::runtime_error("fem_ass_dof_map: mesh.elements."s + elem_name[ielem_name] + "." + oElemType.name + " must be a scalar struct");
                               }
