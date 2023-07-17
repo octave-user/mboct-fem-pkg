@@ -39,27 +39,31 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   if (~isfield(options, "verbose"))
     options.verbose = false;
   endif
+
+  if (~isfield(options, "interactive"))
+    options.interactive = false;
+  endif
   
   f_temp_files = false;
   geo_file_tmp = "";
   mesh_file = "";
-  
+
   unwind_protect
     if (~isfield(options, "output_file"))
       options.output_file = tempname();
-      
+
       if (ispc())
-	options.output_file(options.output_file == "\\") = "/";
+        options.output_file(options.output_file == "\\") = "/";
       endif
-      
+
       f_temp_files = true;
     endif
 
     geo_file_tmp = [options.output_file, ".geo"];
     mesh_file = [options.output_file, ".msh"];
-  
+
     [info, err, msg] = stat(geo_file);
-    
+
     if (err ~= 0)
       error("geometry definition file \"%s\" not found", geo_file);
     endif
@@ -72,7 +76,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
               geo_file_tmp, ...
               mesh_file);
     endif
-    
+
     [info, err, msg] = stat(mesh_file);
 
     if (err == 0)
@@ -89,7 +93,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
     if (~isfield(options, "mesh"))
       options.mesh = struct();
     endif
-    
+
     if (~isfield(options.mesh, "order"))
       options.mesh.order = 2;
     endif
@@ -113,6 +117,12 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
         cmdline{end + 1} = "-optimize";
       endif
     endif
+
+    if (options.interactive)
+      pid = spawn("gmsh", {geo_file_tmp});
+      
+      status = spawn_wait(pid);
+    endif
     
     if (isfield(options, "mesh"))
       if (isfield(options.mesh, "element_size"))
@@ -129,11 +139,11 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
         cmdline{end + 1} = sprintf("%g", options.mesh.jacobian_range(2));
       endif
     endif
-    
+
     cmdline{end + 1} = geo_file_tmp;
     cmdline{end + 1} = "-o";
     cmdline{end + 1} = mesh_file;
-    
+
     pid = spawn("gmsh", cmdline);
 
     status = spawn_wait(pid);
@@ -141,7 +151,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
     if (options.verbose)
       toc();
     endif
-    
+
     if (status ~= 0)
       warning("gmsh returned with exit status %d", status);
     endif
@@ -156,7 +166,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
       fprintf(stderr, "loading mesh file \"%s\"\n", mesh_file);
       tic();
     endif
-    
+
     mesh = fem_pre_mesh_import(mesh_file, "gmsh", options.mesh);
 
     if (options.verbose)
@@ -166,10 +176,10 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   unwind_protect_cleanup
     if (f_temp_files)
       if (numel(geo_file_tmp))
-        unlink(geo_file_tmp);
+        [~] = unlink(geo_file_tmp);
       endif
       if (numel(mesh_file))
-        unlink(mesh_file);
+        [~] = unlink(mesh_file);
       endif
     endif
   end_unwind_protect
@@ -1134,6 +1144,257 @@ endfunction
 %!   imshow(img, alpha);
 %!   title("deformed mesh/van Mises stress");
 %!   figure_list();
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO9
+%! close all;
+%! SI_unit_meter = 1e-3;
+%! SI_unit_second = 1e-3;
+%! SI_unit_kilogram = 1e-3;
+%! geo.D = (154e-3 - 6e-3) / SI_unit_meter;
+%! geo.d = 100e-3 / SI_unit_meter;
+%! geo.h = 40e-3 / SI_unit_meter;
+%! param.rho = 1.33 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.c = 225 / (SI_unit_meter / SI_unit_second);
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     geo_file = [filename, ".geo"];
+%!     fd = fopen(geo_file, "w");
+%!     if (fd == -1)
+%!       error("failed to open file %s", geo_file);
+%!     endif
+%!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "vout = newv;\n");
+%!     fputs(fd, "Sphere(vout) = {0, 0, 0, 0.5 * D};\n");
+%!     fputs(fd, "vin = newv;\n");
+%!     fputs(fd, "Sphere(vin) = {0, 0, 0, 0.5 * d};\n");
+%!     fputs(fd, "v = newv;\n");
+%!     fputs(fd, "BooleanDifference(v) = {Volume{vout}; Delete; }{ Volume{vin}; Delete; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\",1) = {v};\n");
+%!     fputs(fd, "Physical Surface(\"surface\", 8) = {2};\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{v}; } } = h;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   opt.mesh.order = 2;
+%!   opt.mesh.elem_type = {"tria6h", "tet10h"};
+%!   mesh = fem_pre_mesh_unstruct_create(geo_file, geo, opt);
+%!   mesh = fem_pre_mesh_reorder(mesh);
+%!   mesh.material_data.c = 220;
+%!   mesh.material_data.rho = 1.33;
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_ACOUSTICS;
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.material_data.rho = param.rho;
+%!   mesh.material_data.c = param.c;
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Ka, ...
+%!    mat_ass.Ma, ...
+%!    mat_ass.coll_Ka, ...
+%!    mat_ass.coll_Ma] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_MAT_STIFFNESS_ACOUSTICS_RE, ...
+%!                                       FEM_MAT_MASS_ACOUSTICS_RE, ...
+%!                                       FEM_VEC_COLL_STIFF_ACOUSTICS, ...
+%!                                       FEM_VEC_COLL_MASS_ACOUSTICS], ...
+%!                                      load_case);
+%!   N = 5;
+%!   fref = 2 * pi * 10 / (1 / SI_unit_second);
+%!   rhosh = fref^2;
+%!   tol = sqrt(eps);
+%!   alg = "shift-invert";
+%!   solver = "pastix";
+%!   num_threads = int32(4);
+%!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
+%!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
+%!   sol.f = imag(lambda) / (2 * pi);
+%! unwind_protect_cleanup
+%!   if (numel(filename))
+%!     fn = dir([filename, "*"]);
+%!     for i=1:numel(fn)
+%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!     endfor
+%!   endif
+%! end_unwind_protect
+
+%!demo
+%! ## DEMO10
+%! close all;
+%! SI_unit_meter = 1;
+%! SI_unit_second = 1;
+%! SI_unit_kilogram = 1;
+%! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
+%! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
+%! geo.D = 148e-3 / SI_unit_meter;
+%! geo.d = 140e-3 / SI_unit_meter;
+%! geo.h = 10e-3 / SI_unit_meter;
+%! param.rho = 1.33 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.c = 225 / (SI_unit_meter / SI_unit_second);
+%! param.m1 = 2.2 / SI_unit_kilogram;
+%! param.J1 = 1e-6 * [2.4427674e+03 -3.2393301e+01 -5.3623318e+02
+%!                   -3.2393301e+01  3.7506484e+03  7.9745924e+01
+%!                   -5.3623318e+02  7.9745924e+01  4.2943071e+03] / (SI_unit_kilogram * SI_unit_meter^2);
+%! param.lcg1 = zeros(3, 1);
+%! param.N = 60;
+%! spring.d = 1.3e-3 / SI_unit_meter;
+%! spring.D = 12.12e-3 / SI_unit_meter + spring.d;
+%! spring.L = 27.7e-3 / SI_unit_meter - (2 * (2.7 - 0.75)) * spring.d;
+%! spring.n = 5.7;
+%! spring.m = 20;
+%! spring.material.E = 206000e6 / SI_unit_pascal;
+%! spring.material.G = 81500e6 / SI_unit_pascal;
+%! spring.material.nu = spring.material.E / (2 * spring.material.G) - 1;
+%! spring.material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
+%! spring.X = [[45.20e-3,  45.20e-3, -62.5e-3;
+%!              43.13e-3, -43.13e-3,   0.0e-3] / SI_unit_meter;
+%!             [-spring.L, -spring.L, -spring.L]];
+%! section.A = spring.d^2 * pi / 4;
+%! section.Ay = 9 / 10 * section.A;
+%! section.Az = section.Ay;
+%! section.Iy = spring.d^4 * pi / 64;
+%! section.Iz = section.Iy;
+%! section.It = section.Iy + section.Iz;
+%! filename = "";
+%! unwind_protect
+%!   filename = tempname();
+%!   if (ispc())
+%!     filename(filename == "\\") = "/";
+%!   endif
+%!   fd = -1;
+%!   unwind_protect
+%!     geo_file = [filename, ".geo"];
+%!     fd = fopen(geo_file, "w");
+%!     if (fd == -1)
+%!       error("failed to open file %s", geo_file);
+%!     endif
+%!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "vout = newv;\n");
+%!     fputs(fd, "Sphere(vout) = {0, 0, 0, 0.5 * D};\n");
+%!     fputs(fd, "vin = newv;\n");
+%!     fputs(fd, "Sphere(vin) = {0, 0, 0, 0.5 * d};\n");
+%!     fputs(fd, "v = newv;\n");
+%!     fputs(fd, "BooleanDifference(v) = {Volume{vout}; Delete; }{ Volume{vin}; Delete; };\n");
+%!     fputs(fd, "Physical Volume(\"volume\", 1) = {v};\n");
+%!     fputs(fd, "Physical Surface(\"inside\", 2) = {2};\n");
+%!     fputs(fd, "Physical Surface(\"outside\", 3) = {1};\n");
+%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{v}; } } = h;\n");
+%!   unwind_protect_cleanup
+%!     if (fd ~= -1)
+%!       fclose(fd);
+%!     endif
+%!   end_unwind_protect
+%!   opt.mesh.order = 2;
+%!   opt.mesh.elem_type = {"tria6h", "tet10h"};
+%!   opt.interactive = false;
+%!   mesh = fem_pre_mesh_unstruct_create(geo_file, geo, opt);
+%!   mesh = fem_pre_mesh_reorder(mesh);
+%!   node_idx_rb = int32(rows(mesh.nodes) + 1);
+%!   grp_idx_fsi1 = int32(find([mesh.groups.tria6h.id] == 2));
+%!   grp_idx_outside = int32(find([mesh.groups.tria6h.id] == 3));
+%!   mesh.nodes(node_idx_rb, :) = zeros(1, 6);
+%!   node_idx_spring1 = int32(rows(mesh.nodes) + 1);
+%!   empty_cell = cell(1, 1);
+%!   spring.Phi = linspace(0, 2 * pi * spring.n, ceil(spring.m * spring.n)).';
+%!   spring.x = 0.5 * spring.D * cos(spring.Phi);
+%!   spring.y = 0.5 * spring.D * sin(spring.Phi);
+%!   spring.z = spring.L * spring.Phi / (2 * pi * spring.n) - 0.5 * geo.d;
+%!   spring.e2 = repmat([0, 0, 1], numel(spring.Phi) - 1, 1);
+%!   for i=1:columns(spring.X)
+%!     elnodes = int32([(1:numel(spring.Phi) - 1).', (2:numel(spring.Phi)).']) + node_idx_spring1 - 1 + (i - 1) * numel(spring.Phi);
+%!     mesh.nodes(node_idx_spring1 - 1 + (1:numel(spring.Phi)) + (i - 1) * numel(spring.Phi), 1:6) = [[spring.x, spring.y, spring.z] + spring.X(:, i).', zeros(numel(spring.Phi), 3)];
+%!     mesh.elements.beam2((i-1)*(numel(spring.Phi) - 1) + (1:numel(spring.Phi) - 1)) = struct("nodes", mat2cell(elnodes, ones(numel(spring.Phi) - 1, 1, "int32"), 2), ...
+%!                                  "section", mat2cell(repmat(section, numel(spring.Phi) - 1, 1), ones(numel(spring.Phi) - 1, 1, "int32")), ...
+%!                                  "e2", mat2cell(spring.e2, ones(numel(spring.Phi) - 1, 1, "int32"), 3));
+%!   endfor
+%!   mesh.elements.bodies = struct("m", empty_cell, "J", empty_cell, "lcg", empty_cell, "nodes", empty_cell);
+%!   mesh.elements.bodies(1).m = param.m1;
+%!   mesh.elements.bodies(1).J = param.J1;
+%!   mesh.elements.bodies(1).lcg = param.lcg1;
+%!   mesh.elements.bodies(1).nodes = node_idx_rb;
+%!   empty_cell = cell(1, 2);
+%!   mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "rho", empty_cell, "c", empty_cell);
+%!   mesh.material_data(1).c = 220;
+%!   mesh.material_data(1).rho = 1.33;
+%!   mesh.material_data(2).E = spring.material.E;
+%!   mesh.material_data(2).nu = spring.material.nu;
+%!   mesh.material_data(2).rho = spring.material.rho;
+%!   load_case.locked_dof = false(rows(mesh.nodes), 7);
+%!   load_case.locked_dof(mesh.groups.tria6h(grp_idx_fsi1).nodes, 4:6) = true;
+%!   for i=1:columns(spring.X)
+%!     load_case.locked_dof(node_idx_spring1 + (i - 1) * numel(spring.Phi), 1:6) = true;
+%!   endfor
+%!   #load_case.locked_dof(mesh.groups.tria6h(grp_idx_outside).nodes(1), 7) = true;
+%!   load_case.domain = FEM_DO_FLUID_STRUCT;
+%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.materials.beam2 = repmat(int32(2), numel(mesh.elements.beam2), 1);
+%!   mesh.material_data(1).rho = param.rho;
+%!   mesh.material_data(1).c = param.c;
+%!   mesh.elements.fluid_struct_interface.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_fsi1])].elements], :);
+%!   empty_cell = cell(1, numel(mesh.groups.tria6h(grp_idx_fsi1).nodes) + columns(spring.X));
+%!   mesh.elements.joints = struct("nodes", empty_cell, "C", empty_cell);
+%!   idx_joint = int32(0);
+%!   for i=1:numel(mesh.groups.tria6h(grp_idx_fsi1).nodes)
+%!     node_idx_slave = mesh.groups.tria6h(grp_idx_fsi1).nodes(i);
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb, 1:3);
+%!     ++idx_joint;
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).C = [eye(3), -skew(lslave), -eye(3), zeros(3, 3)];
+%!   endfor
+%!   for i=1:columns(spring.X)
+%!     node_idx_slave = node_idx_spring1 - 1 + numel(spring.Phi) * i;
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb, 1:3);
+%!     ++idx_joint;
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                          zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%!   endfor
+%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   [mat_ass.Mfs_re, ...
+%!    mat_ass.Kfs_re, ...
+%!    mat_ass.Dfs_re, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE], ...
+%!                                         load_case);
+%!   opt_linsol.solver = "umfpack";
+%!   opt_linsol.pre_scaling = true;
+%!   opt_linsol.number_of_threads = int32(4);
+%!   opt_linsol.refine_max_iter = int32(100);
+%!   [U, sol.lambda] = fem_sol_eigsd(mat_ass.Kfs_re, mat_ass.Dfs_re, mat_ass.Mfs_re, param.N, opt_linsol);
+%!   sol.f = imag(sol.lambda) / (2 * pi);
+%!   sol.def = fem_post_def_nodal(mesh, dof_map, U);
+%!   sol.p = zeros(rows(mesh.nodes), columns(U));
+%!   idx_act_press_dof = dof_map.ndof(:, 7);
+%!   idx_act_press_node = find(idx_act_press_dof > 0);
+%!   for i=1:size(sol.def, 3)
+%!     s = max(max(abs(sol.def(:, 1:3, i))));
+%!     sol.def(:, :, i) /= s;
+%!     sol.p(idx_act_press_node, i) = U(idx_act_press_dof(idx_act_press_node), i) / s;
+%!   endfor
+%!   opt_post.elem_types={"tria6h","beam2"};
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
