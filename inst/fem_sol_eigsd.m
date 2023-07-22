@@ -75,6 +75,10 @@ function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts)
     opts.p = 2 * N;
   endif
 
+  if (~isfield(opts, "output"))
+    opts.output = "reduced";
+  endif
+
   opts.isreal = true;
   opts.issym = false;
 
@@ -91,7 +95,13 @@ function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts)
 
   lambda = -1 ./ diag(kappa).';
 
-  U = U(columns(M) + (1:columns(M)), :);
+  switch (opts.output)
+    case "reduced"
+      U = U(columns(M) + (1:columns(M)), :);
+    case "full"
+    otherwise
+      warning("unknown option output=\"%s\"", opts.output);
+  endswitch
 endfunction
 
 function y = eigs_callback(Kfact, D, M, x)
@@ -133,12 +143,10 @@ endfunction
 %!     tol = 0;
 %!     opt_linsol.solver = "umfpack";
 %!     opt_linsol.number_of_threads = int32(1);
-
-%!     [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol);
-
+%!     opts.disp = 0;
+%!     [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts);
 %!     lambda_ref = [-d1 / (2 * m1) + [1, -1] * sqrt((d1 / (2 * m1))^2 - k1 / m1), ...
 %!                   -d2 / (2 * m2) + [1, -1] * sqrt((d2 / (2 * m2))^2 - k2 / m2)];
-
 %!     tol_lambda = eps^0.8;
 %!     tol_U = eps^0.7;
 %!     assert(sort(lambda), sort(lambda_ref), tol_lambda * norm(lambda_ref));
