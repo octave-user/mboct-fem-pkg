@@ -105,8 +105,16 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
     endswitch
   endif
 
-  opt_eig.disp = 0;
-  opt_eig.maxit = 50000;
+  if (~isfield(options, "disp"))
+    options.disp = 0;
+  endif
+
+  if (~isfield(options, "maxit"))
+    options.maxit = 50000;
+  endif
+
+  opt_eig.disp = options.disp;
+  opt_eig.maxit = options.maxit;
   opt_eig.isreal = true;
 
   if (~isfield(options, "rho"))
@@ -254,6 +262,8 @@ endfunction
 %!               [U, lambda, err] = fem_sol_eigs(K, M, n, rho, toleigs, alg{a}, solvers{k});
 %!             otherwise
 %!               opt = struct();
+%!               opt.disp = 0;
+%!               opt.maxit = 100;
 %!               if (l > 2)
 %!                 opt.rho = rho;
 %!               endif
