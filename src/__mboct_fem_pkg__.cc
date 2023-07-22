@@ -585,7 +585,7 @@ public:
 
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
-                              throw std::runtime_error("mesh.material_data.C must be matrix");
+                              throw std::runtime_error("material: mesh.material_data.C must be matrix");
                          }
 #endif
                     } else {
@@ -597,17 +597,25 @@ public:
 
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
-                              throw std::runtime_error("material: field \"E\" in mesh.material_data must be a real scalar");
+                              throw std::runtime_error("material: mesh.material_data.E must be a real scalar");
                          }
 #endif
+
+                         if (E <= 0.) {
+                              throw std::runtime_error("material: mesh.material_data.E must be greater than zero");
+                         }
 
                          const double nu = cellnu.xelem(i).scalar_value();
 
 #if OCTAVE_MAJOR_VERSION < 6
                          if (error_state) {
-                              throw std::runtime_error("material: field \"nu\" in mesh.material_data must be a real scalar");
+                              throw std::runtime_error("material: \" in mesh.material_data must be a real scalar");
                          }
 #endif
+                         if (nu < 0. || nu >= 0.5) {
+                              throw std::runtime_error("material: field \"nu\" in mesh.material_data must be between 0 and 0.5");
+                         }
+
                          C = Material::IsotropicElasticity(E, nu);
                     }
 
@@ -617,6 +625,14 @@ public:
 
                     if (!C.issymmetric()) {
                          throw std::runtime_error("material: mesh.material_data.C is not symmetric");
+                    }
+
+                    for (octave_idx_type j = 0; j < C.rows(); ++j) {
+                         for (octave_idx_type k = 0; k < C.columns(); ++k) {
+                              if (!std::isfinite(C.xelem(j, k))) {
+                                   throw std::runtime_error("material: mesh.material_data.C is not finite");
+                              }
+                         }
                     }
 
                     if (!bHaveRho) {
@@ -648,6 +664,9 @@ public:
                     throw std::runtime_error("material: mesh.material_data.rho is not a valid scalar in argument mesh");
                }
 #endif
+               if (rho < 0.) {
+                    throw std::runtime_error("material: mesh.material_data.rho must be greater than or equal to zero");
+               }
 
                const double alpha = bHaveAlpha ? cellAlpha.xelem(i).scalar_value() : 0.;
 
@@ -656,14 +675,20 @@ public:
                     throw std::runtime_error("material: mesh.material_data.alpha is not a valid scalar in argument mesh");
                }
 #endif
+               if (bHaveAlpha && alpha < 0.) {
+                    throw std::runtime_error("material: mesh.material_data.alpha must be greater than or equal to zero");
+               }
 
                const double beta = bHaveBeta ? cellBeta.xelem(i).scalar_value() : 0.;
 
 #if OCTAVE_MAJOR_VERSION < 6
                if (error_state) {
-                    throw std::runtime_error("mesh.material_data.beta is not a valid scalar in argument mesh");
+                    throw std::runtime_error("material: mesh.material_data.beta is not a valid scalar in argument mesh");
                }
 #endif
+               if (bHaveBeta && beta < 0.) {
+                    throw std::runtime_error("material: mesh.material_data.beta must be greater than or equal to zero");
+               }
 
                const double gamma = bHaveGamma ? cellGamma.xelem(i).scalar_value() : 0.;
 
@@ -673,13 +698,37 @@ public:
                     throw std::runtime_error("material: mesh.material_data.k must be a real symmetric 3x3 matrix");
                }
 
+               for (octave_idx_type l = 0; l < k.rows(); ++l) {
+                    for (octave_idx_type m = 0; m < k.columns(); ++m) {
+                         if (!std::isfinite(k.xelem(l, m))) {
+                              throw std::runtime_error("material: mesh.material_data.k is not finite");
+                         }
+                    }
+               }
+
                const double cp = bHavecp ? cellcp.xelem(i).scalar_value() : 0.;
+
+               if (bHavecp && cp <= 0.) {
+                    throw std::runtime_error("material: mesh.material_data.cp must be greater than zero");
+               }
 
                const double c = bHavec ? cellc.xelem(i).scalar_value() : 0.;
 
+               if (bHavec && c <= 0.) {
+                    throw std::runtime_error("material: mesh.material_data.c must be greater than zero");
+               }
+
                const double eta = bHaveeta ? celleta.xelem(i).scalar_value() : 0.;
 
+               if (bHaveeta && eta < 0.) {
+                    throw std::runtime_error("material: mesh.material_data.eta must be greater than or equal to zero");
+               }
+
                const double zeta = bHavezeta ? cellzeta.xelem(i).scalar_value() : 0.;
+
+               if (bHavezeta && zeta < 0.) {
+                    throw std::runtime_error("material: mesh.material_data.zeta must be greater than or equal to zero");
+               }
 
                rgMaterials.emplace_back(eMatType, C, rho, alpha, beta, gamma, k, cp, c, eta, zeta);
           }
@@ -1754,7 +1803,7 @@ public:
           }
 
           // According to Code_Aster r3.03.08
-          info[iMatType].beta = (minA != INIT_MIN && maxA != INIT_MAX) ? 0.5 * (minA + maxA) : 1.;
+          info[iMatType].beta = (minA > 0. || maxA > 0.) ? 0.5 * (minA + maxA) : 1.;
           info[iMatType].updated = true;
      }
 
