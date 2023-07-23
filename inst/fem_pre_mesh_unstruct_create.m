@@ -1257,6 +1257,8 @@ endfunction
 %! geo.x2 = 0 / SI_unit_meter;
 %! geo.y2 = 0 / SI_unit_meter;
 %! geo.z2 = geo.z1;
+%! geo.lsuc = 300e-3 / SI_unit_meter;
+%! geo.dsuc = 6e-3 / SI_unit_meter;
 %! param.fmin = 0;
 %! param.fmax = 2000 / (SI_unit_second^-1);
 %! param.maxdef = 10e-3 / SI_unit_meter;
@@ -1277,15 +1279,15 @@ endfunction
 %!                      -6.0192164e-01;
 %!                      5.9683120e+01] / SI_unit_meter;
 %! param.offset1 = (6.63e-3 + 2.4e-3) / SI_unit_meter;
-%! param.N = 160;
-%! param.complex = false;
+%! param.N = int32(60);
+%! param.use_impedance = false;
 %! helspr1.d = 1.3e-3 / SI_unit_meter;
 %! helspr1.D = 12.12e-3 / SI_unit_meter + helspr1.d;
 %! helspr1.L = 27.7e-3 / SI_unit_meter;
 %! helspr1.n = 5.7;
 %! helspr1.ni = 2.7;
 %! helspr1.ng = 0.75;
-%! helspr1.m = 40;
+%! helspr1.m = 60;
 %! helspr1.material.E = 206000e6 / SI_unit_pascal;
 %! helspr1.material.G = 81500e6 / SI_unit_pascal;
 %! helspr1.material.nu = helspr1.material.E / (2 * helspr1.material.G) - 1;
@@ -1333,16 +1335,24 @@ endfunction
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fputs(fd, "vout = newv;\n");
 %!     fputs(fd, "Sphere(vout) = {x2, y2, z2, 0.5 * D};\n");
+%!     fputs(fd, "vsuc = newv;\n");
+%!     fputs(fd, "Cylinder(vsuc) = {x2, y2, z2, lsuc, 0, 0, 0.5 * dsuc};\n");
+%!     fputs(fd, "vouts = newv;\n");
+%!     fputs(fd, "BooleanUnion(vouts) = { Volume{vout}; Delete; }{ Volume{vsuc}; Delete; };\n")
 %!     fputs(fd, "vin = newv;\n");
 %!     fputs(fd, "Sphere(vin) = {x1, y1, z1, 0.5 * d};\n");
 %!     fputs(fd, "v = newv;\n");
-%!     fputs(fd, "BooleanDifference(v) = {Volume{vout}; Delete; }{ Volume{vin}; Delete; };\n");
+%!     fputs(fd, "BooleanDifference(v) = {Volume{vouts}; Delete; }{ Volume{vin}; Delete; };\n");
 %!     fputs(fd, "Physical Volume(\"volume\", 1) = {v};\n");
-%!     fputs(fd, "Physical Surface(\"inside\", 2) = {2};\n");
+%!     fputs(fd, "Physical Surface(\"inside\", 2) = {4};\n");
 %!     fputs(fd, "Physical Surface(\"outside\", 3) = {1};\n");
+%!     fputs(fd, "Physical Surface(\"inlet\", 4) = {3};\n");
+%!     fputs(fd, "Physical Surface(\"tube\", 5) = {2};\n");
 %!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
 %!     fputs(fd, "MeshSize{PointsOf{Volume{v}; } } = h;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Surface{2}; } } = dsuc * Pi / 7.;\n");
+%!     fputs(fd, "ReorientMesh Volume{v};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1357,6 +1367,7 @@ endfunction
 %!   node_idx_rb2 = int32(rows(mesh.nodes) + 2);
 %!   grp_idx_fsi1 = int32(find([mesh.groups.tria6h.id] == 2));
 %!   grp_idx_fsi2 = int32(find([mesh.groups.tria6h.id] == 3));
+%!   grp_idx_inlet = int32(find([mesh.groups.tria6h.id] == 4));
 %!   mesh.nodes(node_idx_rb1, :) = [0, 0, rubspr1.L + param.offset1 + helspr1.L, zeros(1, 3)];
 %!   mesh.nodes(node_idx_rb2, :) = [0, 0, rubspr1.L, zeros(1, 3)];
 %!   node_idx_helspr1 = int32(rows(mesh.nodes) + 1);
@@ -1409,6 +1420,9 @@ endfunction
 %!   mesh.material_data(3).beta = rubspr1.material.beta;
 %!   mesh.material_data(3).alpha = rubspr1.material.alpha;
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
+%!   if (~param.use_impedance)
+%!     load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_inlet).nodes, 7) = true;
+%!   endif
 %!   load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_fsi1).nodes, 4:6) = true;
 %!   load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_fsi2).nodes, 4:6) = true;
 %!   for i=1:columns(rubspr1.X)
@@ -1421,6 +1435,11 @@ endfunction
 %!   mesh.material_data(1).rho = param.rho;
 %!   mesh.material_data(1).c = param.c;
 %!   mesh.elements.fluid_struct_interface.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_fsi1, grp_idx_fsi2])].elements], :);
+%!   if (param.use_impedance)
+%!     mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_inlet).elements, :);
+%!     mesh.elements.acoustic_impedance.tria6h.z = repmat(param.rho * param.c, size(mesh.elements.acoustic_impedance.tria6h.nodes));
+%!     mesh.materials.acoustic_impedance.tria6h = ones(rows(mesh.elements.acoustic_impedance.tria6h.nodes), 1, "int32");
+%!   endif
 %!   empty_cell = cell(1, numel(mesh.groups.tria6h(grp_idx_fsi1).nodes) + numel(mesh.groups.tria6h(grp_idx_fsi2).nodes) + 2 * columns(helspr1.X) + columns(rubspr1.X));
 %!   mesh.elements.joints = struct("nodes", empty_cell, "C", empty_cell);
 %!   idx_joint = int32(0);
@@ -1472,45 +1491,44 @@ endfunction
 %!     load_case(idx_load).loads = zeros(1, 6);
 %!     load_case(idx_load).loads(i) = 1;
 %!   endfor
-%!   if (param.complex)
-%!     [mat_ass.Mfs_re, ...
-%!      mat_ass.Mfs_im, ...
-%!      mat_ass.Kfs_re, ...
-%!      mat_ass.Kfs_im, ...
-%!      mat_ass.Dfs_re, ...
-%!      mat_ass.Dfs_im, ...
-%!      mat_ass.Rfs, ...
-%!      mat_ass.mat_info, ...
-%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
-%!                                          dof_map, ...
-%!                                          [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
-%!                                           FEM_MAT_MASS_FLUID_STRUCT_IM, ...
-%!                                           FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
-%!                                           FEM_MAT_STIFFNESS_FLUID_STRUCT_IM, ...
-%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
-%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
-%!                                           FEM_VEC_LOAD_FLUID_STRUCT], ...
-%!                                          load_case);
-%!   else
-%!     [mat_ass.Mfs_re, ...
-%!      mat_ass.Kfs_re, ...
-%!      mat_ass.Dfs_re, ...
-%!      mat_ass.Rfs, ...
-%!      mat_ass.mat_info, ...
-%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
-%!                                          dof_map, ...
-%!                                          [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
-%!                                           FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
-%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
-%!                                           FEM_VEC_LOAD_FLUID_STRUCT], ...
-%!                                          load_case);
+%!   [mat_ass.Mfs_re, ...
+%!    mat_ass.Mfs_im, ...
+%!    mat_ass.Kfs_re, ...
+%!    mat_ass.Kfs_im, ...
+%!    mat_ass.Dfs_re, ...
+%!    mat_ass.Dfs_im, ...
+%!    mat_ass.Rfs, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                        dof_map, ...
+%!                                        [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
+%!                                         FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_STIFFNESS_FLUID_STRUCT_IM, ...
+%!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
+%!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
+%!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
+%!                                        load_case);
+%!   if (~nnz(mat_ass.Mfs_im))
+%!     mat_ass = rmfield(mat_ass, "Mfs_im");
+%!   endif
+%!   if (~nnz(mat_ass.Dfs_im))
+%!     mat_ass = rmfield(mat_ass, "Dfs_im");
+%!   endif
+%!   if (~nnz(mat_ass.Kfs_im))
+%!     mat_ass = rmfield(mat_ass, "Kfs_im");
 %!   endif
 %!   opt_linsol.solver = "umfpack";
 %!   opt_linsol.pre_scaling = true;
 %!   opt_linsol.number_of_threads = int32(4);
-%!   opt_linsol.refine_max_iter = int32(100);
+%!   opt_linsol.refine_max_iter = int32(20);
+%!   opt_linsol.epsilon_refinement = 1e-10;
+%!   opt_linsol.verbose = int32(0);
+%!   opt_linsol.weighted_matching = true;
+%!   opt_linsol.scaling = true;
 %!   opt_eigs.maxit = int32(100);
 %!   opt_eigs.disp = int32(0);
+%!   opt_eigs.p = 5 * param.N;
 %!   [sol_eig, Phi] = fem_sol_modal_fsi(mesh, dof_map, mat_ass, param.N, opt_linsol, opt_eigs);
 %!   [Phi, h] = fem_sol_modes_scale(mat_ass.Mfs_re, mat_ass.Kfs_re, sol_eig.lambda, Phi, mat_ass.Rfs);
 %!   omega = linspace(2 * pi * param.fmin, 2 * pi * param.fmax, param.num_freq_modal);
@@ -1538,6 +1556,12 @@ endfunction
 %!     grid minor on;
 %!     title("frequency response phase");
 %!   endfor
+%!   idx_freq = find(sol_eig.f >= 0);
+%!   sol_eig.f = sol_eig.f(idx_freq);
+%!   sol_eig.D = sol_eig.D(idx_freq);
+%!   sol_eig.lambda = sol_eig.lambda(idx_freq);
+%!   sol_eig.def = sol_eig.def(:, :, idx_freq);
+%!   sol_eig.p = sol_eig.p(:, idx_freq);
 %!   for i=1:size(sol_eig.def, 3)
 %!     sre = max(max(abs(real(sol_eig.def(:, 1:3, i)))));
 %!     sim = max(max(abs(imag(sol_eig.def(:, 1:3, i)))));
