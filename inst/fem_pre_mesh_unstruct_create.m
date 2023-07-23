@@ -43,7 +43,7 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   if (~isfield(options, "interactive"))
     options.interactive = false;
   endif
-  
+
   f_temp_files = false;
   geo_file_tmp = "";
   mesh_file = "";
@@ -120,10 +120,10 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
 
     if (options.interactive)
       pid = spawn("gmsh", {geo_file_tmp});
-      
+
       status = spawn_wait(pid);
     endif
-    
+
     if (isfield(options, "mesh"))
       if (isfield(options.mesh, "element_size"))
         cmdline{end + 1} = "-clmin";
@@ -1249,7 +1249,7 @@ endfunction
 %! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
 %! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
 %! geo.D = 148e-3 / SI_unit_meter;
-%! geo.d = 136e-3 / SI_unit_meter;
+%! geo.d = 110e-3 / SI_unit_meter;
 %! geo.h = 10e-3 / SI_unit_meter;
 %! geo.x1 = 0 / SI_unit_meter;
 %! geo.y1 = 0 / SI_unit_meter;
@@ -1259,13 +1259,17 @@ endfunction
 %! geo.z2 = geo.z1;
 %! geo.lsuc = 300e-3 / SI_unit_meter;
 %! geo.dsuc = 6e-3 / SI_unit_meter;
+%! geo.olev = 20e-3 / SI_unit_meter;
 %! param.fmin = 0;
 %! param.fmax = 2000 / (SI_unit_second^-1);
 %! param.maxdef = 10e-3 / SI_unit_meter;
 %! param.num_freq_modal = 50000;
-%! param.rho = 1.33 / (SI_unit_kilogram / SI_unit_meter^3);
-%! param.c = 225 / (SI_unit_meter / SI_unit_second);
-%! param.eta = 8.3492e-06 / (SI_unit_pascal * SI_unit_second);
+%! param.rho1 = 1.33 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.c1 = 225 / (SI_unit_meter / SI_unit_second);
+%! param.eta1 = 8.3492e-06 / (SI_unit_pascal * SI_unit_second);
+%! param.rho2 = 850 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.c2 = 1680 / (SI_unit_meter / SI_unit_second);
+%! param.eta2 = 2.76670261412397E-3 / (SI_unit_pascal * SI_unit_second);
 %! param.m1 = 2.2 / SI_unit_kilogram;
 %! param.J1 = 1e-6 * [2.4427674e+03 -3.2393301e+01 -5.3623318e+02
 %!                    -3.2393301e+01  3.7506484e+03  7.9745924e+01
@@ -1279,8 +1283,9 @@ endfunction
 %!                      -6.0192164e-01;
 %!                      5.9683120e+01] / SI_unit_meter;
 %! param.offset1 = (6.63e-3 + 2.4e-3) / SI_unit_meter;
-%! param.N = int32(60);
+%! param.N = int32(120);
 %! param.use_impedance = false;
+%! param.use_pressure_bc = true;
 %! helspr1.d = 1.3e-3 / SI_unit_meter;
 %! helspr1.D = 12.12e-3 / SI_unit_meter + helspr1.d;
 %! helspr1.L = 27.7e-3 / SI_unit_meter;
@@ -1343,16 +1348,22 @@ endfunction
 %!     fputs(fd, "Sphere(vin) = {x1, y1, z1, 0.5 * d};\n");
 %!     fputs(fd, "v = newv;\n");
 %!     fputs(fd, "BooleanDifference(v) = {Volume{vouts}; Delete; }{ Volume{vin}; Delete; };\n");
-%!     fputs(fd, "Physical Volume(\"volume\", 1) = {v};\n");
-%!     fputs(fd, "Physical Surface(\"inside\", 2) = {4};\n");
-%!     fputs(fd, "Physical Surface(\"outside\", 3) = {1};\n");
-%!     fputs(fd, "Physical Surface(\"inlet\", 4) = {3};\n");
-%!     fputs(fd, "Physical Surface(\"tube\", 5) = {2};\n");
+%!     fputs(fd, "voil = newv;\n");
+%!     fputs(fd, "Box(voil) = {x2 - 0.5 * D, y2 - 0.5 * D, z2 - 0.5 * D, D, D, olev};\n");
+%!     fputs(fd, "vfrag = BooleanFragments{Volume{v}; Delete; }{Volume{voil};Delete;};\n");
+%!     fputs(fd, "Physical Volume(\"gas\", 1) = {1};\n");
+%!     fputs(fd, "Physical Volume(\"oil\", 2) = {2};\n");
+%!     fputs(fd, "Physical Surface(\"fsi1\", 3) = {5,7};\n");
+%!     fputs(fd, "Physical Surface(\"fsi2\", 4) = {1,6,2,4};\n");
+%!     fputs(fd, "Physical Surface(\"inlet\", 5) = {4};\n");
+%!     fputs(fd, "Physical Surface(\"tube\", 6) = {2};\n");
 %!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!     fputs(fd, "MeshSize{PointsOf{Volume{v}; } } = h;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{1}; } } = h;\n");
+%!     fputs(fd, "MeshSize{PointsOf{Volume{2}; } } = h;\n");
 %!     fputs(fd, "MeshSize{PointsOf{Surface{2}; } } = dsuc * Pi / 7.;\n");
-%!     fputs(fd, "ReorientMesh Volume{v};\n");
+%!     fputs(fd, "ReorientMesh Volume{1};\n");
+%!     fputs(fd, "ReorientMesh Volume{2};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -1365,9 +1376,12 @@ endfunction
 %!   mesh = fem_pre_mesh_reorder(mesh);
 %!   node_idx_rb1 = int32(rows(mesh.nodes) + 1);
 %!   node_idx_rb2 = int32(rows(mesh.nodes) + 2);
-%!   grp_idx_fsi1 = int32(find([mesh.groups.tria6h.id] == 2));
-%!   grp_idx_fsi2 = int32(find([mesh.groups.tria6h.id] == 3));
-%!   grp_idx_inlet = int32(find([mesh.groups.tria6h.id] == 4));
+%!   grp_idx_gas = int32(find([mesh.groups.tet10h.id] == 1));
+%!   grp_idx_oil = int32(find([mesh.groups.tet10h.id] == 2));
+%!   grp_idx_fsi1 = int32(find([mesh.groups.tria6h.id] == 3));
+%!   grp_idx_fsi2 = int32(find([mesh.groups.tria6h.id] == 4));
+%!   grp_idx_inlet = int32(find([mesh.groups.tria6h.id] == 5));
+%!   grp_idx_tube = int32(find([mesh.groups.tria6h.id] == 6));
 %!   mesh.nodes(node_idx_rb1, :) = [0, 0, rubspr1.L + param.offset1 + helspr1.L, zeros(1, 3)];
 %!   mesh.nodes(node_idx_rb2, :) = [0, 0, rubspr1.L, zeros(1, 3)];
 %!   node_idx_helspr1 = int32(rows(mesh.nodes) + 1);
@@ -1406,21 +1420,24 @@ endfunction
 %!   mesh.elements.bodies(2).nodes = node_idx_rb2;
 %!   empty_cell = cell(1, 3);
 %!   mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "rho", empty_cell, "c", empty_cell, "eta", empty_cell);
-%!   mesh.material_data(1).c = param.c;
-%!   mesh.material_data(1).rho = param.rho;
-%!   mesh.material_data(1).eta = param.eta;
-%!   mesh.material_data(2).E = helspr1.material.E;
-%!   mesh.material_data(2).nu = helspr1.material.nu;
-%!   mesh.material_data(2).beta = helspr1.material.beta;
-%!   mesh.material_data(2).alpha = helspr1.material.alpha;
-%!   mesh.material_data(2).rho = helspr1.material.rho;
-%!   mesh.material_data(3).E = rubspr1.material.E;
-%!   mesh.material_data(3).nu = rubspr1.material.nu;
-%!   mesh.material_data(3).rho = rubspr1.material.rho;
-%!   mesh.material_data(3).beta = rubspr1.material.beta;
-%!   mesh.material_data(3).alpha = rubspr1.material.alpha;
+%!   mesh.material_data(1).c = param.c1;
+%!   mesh.material_data(1).rho = param.rho1;
+%!   mesh.material_data(1).eta = param.eta1;
+%!   mesh.material_data(2).c = param.c2;
+%!   mesh.material_data(2).rho = param.rho2;
+%!   mesh.material_data(2).eta = param.eta2;
+%!   mesh.material_data(3).E = helspr1.material.E;
+%!   mesh.material_data(3).nu = helspr1.material.nu;
+%!   mesh.material_data(3).beta = helspr1.material.beta;
+%!   mesh.material_data(3).alpha = helspr1.material.alpha;
+%!   mesh.material_data(3).rho = helspr1.material.rho;
+%!   mesh.material_data(4).E = rubspr1.material.E;
+%!   mesh.material_data(4).nu = rubspr1.material.nu;
+%!   mesh.material_data(4).rho = rubspr1.material.rho;
+%!   mesh.material_data(4).beta = rubspr1.material.beta;
+%!   mesh.material_data(4).alpha = rubspr1.material.alpha;
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
-%!   if (~param.use_impedance)
+%!   if (param.use_pressure_bc)
 %!     load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_inlet).nodes, 7) = true;
 %!   endif
 %!   load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_fsi1).nodes, 4:6) = true;
@@ -1429,11 +1446,11 @@ endfunction
 %!     load_case_dof.locked_dof(node_idx_rubspr1 + 2 * (i - 1), 1:6) = true;
 %!   endfor
 %!   load_case_dof.domain = FEM_DO_FLUID_STRUCT;
-%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
-%!   mesh.materials.beam2 = [repmat(int32(2), columns(helspr1.X) * (numel(helspr1.Phi) - 1), 1);
-%!                           repmat(int32(3), columns(rubspr1.X), 1)];
-%!   mesh.material_data(1).rho = param.rho;
-%!   mesh.material_data(1).c = param.c;
+%!   mesh.materials.tet10h = zeros(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.materials.tet10h(mesh.groups.tet10h(grp_idx_gas).elements) = 1;
+%!   mesh.materials.tet10h(mesh.groups.tet10h(grp_idx_oil).elements) = 2;
+%!   mesh.materials.beam2 = [repmat(int32(3), columns(helspr1.X) * (numel(helspr1.Phi) - 1), 1);
+%!                           repmat(int32(4), columns(rubspr1.X), 1)];
 %!   mesh.elements.fluid_struct_interface.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_fsi1, grp_idx_fsi2])].elements], :);
 %!   if (param.use_impedance)
 %!     mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_inlet).elements, :);
