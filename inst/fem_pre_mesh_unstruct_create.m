@@ -1164,6 +1164,7 @@ endfunction
 %! geo.h = 10e-3 / SI_unit_meter;
 %! param.rho = 1.33 / (SI_unit_kilogram / SI_unit_meter^3);
 %! param.c = 225 / (SI_unit_meter / SI_unit_second);
+%! param.eta = 8.3492e-06 / (SI_unit_pascal * SI_unit_second);
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -1205,6 +1206,7 @@ endfunction
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
 %!   mesh.material_data.rho = param.rho;
 %!   mesh.material_data.c = param.c;
+%!   mesh.material_data.eta = param.eta;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...
@@ -1216,7 +1218,7 @@ endfunction
 %!                                       FEM_VEC_COLL_STIFF_ACOUSTICS, ...
 %!                                       FEM_VEC_COLL_MASS_ACOUSTICS], ...
 %!                                      load_case);
-%!   N = 20;
+%!   N = 80;
 %!   fref = 2 * pi * 1 / (1 / SI_unit_second);
 %!   opt_sol.rho = fref^2;
 %!   opt_sol.tolerance = sqrt(eps);
@@ -1247,34 +1249,74 @@ endfunction
 %! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
 %! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
 %! geo.D = 148e-3 / SI_unit_meter;
-%! geo.d = 140e-3 / SI_unit_meter;
+%! geo.d = 136e-3 / SI_unit_meter;
 %! geo.h = 10e-3 / SI_unit_meter;
+%! geo.x1 = 0 / SI_unit_meter;
+%! geo.y1 = 0 / SI_unit_meter;
+%! geo.z1 = 100e-3 / SI_unit_meter;
+%! geo.x2 = 0 / SI_unit_meter;
+%! geo.y2 = 0 / SI_unit_meter;
+%! geo.z2 = geo.z1;
+%! param.fmin = 0;
+%! param.fmax = 2000 / (SI_unit_second^-1);
+%! param.maxdef = 10e-3 / SI_unit_meter;
+%! param.num_freq_modal = 50000;
 %! param.rho = 1.33 / (SI_unit_kilogram / SI_unit_meter^3);
 %! param.c = 225 / (SI_unit_meter / SI_unit_second);
+%! param.eta = 8.3492e-06 / (SI_unit_pascal * SI_unit_second);
 %! param.m1 = 2.2 / SI_unit_kilogram;
 %! param.J1 = 1e-6 * [2.4427674e+03 -3.2393301e+01 -5.3623318e+02
-%!                   -3.2393301e+01  3.7506484e+03  7.9745924e+01
-%!                   -5.3623318e+02  7.9745924e+01  4.2943071e+03] / (SI_unit_kilogram * SI_unit_meter^2);
+%!                    -3.2393301e+01  3.7506484e+03  7.9745924e+01
+%!                    -5.3623318e+02  7.9745924e+01  4.2943071e+03] / (SI_unit_kilogram * SI_unit_meter^2);
 %! param.lcg1 = zeros(3, 1);
-%! param.N = 60;
-%! spring.d = 1.3e-3 / SI_unit_meter;
-%! spring.D = 12.12e-3 / SI_unit_meter + spring.d;
-%! spring.L = 27.7e-3 / SI_unit_meter - (2 * (2.7 - 0.75)) * spring.d;
-%! spring.n = 5.7;
-%! spring.m = 20;
-%! spring.material.E = 206000e6 / SI_unit_pascal;
-%! spring.material.G = 81500e6 / SI_unit_pascal;
-%! spring.material.nu = spring.material.E / (2 * spring.material.G) - 1;
-%! spring.material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
-%! spring.X = [[45.20e-3,  45.20e-3, -62.5e-3;
-%!              43.13e-3, -43.13e-3,   0.0e-3] / SI_unit_meter;
-%!             [-spring.L, -spring.L, -spring.L]];
-%! section.A = spring.d^2 * pi / 4;
-%! section.Ay = 9 / 10 * section.A;
-%! section.Az = section.Ay;
-%! section.Iy = spring.d^4 * pi / 64;
-%! section.Iz = section.Iy;
-%! section.It = section.Iy + section.Iz;
+%! param.m2 = 2.2978223 / SI_unit_kilogram;
+%! param.J2 = 1e-6 * [8.6104517e+03, 5.5814351e+01, -3.0103453e+02;
+%!                    5.5814351e+01, 1.1905289e+04,  2.0425595e+02;
+%!                    -3.0103453e+02, 2.0425595e+02,  1.2109596e+04] / (SI_unit_kilogram * SI_unit_meter^2);
+%! param.lcg2 = 1e-3 * [12.940131;
+%!                      -6.0192164e-01;
+%!                      5.9683120e+01] / SI_unit_meter;
+%! param.offset1 = (6.63e-3 + 2.4e-3) / SI_unit_meter;
+%! param.N = 160;
+%! param.complex = false;
+%! helspr1.d = 1.3e-3 / SI_unit_meter;
+%! helspr1.D = 12.12e-3 / SI_unit_meter + helspr1.d;
+%! helspr1.L = 27.7e-3 / SI_unit_meter;
+%! helspr1.n = 5.7;
+%! helspr1.ni = 2.7;
+%! helspr1.ng = 0.75;
+%! helspr1.m = 40;
+%! helspr1.material.E = 206000e6 / SI_unit_pascal;
+%! helspr1.material.G = 81500e6 / SI_unit_pascal;
+%! helspr1.material.nu = helspr1.material.E / (2 * helspr1.material.G) - 1;
+%! helspr1.material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
+%! [helspr1.material.alpha, helspr1.material.beta] = fem_pre_mat_rayleigh_damping([1e-2; 0.03e-2], [20, 1000] / (SI_unit_second^-1));
+%! helspr1.X = [[45.20e-3,  45.20e-3, -62.5e-3;
+%!               43.13e-3, -43.13e-3,   0.0e-3] / SI_unit_meter;
+%!              [-helspr1.L, -helspr1.L, -helspr1.L]];
+%! section1.A = helspr1.d^2 * pi / 4;
+%! section1.Ay = 9 / 10 * section1.A;
+%! section1.Az = section1.Ay;
+%! section1.Iy = helspr1.d^4 * pi / 64;
+%! section1.Iz = section1.Iy;
+%! section1.It = section1.Iy + section1.Iz;
+%! rubspr1.d = 11.1e-3 / SI_unit_meter;
+%! rubspr1.D = 28.6e-3 / SI_unit_meter;
+%! rubspr1.L = 10.5e-3 / SI_unit_meter;
+%! rubspr1.material.E = 2.6e6 / SI_unit_pascal;
+%! rubspr1.material.nu = 0.499;
+%! rubspr1.material.rho = 910 / (SI_unit_kilogram / SI_unit_meter^3);
+%! [rubspr1.material.alpha, rubspr1.material.beta] = fem_pre_mat_rayleigh_damping([10e-2; 30e-2], [30, 100] / (SI_unit_second^-1));
+%! rubspr1.X = [(170e-3 * [0.5, 0.5, -0.5, -0.5] + 8e-3) / SI_unit_meter;
+%!              70e-3 * [-0.5, 0.5, -0.5, 0.5] / SI_unit_meter;
+%!              -[1, 1, 1, 1] * (helspr1.L + rubspr1.L + param.offset1)];
+%! rubspr1.e2 = [1, 0, 0];
+%! section2.A = (rubspr1.D^2 - rubspr1.d^2) * pi / 4;
+%! section2.Ay = 0.8 * section2.A;
+%! section2.Az = section2.Ay;
+%! section2.Iy = (rubspr1.D^4 - rubspr1.d^4) * pi / 64;
+%! section2.Iz = section2.Iy;
+%! section2.It = section2.Iy + section2.Iz;
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -1290,9 +1332,9 @@ endfunction
 %!     endif
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fputs(fd, "vout = newv;\n");
-%!     fputs(fd, "Sphere(vout) = {0, 0, 0, 0.5 * D};\n");
+%!     fputs(fd, "Sphere(vout) = {x2, y2, z2, 0.5 * D};\n");
 %!     fputs(fd, "vin = newv;\n");
-%!     fputs(fd, "Sphere(vin) = {0, 0, 0, 0.5 * d};\n");
+%!     fputs(fd, "Sphere(vin) = {x1, y1, z1, 0.5 * d};\n");
 %!     fputs(fd, "v = newv;\n");
 %!     fputs(fd, "BooleanDifference(v) = {Volume{vout}; Delete; }{ Volume{vin}; Delete; };\n");
 %!     fputs(fd, "Physical Volume(\"volume\", 1) = {v};\n");
@@ -1310,92 +1352,202 @@ endfunction
 %!   opt.mesh.elem_type = {"tria6h", "tet10h"};
 %!   opt.interactive = false;
 %!   mesh = fem_pre_mesh_unstruct_create(geo_file, geo, opt);
-%!   #mesh = fem_pre_mesh_reorder(mesh);
-%!   node_idx_rb = int32(rows(mesh.nodes) + 1);
+%!   mesh = fem_pre_mesh_reorder(mesh);
+%!   node_idx_rb1 = int32(rows(mesh.nodes) + 1);
+%!   node_idx_rb2 = int32(rows(mesh.nodes) + 2);
 %!   grp_idx_fsi1 = int32(find([mesh.groups.tria6h.id] == 2));
-%!   grp_idx_outside = int32(find([mesh.groups.tria6h.id] == 3));
-%!   mesh.nodes(node_idx_rb, :) = zeros(1, 6);
-%!   node_idx_spring1 = int32(rows(mesh.nodes) + 1);
-%!   empty_cell = cell(1, 1);
-%!   spring.Phi = linspace(0, 2 * pi * spring.n, ceil(spring.m * spring.n)).';
-%!   spring.x = 0.5 * spring.D * cos(spring.Phi);
-%!   spring.y = 0.5 * spring.D * sin(spring.Phi);
-%!   spring.z = spring.L * spring.Phi / (2 * pi * spring.n) - 0.5 * geo.d;
-%!   spring.e2 = repmat([0, 0, 1], numel(spring.Phi) - 1, 1);
-%!   for i=1:columns(spring.X)
-%!     elnodes = int32([(1:numel(spring.Phi) - 1).', (2:numel(spring.Phi)).']) + node_idx_spring1 - 1 + (i - 1) * numel(spring.Phi);
-%!     mesh.nodes(node_idx_spring1 - 1 + (1:numel(spring.Phi)) + (i - 1) * numel(spring.Phi), 1:6) = [[spring.x, spring.y, spring.z] + spring.X(:, i).', zeros(numel(spring.Phi), 3)];
-%!     mesh.elements.beam2((i-1)*(numel(spring.Phi) - 1) + (1:numel(spring.Phi) - 1)) = struct("nodes", mat2cell(elnodes, ones(numel(spring.Phi) - 1, 1, "int32"), 2), ...
-%!                                  "section", mat2cell(repmat(section, numel(spring.Phi) - 1, 1), ones(numel(spring.Phi) - 1, 1, "int32")), ...
-%!                                  "e2", mat2cell(spring.e2, ones(numel(spring.Phi) - 1, 1, "int32"), 3));
+%!   grp_idx_fsi2 = int32(find([mesh.groups.tria6h.id] == 3));
+%!   mesh.nodes(node_idx_rb1, :) = [0, 0, rubspr1.L + param.offset1 + helspr1.L, zeros(1, 3)];
+%!   mesh.nodes(node_idx_rb2, :) = [0, 0, rubspr1.L, zeros(1, 3)];
+%!   node_idx_helspr1 = int32(rows(mesh.nodes) + 1);
+%!   helspr1.Phi = linspace(0, 2 * pi * helspr1.n, ceil(helspr1.m * helspr1.n)).' + 2 * pi * helspr1.ni;
+%!   node_idx_rubspr1 = node_idx_helspr1 + numel(helspr1.Phi) * columns(helspr1.X);
+%!   helspr1.x = 0.5 * helspr1.D * cos(helspr1.Phi);
+%!   helspr1.y = 0.5 * helspr1.D * sin(helspr1.Phi);
+%!   helspr1.z = (helspr1.L - helspr1.d * (2 * (helspr1.ni - helspr1.ng) + 1)) * linspace(0, 1, numel(helspr1.Phi))(:) + helspr1.d * (helspr1.ni - helspr1.ng + 0.5);
+%!   helspr1.e2 = repmat([0, 0, 1], numel(helspr1.Phi) - 1, 1);
+%!   idx_beam = int32(0);
+%!   for i=1:columns(helspr1.X)
+%!     elnodes = int32([(1:numel(helspr1.Phi) - 1).', (2:numel(helspr1.Phi)).']) + node_idx_helspr1 - 1 + (i - 1) * numel(helspr1.Phi);
+%!     mesh.nodes(node_idx_helspr1 - 1 + (1:numel(helspr1.Phi)) + (i - 1) * numel(helspr1.Phi), 1:6) = [[helspr1.x, helspr1.y, helspr1.z] + helspr1.X(:, i).', zeros(numel(helspr1.Phi), 3)];
+%!     mesh.elements.beam2(idx_beam + (1:numel(helspr1.Phi) - 1)) = struct("nodes", mat2cell(elnodes, ones(numel(helspr1.Phi) - 1, 1, "int32"), 2), ...
+%!                                                                         "section", mat2cell(repmat(section1, numel(helspr1.Phi) - 1, 1), ones(numel(helspr1.Phi) - 1, 1, "int32")), ...
+%!                                                                         "e2", mat2cell(helspr1.e2, ones(numel(helspr1.Phi) - 1, 1, "int32"), 3));
+%!     idx_beam += numel(helspr1.Phi) - 1;
 %!   endfor
+%!   for i=1:columns(rubspr1.X)
+%!     elnodes = int32([1, 2]) + node_idx_rubspr1 - 1 + (i - 1) * 2;
+%!     mesh.nodes(node_idx_rubspr1 - 1 + (1:2) + 2 * (i - 1), 1:6) = [[zeros(1, 3); zeros(1, 2), rubspr1.L] + rubspr1.X(:, i).', zeros(2, 3)];
+%!     mesh.elements.beam2(idx_beam + 1) = struct("nodes", mat2cell(elnodes, ones(1, 1, "int32"), 2), ...
+%!                                                "section", mat2cell(repmat(section2, 1, 1), ones(1, 1, "int32")), ...
+%!                                                "e2", mat2cell(rubspr1.e2, ones(1, 1, "int32"), 3));
+%!     ++idx_beam;
+%!   endfor
+%!   empty_cell = cell(1, 2);
 %!   mesh.elements.bodies = struct("m", empty_cell, "J", empty_cell, "lcg", empty_cell, "nodes", empty_cell);
 %!   mesh.elements.bodies(1).m = param.m1;
 %!   mesh.elements.bodies(1).J = param.J1;
 %!   mesh.elements.bodies(1).lcg = param.lcg1;
-%!   mesh.elements.bodies(1).nodes = node_idx_rb;
-%!   empty_cell = cell(1, 2);
-%!   mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "rho", empty_cell, "c", empty_cell);
-%!   mesh.material_data(1).c = 220;
-%!   mesh.material_data(1).rho = 1.33;
-%!   mesh.material_data(2).E = spring.material.E;
-%!   mesh.material_data(2).nu = spring.material.nu;
-%!   mesh.material_data(2).rho = spring.material.rho;
-%!   load_case.locked_dof = false(rows(mesh.nodes), 7);
-%!   load_case.locked_dof(mesh.groups.tria6h(grp_idx_fsi1).nodes, 4:6) = true;
-%!   for i=1:columns(spring.X)
-%!     load_case.locked_dof(node_idx_spring1 + (i - 1) * numel(spring.Phi), 1:6) = true;
+%!   mesh.elements.bodies(1).nodes = node_idx_rb1;
+%!   mesh.elements.bodies(2).m = param.m2;
+%!   mesh.elements.bodies(2).J = param.J2;
+%!   mesh.elements.bodies(2).lcg = param.lcg2;
+%!   mesh.elements.bodies(2).nodes = node_idx_rb2;
+%!   empty_cell = cell(1, 3);
+%!   mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "rho", empty_cell, "c", empty_cell, "eta", empty_cell);
+%!   mesh.material_data(1).c = param.c;
+%!   mesh.material_data(1).rho = param.rho;
+%!   mesh.material_data(1).eta = param.eta;
+%!   mesh.material_data(2).E = helspr1.material.E;
+%!   mesh.material_data(2).nu = helspr1.material.nu;
+%!   mesh.material_data(2).beta = helspr1.material.beta;
+%!   mesh.material_data(2).alpha = helspr1.material.alpha;
+%!   mesh.material_data(2).rho = helspr1.material.rho;
+%!   mesh.material_data(3).E = rubspr1.material.E;
+%!   mesh.material_data(3).nu = rubspr1.material.nu;
+%!   mesh.material_data(3).rho = rubspr1.material.rho;
+%!   mesh.material_data(3).beta = rubspr1.material.beta;
+%!   mesh.material_data(3).alpha = rubspr1.material.alpha;
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
+%!   load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_fsi1).nodes, 4:6) = true;
+%!   load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_fsi2).nodes, 4:6) = true;
+%!   for i=1:columns(rubspr1.X)
+%!     load_case_dof.locked_dof(node_idx_rubspr1 + 2 * (i - 1), 1:6) = true;
 %!   endfor
-%!   #load_case.locked_dof(mesh.groups.tria6h(grp_idx_outside).nodes(1), 7) = true;
-%!   load_case.domain = FEM_DO_FLUID_STRUCT;
+%!   load_case_dof.domain = FEM_DO_FLUID_STRUCT;
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
-%!   mesh.materials.beam2 = repmat(int32(2), numel(mesh.elements.beam2), 1);
+%!   mesh.materials.beam2 = [repmat(int32(2), columns(helspr1.X) * (numel(helspr1.Phi) - 1), 1);
+%!                           repmat(int32(3), columns(rubspr1.X), 1)];
 %!   mesh.material_data(1).rho = param.rho;
 %!   mesh.material_data(1).c = param.c;
-%!   mesh.elements.fluid_struct_interface.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_fsi1])].elements], :);
-%!   empty_cell = cell(1, numel(mesh.groups.tria6h(grp_idx_fsi1).nodes) + columns(spring.X));
+%!   mesh.elements.fluid_struct_interface.tria6h = mesh.elements.tria6h([[mesh.groups.tria6h([grp_idx_fsi1, grp_idx_fsi2])].elements], :);
+%!   empty_cell = cell(1, numel(mesh.groups.tria6h(grp_idx_fsi1).nodes) + numel(mesh.groups.tria6h(grp_idx_fsi2).nodes) + 2 * columns(helspr1.X) + columns(rubspr1.X));
 %!   mesh.elements.joints = struct("nodes", empty_cell, "C", empty_cell);
 %!   idx_joint = int32(0);
 %!   for i=1:numel(mesh.groups.tria6h(grp_idx_fsi1).nodes)
 %!     node_idx_slave = mesh.groups.tria6h(grp_idx_fsi1).nodes(i);
-%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb, 1:3);
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb1, 1:3);
 %!     ++idx_joint;
-%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb1, node_idx_slave]);
 %!     mesh.elements.joints(idx_joint).C = [eye(3), -skew(lslave), -eye(3), zeros(3, 3)];
 %!   endfor
-%!   for i=1:columns(spring.X)
-%!     node_idx_slave = node_idx_spring1 - 1 + numel(spring.Phi) * i;
-%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb, 1:3);
+%!   for i=1:numel(mesh.groups.tria6h(grp_idx_fsi2).nodes)
+%!     node_idx_slave = mesh.groups.tria6h(grp_idx_fsi2).nodes(i);
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb2, 1:3);
 %!     ++idx_joint;
-%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb, node_idx_slave]);
-%!     mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
-%!                                          zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb2, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).C = [eye(3), -skew(lslave), -eye(3), zeros(3, 3)];
 %!   endfor
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.Mfs_re, ...
-%!    mat_ass.Kfs_re, ...
-%!    mat_ass.Dfs_re, ...
-%!    mat_ass.mat_info, ...
-%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
-%!                                         FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
-%!                                         FEM_MAT_DAMPING_FLUID_STRUCT_RE], ...
-%!                                         load_case);
+%!   for i=1:columns(helspr1.X)
+%!     node_idx_slave = node_idx_helspr1 - 1 + numel(helspr1.Phi) * i;
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb1, 1:3);
+%!     ++idx_joint;
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb1, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                               zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%!   endfor
+%!   for i=1:columns(helspr1.X)
+%!     node_idx_slave = node_idx_helspr1 + numel(helspr1.Phi) * (i - 1);
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb2, 1:3);
+%!     ++idx_joint;
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb2, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                               zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%!   endfor
+%!   for i=1:columns(rubspr1.X)
+%!     node_idx_slave = node_idx_rubspr1 + 2 * i - 1;
+%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb2, 1:3);
+%!     ++idx_joint;
+%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb2, node_idx_slave]);
+%!     mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                               zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%!   endfor
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%!   empty_cell = cell(1, 6);
+%!   load_case = struct("loads", empty_cell, "loaded_nodes", empty_cell);
+%!   idx_load = int32(0);
+%!   for i=1:6
+%!     ++idx_load;
+%!     load_case(idx_load).loaded_nodes = node_idx_rb1;
+%!     load_case(idx_load).loads = zeros(1, 6);
+%!     load_case(idx_load).loads(i) = 1;
+%!   endfor
+%!   if (param.complex)
+%!     [mat_ass.Mfs_re, ...
+%!      mat_ass.Mfs_im, ...
+%!      mat_ass.Kfs_re, ...
+%!      mat_ass.Kfs_im, ...
+%!      mat_ass.Dfs_re, ...
+%!      mat_ass.Dfs_im, ...
+%!      mat_ass.Rfs, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
+%!                                           FEM_MAT_MASS_FLUID_STRUCT_IM, ...
+%!                                           FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
+%!                                           FEM_MAT_STIFFNESS_FLUID_STRUCT_IM, ...
+%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
+%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
+%!                                           FEM_VEC_LOAD_FLUID_STRUCT], ...
+%!                                          load_case);
+%!   else
+%!     [mat_ass.Mfs_re, ...
+%!      mat_ass.Kfs_re, ...
+%!      mat_ass.Dfs_re, ...
+%!      mat_ass.Rfs, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_MASS_FLUID_STRUCT_RE, ...
+%!                                           FEM_MAT_STIFFNESS_FLUID_STRUCT_RE, ...
+%!                                           FEM_MAT_DAMPING_FLUID_STRUCT_RE, ...
+%!                                           FEM_VEC_LOAD_FLUID_STRUCT], ...
+%!                                          load_case);
+%!   endif
 %!   opt_linsol.solver = "umfpack";
 %!   opt_linsol.pre_scaling = true;
 %!   opt_linsol.number_of_threads = int32(4);
 %!   opt_linsol.refine_max_iter = int32(100);
-%!   [U, sol.lambda] = fem_sol_eigsd(mat_ass.Kfs_re, mat_ass.Dfs_re, mat_ass.Mfs_re, param.N, opt_linsol);
-%!   sol.f = imag(sol.lambda) / (2 * pi);
-%!   sol.def = fem_post_def_nodal(mesh, dof_map, U);
-%!   sol.p = zeros(rows(mesh.nodes), columns(U));
-%!   idx_act_press_dof = dof_map.ndof(:, 7);
-%!   idx_act_press_node = find(idx_act_press_dof > 0);
-%!   for i=1:size(sol.def, 3)
-%!     s = max(max(abs(sol.def(:, 1:3, i))));
-%!     sol.def(:, :, i) /= s;
-%!     sol.p(idx_act_press_node, i) = U(idx_act_press_dof(idx_act_press_node), i) / s;
+%!   opt_eigs.maxit = int32(100);
+%!   opt_eigs.disp = int32(0);
+%!   [sol_eig, Phi] = fem_sol_modal_fsi(mesh, dof_map, mat_ass, param.N, opt_linsol, opt_eigs);
+%!   [Phi, h] = fem_sol_modes_scale(mat_ass.Mfs_re, mat_ass.Kfs_re, sol_eig.lambda, Phi, mat_ass.Rfs);
+%!   omega = linspace(2 * pi * param.fmin, 2 * pi * param.fmax, param.num_freq_modal);
+%!   U2 = fem_sol_harmonic_modal(h, sol_eig.lambda, Phi(dof_map.ndof(node_idx_rb2, 1:6), :), omega);
+%!   for i=1:3
+%!     figure("visible", "off");
+%!     subplot(2, 1, 1);
+%!     hold on;
+%!     plot(omega / (2*pi) * (SI_unit_second^-1), 20 * log10(abs(-omega.^2 .* U2(i, :, i)) * (SI_unit_meter / SI_unit_second^2)), "-;modal;r");
+%!     xlabel("f [Hz]");
+%!     ylabel("a [dB/(1 m/s^2/N)]");
+%!     ylim([-80, 10]);
+%!     yticks(-100:5:10);
+%!     grid on;
+%!     grid minor on;
+%!     title("frequency response magnitude");
+%!     subplot(2, 1, 2);
+%!     hold on;
+%!     plot(omega / (2*pi) * (SI_unit_second^-1), 180 / pi * arg(-omega.^2 .* U2(i, :, i)), "-;modal;r");
+%!     xlabel("f [Hz]");
+%!     ylabel("arg(a) [deg]");
+%!     ylim([-180,180]);
+%!     yticks(-180:30:180);
+%!     grid on;
+%!     grid minor on;
+%!     title("frequency response phase");
+%!   endfor
+%!   for i=1:size(sol_eig.def, 3)
+%!     sre = max(max(abs(real(sol_eig.def(:, 1:3, i)))));
+%!     sim = max(max(abs(imag(sol_eig.def(:, 1:3, i)))));
+%!     if (sim > sre)
+%!       sol_eig.def(:, :, i) = imag(sol_eig.def(:, :, i)) * param.maxdef / sim;
+%!       sol_eig.p(:, i) = imag(sol_eig.p(:, i)) * param.maxdef / sim;
+%!     else
+%!       sol_eig.def(:, :, i) = real(sol_eig.def(:, :, i)) * param.maxdef / sre;
+%!       sol_eig.p(:, i) = real(sol_eig.p(:, i)) * param.maxdef / sre;
+%!     endif
 %!   endfor
 %!   opt_post.elem_types={"tria6h","beam2"};
 %! unwind_protect_cleanup
@@ -1410,111 +1562,238 @@ endfunction
 %!demo
 %! ## DEMO11
 %! close all;
-%! SI_unit_meter = 1;
-%! SI_unit_second = 1;
-%! SI_unit_kilogram = 1;
+%! SI_unit_meter = 1e-3;
+%! SI_unit_second = 1e-3;
+%! SI_unit_kilogram = 1e-3;
 %! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
 %! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
-%! geo.D = 148e-3 / SI_unit_meter;
-%! geo.d = 140e-3 / SI_unit_meter;
-%! geo.h = 10e-3 / SI_unit_meter;
 %! param.m1 = 2.2 / SI_unit_kilogram;
 %! param.J1 = 1e-6 * [2.4427674e+03 -3.2393301e+01 -5.3623318e+02
-%!                   -3.2393301e+01  3.7506484e+03  7.9745924e+01
-%!                   -5.3623318e+02  7.9745924e+01  4.2943071e+03] / (SI_unit_kilogram * SI_unit_meter^2);
+%!                    -3.2393301e+01  3.7506484e+03  7.9745924e+01
+%!                    -5.3623318e+02  7.9745924e+01  4.2943071e+03] / (SI_unit_kilogram * SI_unit_meter^2);
 %! param.lcg1 = zeros(3, 1);
-%! param.N = 60;
-%! spring.d = 1.3e-3 / SI_unit_meter;
-%! spring.D = 12.12e-3 / SI_unit_meter + spring.d;
-%! spring.L = 27.7e-3 / SI_unit_meter - (2 * (2.7 - 0.75)) * spring.d;
-%! spring.n = 5.7;
-%! spring.m = 20;
-%! spring.material.E = 206000e6 / SI_unit_pascal;
-%! spring.material.G = 81500e6 / SI_unit_pascal;
-%! spring.material.nu = spring.material.E / (2 * spring.material.G) - 1;
-%! spring.material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
-%! spring.X = [[45.20e-3,  45.20e-3, -62.5e-3;
-%!              43.13e-3, -43.13e-3,   0.0e-3] / SI_unit_meter;
-%!             [-spring.L, -spring.L, -spring.L]];
-%! section.A = spring.d^2 * pi / 4;
-%! section.Ay = 9 / 10 * section.A;
-%! section.Az = section.Ay;
-%! section.Iy = spring.d^4 * pi / 64;
-%! section.Iz = section.Iy;
-%! section.It = section.Iy + section.Iz;
-%! filename = "";
-%! unwind_protect
-%!   node_idx_rb = int32(1);
-%!   mesh.nodes(node_idx_rb, :) = zeros(1, 6);
-%!   node_idx_spring1 = int32(rows(mesh.nodes) + 1);
-%!   empty_cell = cell(1, 1);
-%!   spring.Phi = linspace(0, 2 * pi * spring.n, ceil(spring.m * spring.n)).';
-%!   spring.x = 0.5 * spring.D * cos(spring.Phi);
-%!   spring.y = 0.5 * spring.D * sin(spring.Phi);
-%!   spring.z = spring.L * spring.Phi / (2 * pi * spring.n) - 0.5 * geo.d;
-%!   spring.e2 = repmat([0, 0, 1], numel(spring.Phi) - 1, 1);
-%!   for i=1:columns(spring.X)
-%!     elnodes = int32([(1:numel(spring.Phi) - 1).', (2:numel(spring.Phi)).']) + node_idx_spring1 - 1 + (i - 1) * numel(spring.Phi);
-%!     mesh.nodes(node_idx_spring1 - 1 + (1:numel(spring.Phi)) + (i - 1) * numel(spring.Phi), 1:6) = [[spring.x, spring.y, spring.z] + spring.X(:, i).', zeros(numel(spring.Phi), 3)];
-%!     mesh.elements.beam2((i-1)*(numel(spring.Phi) - 1) + (1:numel(spring.Phi) - 1)) = struct("nodes", mat2cell(elnodes, ones(numel(spring.Phi) - 1, 1, "int32"), 2), ...
-%!                                  "section", mat2cell(repmat(section, numel(spring.Phi) - 1, 1), ones(numel(spring.Phi) - 1, 1, "int32")), ...
-%!                                  "e2", mat2cell(spring.e2, ones(numel(spring.Phi) - 1, 1, "int32"), 3));
-%!   endfor
-%!   mesh.elements.bodies = struct("m", empty_cell, "J", empty_cell, "lcg", empty_cell, "nodes", empty_cell);
-%!   mesh.elements.bodies(1).m = param.m1;
-%!   mesh.elements.bodies(1).J = param.J1;
-%!   mesh.elements.bodies(1).lcg = param.lcg1;
-%!   mesh.elements.bodies(1).nodes = node_idx_rb;
-%!   empty_cell = cell(1, 1);
-%!   mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "rho", empty_cell);
-%!   mesh.material_data(1).E = spring.material.E;
-%!   mesh.material_data(1).nu = spring.material.nu;
-%!   mesh.material_data(1).rho = spring.material.rho;
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   for i=1:columns(spring.X)
-%!     load_case.locked_dof(node_idx_spring1 + (i - 1) * numel(spring.Phi), 1:6) = true;
-%!   endfor
-%!   load_case.domain = FEM_DO_STRUCTURAL;
-%!   mesh.materials.beam2 = repmat(int32(1), numel(mesh.elements.beam2), 1);
-%!   empty_cell = cell(1, columns(spring.X));
-%!   mesh.elements.joints = struct("nodes", empty_cell, "C", empty_cell);
-%!   idx_joint = int32(0);
-%!   for i=1:columns(spring.X)
-%!     node_idx_slave = node_idx_spring1 - 1 + numel(spring.Phi) * i;
-%!     lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb, 1:3);
-%!     ++idx_joint;
-%!     mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb, node_idx_slave]);
-%!     mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
-%!                                          zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
-%!   endfor
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.M, ...
-%!    mat_ass.K, ...
-%!    mat_ass.D, ...
-%!    mat_ass.mat_info, ...
-%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
-%!                                        dof_map, ...
-%!                                        [FEM_MAT_MASS, ...
-%!                                         FEM_MAT_STIFFNESS, ...
-%!                                         FEM_MAT_DAMPING], ...
-%!                                         load_case);
-%!   opt_linsol.solver = "umfpack";
-%!   opt_linsol.pre_scaling = true;
-%!   opt_linsol.number_of_threads = int32(4);
-%!   opt_linsol.refine_max_iter = int32(100);
-%!   [U, sol.lambda] = fem_sol_eigsd(mat_ass.K, mat_ass.D, mat_ass.M, param.N, opt_linsol);
-%!   sol.f = imag(sol.lambda) / (2 * pi);
-%!   sol.def = fem_post_def_nodal(mesh, dof_map, U);
-%!   for i=1:size(sol.def, 3)
-%!     s = max(max(abs(sol.def(:, 1:3, i))));
-%!     sol.def(:, :, i) /= s;
-%!   endfor
-%!   opt_post.elem_types={"beam2"};
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
+%! param.m2 = 2.2978223 / SI_unit_kilogram;
+%! param.J2 = 1e-6 * [8.6104517e+03, 5.5814351e+01, -3.0103453e+02;
+%!                    5.5814351e+01, 1.1905289e+04,  2.0425595e+02;
+%!                    -3.0103453e+02, 2.0425595e+02,  1.2109596e+04] / (SI_unit_kilogram * SI_unit_meter^2);
+%! param.lcg2 = 1e-3 * [12.940131;
+%!                      -6.0192164e-01;
+%!                      5.9683120e+01] / SI_unit_meter;
+%! param.offset1 = (6.63e-3 + 2.4e-3) / SI_unit_meter;
+%! param.N = 200;
+%! param.maxdef = 10e-3 / SI_unit_meter;
+%! param.fmin = 0;
+%! param.fmax = 2000 / (SI_unit_second^-1);
+%! param.num_freq_modal = 10000;
+%! param.num_freq_nodal = 400;
+%! helspr1.d = 1.3e-3 / SI_unit_meter;
+%! helspr1.D = 12.12e-3 / SI_unit_meter + helspr1.d;
+%! helspr1.L = 27.7e-3 / SI_unit_meter;
+%! helspr1.n = 5.7;
+%! helspr1.ni = 2.7;
+%! helspr1.ng = 0.75;
+%! helspr1.m = 40;
+%! helspr1.material.E = 206000e6 / SI_unit_pascal;
+%! helspr1.material.G = 81500e6 / SI_unit_pascal;
+%! [helspr1.material.alpha, helspr1.material.beta] = fem_pre_mat_rayleigh_damping([1e-2; 0.03e-2], [20, 1000] / (SI_unit_second^-1));
+%! helspr1.material.nu = helspr1.material.E / (2 * helspr1.material.G) - 1;
+%! helspr1.material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
+%! helspr1.X = [[45.20e-3,  45.20e-3, -62.5e-3;
+%!               43.13e-3, -43.13e-3,   0.0e-3] / SI_unit_meter;
+%!              [-helspr1.L, -helspr1.L, -helspr1.L]];
+%! section1.A = helspr1.d^2 * pi / 4;
+%! section1.Ay = 9 / 10 * section1.A;
+%! section1.Az = section1.Ay;
+%! section1.Iy = helspr1.d^4 * pi / 64;
+%! section1.Iz = section1.Iy;
+%! section1.It = section1.Iy + section1.Iz;
+%! rubspr1.d = 11.1e-3 / SI_unit_meter;
+%! rubspr1.D = 28.6e-3 / SI_unit_meter;
+%! rubspr1.L = 10.5e-3 / SI_unit_meter;
+%! rubspr1.material.E = 2.6e6 / SI_unit_pascal;
+%! rubspr1.material.nu = 0.499;
+%! [rubspr1.material.alpha, rubspr1.material.beta] = fem_pre_mat_rayleigh_damping([10e-2; 30e-2], [30, 100] / (SI_unit_second^-1));
+%! rubspr1.material.rho = 910 / (SI_unit_kilogram / SI_unit_meter^3);
+%! rubspr1.X = [(170e-3 * [0.5, 0.5, -0.5, -0.5] + 8e-3) / SI_unit_meter;
+%!              70e-3 * [-0.5, 0.5, -0.5, 0.5] / SI_unit_meter;
+%!              -[1, 1, 1, 1] * (helspr1.L + rubspr1.L + param.offset1)];
+%! rubspr1.e2 = [1, 0, 0];
+%! section2.A = (rubspr1.D^2 - rubspr1.d^2) * pi / 4;
+%! section2.Ay = 0.8 * section2.A;
+%! section2.Az = section2.Ay;
+%! section2.Iy = (rubspr1.D^4 - rubspr1.d^4) * pi / 64;
+%! section2.Iz = section2.Iy;
+%! section2.It = section2.Iy + section2.Iz;
+%! node_idx_rb1 = int32(1);
+%! node_idx_rb2 = int32(2);
+%! mesh.nodes(node_idx_rb1, :) = [0, 0, rubspr1.L + param.offset1 + helspr1.L, zeros(1, 3)];
+%! mesh.nodes(node_idx_rb2, :) = [0, 0, rubspr1.L, zeros(1, 3)];
+%! node_idx_helspr1 = int32(rows(mesh.nodes) + 1);
+%! helspr1.Phi = linspace(0, 2 * pi * helspr1.n, ceil(helspr1.m * helspr1.n)).' + 2 * pi * helspr1.ni;
+%! node_idx_rubspr1 = node_idx_helspr1 + numel(helspr1.Phi) * columns(helspr1.X);
+%! helspr1.x = 0.5 * helspr1.D * cos(helspr1.Phi);
+%! helspr1.y = 0.5 * helspr1.D * sin(helspr1.Phi);
+%! helspr1.z = (helspr1.L - helspr1.d * (2 * (helspr1.ni - helspr1.ng) + 1)) * linspace(0, 1, numel(helspr1.Phi))(:) + helspr1.d * (helspr1.ni - helspr1.ng + 0.5);
+%! helspr1.e2 = repmat([0, 0, 1], numel(helspr1.Phi) - 1, 1);
+%! idx_beam = int32(0);
+%! for i=1:columns(helspr1.X)
+%!   elnodes = int32([(1:numel(helspr1.Phi) - 1).', (2:numel(helspr1.Phi)).']) + node_idx_helspr1 - 1 + (i - 1) * numel(helspr1.Phi);
+%!   mesh.nodes(node_idx_helspr1 - 1 + (1:numel(helspr1.Phi)) + (i - 1) * numel(helspr1.Phi), 1:6) = [[helspr1.x, helspr1.y, helspr1.z] + helspr1.X(:, i).', zeros(numel(helspr1.Phi), 3)];
+%!   mesh.elements.beam2(idx_beam + (1:numel(helspr1.Phi) - 1)) = struct("nodes", mat2cell(elnodes, ones(numel(helspr1.Phi) - 1, 1, "int32"), 2), ...
+%!                                                                       "section", mat2cell(repmat(section1, numel(helspr1.Phi) - 1, 1), ones(numel(helspr1.Phi) - 1, 1, "int32")), ...
+%!                                                                       "e2", mat2cell(helspr1.e2, ones(numel(helspr1.Phi) - 1, 1, "int32"), 3));
+%!   idx_beam += numel(helspr1.Phi) - 1;
+%! endfor
+%! for i=1:columns(rubspr1.X)
+%!   elnodes = int32([1, 2]) + node_idx_rubspr1 - 1 + (i - 1) * 2;
+%!   mesh.nodes(node_idx_rubspr1 - 1 + (1:2) + 2 * (i - 1), 1:6) = [[zeros(1, 3); zeros(1, 2), rubspr1.L] + rubspr1.X(:, i).', zeros(2, 3)];
+%!   mesh.elements.beam2(idx_beam + 1) = struct("nodes", mat2cell(elnodes, ones(1, 1, "int32"), 2), ...
+%!                                              "section", mat2cell(repmat(section2, 1, 1), ones(1, 1, "int32")), ...
+%!                                              "e2", mat2cell(rubspr1.e2, ones(1, 1, "int32"), 3));
+%!   ++idx_beam;
+%! endfor
+%! empty_cell = cell(1, 2);
+%! mesh.elements.bodies = struct("m", empty_cell, "J", empty_cell, "lcg", empty_cell, "nodes", empty_cell);
+%! mesh.elements.bodies(1).m = param.m1;
+%! mesh.elements.bodies(1).J = param.J1;
+%! mesh.elements.bodies(1).lcg = param.lcg1;
+%! mesh.elements.bodies(1).nodes = node_idx_rb1;
+%! mesh.elements.bodies(2).m = param.m2;
+%! mesh.elements.bodies(2).J = param.J2;
+%! mesh.elements.bodies(2).lcg = param.lcg2;
+%! mesh.elements.bodies(2).nodes = node_idx_rb2;
+%! empty_cell = cell(1, 2);
+%! mesh.material_data = struct("E", empty_cell, "nu", empty_cell, "rho", empty_cell, "c", empty_cell);
+%! mesh.material_data(1).E = helspr1.material.E;
+%! mesh.material_data(1).nu = helspr1.material.nu;
+%! mesh.material_data(1).beta = helspr1.material.beta;
+%! mesh.material_data(1).alpha = helspr1.material.alpha;
+%! mesh.material_data(1).rho = helspr1.material.rho;
+%! mesh.material_data(2).E = rubspr1.material.E;
+%! mesh.material_data(2).nu = rubspr1.material.nu;
+%! mesh.material_data(2).beta = rubspr1.material.beta;
+%! mesh.material_data(2).alpha = rubspr1.material.alpha;
+%! mesh.material_data(2).rho = rubspr1.material.rho;
+%! load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
+%! for i=1:columns(rubspr1.X)
+%!   load_case_dof.locked_dof(node_idx_rubspr1 + 2 * (i - 1), 1:6) = true;
+%! endfor
+%! load_case_dof.domain = FEM_DO_STRUCTURAL;
+%! mesh.materials.beam2 = [repmat(int32(1), columns(helspr1.X) * (numel(helspr1.Phi) - 1), 1);
+%!                         repmat(int32(2), columns(rubspr1.X), 1)];
+%! empty_cell = cell(1, numel(2 * columns(helspr1.X) + columns(rubspr1.X)));
+%! mesh.elements.joints = struct("nodes", empty_cell, "C", empty_cell);
+%! idx_joint = int32(0);
+%! for i=1:columns(helspr1.X)
+%!   node_idx_slave = node_idx_helspr1 - 1 + numel(helspr1.Phi) * i;
+%!   lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb1, 1:3);
+%!   ++idx_joint;
+%!   mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb1, node_idx_slave]);
+%!   mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                             zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%! endfor
+%! for i=1:columns(helspr1.X)
+%!   node_idx_slave = node_idx_helspr1 + numel(helspr1.Phi) * (i - 1);
+%!   lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb2, 1:3);
+%!   ++idx_joint;
+%!   mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb2, node_idx_slave]);
+%!   mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                             zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%! endfor
+%! for i=1:columns(rubspr1.X)
+%!   node_idx_slave = node_idx_rubspr1 + 2 * i - 1;
+%!   lslave = mesh.nodes(node_idx_slave, 1:3) - mesh.nodes(node_idx_rb2, 1:3);
+%!   ++idx_joint;
+%!   mesh.elements.joints(idx_joint).nodes = int32([node_idx_rb2, node_idx_slave]);
+%!   mesh.elements.joints(idx_joint).C = [     eye(3), -skew(lslave),     -eye(3), zeros(3, 3);
+%!                                             zeros(3, 3),        eye(3), zeros(3, 3),     -eye(3)];
+%! endfor
+%! empty_cell = cell(1, 6);
+%! load_case = struct("nodes", empty_cell, "loaded_nodes", empty_cell);
+%! for i=1:numel(load_case)
+%!   load_case(i).loaded_nodes = int32(node_idx_rb1);
+%!   load_case(i).loads = zeros(1, 6);
+%!   load_case(i).loads(i) = 1;
+%! endfor
+%! dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%! [mat_ass.M, ...
+%!  mat_ass.K, ...
+%!  mat_ass.D, ...
+%!  mat_ass.R, ...
+%!  mat_ass.mat_info, ...
+%!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_MAT_MASS, ...
+%!                                       FEM_MAT_STIFFNESS, ...
+%!                                       FEM_MAT_DAMPING, ...
+%!                                       FEM_VEC_LOAD_CONSISTENT], ...
+%!                                      load_case);
+%! opt_linsol.solver = "pastix";
+%! opt_linsol.pre_scaling = true;
+%! opt_linsol.number_of_threads = int32(4);
+%! opt_linsol.refine_max_iter = int32(50);
+%! opt_linsol.epsilon_refinement = 1e-10;
+%! opt_linsol.verbose = int32(0);
+%! opt_eig.p = 5 * param.N;
+%! opt_eig.maxit = int32(100);
+%! [sol_eig, Phi] = fem_sol_modal_damped(mesh, dof_map, mat_ass, param.N, opt_linsol, opt_eig);
+%! [Phi, h] = fem_sol_modes_scale(mat_ass.M, mat_ass.K, sol_eig.lambda, Phi, mat_ass.R);
+%! omega = linspace(2 * pi * param.fmin, 2 * pi * param.fmax, param.num_freq_modal);
+%! U2 = fem_sol_harmonic_modal(h, sol_eig.lambda, Phi(dof_map.ndof(node_idx_rb2, :), :), omega);
+%! for i=1:size(sol_eig.def, 3)
+%!   sre = max(max(abs(real(sol_eig.def(:, 1:3, i)))));
+%!   sim = max(max(abs(imag(sol_eig.def(:, 1:3, i)))));
+%!   if (sim > sre)
+%!     sol_eig.def(:, :, i) = imag(sol_eig.def(:, :, i)) * param.maxdef / sim;
+%!   else
+%!     sol_eig.def(:, :, i) = real(sol_eig.def(:, :, i)) * param.maxdef / sre;
 %!   endif
-%! end_unwind_protect
+%! endfor
+%! if (param.num_freq_nodal > 0)
+%! omegan = linspace(2 * pi * param.fmin, 2 * pi * param.fmax, param.num_freq_nodal);
+%! U2n = zeros(6, numel(omegan), columns(mat_ass.R));
+%! for i=1:numel(omegan)
+%!  Un = fem_sol_factor(-omegan(i)^2 * mat_ass.M + 1j * omegan(i) * mat_ass.D + mat_ass.K, opt_linsol) \ mat_ass.R;
+%!  for j=1:columns(Un)
+%!    U2n(:, i, j) = Un(dof_map.ndof(node_idx_rb2, :), j);
+%!  endfor
+%! endfor
+%! endif
+%! figure("visible", "off");
+%! hold on;
+%! semilogy(sol_eig.f * SI_unit_second^-1, 100 * sol_eig.D, "-;D(f);r");
+%! xlabel("f [Hz]");
+%! ylabel("D [%]");
+%! title("modal damping ratio");
+%! grid on;
+%! grid minor on;
+%! for i=1:3
+%!   figure("visible", "off");
+%!   subplot(2, 1, 1);
+%!   hold on;
+%!   plot(omega / (2*pi) * (SI_unit_second^-1), 20 * log10(abs(-omega.^2 .* U2(i, :, i)) * (SI_unit_meter / SI_unit_second^2)), "-;modal;r");
+%!   if (param.num_freq_nodal > 0)
+%!     plot(omegan / (2*pi) * (SI_unit_second^-1), 20 * log10(abs(-omegan.^2 .* U2n(i, :, i)) * (SI_unit_meter / SI_unit_second^2)), "-;nodal;b");
+%!   endif
+%!   xlabel("f [Hz]");
+%!   ylabel("a [dB/(1 m/s^2/N)]");
+%!   ylim([-80, 10]);
+%!   yticks(-100:5:10);
+%!   grid on;
+%!   grid minor on;
+%!   title("frequency response magnitude");
+%!   subplot(2, 1, 2);
+%!   hold on;
+%!   plot(omega / (2*pi) * (SI_unit_second^-1), 180 / pi * arg(-omega.^2 .* U2(i, :, i)), "-;modal;r");
+%!   if (param.num_freq_nodal > 0)
+%!     plot(omegan / (2*pi) * (SI_unit_second^-1), 180 / pi * arg(-omegan.^2 .* U2n(i, :, i)), "-;nodal;b");
+%!   endif
+%!   xlabel("f [Hz]");
+%!   ylabel("arg(a) [deg]");
+%!   ylim([-180,180]);
+%!   yticks(-180:30:180);
+%!   grid on;
+%!   grid minor on;
+%!   title("frequency response phase");
+%! endfor
+%! opt_post.elem_types = {"beam2"};

@@ -51,10 +51,6 @@ function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts)
     error("K, D and M must be square");
   endif
 
-  if (~(isreal(K) && isreal(D) && isreal(M)))
-    error("K, D and M must be real");
-  endif
-
   if (~all(size(K) == size(D) & size(K) == size(M)))
     error("K, D and must have the same size");
   endif

@@ -14,7 +14,7 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{sol}, @var{U}] = fem_sol_modal_damped(@var{mesh}, @var{dof_map}, @var{mat_ass}, @var{N}, @var{varargin})
+## @deftypefn {Function File} [@var{sol}, @var{Phi}] = fem_sol_modal_damped(@var{mesh}, @var{dof_map}, @var{mat_ass}, @var{N}, @var{varargin})
 ## Compute damped natural frequencies and mode shapes.
 ##
 ## @var{mesh} @dots{} Finite element mesh data structure
@@ -33,19 +33,23 @@
 ##
 ## @var{sol}.f @dots{} undamped natural frequencies
 ##
-## @var{U} @dots{} mode shapes
+## @var{Phi} @dots{} mode shapes
 ##
 ## @seealso{fem_sol_eigsd}
 ## @end deftypefn
 
-function [sol, U] = fem_sol_modal_damped(mesh, dof_map, mat_ass, N, varargin)
+function [sol, Phi] = fem_sol_modal_damped(mesh, dof_map, mat_ass, N, varargin)
   if (nargin < 4 || nargout > 3)
     print_usage();
   endif
+
+  switch (dof_map.domain)
+    case FEM_DO_STRUCTURAL
+    otherwise
+      error("invalid value for dof_map.domain");
+  endswitch
   
-  [U, lambda] = fem_sol_eigsd(mat_ass.K, mat_ass.D, mat_ass.M, N, varargin{:});
-  
-  sol.lambda = lambda;
-  sol.f = imag(lambda) / (2 * pi);
-  sol.def = fem_post_def_nodal(mesh, dof_map, U * diag(1 ./ norm(U, "cols")));
+  [Phi, lambda] = fem_sol_eigsd(mat_ass.K, mat_ass.D, mat_ass.M, N, varargin{:});
+
+  [sol.lambda, sol.f, sol.D, Phi, sol.def] = fem_sol_eigsd_post_proc(mesh, dof_map, lambda, Phi);
 endfunction  
