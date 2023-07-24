@@ -47,8 +47,8 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
 
   mesh_n.nodes = mesh.nodes;
   mesh_n.elements.particle_velocity = struct(elem_type, struct("nodes", elem_nodes));
-  mesh_n.material_data.c = 0;
-  mesh_n.material_data.rho = 0;
+  mesh_n.material_data.c = inf;
+  mesh_n.material_data.rho = inf;
   mesh_n.materials.particle_velocity = struct(elem_type, ones(rows(elem_nodes), 1, "int32"));
 
   dof_map_n = fem_ass_dof_map(mesh_n, load_case_dof_n);
@@ -129,13 +129,12 @@ endfunction
 %!     mesh.group.tria6h.nodes = unique(mesh.elements.tria6h);
 %!     h = 2;
 %!     N = 10;
-%!     [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", int32(1), repmat(h / N, 1, N));
-%!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
-%!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!     mesh.material_data.E = 210000e6;
 %!     mesh.material_data.nu = 0.3;
 %!     mesh.material_data.rho = 7850;
-
+%!     [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", int32(1), repmat(h / N, 1, N));
+%!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
+%!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!     dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!     [mat_ass.K, ...
 %!      mat_ass.M, ...

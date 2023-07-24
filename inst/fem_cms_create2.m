@@ -1075,7 +1075,7 @@ endfunction
 %!     load_case(i).g = zeros(3, 1);
 %!     load_case(i).tau0.iso20 = zeros(rows(mesh.elements.iso20), columns(mesh.elements.iso20), 6);
 %!   endfor
-%!   sol_eig = struct("def", empty_cell, "lambda", empty_cell, "f", empty_cell);
+%!   sol_eig = struct("def", empty_cell, "lambda", empty_cell, "f", empty_cell, "D", empty_cell);
 %!   sol_eig_red = struct("lambda_red", empty_cell, "Ured", empty_cell);
 %!   for j=idx_j
 %!     for k=idx_k
@@ -1269,8 +1269,8 @@ endfunction
 %! for j=idx_j
 %!   for k=idx_k
 %!       tol = 2e-2;
-%!       [lambda_s] = sortrows([imag(sol_eig(j, k).lambda), real(sol_eig(j, k).lambda)],[1,2]);
-%!       [lambda_red_s] = sortrows([imag(sol_eig_red(j, k).lambda_red), real(sol_eig_red(j, k).lambda_red)],[1,2]);
+%!       [lambda_s] = sortrows([imag(sol_eig(j, k).lambda(:)), real(sol_eig(j, k).lambda(:))],[1,2]);
+%!       [lambda_red_s] = sortrows([imag(sol_eig_red(j, k).lambda_red(:)), real(sol_eig_red(j, k).lambda_red(:))],[1,2]);
 %!       K = min(20, rows(lambda_s));
 %!       lambda_s = 1j * lambda_s(:,1) + lambda_s(:, 2);
 %!       lambda_red_s = 1j * lambda_red_s(:, 1) + lambda_red_s(:, 2);
@@ -4194,7 +4194,7 @@ endfunction
 %!     load_case(i).g = zeros(3, 1);
 %!     load_case(i).tau0.iso20 = zeros(rows(mesh.elements.iso20), columns(mesh.elements.iso20), 6);
 %!   endfor
-%!   sol_eig = struct("def", empty_cell, "lambda", empty_cell, "f", empty_cell);
+%!   sol_eig = struct("def", empty_cell, "lambda", empty_cell, "f", empty_cell, "D", empty_cell);
 %!   sol_eig_red = struct("lambda_red", empty_cell, "Ured", empty_cell);
 %!   for j=idx_j
 %!     for k=idx_k
@@ -4388,8 +4388,8 @@ endfunction
 %!   for j=idx_j
 %!     for k=idx_k
 %!       tol = 2e-2;
-%!       [lambda_s] = sortrows([imag(sol_eig(j, k).lambda), real(sol_eig(j, k).lambda)],[1,2]);
-%!       [lambda_red_s] = sortrows([imag(sol_eig_red(j, k).lambda_red), real(sol_eig_red(j, k).lambda_red)],[1,2]);
+%!       [lambda_s] = sortrows([imag(sol_eig(j, k).lambda(:)), real(sol_eig(j, k).lambda(:))],[1,2]);
+%!       [lambda_red_s] = sortrows([imag(sol_eig_red(j, k).lambda_red(:)), real(sol_eig_red(j, k).lambda_red(:))],[1,2]);
 %!       K = min(20, rows(lambda_s));
 %!       lambda_s = 1j * lambda_s(:,1) + lambda_s(:, 2);
 %!       lambda_red_s = 1j * lambda_red_s(:, 1) + lambda_red_s(:, 2);

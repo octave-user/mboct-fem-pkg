@@ -1524,7 +1524,7 @@ endfunction
 %!   load_case = fem_pre_load_case_create_empty(columns(OMEGA));
 %!   empty_cell = cell(1, columns(OMEGA));
 %!   sol_stat = struct("def", empty_cell, "stress", empty_cell);
-%!   sol_eig = struct("lambda", empty_cell, "f", empty_cell, "def", empty_cell);
+%!   sol_eig = struct("lambda", empty_cell, "f", empty_cell, "def", empty_cell, "D", empty_cell);
 %!   mat_red = struct("Mred", empty_cell, "Kred", empty_cell, "Dred", empty_cell);
 %!   for i=1:columns(OMEGA)
 %!     fprintf(stderr, "n=%.0frpm\n", norm(OMEGA(:, i)) * 30 / pi / SI_unit_second);
@@ -1783,7 +1783,7 @@ endfunction
 %!   load_case = fem_pre_load_case_create_empty(columns(OMEGA));
 %!   empty_cell = cell(1, columns(OMEGA));
 %!   sol_stat = struct("def", empty_cell, "stress", empty_cell);
-%!   sol_eig = struct("lambda", empty_cell, "f", empty_cell, "def", empty_cell);
+%!   sol_eig = struct("lambda", empty_cell, "f", empty_cell, "def", empty_cell, "D", empty_cell);
 %!   mat_red = struct("Mred", empty_cell, "Kred", empty_cell, "Dred", empty_cell);
 %!   for i=1:columns(OMEGA)
 %!     fprintf(stderr, "n=%.0frpm\n", norm(OMEGA(:, i)) * 30 / pi / SI_unit_second);
@@ -2221,7 +2221,7 @@ endfunction
 %!   load_case = fem_pre_load_case_create_empty(columns(OMEGA));
 %!   empty_cell = cell(1, columns(OMEGA));
 %!   sol_stat = struct("def", empty_cell, "stress", empty_cell);
-%!   sol_eig = struct("lambda", empty_cell, "f", empty_cell, "def", empty_cell);
+%!   sol_eig = struct("lambda", empty_cell, "f", empty_cell, "def", empty_cell, "D", empty_cell);
 %!   mat_red = struct("Mred", empty_cell, "Kred", empty_cell, "Dred", empty_cell);
 %!   for i=1:columns(OMEGA)
 %!     fprintf(stderr, "n=%.0frpm\n", norm(OMEGA(:, i)) * 30 / pi / SI_unit_second);
