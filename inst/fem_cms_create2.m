@@ -1757,7 +1757,7 @@ endfunction
 %!   options.interactive = false;
 %!   c2  = [0.141, 0.166, 0.196, 0.229, 0.249, 0.263, 0.281, 0.291, 0.312, 0.33];
 %!   w_h = [    1,   1.2,   1.5,     2,   2.5,     3,     4,     5,    10,  inf];
-%!   param.num_fem_elem_per_sec = 3;
+%!   param.num_fem_elem_per_sec = 0.5;
 %!   param.N1 = int32(50);
 %!   param.N2 = int32(20);
 %!   param.E1 = 7e10 / SI_unit_pascal;
@@ -2201,7 +2201,7 @@ endfunction
 %!   options.interactive = false;
 %!   c2  = [0.141, 0.166, 0.196, 0.229, 0.249, 0.263, 0.281, 0.291, 0.312, 0.33];
 %!   w_h = [    1,   1.2,   1.5,     2,   2.5,     3,     4,     5,    10,  inf];
-%!   param.num_fem_elem_per_sec = 3;
+%!   param.num_fem_elem_per_sec = 1;
 %!   param.N1 = int32(50);
 %!   param.N2 = int32(20);
 %!   param.E1 = 7e10 / SI_unit_pascal;
@@ -2648,7 +2648,7 @@ endfunction
 %!   options.interactive = false;
 %!   c2  = [0.141, 0.166, 0.196, 0.229, 0.249, 0.263, 0.281, 0.291, 0.312, 0.33];
 %!   w_h = [    1,   1.2,   1.5,     2,   2.5,     3,     4,     5,    10,  inf];
-%!   param.num_fem_elem_per_sec = 2;
+%!   param.num_fem_elem_per_sec = 1;
 %!   param.N1 = int32(50);
 %!   param.N2 = int32(20);
 %!   param.E1 = 7e10 / SI_unit_pascal;
@@ -3072,7 +3072,7 @@ endfunction
 %!   options.interactive = false;
 %!   c2  = [0.141, 0.166, 0.196, 0.229, 0.249, 0.263, 0.281, 0.291, 0.312, 0.33];
 %!   w_h = [    1,   1.2,   1.5,     2,   2.5,     3,     4,     5,    10,  inf];
-%!   param.num_fem_elem_per_sec = 2;
+%!   param.num_fem_elem_per_sec = 0.25;
 %!   param.N1 = int32(50);
 %!   param.N2 = int32(20);
 %!   param.E1 = 7e10 / SI_unit_pascal;
