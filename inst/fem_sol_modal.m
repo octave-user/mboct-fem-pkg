@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ function [sol, err, U] = fem_sol_modal(mesh, dof_map, mat_ass, N, varargin)
 
   sol.lambda = lambda;
   sol.f = imag(lambda) / (2 * pi);
+  sol.D = zeros(size(sol.lambda));
   sol.def = fem_post_def_nodal(mesh, dof_map, U * diag(1 ./ norm(U, "cols")));
 endfunction
 
