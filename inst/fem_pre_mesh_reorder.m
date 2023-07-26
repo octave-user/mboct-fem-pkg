@@ -171,7 +171,7 @@ endfunction
 %! mesh.groups.iso4(2).name = "group2";
 %!
 %! for i=1:numel(mesh.groups.iso4)
-%!   mesh.groups.iso4(i).nodes = unique(mesh.elements.iso4(mesh.groups.iso4(i).elements, :)(:), "sorted");
+%!   mesh.groups.iso4(i).nodes = sort(unique(mesh.elements.iso4(mesh.groups.iso4(i).elements, :)(:)));
 %! endfor
 %!
 %! x = rand(rows(mesh.nodes), 10);

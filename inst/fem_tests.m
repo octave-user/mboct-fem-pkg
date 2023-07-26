@@ -79,7 +79,7 @@
 %! tol = 1e-6;
 %! err = zeros(number_of_modes, numel(alg));
 %! empty_cell = cell(1, numel(alg));
-%! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell);
+%! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell, "D", empty_cell);
 %! for a=1:numel(alg)
 %!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
 %! endfor
