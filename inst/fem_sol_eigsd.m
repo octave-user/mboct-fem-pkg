@@ -75,7 +75,7 @@ function [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts)
     opts.output = "reduced";
   endif
 
-  opts.isreal = true;
+  opts.isreal = isreal(K) && isreal(M) && isreal(D);
   opts.issym = false;
 
   callback = @(x) eigs_callback(Kfact, D, M, x);
