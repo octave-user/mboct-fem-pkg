@@ -100,6 +100,24 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
       endif
 
       switch (line)
+        case "$MeshFormat"
+          [version_number, file_type, data_size, count, msg] = fscanf(fd, "%f %d %d\n", "C");
+
+          if (count ~= 3)
+            error("invalid header in Gmsh file");
+          endif
+          
+          switch (version_number)
+            case 2.2
+            otherwise
+              error("invalid file format: only Gmsh file format version 2 is supported");
+          endswitch
+
+          switch (file_type)
+            case 0
+            otherwise
+              error("invalid file format: only Gmsh ASCII format is supported");
+          endswitch
         case "$PhysicalNames"
           [p_names_count, count, msg] = fscanf(fd, "%d\n", "C");
 
