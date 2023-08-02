@@ -1159,6 +1159,8 @@ endfunction
 %! SI_unit_meter = 1;
 %! SI_unit_second = 1;
 %! SI_unit_kilogram = 1;
+%! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
+%! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
 %! geo.D = 148e-3 / SI_unit_meter;
 %! geo.d = 140e-3 / SI_unit_meter;
 %! geo.h = 10e-3 / SI_unit_meter;
