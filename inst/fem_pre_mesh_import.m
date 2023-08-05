@@ -106,7 +106,7 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
           if (count ~= 3)
             error("invalid header in Gmsh file");
           endif
-          
+
           switch (version_number)
             case 2.2
             otherwise
