@@ -75,7 +75,7 @@ Copyright<sup>&copy;</sup> 2019-2023
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
-  See the workflow file .github/workflows/simple.yml as an example on how to install the package.
+  See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml as an example on how to install the package.
 
 # Applications
   - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
