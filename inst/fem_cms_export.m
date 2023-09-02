@@ -235,7 +235,8 @@ endfunction
 %! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
 %! param.alpha = 0 / (1 / SI_unit_second);
 %! param.beta = 1e-7 / (SI_unit_second);
-%! param.h = 4e-3 / SI_unit_meter; ## mesh size
+%! param.h1 = 5e-3 / SI_unit_meter; ## mesh size
+%! param.h2 = 5e-3 / SI_unit_meter; ## mesh size
 %! param.l = 350e-3 / SI_unit_meter; ## bearing distance
 %! param.d = 10e-3 / SI_unit_meter; ## shaft diameter
 %! param.D = 150e-3 / SI_unit_meter; ##disk diameter
@@ -794,7 +795,7 @@ endfunction
 %!     for i=1:length(fn)
 %!       fprintf(fd, "%s = %g;\n", fn{i}, getfield(param, fn{i}));
 %!     endfor
-%!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
+%!     fputs(fd, "SetFactory(\"Built-in\");\n");
 %!     fputs(fd, "Point(1) = {0, 0, -0.5 * l};\n");
 %!     fputs(fd, "Point(2) = {0.5 * d, 0, -0.5 * l};\n");
 %!     fputs(fd, "Point(3) = {0.5 * d, 0, -0.5 * w + o};\n");
@@ -803,6 +804,8 @@ endfunction
 %!     fputs(fd, "Point(6) = {0.5 * d, 0, 0.5 * w + o};\n");
 %!     fputs(fd, "Point(7) = {0.5 * d, 0, 0.5 * l};\n");
 %!     fputs(fd, "Point(8) = {0, 0, 0.5 * l};\n");
+%!     fputs(fd, "Point(9) = {0, 0, 0.5 * w + o};\n");
+%!     fputs(fd, "Point(10) = {0, 0, -0.5 * w + o};\n");
 %!     fputs(fd, "Line(1) = {1, 2};\n");
 %!     fputs(fd, "Line(2) = {2, 3};\n");
 %!     fputs(fd, "Line(3) = {3, 4};\n");
@@ -810,17 +813,43 @@ endfunction
 %!     fputs(fd, "Line(5) = {5, 6};\n");
 %!     fputs(fd, "Line(6) = {6, 7};\n");
 %!     fputs(fd, "Line(7) = {7, 8};\n");
-%!     fputs(fd, "Line(8) = {8, 1};\n");
-%!     fputs(fd, "Line Loop(1) = {1, 2, 3, 4, 5, 6, 7, 8};\n");
+%!     fputs(fd, "Line(8) = {8, 9};\n");
+%!     fputs(fd, "Line(9) = {9, 10};\n");
+%!     fputs(fd, "Line(10) = {10, 1};\n");
+%!     fputs(fd, "Transfinite Curve(1) = Max(1, Round(0.5 * d / h1)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(2) = Max(1, Round((0.5 * l - 0.5 * w + o) / h1)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(3) = Max(1, Round((0.5 * (D - d)) / h2)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(4) = Max(1, Round(w / h2)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(5) = Max(1, Round((0.5 * (D - d)) / h2)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(6) = Max(1, Round((0.5 * l - 0.5 * w - o) / h1)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(7) = Max(1, Round(0.5 * d / h1)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(8) = Max(1, Round((0.5 * l - 0.5 * w - o) / h1)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(9) = Max(1, Round(w / h2)) + 1;\n");
+%!     fputs(fd, "Transfinite Curve(10) = Max(1, Round((0.5 * l - 0.5 * w + o) / h1)) + 1;\n");
+%!     fputs(fd, "Transfinite Surface(2) = {1, 2, 3, 10};\n");
+%!     fputs(fd, "Transfinite Surface(3) = {10, 3, 6, 9};\n");
+%!     fputs(fd, "Transfinite Surface(4) = {3, 4, 5, 6};\n");
+%!     fputs(fd, "Transfinite Surface(5) = {9, 6, 7, 8};\n");
+%!     fputs(fd, "Line Loop(1) = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};\n");
 %!     fputs(fd, "Plane Surface(1) = {1};\n");
-%!     fputs(fd, "vol1[] = Extrude{{0, 0, 1},{0, 0, 0}, 2 * Pi}{ Surface{1}; };\n");
-%!     fputs(fd, "B[] = Unique(Abs(Boundary{Volume{vol1};}));\n");
-%!     fputs(fd, "Physical Volume(\"V\", 1) = {vol1};\n");
+%!     fputs(fd, "vol1[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{1}; Layers{Round(d * Pi / (4. * h1))}; Recombine; };\n");
+%!     fputs(fd, "vol2[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{vol1[0]}; Layers{Round(d * Pi / (4. * h1))}; Recombine; };\n");
+%!     fputs(fd, "vol3[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{vol2[0]}; Layers{Round(d * Pi / (4. * h1))}; Recombine; };\n");
+%!     fputs(fd, "vol4[] = Extrude{{0, 0, 1},{0, 0, 0}, Pi/2}{ Surface{vol3[0]}; Layers{Round(d * Pi / (4. * h1))}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{1, vol1[0]};\n");
+%!     fputs(fd, "Recombine Surface{vol1[0], vol2[0]};\n");
+%!     fputs(fd, "Recombine Surface{vol2[0], vol3[0]};\n");
+%!     fputs(fd, "Recombine Surface{vol3[0], vol4[0]};\n");
+%!     fputs(fd, "Coherence Mesh;\n");
+%!     fputs(fd, "B[] = Unique(Abs(Boundary{Volume{vol1[1],vol2[1],vol3[1],vol4[1]};}));\n");
+%!     fputs(fd, "Physical Volume(\"V\", 1) = {vol1[1],vol2[1],vol3[1],vol4[1]};\n");
 %!     fputs(fd, "For i In {0:#B[] - 1}\n");
 %!     fputs(fd, "    Physical Surface(i) = {B[i]};\n");
 %!     fputs(fd, "EndFor\n");
-%!     fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
-%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!     fputs(fd, "Mesh.Algorithm = 8;\n");
+%!     fputs(fd, "Mesh.Algorithm3D = 4;\n");
+%!     fputs(fd, "Mesh.ElementOrder = 2;");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -829,11 +858,6 @@ endfunction
 %!   fprintf(stderr, "meshing ...\n");
 %!   pid = spawn("gmsh", {"-format", "msh2", ...
 %!                        "-3", ...
-%!                        "-order", "2", ...
-%!                        "-clmin", sprintf("%g", 0.75 * param.h), ...
-%!                        "-clmax", sprintf("%g", 1.25 * param.h), ...
-%!                        "-ho_min", "0.1", ...
-%!                        "-ho_max", "3", ...
 %!                        geometry_file, ...
 %!                        "-o", [filename, ".msh"]});
 %!   status = spawn_wait(pid);
@@ -841,7 +865,8 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   fprintf(stderr, "loading mesh ...\n");
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
+%!   opt_mesh.elem_type = {"iso20", "penta15", "quad8", "tria6h"};
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh",opt_mesh));
 %!   group_defs(1).id = 1;
 %!   group_defs(1).name = "bearing1";
 %!   group_defs(1).R = eye(3);
@@ -853,6 +878,7 @@ endfunction
 %!   group_defs(1).geometry.ymax = 0.5 * param.d;
 %!   group_defs(1).geometry.zmin = 0;
 %!   group_defs(1).geometry.zmax = 0;
+%!   group_defs(1).elem_type = "tria6h";
 %!   group_defs(2).id = 2;
 %!   group_defs(2).name = "bearing2";
 %!   group_defs(2).R = eye(3);
@@ -864,6 +890,7 @@ endfunction
 %!   group_defs(2).geometry.ymax = 0.5 * param.d;
 %!   group_defs(2).geometry.zmin = 0;
 %!   group_defs(2).geometry.zmax = 0;
+%!   group_defs(2).elem_type = "tria6h";
 %!   group_defs(3).id = 3;
 %!   group_defs(3).name = "rotor";
 %!   group_defs(3).R = eye(3);
@@ -873,8 +900,10 @@ endfunction
 %!   group_defs(3).geometry.rmax = 0.5 * param.D;
 %!   group_defs(3).geometry.zmin = -0.5 * param.w;
 %!   group_defs(3).geometry.zmax = 0.5 * param.w;
-%!   groups = fem_pre_mesh_groups_create(mesh, group_defs, options.geo_tol);
-%!   mesh.groups.tria6 = groups.tria6;
+%!   group_defs(3).elem_type = "quad8";
+%!   groups = fem_pre_mesh_groups_create(mesh, group_defs, options.geo_tol, 0);
+%!   mesh.groups.quad8 = groups.quad8;
+%!   mesh.groups.tria6h = groups.tria6h;
 %!   cms_opt.modes.number = int32(options.number_of_modes);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
 %!   cms_opt.nodes.interfaces(1).number = int32(rows(mesh.nodes) + 2);
@@ -883,16 +912,20 @@ endfunction
 %!   mesh.nodes(cms_opt.nodes.modal.number, :) = [0, 0, param.o, 0, 0, 0];
 %!   mesh.nodes([cms_opt.nodes.interfaces.number], :) = [0, 0, -0.5 * param.l, 0, 0, 0;
 %!                                                       0, 0,  0.5 * param.l, 0, 0, 0];
-%!   mesh.elements.rbe3(2) = fem_pre_mesh_rbe3_from_surf(mesh, 1, cms_opt.nodes.interfaces(1).number);
-%!   mesh.elements.rbe3(3) = fem_pre_mesh_rbe3_from_surf(mesh, 2, cms_opt.nodes.interfaces(2).number);
-%!   mesh.elements.rbe3(1) = fem_pre_mesh_rbe3_from_surf(mesh, 3, cms_opt.nodes.modal.number);
+%!   mesh.elements.rbe3(2) = fem_pre_mesh_rbe3_from_surf(mesh, 1, cms_opt.nodes.interfaces(1).number, "tria6h");
+%!   mesh.elements.rbe3(3) = fem_pre_mesh_rbe3_from_surf(mesh, 2, cms_opt.nodes.interfaces(2).number, "tria6h");
+%!   mesh.elements.rbe3(1) = fem_pre_mesh_rbe3_from_surf(mesh, 3, cms_opt.nodes.modal.number, "quad8");
 %!   load_case.locked_dof = false(rows(mesh.nodes), columns(mesh.nodes));
-%!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
-%!   mesh.materials.tet10(mesh.groups.tet10(find([mesh.groups.tet10.id == 1])).elements) = 1;
-%!   mesh.material_data.rho = param.rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(param.E, param.nu);
+%!   mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
+%!   mesh.materials.iso20(mesh.groups.iso20(find([mesh.groups.iso20.id == 1])).elements) = 2; ## Assume that the almost rigid disc is made of bricks only
+%!   mesh.materials.penta15 = zeros(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.materials.penta15(mesh.groups.penta15(find([mesh.groups.penta15.id == 1])).elements) = 1; ## Assume that the flexible shaft is made of wedges only
+%!   mesh.material_data(1).rho = param.rho;
+%!   mesh.material_data(1).C = fem_pre_mat_isotropic(param.E, param.nu);
+%!   mesh.material_data(2).rho = param.rho;
+%!   mesh.material_data(2).C = fem_pre_mat_isotropic(1000 * param.E, param.nu); ## Use high stiffness for the disc because it is a rigid body in the beam model
 %!   fprintf(stderr, "building cms element ...\n");
-%!   [mesh, mat_ass, dof_map, sol_eig] = fem_cms_create(mesh, load_case, cms_opt);
+%!   [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create2(mesh, load_case, cms_opt);
 %!   for i=1:numel(sol_eig.f)
 %!     if (isfinite(sol_eig.f(i)))
 %!       fprintf(stderr, "mode %d: %.1fHz\n", i, sol_eig.f(i) * (1 / SI_unit_second));
@@ -900,7 +933,7 @@ endfunction
 %!   endfor
 %!   mesh_post_pro_file = sprintf("%s_post.msh", filename);
 %!   fem_post_mesh_export(mesh_post_pro_file, mesh);
-%!   for j=1:numel(sol_eig.f)
+%!   for j=1:size(sol_eig.def, 3)
 %!     eig_post_pro_file_mode{j} = sprintf("%s_eig_def_%03d.msh", filename, j);
 %!     fem_post_sol_step_export(eig_post_pro_file_mode{j}, sol_eig, j, j, sol_eig.f(j), options.scale_def / max(norm(sol_eig.def(:, 1:3, j), "rows")));
 %!   endfor
@@ -974,7 +1007,7 @@ endfunction
 %!   grid minor on;
 %!   title("resonance curve center of disk versus speed - magnitude");
 %!   figure_list();
-%!   tol = 10e-2;
+%!   tol = 0.5e-2;
 %!   assert(interp1(omega{2}, r{2}, omega{1}, "pchip", "extrap"), r{1}, tol * max(abs(r{1})));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
