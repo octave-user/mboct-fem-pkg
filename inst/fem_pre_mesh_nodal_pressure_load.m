@@ -22,7 +22,7 @@
 ##
 ## @var{group_id} @dots{} array of group id-numbers used to identify surface elements with slave nodes
 ##
-## @var{elem_type} @dots{} the element type addressed by @var{group_id} (e.g. "tria6", "tria6h", "iso4", "quad8")
+## @var{elem_type} @dots{} the element type addressed by @var{group_id} (e.g. "tria6", "tria6h", "iso4", "quad8", "quad9")
 ##
 ## @var{F} @dots{} resulting nodal load
 ##
