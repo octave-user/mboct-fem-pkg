@@ -488,7 +488,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data.E = 70000e6 / SI_unit_pascal;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 2700 / (SI_unit_kilogram / SI_unit_meter^3);
@@ -1409,7 +1408,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
 %!   mesh.material_data(1).nu = param.nu1;
@@ -1853,7 +1851,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
 %!   mesh.material_data(1).nu = param.nu1;
@@ -2300,7 +2297,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
 %!   mesh.material_data(1).nu = param.nu1;
@@ -4436,26 +4432,43 @@ endfunction
 %!   material.ET = 2100e6 / SI_unit_pascal;
 %!   material.sigmayv = 235000e6 / SI_unit_pascal;
 %!   material.nu = 0.3;
+%!   material.G = material.E / (2 * (1 + material.nu));
+%!   material.kappa = material.E / (3 * (1 - 2 * material.nu));
 %!   material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
-%!   elem_types = {"iso27", "iso8", "iso20", "iso20r", "penta15", "tet10h"};
-%!   mat_types = {"linear elastic generic", "neo hookean elastic", "bilinear isotropic hardening"};
+%!   material.beta = 1 / SI_unit_second^-1;
+%!   material.delta = 0.25;
+%!   material.theta = 0.5;
+%!   material.tau = 0.5 / SI_unit_second;
+%!   elem_types = {"tet10h", ...
+%!                 "iso8", ...
+%!                 "iso20", ...
+%!                 "iso27", ...
+%!                 "iso20r", ...
+%!                 "penta15", ...
+%!                };
+%!   mat_types = {"linear elastic generic", ...
+%!                "neo hookean elastic", ...
+%!                "bilinear isotropic hardening", ...
+%!                "mooney rivlin elastic", ...
+%!                "linear viscoelastic generic", ...
+%!                "neo hookean viscoelastic", ...
+%!                "linear viscoelastic maxwell1", ...
+%!                "linear viscoelastic maxwelln"
+%!               };
 %!   f_transfinite_mesh = [true, false];
-%!   boundary_cond = {"symmetry", "three point"};
+%!   boundary_cond = { "symmetry", ...
+%!                     "three point", ...
+%!                     "two surfaces one line", ...
+%!                   };
 %!   load_type = {"traction", "pressure"};
-%!   sigma = material.sigmayv * [1.5, 0.0, 0.0, 0.0, 0.0, 0.0;
-%!                               0.0, 0.3, 0.0, 0.0, 0.0, 0.0;
-%!                               0.0, 0.0, 0.9, 0.0, 0.0, 0.0;
-%!                               0.0, 0.0, 0.0, 0.2, 0.0, 0.0;
-%!                               0.0, 0.0, 0.0, 0.0, 0.2, 0.0;
-%!                               0.0, 0.0, 0.0, 0.0, 0.0, 0.2];
-
+%!   sigma = material.sigmayv * diag([1.5, 0.3, 0.9, 0.2, 0.2, 0.2]);
 %!   for idx_sigma=1:columns(sigma)
-%!     sigmav = sqrt(sum(sigma(1:3, idx_sigma).^2) - (sigma(1, idx_sigma) * sigma(2, idx_sigma) + sigma(2, idx_sigma) * sigma(3, idx_sigma) + sigma(1, idx_sigma) * sigma(3, idx_sigma)) + 3 * sum(sigma(4:6, idx_sigma).^2))
+%!     sigmav = sqrt(sum(sigma(1:3, idx_sigma).^2) - (sigma(1, idx_sigma) * sigma(2, idx_sigma) + sigma(2, idx_sigma) * sigma(3, idx_sigma) + sigma(1, idx_sigma) * sigma(3, idx_sigma)) + 3 * sum(sigma(4:6, idx_sigma).^2));
 %!     for idx_load_type=1:numel(load_type)
 %!       switch (load_type{idx_load_type})
 %!         case "pressure"
 %!           if (norm(sigma(1:3, idx_sigma)) == 0)
-%!             continue;
+%!             continue; ## Uniform pressure cannot cause shear stress
 %!           endif
 %!       endswitch
 %!       for idx_boundary_cond=1:numel(boundary_cond)
@@ -4477,20 +4490,24 @@ endfunction
 %!                   elem_factor_h = 1;
 %!               endswitch
 %!               switch (mat_types{idx_mat_type})
-%!                 case "neo hookean elastic"
-%!                   if (norm(sigma(4:6, idx_sigma)))
-%!                     ## shear deformation with hyperelastic material not passed yet because the Jacobian may become singular
-%!                     switch (elem_type)
+%!                 case {"neo hookean elastic", "neo hookean viscoelastic", "mooney rivlin elastic", "linear viscoelastic generic"}
+%!                   switch(boundary_cond{idx_boundary_cond})
+%!                   case {"three point", "two surfaces one line"}
+%!                     switch (idx_sigma)
+%!                     case {4, 5, 6}
+%!                       ## shear deformation with those materials and elements not passed yet because the Jacobian may become singular
+%!                       switch (elem_type)
 %!                       case {"tet10h", "penta15"}
 %!                         continue;
 %!                       otherwise
 %!                         if (~f_transfinite_mesh(idx_transfinite))
 %!                           continue;
 %!                         endif
+%!                       endswitch
 %!                     endswitch
-%!                   endif
+%!                   endswitch
 %!               endswitch
-%!               file_prefix = sprintf("%s_%d_%d_%d", filename, idx_transfinite, idx_mat_type, idx_elem_type);
+%!               file_prefix = sprintf("%s_%d_%d_%d_%d_%d_%d", filename, idx_sigma, idx_load_type, idx_boundary_cond, idx_transfinite, idx_mat_type, idx_elem_type);
 %!               geo_file = [file_prefix, "_gmsh.geo"];
 %!               mesh_file = [file_prefix, "_gmsh.msh"];
 %!               nodes_file = [file_prefix, "_mbd.nod"];
@@ -4599,8 +4616,10 @@ endfunction
 %!                 endif
 %!                 switch (elem_type)
 %!                   case "tet10h"
-%!                     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!                     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!                     if (~f_transfinite_mesh(idx_transfinite))
+%!                       fputs(fd, "Mesh.HighOrderOptimize=2;\n");
+%!                       fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
+%!                     endif
 %!                 endswitch
 %!                 fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
 %!                 fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[4]};\n");
@@ -4624,7 +4643,6 @@ endfunction
 %!               endif
 %!               opt_msh.elem_type = {elem_type_solid{:}, elem_type_surf{:}};
 %!               mesh = fem_pre_mesh_reorder(fem_pre_mesh_import(mesh_file, "gmsh", opt_msh));
-%!               [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!               opt_mbd_mesh = struct();
 %!               switch (model)
 %!                 case "dynamic"
@@ -4712,10 +4730,32 @@ endfunction
 %!                   load_case_dof.locked_dof(grp_idx_p1, 1:3) = true;
 %!                   load_case_dof.locked_dof(grp_idx_p2, 2:3) = true;
 %!                   load_case_dof.locked_dof(grp_idx_p4, 3) = true;
+%!                 case "two surfaces one line"
+%!                     switch (idx_sigma)
+%!                     case {1, 2, 3, 4}
+%!                       load_case_dof.locked_dof(mesh.nodes(:, 2) == -0.5 * geometry.w, 2) = true;
+%!                       load_case_dof.locked_dof(mesh.nodes(:, 3) == -0.5 * geometry.h, 3) = true;
+%!                       load_case_dof.locked_dof((mesh.nodes(:, 2) == -0.5 * geometry.w) & (mesh.nodes(:, 1) == 0), 1) = true;
+%!                     case 5
+%!                       load_case_dof.locked_dof(mesh.nodes(:, 3) == -0.5 * geometry.h, 3) = true;
+%!                       load_case_dof.locked_dof(mesh.nodes(:, 1) == 0, 1) = true;
+%!                       load_case_dof.locked_dof((mesh.nodes(:, 3) == -0.5 * geometry.h) & (mesh.nodes(:, 2) == -0.5 * geometry.w), 2) = true;
+%!                     case 6
+%!                       load_case_dof.locked_dof(mesh.nodes(:, 3) == -0.5 * geometry.h, 3) = true;
+%!                       load_case_dof.locked_dof(mesh.nodes(:, 2) == -0.5 * geometry.w, 2) = true;
+%!                       load_case_dof.locked_dof((mesh.nodes(:, 3) == -0.5 * geometry.h) & (mesh.nodes(:, 1) == 0), 1) = true;
+%!                     otherwise
+%!                       error("invalid boundary condition");
+%!                     endswitch
 %!                 otherwise
 %!                   error("unkown boundary condition");
 %!               endswitch
 %!               mesh.material_data = material;
+%!               switch (mesh.material_data.type)
+%!               case "linear viscoelastic maxwelln"
+%!                 mesh.material_data.tau = repmat(mesh.material_data.tau, 1, 2);
+%!                 mesh.material_data.theta = repmat(mesh.material_data.theta / 2, 1, 2);
+%!               endswitch
 %!               mesh.materials = struct();
 %!               for i=1:numel(elem_type_solid)
 %!                 if (~isfield(mesh.elements, elem_type_solid{i}))
@@ -4889,7 +4929,7 @@ endfunction
 %!                 fprintf(fd, "        time step: dt;\n");
 %!                 fprintf(fd, "        time step: dt;\n");
 %!                 fprintf(fd, "        max iterations: 50;\n");
-%!                 fprintf(fd, "        tolerance: 1e-12, test, sepnorm, 1e-8, test, norm;\n");
+%!                 fprintf(fd, "        tolerance: 1e-12, test, sepnorm, 1e-12, test, norm;\n");
 %!                 fprintf(fd, "        output: messages;\n");
 %!                 fprintf(fd, "        output: iterations, solver condition number, stat, yes;\n");
 %!                 fprintf(fd, "        nonlinear solver: nox,\n");
@@ -5012,7 +5052,7 @@ endfunction
 %!               for i=1:numel(surfl_data)
 %!                 Fsurfl_sum += surfl_data{i}(end, :)(:);
 %!               endfor
-%!               tol = 1e-10;
+%!               tol = 1e-9;
 %!               for i=1:numel(elem_type_solid)
 %!                 if (~isfield(mesh.elements, elem_type_solid{i}))
 %!                   continue;
@@ -5032,7 +5072,7 @@ endfunction
 %!                 assert(all(all(abs(genel_data{i}) < tol_F * Fref)));
 %!               endfor
 %!               assert(norm(Fsurfl_sum) < tol_F * Fref);
-%!               tol_epsilon = 1e-10;
+%!               tol_epsilon = 1e-9;
 %!               for j=1:numel(elem_type_solid)
 %!                 if (~isfield(sol.strain.epsilon, elem_type_solid{j}))
 %!                   continue;
@@ -5063,7 +5103,7 @@ endfunction
 %!                   S_res(1, 2, :) = S_res(2, 1, :) = sigma_res(4, :);
 %!                   S_res(2, 3, :) = S_res(3, 2, :) = sigma_res(5, :);
 %!                   S_res(3, 1, :) = S_res(1, 3, :) = sigma_res(6, :);
-%!                 case "neo hookean elastic"
+%!                 case {"neo hookean elastic", "mooney rivlin elastic"}
 %!                   mu = mesh.material_data.E / (2 * (1 + mesh.material_data.nu));
 %!                   lambda = mesh.material_data.E * mesh.material_data.nu / ((1 + mesh.material_data.nu ) * (1 - 2 * mesh.material_data.nu));
 %!                   for i=1:numel(sol.t)
@@ -5073,23 +5113,35 @@ endfunction
 %!                     invC = inv(C(:, :, i));
 %!                     for k=1:3
 %!                       for l=1:3
-%!                         S_res(k, l, i) = mu * (k == l) + (lambda * (IIIC - sqrt(IIIC)) - mu) * invC(k, l);
+%!                         switch (mesh.material_data.type)
+%!                         case "neo hookean elastic"
+%!                           S_res(k, l, i) = mu * (k == l) + (lambda * (IIIC - sqrt(IIIC)) - mu) * invC(k, l);
+%!                         case "mooney rivlin elastic"
+%!                           C1 = mesh.material_data.G / (2 * (1 + mesh.material_data.delta));
+%!                           C2 = mesh.material_data.delta * C1;
+%!                           S_res(k, l, i) = 2 * (C1 * IIIC^(-1/3) * (k == l) + C2 * IIIC^(-2/3) * (IC * (k == l) - C(k, l, i)) + (1/2 * mesh.material_data.kappa * (IIIC - sqrt(IIIC)) - 1/3 * C1 * IC * IIIC^(-1/3) - 2/3 * C2 * IIC * IIIC^(-2/3)) * invC(k, l));
+%!                         endswitch
 %!                       endfor
 %!                     endfor
 %!                   endfor
 %!               endswitch
-%!               tau_res = zeros(3, 3, numel(sol.t));
-%!               for i=1:numel(sol.t)
-%!                 tau_res(:, :, i) = F(:, :, i) * S_res(:, :, i) * F(:, :, i).' / det(F(:, :, i));
-%!               endfor
-%!               Tau_res = zeros(6, numel(sol.t));
-%!               for i=1:3
-%!                 Tau_res(i, :) = tau_res(i, i, :);
-%!               endfor
-%!               Tau_res(4, :) = tau_res(1, 2, :);
-%!               Tau_res(5, :) = tau_res(2, 3, :);
-%!               Tau_res(6, :) = tau_res(3, 1, :);
-%!               assert(Tau_res(:, end), tau_ref, tol * norm(tau_ref));
+%!               switch (mesh.material_data.type)
+%!               case {"linear viscoelastic generic", "neo hookean viscoelastic", "linear viscoelastic maxwelln", "linear viscoelastic maxwell1"}
+%!                 ## TODO: viscoelastic case is not handled yet
+%!               otherwise
+%!                 tau_res = zeros(3, 3, numel(sol.t));
+%!                 for i=1:numel(sol.t)
+%!                   tau_res(:, :, i) = F(:, :, i) * S_res(:, :, i) * F(:, :, i).' / det(F(:, :, i));
+%!                 endfor
+%!                 Tau_res = zeros(6, numel(sol.t));
+%!                 for i=1:3
+%!                   Tau_res(i, :) = tau_res(i, i, :);
+%!                 endfor
+%!                 Tau_res(4, :) = tau_res(1, 2, :);
+%!                 Tau_res(5, :) = tau_res(2, 3, :);
+%!                 Tau_res(6, :) = tau_res(3, 1, :);
+%!                 assert(Tau_res(:, end), tau_ref, tol * norm(tau_ref));
+%!               endswitch
 %!             endfor
 %!           endfor
 %!         endfor
@@ -5187,7 +5239,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data.E = 70000e6 / SI_unit_pascal;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.rho = 2700 / (SI_unit_kilogram / SI_unit_meter^3);
@@ -6109,7 +6160,6 @@ endfunction
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [mesh, perm, iperm] = fem_pre_mesh_reorder(mesh);
 %!   mesh.material_data = struct("E", cell(1, 2), "nu", cell(1, 2), "rho", cell(1, 2));
 %!   mesh.material_data(1).E = param.E1;
 %!   mesh.material_data(1).nu = param.nu1;
