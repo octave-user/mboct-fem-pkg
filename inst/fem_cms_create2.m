@@ -4424,7 +4424,7 @@ endfunction
 %!   h = [geometry.l; geometry.w; geometry.h];
 %!   t1 = 1;
 %!   t2 = 0;
-%!   dt = t1 / 100;
+%!   dt = t1 / 40;
 %!   model = "static";
 %!   method = "implicit euler";
 %!   options.verbose = false;
@@ -4441,24 +4441,31 @@ endfunction
 %!   material.tau = 0.5 / SI_unit_second;
 %!   elem_types = {"tet10h", ...
 %!                 "iso8", ...
+%!                 "iso8upc", ...
 %!                 "iso20", ...
+%!                 "iso20upc", ...
 %!                 "iso27", ...
 %!                 "iso20r", ...
 %!                 "penta15", ...
 %!                };
 %!   mat_types = {"linear elastic generic", ...
+%!                "linear elastic isotropic solid", ...
+%!                "incompressible linear elastic isotropic", ...
 %!                "neo hookean elastic", ...
 %!                "bilinear isotropic hardening", ...
 %!                "mooney rivlin elastic", ...
 %!                "linear viscoelastic generic", ...
+%!                "linear viscoelastic isotropic solid", ...
 %!                "neo hookean viscoelastic", ...
 %!                "linear viscoelastic maxwell1", ...
-%!                "linear viscoelastic maxwelln"
+%!                "linear viscoelastic maxwelln", ...
 %!               };
-%!   f_transfinite_mesh = [true, false];
-%!   boundary_cond = { "symmetry", ...
+%!   f_transfinite_mesh = [true, ...
+%!                         false, ...
+%!                        ];
+%!   boundary_cond = { #"symmetry", ...
 %!                     "three point", ...
-%!                     "two surfaces one line", ...
+%!                     #"two surfaces one line", ...
 %!                   };
 %!   load_type = {"traction", "pressure"};
 %!   sigma = material.sigmayv * diag([1.5, 0.3, 0.9, 0.2, 0.2, 0.2]);
@@ -4485,12 +4492,30 @@ endfunction
 %!               elem_type = elem_types{idx_elem_type};
 %!               switch (elem_type)
 %!                 case "iso20r"
-%!                   elem_factor_h = 0.5; ## avoid hourglass instability
+%!                   if (f_transfinite_mesh(idx_transfinite))
+%!                     elem_factor_h = [0.5; 2; 2]; ## avoid hourglass instability
+%!                   else
+%!                     elem_factor_h = [0.5; 0.5; 0.5];
+%!                   endif
 %!                 otherwise
-%!                   elem_factor_h = 1;
+%!                   elem_factor_h = [2; 2; 2];
 %!               endswitch
 %!               switch (mat_types{idx_mat_type})
-%!                 case {"neo hookean elastic", "neo hookean viscoelastic", "mooney rivlin elastic", "linear viscoelastic generic"}
+%!               case "incompressible linear elastic isotropic"
+%!                 switch (elem_type)
+%!                 case {"iso8upc", "iso20upc"}
+%!                 otherwise
+%!                   continue; ## only u/p-c formulation can handle incompressible material models
+%!                 endswitch
+%!               otherwise
+%!                 switch (elem_type)
+%!                 case {"iso8upc", "iso20upc"}
+%!                   ## not all material models are supporting u/p-c yet
+%!                   continue;
+%!                 endswitch
+%!               endswitch
+%!               switch (mat_types{idx_mat_type})
+%!                 case {"neo hookean elastic", "neo hookean viscoelastic", "mooney rivlin elastic", "linear viscoelastic generic", "linear viscoelastic isotropic solid"}
 %!                   switch(boundary_cond{idx_boundary_cond})
 %!                   case {"three point", "two surfaces one line"}
 %!                     switch (idx_sigma)
@@ -4529,10 +4554,18 @@ endfunction
 %!                   mesh_order = 1;
 %!                   elem_type_solid = {elem_type};
 %!                   elem_type_surf = {"iso4"};
+%!                 case "iso8upc"
+%!                   mesh_order = 1;
+%!                   elem_type_solid = {elem_type};
+%!                   elem_type_surf = {"iso4"};
 %!                 case "iso20"
 %!                   mesh_order = 2;
 %!                   elem_type_solid = {"iso20", "penta15"};
 %!                   elem_type_surf = {"quad8", "tria6h"};
+%!                 case "iso20upc"
+%!                   mesh_order = 2;
+%!                   elem_type_solid = {elem_type};
+%!                   elem_type_surf = {"quad8"};
 %!                 case "iso27"
 %!                   mesh_order = 2;
 %!                   elem_type_solid = {"iso27"};
@@ -4563,10 +4596,10 @@ endfunction
 %!                 fprintf(fd, "b=%g;\n", geometry.w);
 %!                 fprintf(fd, "c=%g;\n", geometry.h);
 %!                 for i=1:3
-%!                   fprintf(fd, "h%s = %g;\n", {"x","y","z"}{i}, h(i) * elem_factor_h);
+%!                   fprintf(fd, "h%s = %g;\n", {"x","y","z"}{i}, h(i) * elem_factor_h(i));
 %!                 endfor
 %!                 switch (elem_type)
-%!                   case {"iso20", "iso20r", "penta15"}
+%!                   case {"iso20", "iso20upc", "iso20r", "penta15"}
 %!                     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!                 endswitch
 %!                 fprintf(fd, "Mesh.ElementOrder = %d;\n", mesh_order);
@@ -4605,14 +4638,14 @@ endfunction
 %!                 fputs(fd, "};\n");
 %!                 f_unstruct_mesh_size = false;
 %!                 switch (elem_type)
-%!                   case {"iso8", "iso20", "iso20r", "iso27"}
+%!                   case {"iso8", "iso8upc", "iso20", "iso20r", "iso20upc", "iso27"}
 %!                     f_unstruct_mesh_size = ~f_transfinite_mesh(idx_transfinite);
 %!                     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
 %!                   otherwise
 %!                     f_unstruct_mesh_size = true;
 %!                 endswitch
 %!                 if (f_unstruct_mesh_size)
-%!                   fprintf(fd, "MeshSize{PointsOf{Volume{tmp[1]};}} = %.16e;\n", mean(h));
+%!                   fprintf(fd, "MeshSize{PointsOf{Volume{tmp[1]};}} = %.16e;\n", 2 * mean(h .* elem_factor_h));
 %!                 endif
 %!                 switch (elem_type)
 %!                   case "tet10h"
@@ -4870,6 +4903,7 @@ endfunction
 %!                   error("failed to open file \"%s\": %s", set_file, msg);
 %!                 endif
 %!                 fprintf(fd, "set: integer number_of_nodes = %d;\n", opt_mbd_mesh.struct_nodes.number);
+%!                 fprintf(fd, "set: integer number_of_nodes_hydraulic = %d;\n", opt_mbd_mesh.hydraulic_nodes.number);
 %!                 fprintf(fd, "set: integer number_of_solids = %d;\n", opt_mbd_mesh.solids.number);
 %!                 fprintf(fd, "set: integer number_of_genels = %d;\n", opt_mbd_mesh.genels.number);
 %!                 fprintf(fd, "set: integer number_of_forces = %d;\n", opt_mbd_mesh.forces.number);
@@ -4927,9 +4961,14 @@ endfunction
 %!                 fprintf(fd, "        initial time: 0;\n");
 %!                 fprintf(fd, "        final time: t1 + t2;\n");
 %!                 fprintf(fd, "        time step: dt;\n");
-%!                 fprintf(fd, "        time step: dt;\n");
-%!                 fprintf(fd, "        max iterations: 50;\n");
-%!                 fprintf(fd, "        tolerance: 1e-12, test, sepnorm, 1e-12, test, norm;\n");
+%!                 fprintf(fd, "        max iterations: 100;\n");
+%!                 switch (elem_type)
+%!                 case {"iso8upc", "iso20upc"}
+%!                   ## FIXME: test "sepnorm" does not work well with u/p-c elements; use norm instead
+%!                   fprintf(fd, "        tolerance: 1e-6, test, norm, 1e-12, test, norm;\n");
+%!                 otherwise
+%!                   fprintf(fd, "        tolerance: 1e-12, test, sepnorm, 1e-12, test, norm;\n");
+%!                 endswitch
 %!                 fprintf(fd, "        output: messages;\n");
 %!                 fprintf(fd, "        output: iterations, solver condition number, stat, yes;\n");
 %!                 fprintf(fd, "        nonlinear solver: nox,\n");
@@ -4959,12 +4998,13 @@ endfunction
 %!                 fprintf(fd, "        include: \"%s\";\n", initial_value_file);
 %!                 fprintf(fd, "end: initial value;\n");
 %!                 fprintf(fd, "begin: control data;\n");
-%!                 fprintf(fd, "       output frequency: 20;\n");
+%!                 fprintf(fd, "       output meter: closest next, t1, forever, dt;\n");
 %!                 fprintf(fd, "       skip initial joint assembly;\n");
 %!                 fprintf(fd, "       output precision: 16;\n");
 %!                 fprintf(fd, "       include: \"%s\";\n", control_file);
 %!                 fprintf(fd, "       default output: all, solids, accelerations;\n");
 %!                 fprintf(fd, "       structural nodes: number_of_nodes;\n");
+%!                 fprintf(fd, "       hydraulic nodes: number_of_nodes_hydraulic;\n");
 %!                 fprintf(fd, "       solids: number_of_solids;\n");
 %!                 fprintf(fd, "       genels: number_of_genels;\n");
 %!                 fprintf(fd, "       forces: number_of_forces;\n");
@@ -4992,6 +5032,7 @@ endfunction
 %!                 shell(sprintf("cat \"%s\" | nl", csl_file));
 %!                 shell(sprintf("cat \"%s\" | nl", elem_file));
 %!               endif
+%!               fprintf(stderr, "element type: %s\n", elem_type);
 %!               info = mbdyn_solver_run(input_file, opt_mbd);
 %!               [mesh_sol, sol] = mbdyn_post_load_output_sol(output_file);
 %!               [genel_id, genel_data] = mbdyn_post_load_output([output_file, ".gen"], 1, [], numel(sol.t), 1);
@@ -5088,7 +5129,7 @@ endfunction
 %!               endfor
 %!               S_res = zeros(3, 3, numel(sol.t));
 %!               switch (mesh.material_data.type)
-%!                 case {"linear elastic generic", "bilinear isotropic hardening"}
+%!                 case {"linear elastic generic", "linear elastic isotropic solid", "incompressible linear elastic isotropic", "bilinear isotropic hardening"}
 %!                   switch (mesh.material_data.type)
 %!                     case "bilinear isotropic hardening"
 %!                       if (sigmav > mesh.material_data.sigmayv)
@@ -5126,7 +5167,7 @@ endfunction
 %!                   endfor
 %!               endswitch
 %!               switch (mesh.material_data.type)
-%!               case {"linear viscoelastic generic", "neo hookean viscoelastic", "linear viscoelastic maxwelln", "linear viscoelastic maxwell1"}
+%!               case {"linear viscoelastic generic", "linear viscoelastic isotropic solid", "neo hookean viscoelastic", "linear viscoelastic maxwelln", "linear viscoelastic maxwell1"}
 %!                 ## TODO: viscoelastic case is not handled yet
 %!               otherwise
 %!                 tau_res = zeros(3, 3, numel(sol.t));
