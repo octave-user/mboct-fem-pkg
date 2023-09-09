@@ -4444,6 +4444,7 @@ endfunction
 %!                 "iso8upc", ...
 %!                 "iso20", ...
 %!                 "iso20upc", ...
+%!                 "iso20upcr", ...
 %!                 "iso27", ...
 %!                 "iso20r", ...
 %!                 "penta15", ...
@@ -4492,7 +4493,7 @@ endfunction
 %!             for idx_elem_type=1:numel(elem_types)
 %!               elem_type = elem_types{idx_elem_type};
 %!               switch (elem_type)
-%!                 case "iso20r"
+%!                 case {"iso20upcr", "iso20r"}
 %!                   if (f_transfinite_mesh(idx_transfinite))
 %!                     elem_factor_h = [0.5; 2; 2]; ## avoid hourglass instability
 %!                   else
@@ -4504,19 +4505,19 @@ endfunction
 %!               switch (mat_types{idx_mat_type})
 %!               case {"incompressible linear elastic isotropic", "incompressible mooney rivlin elastic"}
 %!                 switch (elem_type)
-%!                 case {"iso8upc", "iso20upc"}
+%!                 case {"iso8upc", "iso20upc", "iso20upcr"}
 %!                 otherwise
 %!                   continue; ## only u/p-c formulation can handle incompressible material models
 %!                 endswitch
 %!               otherwise
 %!                 switch (elem_type)
-%!                 case {"iso8upc", "iso20upc"}
+%!                 case {"iso8upc", "iso20upc", "iso20upcr"}
 %!                   ## not all material models are supporting u/p-c yet
 %!                   continue;
 %!                 endswitch
 %!               endswitch
 %!               switch (mat_types{idx_mat_type})
-%!                 case {"neo hookean elastic", "neo hookean viscoelastic", "mooney rivlin elastic", "linear viscoelastic generic", "linear viscoelastic isotropic solid"}
+%!                 case {"neo hookean elastic", "neo hookean viscoelastic", "mooney rivlin elastic", "incompressible mooney rivlin elastic", "linear viscoelastic generic", "linear viscoelastic isotropic solid"}
 %!                   switch(boundary_cond{idx_boundary_cond})
 %!                   case {"three point", "two surfaces one line"}
 %!                     switch (idx_sigma)
@@ -4551,11 +4552,7 @@ endfunction
 %!               opt_mbd.mbdyn_command = "mbdyn -C";
 %!               opt_mbd.f_run_mbdyn = true;
 %!               switch (elem_type)
-%!                 case "iso8"
-%!                   mesh_order = 1;
-%!                   elem_type_solid = {elem_type};
-%!                   elem_type_surf = {"iso4"};
-%!                 case "iso8upc"
+%!                 case {"iso8", "iso8upc"}
 %!                   mesh_order = 1;
 %!                   elem_type_solid = {elem_type};
 %!                   elem_type_surf = {"iso4"};
@@ -4567,6 +4564,10 @@ endfunction
 %!                   mesh_order = 2;
 %!                   elem_type_solid = {elem_type};
 %!                   elem_type_surf = {"quad8"};
+%!                 case "iso20upcr"
+%!                   mesh_order = 2;
+%!                   elem_type_solid = {elem_type};
+%!                   elem_type_surf = {"quad8r"};
 %!                 case "iso27"
 %!                   mesh_order = 2;
 %!                   elem_type_solid = {"iso27"};
@@ -4600,7 +4601,7 @@ endfunction
 %!                   fprintf(fd, "h%s = %g;\n", {"x","y","z"}{i}, h(i) * elem_factor_h(i));
 %!                 endfor
 %!                 switch (elem_type)
-%!                   case {"iso20", "iso20upc", "iso20r", "penta15"}
+%!                   case {"iso20", "iso20upc", "iso20upcr", "iso20r", "penta15"}
 %!                     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!                 endswitch
 %!                 fprintf(fd, "Mesh.ElementOrder = %d;\n", mesh_order);
@@ -4629,7 +4630,7 @@ endfunction
 %!                     fputs(fd, "  Surface{6};\n");
 %!                   otherwise
 %!                     switch (elem_type)
-%!                       case "iso20r"
+%!                       case {"iso20upcr", "iso20r"}
 %!                         num_layers = 2; ## because of hourglass instability
 %!                       otherwise
 %!                         num_layers = 1;
@@ -4639,7 +4640,7 @@ endfunction
 %!                 fputs(fd, "};\n");
 %!                 f_unstruct_mesh_size = false;
 %!                 switch (elem_type)
-%!                   case {"iso8", "iso8upc", "iso20", "iso20r", "iso20upc", "iso27"}
+%!                   case {"iso8", "iso8upc", "iso20", "iso20r", "iso20upc", "iso20upcr", "iso27"}
 %!                     f_unstruct_mesh_size = ~f_transfinite_mesh(idx_transfinite);
 %!                     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
 %!                   otherwise
@@ -4964,7 +4965,7 @@ endfunction
 %!                 fprintf(fd, "        time step: dt;\n");
 %!                 fprintf(fd, "        max iterations: 100;\n");
 %!                 switch (elem_type)
-%!                 case {"iso8upc", "iso20upc"}
+%!                 case {"iso8upc", "iso20upc", "iso20upcr"}
 %!                   ## FIXME: test "sepnorm" does not work well with u/p-c elements; use norm instead
 %!                   fprintf(fd, "        tolerance: 1e-6, test, norm, 1e-12, test, norm;\n");
 %!                 otherwise

@@ -46,7 +46,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   num_nodes = int32(0);
   num_mat = int32(0);
 
-  empty_cell = cell(1, 19);
+  empty_cell = cell(1, 20);
 
   elem_types = struct("name", empty_cell, "have_mat", empty_cell);
 
@@ -88,6 +88,8 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   elem_types(18).have_mat = true;
   elem_types(19).name = "iso8upc";
   elem_types(19).have_mat = true;
+  elem_types(20).name = "iso20upcr";
+  elem_types(20).have_mat = true;
   
   for i=1:numel(mesh_data)
     if (nargout >= 2)
