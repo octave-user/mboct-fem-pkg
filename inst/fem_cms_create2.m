@@ -4454,6 +4454,7 @@ endfunction
 %!                "neo hookean elastic", ...
 %!                "bilinear isotropic hardening", ...
 %!                "mooney rivlin elastic", ...
+%!                "incompressible mooney rivlin elastic", ...
 %!                "linear viscoelastic generic", ...
 %!                "linear viscoelastic isotropic solid", ...
 %!                "neo hookean viscoelastic", ...
@@ -4501,7 +4502,7 @@ endfunction
 %!                   elem_factor_h = [2; 2; 2];
 %!               endswitch
 %!               switch (mat_types{idx_mat_type})
-%!               case "incompressible linear elastic isotropic"
+%!               case {"incompressible linear elastic isotropic", "incompressible mooney rivlin elastic"}
 %!                 switch (elem_type)
 %!                 case {"iso8upc", "iso20upc"}
 %!                 otherwise
@@ -5144,7 +5145,7 @@ endfunction
 %!                   S_res(1, 2, :) = S_res(2, 1, :) = sigma_res(4, :);
 %!                   S_res(2, 3, :) = S_res(3, 2, :) = sigma_res(5, :);
 %!                   S_res(3, 1, :) = S_res(1, 3, :) = sigma_res(6, :);
-%!                 case {"neo hookean elastic", "mooney rivlin elastic"}
+%!                 case {"neo hookean elastic", "mooney rivlin elastic", "incompressible mooney rivlin elastic"}
 %!                   mu = mesh.material_data.E / (2 * (1 + mesh.material_data.nu));
 %!                   lambda = mesh.material_data.E * mesh.material_data.nu / ((1 + mesh.material_data.nu ) * (1 - 2 * mesh.material_data.nu));
 %!                   for i=1:numel(sol.t)
@@ -5157,7 +5158,7 @@ endfunction
 %!                         switch (mesh.material_data.type)
 %!                         case "neo hookean elastic"
 %!                           S_res(k, l, i) = mu * (k == l) + (lambda * (IIIC - sqrt(IIIC)) - mu) * invC(k, l);
-%!                         case "mooney rivlin elastic"
+%!                         case {"mooney rivlin elastic", "incompressible mooney rivlin elastic"}
 %!                           C1 = mesh.material_data.G / (2 * (1 + mesh.material_data.delta));
 %!                           C2 = mesh.material_data.delta * C1;
 %!                           S_res(k, l, i) = 2 * (C1 * IIIC^(-1/3) * (k == l) + C2 * IIIC^(-2/3) * (IC * (k == l) - C(k, l, i)) + (1/2 * mesh.material_data.kappa * (IIIC - sqrt(IIIC)) - 1/3 * C1 * IC * IIIC^(-1/3) - 2/3 * C2 * IIC * IIIC^(-2/3)) * invC(k, l));
