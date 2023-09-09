@@ -89,7 +89,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Clone MBDyn
         run: |
-          git clone -b hexahedron27 https://public.gitlab.polimi.it/DAER/mbdyn.git
+          git clone -b solid-element-incompressible https://public.gitlab.polimi.it/DAER/mbdyn.git
           #pushd mbdyn
           #git checkout module-hydrodynamic_plain_bearing2-dof_map
           #git config --local user.email mbdyn-user@a1.net
@@ -160,7 +160,7 @@ jobs:
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b iso27 https://github.com/octave-user/mboct-mbdyn-pkg.git && \
+           git clone -b iso20upc https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
            make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
