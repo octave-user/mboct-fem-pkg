@@ -4448,6 +4448,7 @@ endfunction
 %!                 "iso27", ...
 %!                 "iso20r", ...
 %!                 "penta15", ...
+%!                 "penta15upc", ...
 %!                };
 %!   mat_types = {"linear elastic generic", ...
 %!                "linear elastic isotropic solid", ...
@@ -4505,13 +4506,13 @@ endfunction
 %!               switch (mat_types{idx_mat_type})
 %!               case {"incompressible linear elastic isotropic", "incompressible mooney rivlin elastic"}
 %!                 switch (elem_type)
-%!                 case {"iso8upc", "iso20upc", "iso20upcr"}
+%!                 case {"iso8upc", "iso20upc", "iso20upcr", "penta15upc"}
 %!                 otherwise
 %!                   continue; ## only u/p-c formulation can handle incompressible material models
 %!                 endswitch
 %!               otherwise
 %!                 switch (elem_type)
-%!                 case {"iso8upc", "iso20upc", "iso20upcr"}
+%!                 case {"iso8upc", "iso20upc", "iso20upcr", "penta15upc"}
 %!                   ## not all material models are supporting u/p-c yet
 %!                   continue;
 %!                 endswitch
@@ -4524,7 +4525,7 @@ endfunction
 %!                     case {4, 5, 6}
 %!                       ## shear deformation with those materials and elements not passed yet because the Jacobian may become singular
 %!                       switch (elem_type)
-%!                       case {"tet10h", "penta15"}
+%!                       case {"tet10h", "penta15", "penta15upc"}
 %!                         continue;
 %!                       otherwise
 %!                         if (~f_transfinite_mesh(idx_transfinite))
@@ -4576,7 +4577,7 @@ endfunction
 %!                   mesh_order = 2;
 %!                   elem_type_solid = {"iso20r", "penta15"};
 %!                   elem_type_surf = {"quad8r", "tria6h"};
-%!                 case "penta15"
+%!                 case {"penta15", "penta15upc"}
 %!                   mesh_order = 2;
 %!                   elem_type_solid = {elem_type};
 %!                   elem_type_surf = {"quad8", "tria6h"};
@@ -4601,7 +4602,7 @@ endfunction
 %!                   fprintf(fd, "h%s = %g;\n", {"x","y","z"}{i}, h(i) * elem_factor_h(i));
 %!                 endfor
 %!                 switch (elem_type)
-%!                   case {"iso20", "iso20upc", "iso20upcr", "iso20r", "penta15"}
+%!                   case {"iso20", "iso20upc", "iso20upcr", "iso20r", "penta15", "penta15upc"}
 %!                     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
 %!                 endswitch
 %!                 fprintf(fd, "Mesh.ElementOrder = %d;\n", mesh_order);
@@ -4965,7 +4966,7 @@ endfunction
 %!                 fprintf(fd, "        time step: dt;\n");
 %!                 fprintf(fd, "        max iterations: 100;\n");
 %!                 switch (elem_type)
-%!                 case {"iso8upc", "iso20upc", "iso20upcr"}
+%!                 case {"iso8upc", "iso20upc", "iso20upcr", "penta15upc"}
 %!                   ## FIXME: test "sepnorm" does not work well with u/p-c elements; use norm instead
 %!                   fprintf(fd, "        tolerance: 1e-6, test, norm, 1e-12, test, norm;\n");
 %!                 otherwise
