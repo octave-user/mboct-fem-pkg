@@ -509,7 +509,7 @@ endfunction
 %! cms_opt.nodes.interfaces(1).name = "node_id_itf1";
 %! cms_opt.nodes.interfaces(2).number = node_idx_itf2;
 %! cms_opt.nodes.interfaces(2).name = "node_id_itf2";
-%! cms_opt.number_of_threads = int32(4);
+%! cms_opt.number_of_threads = int32(2);
 %! [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
 %! comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
 %! opt_plot.plot_nodal = true;

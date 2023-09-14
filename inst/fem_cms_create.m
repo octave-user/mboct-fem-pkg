@@ -679,7 +679,7 @@ endfunction
 %!        for ialg=1:numel(alg)
 %!          for invariants=[true, false]
 %!            for verbose=[false]
-%!              for threads=int32([1, 4])
+%!              for threads=int32([1, 2])
 %!                cms_opt.verbose = verbose;
 %!                cms_opt.modes.number = modes;
 %!                cms_opt.number_of_threads = threads;

@@ -272,7 +272,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -392,7 +392,7 @@ endfunction
 %!   if (mesh_info.detJ.min <= 0)
 %!     error("Jacobian is singular");
 %!   endif
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -507,7 +507,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -626,7 +626,7 @@ endfunction
 %!   if (mesh_info.detJ.min <= 0)
 %!     error("Jacobian is singular");
 %!   endif
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -745,7 +745,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -866,7 +866,7 @@ endfunction
 %!   if (mesh_info.detJ.min <= 0)
 %!     error("Jacobian is singular");
 %!   endif
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -997,7 +997,7 @@ endfunction
 %!                                [FEM_MAT_STIFFNESS, ...
 %!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -1121,7 +1121,7 @@ endfunction
 %!                                 FEM_VEC_LOAD_CONSISTENT, ...
 %!                                 FEM_SCA_TOT_MASS], ...
 %!                                load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
 %!   sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                    dof_map, ...
@@ -1615,7 +1615,7 @@ endfunction
 %!   endif
 %!   opt_linsol.solver = "umfpack";
 %!   opt_linsol.pre_scaling = true;
-%!   opt_linsol.number_of_threads = int32(4);
+%!   opt_linsol.number_of_threads = int32(2);
 %!   opt_linsol.refine_max_iter = int32(3);
 %!   opt_linsol.epsilon_refinement = 1e-10;
 %!   opt_linsol.verbose = int32(1);
@@ -1876,7 +1876,7 @@ endfunction
 %!                                      load_case);
 %! opt_linsol.solver = "pastix";
 %! opt_linsol.pre_scaling = true;
-%! opt_linsol.number_of_threads = int32(4);
+%! opt_linsol.number_of_threads = int32(2);
 %! opt_linsol.refine_max_iter = int32(50);
 %! opt_linsol.epsilon_refinement = 1e-10;
 %! opt_linsol.verbose = int32(0);

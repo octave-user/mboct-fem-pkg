@@ -351,7 +351,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -551,7 +551,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -785,7 +785,7 @@ endfunction
 %!       endif
 %!       load_case_dof.domain = FEM_DO_FLUID_STRUCT;
 %!       dof_map = fem_ass_dof_map(mesh, load_case_dof);
-%!       dof_map.parallel.threads_ass = int32(4);
+%!       dof_map.parallel.threads_ass = int32(2);
 %!       Phi = zeros(dof_map.totdof, 1);
 %!       [mat_ass.Mfs_re, ...
 %!        mat_ass.Mfs_im, ...
@@ -809,7 +809,7 @@ endfunction
 %!            + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) ...
 %!            + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!       Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
-%!       opt_sol.number_of_threads = int32(4);
+%!       opt_sol.number_of_threads = int32(2);
 %!       opt_sol.solver = "pastix";
 %!       opt_sol.compress_when = int32(0);
 %!       opt_sol.compress_min_ratio = 1;

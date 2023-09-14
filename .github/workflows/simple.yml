@@ -104,7 +104,7 @@ jobs:
           ./bootstrap.sh
           ./configure --with-static-modules \
           --enable-octave \
-          --disable-Werror CXXFLAGS="-O3 -Wall -march=native" \
+          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native -mtune=native" \
           CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
           LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
           --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate

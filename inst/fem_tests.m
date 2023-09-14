@@ -4216,7 +4216,7 @@
 %!   sol(j).theta = zeros(dof_map.totdof, numel(sol(j).t));
 %!   sol(j).theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "chol";
 %!   Afact = fem_sol_factor(A, opts);
 %!   for i=2:numel(sol(j).t)
@@ -4819,7 +4819,7 @@
 %! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
 %! mesh.nodes = [mesh.nodes(:, 1:3) * R1.', zeros(rows(mesh.nodes), 3)];
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
-%! dof_map.parallel.threads_ass = int32(4);
+%! dof_map.parallel.threads_ass = int32(2);
 %! [mat_ass.K, ...
 %!  mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                              dof_map, ...

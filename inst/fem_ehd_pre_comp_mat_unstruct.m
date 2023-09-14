@@ -595,7 +595,7 @@ endfunction
 %! data(imat).cms_opt.nodes.interfaces(1).name = "node_id_itf1";
 %! data(imat).cms_opt.nodes.interfaces(2).number = node_idx_itf2;
 %! data(imat).cms_opt.nodes.interfaces(2).name = "node_id_itf2";
-%! data(imat).cms_opt.number_of_threads = int32(4);
+%! data(imat).cms_opt.number_of_threads = int32(2);
 %! [data(imat).mesh, data(imat).mat_ass, data(imat).dof_map, data(imat).sol_eig, data(imat).cms_opt] = fem_cms_create(data(imat).mesh, data(imat).load_case, data(imat).cms_opt);
 %! data(imat).comp_mat = fem_ehd_pre_comp_mat_unstruct(data(imat).mesh, data(imat).mat_ass, data(imat).dof_map, data(imat).cms_opt, data(imat).bearing_surf);
 %! data(imat).opt_plot.plot_nodal = true;

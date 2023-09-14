@@ -3311,7 +3311,7 @@ endfunction
 %!        opt_modes.verbose = int32(0);
 %!        opt_modes.rigid_body_modes = interfaces{j};
 %!        opt_modes.solver = "pastix";
-%!        opt_modes.number_of_threads = int32(4);
+%!        opt_modes.number_of_threads = int32(2);
 %!        cms_opt.solver = opt_modes.solver;
 %!        cms_opt.number_of_threads = opt_modes.number_of_threads;
 %!        [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);

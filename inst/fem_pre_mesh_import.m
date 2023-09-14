@@ -170,10 +170,10 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
 
           groups = unique(elem_tags(:, 1));
 
-          eltype = struct("name", {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "tet10h", "tria6h", "pyra5", "tet20", "tria10", "iso20r", "quad8r", "iso27", "quad9", "iso27upc", "iso20upc", "iso8upc", "iso20upcr", "penta15upc", "penta6upc", "line2", "line3", "point1"}, ...
-                          "promote", {-1, -1, 6, 6, 7, -1, -1, -1, -1, -1, -1, -1, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, -1, -1, -1}, ...
-                          "id", {11, 9, 4, 6, 2, 5, 3, 17, 16, 18, 11, 9, 7, 29, 21, 17, 16, 12, 10, 12, 17, 5, 17, 18, 6, 1, 8, 15}, ...
-                          "dim", {3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3, 3, 3, 1, 1, 0}, ...
+          eltype = struct("name", {"tet10", "tria6", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "quad8", "penta15", "tet10h", "tria6h", "pyra5", "tet20", "tria10", "iso20r", "quad8r", "iso27", "quad9", "iso27upc", "iso20upc", "iso8upc", "iso20upcr", "penta15upc", "penta6upc", "line2", "line3", "point1", "line4"}, ...
+                          "promote", {-1, -1, 6, 6, 7, -1, -1, -1, -1, -1, -1, -1, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 22, -1, -1, -1, -1}, ...
+                          "id", {11, 9, 4, 6, 2, 5, 3, 17, 16, 18, 11, 9, 7, 29, 21, 17, 16, 12, 10, 12, 17, 5, 17, 18, 6, 1, 8, 15, 26}, ...
+                          "dim", {3, 2, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3, 3, 2, 3, 2, 3, 2, 3, 3, 3, 3, 3, 3, 1, 1, 0, 1}, ...
                           "norder", {[1:8, 10, 9], ...
                                      1:6, ...
                                      [4, 4, 4, 4, 1:3, 3], ...
@@ -201,8 +201,9 @@ function mesh = fem_load_mesh_gmsh(filename, format, options)
                                      [6,4,4,5,3,1,1,2], ...
                                      [1:2], ...
                                      [1:3], ...
-                                     [1]}, ...
-                          "nordernonp", {[],[],[],[],[1:3],[],[],[],[],[],[],[],[1:5],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]});
+                                     [1], ...
+                                     [1:4]}, ...
+                          "nordernonp", {[],[],[],[],[1:3],[],[],[],[],[],[],[],[1:5],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]});
 
           use_elem_type = false(1, numel(eltype));
           for i=1:numel(eltype)
@@ -14653,7 +14654,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -16821,7 +16822,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -17100,7 +17101,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -17239,7 +17240,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -17379,7 +17380,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -17546,7 +17547,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -17713,7 +17714,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -17889,7 +17890,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -18063,7 +18064,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -18232,7 +18233,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -18401,7 +18402,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -18788,7 +18789,7 @@ endfunction
 %!   sol.t = 0:dt:T;
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "pastix";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
@@ -19217,7 +19218,7 @@ endfunction
 %!   sol.t = 0:dt:T;
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "pastix";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
@@ -19583,7 +19584,7 @@ endfunction
 %!   sol.t = 0:dt:T;
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "pastix";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
@@ -19965,7 +19966,7 @@ endfunction
 %!   sol.t = 0:dt:T;
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "pastix";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
@@ -20331,7 +20332,7 @@ endfunction
 %!   sol.t = 0:dt:T;
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "pastix";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
@@ -21069,7 +21070,7 @@ endfunction
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
@@ -21160,7 +21161,7 @@ endfunction
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
@@ -21257,7 +21258,7 @@ endfunction
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
@@ -21349,7 +21350,7 @@ endfunction
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
@@ -21440,7 +21441,7 @@ endfunction
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
@@ -21564,7 +21565,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.pre_scaling = true;
@@ -21722,7 +21723,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -21866,7 +21867,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -22015,7 +22016,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -22442,7 +22443,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -22653,7 +22654,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -22786,7 +22787,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -22920,7 +22921,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -23053,7 +23054,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -23184,7 +23185,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -23321,7 +23322,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -23458,7 +23459,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -23594,7 +23595,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -23728,7 +23729,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -23860,7 +23861,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -24750,7 +24751,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -24901,7 +24902,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -25045,7 +25046,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -25189,7 +25190,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -25334,7 +25335,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -25480,7 +25481,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -25626,7 +25627,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -25751,7 +25752,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -25901,7 +25902,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26039,7 +26040,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26185,7 +26186,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26330,7 +26331,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26469,7 +26470,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26609,7 +26610,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26737,7 +26738,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -26876,7 +26877,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -27443,7 +27444,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
@@ -27907,7 +27908,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
@@ -28074,7 +28075,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
@@ -28235,7 +28236,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
@@ -28395,7 +28396,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
@@ -28565,7 +28566,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -28805,7 +28806,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -29046,7 +29047,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -29287,7 +29288,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -29531,7 +29532,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
@@ -29749,7 +29750,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
@@ -30061,7 +30062,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -30456,7 +30457,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -30691,7 +30692,7 @@ endfunction
 %!                                         FEM_VEC_COLL_STIFF_FLUID_STRUCT, ...
 %!                                         FEM_VEC_COLL_MASS_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
@@ -30922,7 +30923,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -31192,7 +31193,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -31461,7 +31462,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -31730,7 +31731,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -31999,7 +32000,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -32346,7 +32347,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -32732,7 +32733,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -33063,7 +33064,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -33397,7 +33398,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -33737,7 +33738,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -34083,7 +34084,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.verbose = int32(0);
@@ -34273,7 +34274,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
@@ -34597,7 +34598,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.verbose = int32(0);
@@ -34935,7 +34936,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.verbose = int32(0);
@@ -35271,7 +35272,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.verbose = int32(0);
@@ -35609,7 +35610,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.verbose = int32(0);
@@ -35812,7 +35813,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -35995,7 +35996,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -36179,7 +36180,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -36361,7 +36362,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -36547,7 +36548,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -36731,7 +36732,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -36914,7 +36915,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -37097,7 +37098,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -37280,7 +37281,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -37585,7 +37586,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
@@ -37921,7 +37922,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -38220,7 +38221,7 @@ endfunction
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
 %!   mat_ass.Dfs = complex(mat_ass.Dfs_re, mat_ass.Dfs_im);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.refine_max_iter = int32(250);
@@ -38823,7 +38824,7 @@ endfunction
 %!            + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) ...
 %!            + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!       Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
-%!       opt_sol.number_of_threads = int32(4);
+%!       opt_sol.number_of_threads = int32(2);
 %!       opt_sol.solver = "pastix";
 %!       opt_sol.compress_when = int32(0);
 %!       opt_sol.compress_min_ratio = 1;
@@ -39036,7 +39037,7 @@ endfunction
 %!   rho = 0;
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   tol_modes = 1e-3;
 %!   fref = [22.1, 22.1, 25.6, 32.6, 32.6, 68.6, 68.6, 119.2, 119.2, 155.8, 167.8, 167.8, 182.9];
 %!   tol_freq_rel = 0.5e-2;
@@ -39202,7 +39203,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -39409,7 +39410,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -39617,7 +39618,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -39824,7 +39825,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -40032,7 +40033,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -40246,7 +40247,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -40478,7 +40479,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -40712,7 +40713,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -40946,7 +40947,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -41180,7 +41181,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -41424,7 +41425,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     opt_sol.verbose = int32(0);
@@ -41675,7 +41676,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     opt_sol.verbose = int32(0);
@@ -41922,7 +41923,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -42145,7 +42146,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -42369,7 +42370,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -42594,7 +42595,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -42819,7 +42820,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -43032,7 +43033,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -43238,7 +43239,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -43446,7 +43447,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -43654,7 +43655,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -43862,7 +43863,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -44086,7 +44087,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -44327,7 +44328,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -44622,7 +44623,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -44882,7 +44883,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -45142,7 +45143,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -45406,7 +45407,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -45666,7 +45667,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -45850,7 +45851,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -46035,7 +46036,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -46221,7 +46222,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -46407,7 +46408,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -46593,7 +46594,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -46799,7 +46800,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -47005,7 +47006,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -47253,7 +47254,7 @@ endfunction
 %!            + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) ...
 %!            + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!       Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
-%!       opt_sol.number_of_threads = int32(4);
+%!       opt_sol.number_of_threads = int32(2);
 %!       opt_sol.solver = "pastix";
 %!       opt_sol.compress_when = int32(0);
 %!       opt_sol.compress_min_ratio = 1;
@@ -47546,7 +47547,7 @@ endfunction
 %!   f = sin(pi * sol.t / tau).^2 .* (sol.t <= tau / 2) + (sol.t > tau / 2);
 %!   Z = ZP = ZPP = zeros(dof_map.totdof, 1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.delta = 0.5;
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.refine_max_iter = int32(1000);
@@ -47724,7 +47725,7 @@ endfunction
 %!   f = sin(pi * sol.t / tau).^2 .* (sol.t <= tau / 2) + (sol.t > tau / 2);
 %!   Z = ZP = ZPP = zeros(dof_map.totdof, 1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.delta = 0.5;
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.refine_max_iter = int32(1000);
@@ -47903,7 +47904,7 @@ endfunction
 %!   f = sin(pi * sol.t / tau).^2 .* (sol.t <= tau / 2) + (sol.t > tau / 2);
 %!   Z = ZP = ZPP = zeros(dof_map.totdof, 1);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.delta = 0.5;
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.refine_max_iter = int32(1000);
@@ -48019,7 +48020,7 @@ endfunction
 %!   mesh.material_data.rho = 7850e-9;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   dof_map.parallel.threads_ass = int32(4);
+%!   dof_map.parallel.threads_ass = int32(2);
 %!   dof_map.parallel.threshold_elem = int32(1000);
 %!   [mat_ass.M, ...
 %!    mat_ass.D, ...
@@ -48038,7 +48039,7 @@ endfunction
 %!                                 FEM_VEC_INERTIA_M1], ...
 %!                                load_case);
 %!   opt_sol.solver = "pastix";
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.refine_max_iter = int32(250);
@@ -48160,7 +48161,7 @@ endfunction
 %!   rho = 0;
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   tol_modes = 1e-3;
 %!   fref = [22.1, 22.1, 25.6, 32.6, 32.6, 68.6, 68.6, 119.2, 119.2, 155.8, 167.8, 167.8, 182.9];
 %!   tol_freq_rel = 0.5e-2;
@@ -51003,10 +51004,10 @@ endfunction
 %!                           struct("nodes", mat2cell(node_id_clamp_z,1,ones(1,numel(node_id_clamp_z))), "C", repmat({[0,0,1,0,0,0]}, 1, numel(node_id_clamp_z)))];
 %!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   dof_map.parallel.threads_ass = int32(4);
+%!   dof_map.parallel.threads_ass = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;
 %!   [mat_ass.K, ...
@@ -52037,7 +52038,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -52605,7 +52606,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 1, 1], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -52994,7 +52995,7 @@ endfunction
 %!   sol.t = 0:dt:T;
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "pastix";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
@@ -53178,7 +53179,7 @@ endfunction
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = int32(4);
+%!   num_threads = int32(2);
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));
 %!   sol.f = imag(lambda) / (2 * pi);
@@ -53302,7 +53303,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.pre_scaling = true;
@@ -53460,7 +53461,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -53614,7 +53615,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -53830,7 +53831,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -54136,7 +54137,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -54264,7 +54265,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -54415,7 +54416,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -54543,7 +54544,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -54836,7 +54837,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re,  mat_ass.Da_im) + mat_ass.Ka;
@@ -55154,7 +55155,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -55402,7 +55403,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
@@ -55628,7 +55629,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
@@ -55944,7 +55945,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -56348,7 +56349,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -56584,7 +56585,7 @@ endfunction
 %!                                         FEM_VEC_COLL_STIFF_FLUID_STRUCT, ...
 %!                                         FEM_VEC_COLL_MASS_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
@@ -56814,7 +56815,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -57152,7 +57153,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -57345,7 +57346,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
@@ -57499,7 +57500,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -57616,7 +57617,7 @@ endfunction
 %!     deltaPML = 200e-3 / unit_meters;
 %!     solver = "precond";
 %!     f_enable_PML = true;
-%!     num_threads = int32(4);
+%!     num_threads = int32(2);
 %!     fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "d1 = %.16g;\n", d1);
 %!     fprintf(fd, "d2 = %.16g;\n", d2);
@@ -61663,175 +61664,6 @@ endfunction
 %! end_unwind_protect
 
 %!test
-%! ## TEST 330
-%! ## VIBRATIONS OF COMPLETE SPHERICAL SHELLS WITH IMPERFECTIONS
-%! ## Thomas A. Duffey
-%! ## Jason E. Pepin
-%! ## Amy N. Robertson
-%! ## Michael L. Steinzig
-%! ## Internatial Modal Analysis Conference (IMAC-XXIII)
-%! ## Orlando, Florida
-%! ## January 31-February 3, 2005
-%! ## Los Alamos
-%! ## NATIONAL LABORATORY
-%! do_plot = false;
-%! if (do_plot)
-%!   close all;
-%! endif
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
-%!     endif
-%!     options.verbose = true;
-%!     SI_unit_meter = 1;
-%!     SI_unit_second = 1;
-%!     SI_unit_kilogram = 1;
-%!     SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
-%!     SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
-%!     SI_unit_rad = 1;
-%!     E = 28e6 * 6895 / SI_unit_pascal;
-%!     nu = 0.28;
-%!     rho = 0.000751 * 4.4482 / (25.4e-3^4) / (SI_unit_kilogram / SI_unit_meter^3);
-%!     R = 4.4688 * 25.4e-3 / SI_unit_meter;
-%!     t = 0.0625 * 25.4e-3 / SI_unit_meter;
-%!     W0 = [0; 0; 0] / (SI_unit_rad / SI_unit_second);
-%!     fmin = 1. / SI_unit_second^-1;
-%!     fmax = 10000 / SI_unit_second^-1;
-%!     number_of_modes = 39*2;
-%!     t1 = 1 / SI_unit_second;
-%!     N = 1;
-%!     mesh_size = 2 * R * pi / 36 / SI_unit_meter;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fprintf(fd, "R = %g;\n", R);
-%!     fprintf(fd, "t = %g;\n", t);
-%!     fprintf(fd, "h = %g;\n", mesh_size);
-%!     fputs(fd, "Point(1) = {0,0,-R - 0.5 * t,h};\n");
-%!     fputs(fd, "Point(2) = {0,0,-R + 0.5 * t,h};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "A[] = Extrude{{0,1,0},{0,0,0},Pi}{Line{1}; Layers{Ceil(R * Pi / h)};Recombine;};\n");
-%!     fputs(fd, "V1[] = Extrude{{0,0,1},{0,0,0},Pi}{Surface{A[1]};Layers{Ceil(R * Pi/h)};Recombine;};\n");
-%!     fputs(fd, "V2[] = Extrude{{0,0,1},{0,0,0},Pi}{Surface{V1[0]};Layers{Ceil(R * Pi/h)};Recombine;};\n");
-%!     fputs(fd, "Physical Volume(\"volume\", 1) = {V1[1],V2[1]};\n");
-%!     fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
-%!     fputs(fd, "Mesh.ElementOrder = 2;\n");
-%!     fputs(fd, "Mesh 3;\n");
-%!     fputs(fd, "Coherence Mesh;\n");
-%!     fputs(fd, "Mesh.Format = 1;\n");
-%!     fprintf(fd, "Save \"%s.msh\";\n", filename);
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-0", "-order", "2", [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "penta15"};
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
-%!   [~] = unlink([filename, ".msh"]);
-%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
-%!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
-%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   nodes_file = [filename, ".nod"];
-%!   csl_file = [filename, ".csl"];
-%!   elem_file = [filename, ".elem"];
-%!   mbdyn_file = [filename, ".mbdyn"];
-%!   opt_mbd_mesh = struct();
-%!   opt_mbd_mesh.struct_nodes.reference_frame = "ref_id_center";
-%!   opt_mbd_mesh.struct_nodes.type = repmat(MBDYN_NODE_TYPE_DYNAMIC_STRUCT_DISP, rows(mesh.nodes), 1);
-%!   opt_mbd_mesh = mbdyn_pre_solid_write_nodes(mesh, nodes_file, opt_mbd_mesh);
-%!   opt_mbd_mesh = mbdyn_pre_solid_write_const_laws(mesh, csl_file, opt_mbd_mesh);
-%!   load_case_empty = struct();
-%!   opt_mbd_mesh = mbdyn_pre_solid_write_elements(mesh, load_case_dof, load_case_empty, elem_file, opt_mbd_mesh);
-%!   unwind_protect
-%!     [fd, msg] = fopen(mbdyn_file, "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s\"", mbdyn_file);
-%!     endif
-%!     fputs(fd, "set: integer ref_id_center = 1001;\n");
-%!     fputs(fd, " begin: data;\n");
-%!     fputs(fd, "    problem: initial value; # the default\n");
-%!     fputs(fd, " end: data;\n");
-%!     fputs(fd, " begin: initial value;\n");
-%!     fputs(fd, "    initial time: 0;\n");
-%!     fprintf(fd, "    final time: %g;\n", t1);
-%!     fprintf(fd, "    time step: %g;\n", t1 / N);
-%!     fputs(fd, "    max iterations: 100;\n");
-%!     fprintf(fd, "    tolerance: %g, test, norm, %g, test, norm;\n", 1e-4 / SI_unit_newton, 1e-6 / SI_unit_meter);
-%!     fputs(fd, "    linear solver: umfpack, grad, scale, iterative, always, max iterations, 100;\n");
-%!     fputs(fd, "    method: ms4, 0.6;\n");
-%!     fputs(fd, "         derivatives tolerance: 1e-4;\n");
-%!     fputs(fd, "         derivatives max iterations: 10;\n");
-%!     fputs(fd, "         derivatives coefficient: 1e-9, auto;\n");
-%!     fputs(fd, "         output: iterations, cpu time, solver condition number, stat, yes;\n");
-%!     fputs(fd, "    nonlinear solver: nox, modified, 100, keep jacobian matrix, jacobian operator, newton krylov, forcing term, type 2, forcing term min tolerance, 1e-10, forcing term max tolerance, 1e-6, inner iterations before assembly, 30, linear solver max iterations, 60, verbose, 3;\n");
-%!     fputs(fd, "    threads: assembly, 4;\n");
-%!     fputs(fd, "    threads: solver, 4;\n");
-%!     fputs(fd, "    eigenanalysis: list, 1, 0.,\n");
-%!     fputs(fd, "    output eigenvectors,\n");
-%!     fputs(fd, "        output geometry,\n");
-%!     fprintf(fd, "        lower frequency limit, %g, upper frequency limit, %g,\n", fmin, fmax);
-%!     fprintf(fd, "    use arpack,%d,%d,0.,suffix format,\"%%02d\";\n", number_of_modes, 2 * number_of_modes + 1);
-%!     fputs(fd, " end: initial value;\n");
-%!     fputs(fd, " begin: control data;\n");
-%!     fputs(fd, "        use automatic differentiation;\n");
-%!     fprintf(fd, "    structural nodes: %d;\n", opt_mbd_mesh.struct_nodes.number);
-%!     fprintf(fd, "    joints: %d;\n", opt_mbd_mesh.joints.number);
-%!     fprintf(fd, "    solids: %d;\n", opt_mbd_mesh.solids.number);
-%!     fputs(fd, " end: control data;\n");
-%!     fputs(fd, " reference: ref_id_center,\n");
-%!     fputs(fd, "   position, reference, global, null,\n");
-%!     fputs(fd, "   orientation, reference, global, eye,\n");
-%!     fputs(fd, "   velocity, reference, global, null,\n");
-%!     fprintf(fd, "   angular velocity, reference, global%s;\n", sprintf(", %g", W0));
-%!     fputs(fd, " begin: nodes;\n");
-%!     fprintf(fd, "include: \"%s\";\n", nodes_file);
-%!     fputs(fd, " end: nodes;\n");
-%!     fprintf(fd, "include: \"%s\";\n", csl_file);
-%!     fputs(fd, " begin: elements;\n");
-%!     fprintf(fd, "include: \"%s\";\n", elem_file);
-%!     fputs(fd, " end: elements;\n");
-%!     options_mbd.output_file = sprintf("%s_mbd", filename);
-%!     options_eig.positive_frequencies = false;
-%!     if (~options.verbose)
-%!       options_mbd.logfile = [options_mbd.output_file, ".stdout"];
-%!     endif
-%!     options_mbd.mbdyn_command = "mbdyn";
-%!     info = mbdyn_solver_run(mbdyn_file, options_mbd);
-%!     [mesh_sol, sol] = mbdyn_post_load_output_sol(options_mbd.output_file);
-%!     modal = mbdyn_post_load_output_eig(options_mbd.output_file, options_eig);
-%!     fref = [5078; 6005; 6378; 6729] / SI_unit_second^-1;
-%!     assert(modal.f([7, 12, 19, 39] - 6), fref, 5e-4 * max(fref));
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!     fd = -1;
-%!   end_unwind_protect
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!test
 %! ## TEST 331
 %! do_plot = false;
 %! if (do_plot)
@@ -63088,7 +62920,7 @@ endfunction
 %!   sol.theta = zeros(dof_map.totdof, numel(sol.t));
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   Afact = fem_sol_factor(A, opts);
 %!   f = interp1([0, dt, sol.t(end)],[1, 0, 0], sol.t, "linear");
 %!   for i=2:numel(sol.t)
@@ -63800,7 +63632,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -63957,7 +63789,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka;
@@ -64248,7 +64080,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_RE, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * mat_ass.Da + mat_ass.Ka);
@@ -64492,7 +64324,7 @@ endfunction
 %!                                         FEM_MAT_DAMPING_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = complex(-omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka);
@@ -64740,7 +64572,7 @@ endfunction
 %!                                         FEM_VEC_COLL_STIFF_FLUID_STRUCT, ...
 %!                                         FEM_VEC_COLL_MASS_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
@@ -64971,7 +64803,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -65319,7 +65151,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
@@ -65677,7 +65509,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.verbose = int32(0);
@@ -65883,7 +65715,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -66068,7 +65900,7 @@ endfunction
 %!                                         FEM_VEC_LOAD_ACOUSTICS, ...
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
@@ -66373,7 +66205,7 @@ endfunction
 %!   idxPhi = dof_map.ndof(:, 7);
 %!   idxPhi1 = find(idxPhi > 0);
 %!   idxPhi = idxPhi(idxPhi1);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
@@ -66863,7 +66695,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -67078,7 +66910,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -67322,7 +67154,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     opt_sol.verbose = int32(0);
@@ -67570,7 +67402,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -67783,7 +67615,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -67991,7 +67823,7 @@ endfunction
 %!                                         FEM_MAT_MASS_FLUID_STRUCT_IM, ...
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -68215,7 +68047,7 @@ endfunction
 %!                                           FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                           FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                          load_case);
-%!     opt_sol.number_of_threads = int32(4);
+%!     opt_sol.number_of_threads = int32(2);
 %!     opt_sol.solver = "pastix";
 %!     opt_sol.refine_max_iter = int32(50);
 %!     Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -68510,7 +68342,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -68694,7 +68526,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -68900,7 +68732,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -69106,7 +68938,7 @@ endfunction
 %!                                         FEM_MAT_MASS_ACOUSTICS_IM, ...
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
-%!   opt_sol.number_of_threads = int32(4);
+%!   opt_sol.number_of_threads = int32(2);
 %!   opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
@@ -69868,163 +69700,6 @@ endfunction
 %! end_unwind_protect
 
 %!demo
-%! ## DEMO 1
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
-%!     endif
-%!     mesh_size = 1;
-%!     p1 = 0.006;
-%!     E = 55;
-%!     nu = 0.3;
-%!     rho = 1000e-12;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Circle(3) = {3,11,4};\n");
-%!     fputs(fd, "Line(4) = {4,5};\n");
-%!     fputs(fd, "Line(5) = {5,6};\n");
-%!     fputs(fd, "Line(6) = {6,7};\n");
-%!     fputs(fd, "Circle(7) = {7,12,8};\n");
-%!     fputs(fd, "Line(8) = {8,9};\n");
-%!     fputs(fd, "Line(9) = {9,10};\n");
-%!     fputs(fd, "Line(10) = {10,1};\n");
-%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!     fputs(fd, "Plane Surface(14) = {11};\n");
-%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
-%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [~] = unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.tria6].id] == 2);
-%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
-%!   elem_id_p1 = mesh.groups.tria6(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.tria6(elem_id_p1, :);
-
-%!   load_case.pressure.tria6.elements = elno_p1;
-%!   load_case.pressure.tria6.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.tria6].id] == 4);
-%!   elem_id_displacement = mesh.groups.tria6(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.tria6(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.tria6].id] == 5);
-%!   elem_id_stress = mesh.groups.tria6(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.tria6(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.tet10 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.tet10(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = true;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!demo
 %! ## DEMO2
 %! close all;
 %! a = 5e-3;
@@ -70279,323 +69954,6 @@ endfunction
 %! end_unwind_protect
 
 %!demo
-%! ## DEMO 3
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
-%!     endif
-%!     mesh_size = 0.3;
-%!     p1 = 0.006;
-%!     E = 55;
-%!     nu = 0.3;
-%!     rho = 1000e-12;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Circle(3) = {3,11,4};\n");
-%!     fputs(fd, "Line(4) = {4,5};\n");
-%!     fputs(fd, "Line(5) = {5,6};\n");
-%!     fputs(fd, "Line(6) = {6,7};\n");
-%!     fputs(fd, "Circle(7) = {7,12,8};\n");
-%!     fputs(fd, "Line(8) = {8,9};\n");
-%!     fputs(fd, "Line(9) = {9,10};\n");
-%!     fputs(fd, "Line(10) = {10,1};\n");
-%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!     fputs(fd, "Plane Surface(14) = {11};\n");
-%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!     fputs(fd, "Recombine Surface{14, tmp[0]};\n");
-%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [~] = unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.quad8].id] == 3);
-%!   elem_id_p1 = mesh.groups.quad8(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.quad8(elem_id_p1, :);
-
-%!   load_case.pressure.quad8.elements = elno_p1;
-%!   load_case.pressure.quad8.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.quad8].id] == 4);
-%!   elem_id_displacement = mesh.groups.quad8(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.quad8(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.quad8].id] == 5);
-%!   elem_id_stress = mesh.groups.quad8(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.quad8(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.iso20 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.iso20(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = false;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!demo
-%! ## DEMO 4
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
-%!     endif
-%!     mesh_size = 0.15;
-%!     p1 = 0.006;
-%!     E = 55;
-%!     nu = 0.3;
-%!     rho = 1000e-12;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Circle(3) = {3,11,4};\n");
-%!     fputs(fd, "Line(4) = {4,5};\n");
-%!     fputs(fd, "Line(5) = {5,6};\n");
-%!     fputs(fd, "Line(6) = {6,7};\n");
-%!     fputs(fd, "Circle(7) = {7,12,8};\n");
-%!     fputs(fd, "Line(8) = {8,9};\n");
-%!     fputs(fd, "Line(9) = {9,10};\n");
-%!     fputs(fd, "Line(10) = {10,1};\n");
-%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!     fputs(fd, "Plane Surface(14) = {11};\n");
-%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!     fputs(fd, "Recombine Surface{14, tmp[0]};\n");
-%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
-%!     endif
-%!   end_unwind_protect
-%!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "1", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
-%!   endif
-%!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [~] = unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.iso4].id] == 2);
-%!   load_case.locked_dof(mesh.groups.iso4(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
-%!   elem_id_p1 = mesh.groups.iso4(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.iso4(elem_id_p1, :);
-
-%!   load_case.pressure.iso4.elements = elno_p1;
-%!   load_case.pressure.iso4.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   [mat_ass.K, ...
-%!    mat_ass.R] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.iso4].id] == 4);
-%!   elem_id_displacement = mesh.groups.iso4(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.iso4(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.iso4].id] == 5);
-%!   elem_id_stress = mesh.groups.iso4(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.iso4(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.iso8 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.iso8(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = false;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!demo
 %! ## DEMO 5
 %! close all;
 %! filename = "";
@@ -70817,323 +70175,401 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO 7
-%! ## K.J.Bathe 2002, page 328 4.20a
+%!test
+%! ## TEST 20
 %! close all;
+%! ## Define the unit system
+%! SI_unit_meter = 1e-3;
+%! SI_unit_second = 1;
+%! SI_unit_kilogram = 1e3;
+%! SI_unit_newton = SI_unit_kilogram * SI_unit_meter / SI_unit_second^2;
+%! SI_unit_pascal = SI_unit_newton / SI_unit_meter^2;
+%! param.E = 55e6 / SI_unit_pascal;
+%! param.delta = 0.0;
+%! param.rho = 1000 / (SI_unit_kilogram / SI_unit_meter^3);
+%! param.p1 = 0.006e6 / SI_unit_pascal;
+%! param.bound_cond = "edge";
+%! param.analysis = "plain strain";
+%! options.verbose = false;
+%! elem_types = {"tet20", "tet10", "tet10h", "iso8", "penta15", "iso20", "iso27"};
+%! nu_val = [0.3];
+%! for idx_elem_type=1:numel(elem_types)
+%! param.elem_type = elem_types{idx_elem_type};
+%! switch (param.elem_type)
+%! case {"iso8", "penta15", "iso20", "iso27"}
+%!   param.transfinite = true;
+%! otherwise
+%!   param.transfinite = false;
+%! endswitch
+%! for idx_nu = 1:numel(nu_val)
+%! param.nu = nu_val(idx_nu);
+%! switch (param.elem_type)
+%! case {"iso8"}
+%! param.h = 10e-3 / 32 / SI_unit_meter;
+%! case {"tet20"}
+%! param.h = 10e-3 / 8 / SI_unit_meter;
+%! otherwise
+%! param.h = 10e-3 / 16 / SI_unit_meter;
+%! endswitch
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
 %!     filename(filename == "\\") = "/";
 %!   endif
-%!   animate = true;
 %!   fd = -1;
+%!   geometry_file = [filename, ".geo"];
 %!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
+%!     [fd, msg] = fopen(geometry_file, "w");
 %!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
+%!       error("failed to open file \"%s\"", geometry_file);
 %!     endif
-%!     mesh_size = 0.3;
-%!     p1 = 0.006;
-%!     E = 55;
-%!     nu = 0.3;
-%!     rho = 1000e-12;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fputs(fd, "Mesh.SecondOrderIncomplete=1;\n");
-%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Circle(3) = {3,11,4};\n");
-%!     fputs(fd, "Line(4) = {4,5};\n");
-%!     fputs(fd, "Line(5) = {5,6};\n");
-%!     fputs(fd, "Line(6) = {6,7};\n");
-%!     fputs(fd, "Circle(7) = {7,12,8};\n");
-%!     fputs(fd, "Line(8) = {8,9};\n");
-%!     fputs(fd, "Line(9) = {9,10};\n");
-%!     fputs(fd, "Line(10) = {10,1};\n");
-%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!     fputs(fd, "Plane Surface(14) = {11};\n");
-%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; Layers{1}; Recombine; };\n", mesh_size);
-%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
+%!     fprintf(fd, "SetFactory(\"Built-in\");\n");
+%!     fprintf(fd, "h = %g;\n", param.h);
+%!     fprintf(fd, "Point(1) = {0,0,20};\n");
+%!     fprintf(fd, "Point(2) = {5,0,20};\n");
+%!     fprintf(fd, "Point(3) = {10,0,20};\n");
+%!     fprintf(fd, "Point(4) = {10,0,10};\n");
+%!     fprintf(fd, "Point(5) = {15 - 5 * Cos(Pi/4), 0, 10 - 5 * Sin(Pi/4)};\n");
+%!     fprintf(fd, "Point(6) = {15, 0, 5};\n");
+%!     fprintf(fd, "Point(7) = {65, 0, 5};\n");
+%!     fprintf(fd, "Point(8) = {65, 0, 0};\n");
+%!     fprintf(fd, "Point(9) = {65, 0, -5};\n");
+%!     fprintf(fd, "Point(10) = {15, 0, -5};\n");
+%!     fprintf(fd, "Point(11) = {15 - 5 * Cos(Pi/4), 0, -(10 - 5 * Sin(Pi/4))};\n");
+%!     fprintf(fd, "Point(12) = {10, 0, -10};\n");
+%!     fprintf(fd, "Point(13) = {10,0,-20};\n");
+%!     fprintf(fd, "Point(14) = {5, 0, -20};\n");
+%!     fprintf(fd, "Point(15) = {0, 0, -20};\n");
+%!     fprintf(fd, "Point(16) = {0, 0, -10};\n");
+%!     fprintf(fd, "Point(17) = {0, 0, 0};\n");
+%!     fprintf(fd, "Point(18) = {0, 0, 10};\n");
+%!     fprintf(fd, "Point(19) = {5, 0, 10};\n");
+%!     fprintf(fd, "Point(20) = {5, 0, 0};\n");
+%!     fprintf(fd, "Point(21) = {15, 0, 0};\n");
+%!     fprintf(fd, "Point(22) = {5, 0, -10};\n");
+%!     fprintf(fd, "Point(23) = {15,0,10};\n");
+%!     fprintf(fd, "Point(25) = {15,0,-10};\n");
+%!     fprintf(fd, "Line(1) = {1,2};\n");
+%!     fprintf(fd, "Line(2) = {2,3};\n");
+%!     fprintf(fd, "Line(3) = {3,4};\n");
+%!     fprintf(fd, "Circle(4) = {4,23,5};\n");
+%!     fprintf(fd, "Circle(5) = {5,23,6};\n");
+%!     fprintf(fd, "Line(6) = {6,7};\n");
+%!     fprintf(fd, "Line(7) = {7,8};\n");
+%!     fprintf(fd, "Line(8) = {8,9};\n");
+%!     fprintf(fd, "Line(9) = {9,10};\n");
+%!     fprintf(fd, "Circle(10)={10,25,11};\n");
+%!     fprintf(fd, "Circle(11)={11,25,12};\n");
+%!     fprintf(fd, "Line(12) = {12,13};\n");
+%!     fprintf(fd, "Line(13) = {13,14};\n");
+%!     fprintf(fd, "Line(14) = {14,15};\n");
+%!     fprintf(fd, "Line(15) = {15,16};\n");
+%!     fprintf(fd, "Line(16) = {16,17};\n");
+%!     fprintf(fd, "Line(17) = {17,18};\n");
+%!     fprintf(fd, "Line(18) = {18,1};\n");
+%!     fprintf(fd, "Line(19) = {2,19};\n");
+%!     fprintf(fd, "Line(20) = {19,20};\n");
+%!     fprintf(fd, "Line(21) = {20,22};\n");
+%!     fprintf(fd, "Line(22) = {22,14};\n");
+%!     fprintf(fd, "Line(23) = {18,19};\n");
+%!     fprintf(fd, "Line(24) = {19, 4};\n");
+%!     fprintf(fd, "Line(25) = {17,20};\n");
+%!     fprintf(fd, "Line(26) = {16,22};\n");
+%!     fprintf(fd, "Line(27) = {22,12};\n");
+%!     fprintf(fd, "Line(28) = {20,21};\n");
+%!     fprintf(fd, "Line(29) = {21,8};\n");
+%!     fprintf(fd, "Line(30) = {6,21};\n");
+%!     fprintf(fd, "Line(31) = {21,10};\n");
+%!     fprintf(fd, "Line(32) = {20,5};\n");
+%!     fprintf(fd, "Line(33) = {20,11};\n");
+%!     if (param.transfinite)
+%!     fprintf(fd, "Transfinite Curve(1) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(2) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(3) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(4) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(5) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(6) = Max(1, Round(50 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(7) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(8) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(9) = Max(1, Round(50 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(10) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(11) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(12) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(13) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(14) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(15) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(16) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(17) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(18) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(19) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(20) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(21) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(22) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(23) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(24) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(25) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(26) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(27) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(28) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(29) = Max(1, Round(50 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(30) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(31) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(32) = Max(1, Round(5 / h)) + 1;\n");
+%!     fprintf(fd, "Transfinite Curve(33) = Max(1, Round(5 / h)) + 1;\n");
+%!     endif
+%!     fprintf(fd, "Line Loop(1) = {1,19,-23,18};\n");
+%!     fprintf(fd, "Line Loop(2) = {2,3,-24,-19};\n");
+%!     fprintf(fd, "Line Loop(3) = {23,20,-25,17};\n");
+%!     fprintf(fd, "Line Loop(4) = {24,4,-32,-20};\n");
+%!     fprintf(fd, "Line Loop(5) = {32,5,30,-28};\n");
+%!     fprintf(fd, "Line Loop(6) = {6,7,-29,-30};\n");
+%!     fprintf(fd, "Line Loop(7) = {25,21,-26,16};\n");
+%!     fprintf(fd, "Line Loop(8) = {33,11,-27,-21};\n");
+%!     fprintf(fd, "Line Loop(9) = {28,31,10,-33};\n");
+%!     fprintf(fd, "Line Loop(10) = {29,8,9,-31};\n");
+%!     fprintf(fd, "Line Loop(11) = {26, 22, 14, 15};\n");
+%!     fprintf(fd, "Line Loop(12) = {27, 12, 13, -22};\n");
+%!     fprintf(fd, "Plane Surface(1) = {1};\n");
+%!     fprintf(fd, "Plane Surface(2) = {2};\n");
+%!     fprintf(fd, "Plane Surface(3) = {3};\n");
+%!     fprintf(fd, "Plane Surface(4) = {4};\n");
+%!     fprintf(fd, "Plane Surface(5) = {5};\n");
+%!     fprintf(fd, "Plane Surface(6) = {6};\n");
+%!     fprintf(fd, "Plane Surface(7) = {7};\n");
+%!     fprintf(fd, "Plane Surface(8) = {8};\n");
+%!     fprintf(fd, "Plane Surface(9) = {9};\n");
+%!     fprintf(fd, "Plane Surface(10) = {10};\n");
+%!     fprintf(fd, "Plane Surface(11) = {11};\n");
+%!     fprintf(fd, "Plane Surface(12) = {12};\n");
+%!     if (param.transfinite)
+%!     fprintf(fd, "Transfinite Surface(1) = {PointsOf{Surface{1};}};\n");
+%!     fprintf(fd, "Transfinite Surface(2) = {PointsOf{Surface{2};}};\n");
+%!     fprintf(fd, "Transfinite Surface(3) = {PointsOf{Surface{3};}};\n");
+%!     fprintf(fd, "Transfinite Surface(4) = {PointsOf{Surface{4};}};\n");
+%!     fprintf(fd, "Transfinite Surface(5) = {PointsOf{Surface{5};}};\n");
+%!     fprintf(fd, "Transfinite Surface(6) = {PointsOf{Surface{6};}};\n");
+%!     fprintf(fd, "Transfinite Surface(7) = {PointsOf{Surface{7};}};\n");
+%!     fprintf(fd, "Transfinite Surface(8) = {PointsOf{Surface{8};}};\n");
+%!     fprintf(fd, "Transfinite Surface(9) = {PointsOf{Surface{9};}};\n");
+%!     fprintf(fd, "Transfinite Surface(10) = {PointsOf{Surface{10};}};\n");
+%!     fprintf(fd, "Transfinite Surface(11) = {PointsOf{Surface{11};}};\n");
+%!     fprintf(fd, "Transfinite Surface(12) = {PointsOf{Surface{12};}};\n");
+%!     endif
+%!     switch (param.elem_type)
+%!     case {"iso8", "iso20", "iso27", "penta15"}
+%!       extrude_opt = "Layers{1}; Recombine;";
+%!     otherwise
+%!       extrude_opt = "";
+%!     endswitch
+%!     fprintf(fd, "v1[] = Extrude {0, h, 0}{ Surface{1}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v2[] = Extrude {0, h, 0}{ Surface{2}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v3[] = Extrude {0, h, 0}{ Surface{3}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v4[] = Extrude {0, h, 0}{ Surface{4}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v5[] = Extrude {0, h, 0}{ Surface{5}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v6[] = Extrude {0, h, 0}{ Surface{6}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v7[] = Extrude {0, h, 0}{ Surface{7}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v8[] = Extrude {0, h, 0}{ Surface{8}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v9[] = Extrude {0, h, 0}{ Surface{9}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v10[] = Extrude {0, h, 0}{ Surface{10}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v11[] = Extrude {0, h, 0}{ Surface{11}; %s };\n", extrude_opt);
+%!     fprintf(fd, "v12[] = Extrude {0, h, 0}{ Surface{12}; %s };\n", extrude_opt);
+%!     switch (param.elem_type)
+%!     case {"iso8", "iso20", "iso27"}
+%!       fprintf(fd, "Recombine Surface{1, v1[0]};\n");
+%!       fprintf(fd, "Recombine Surface{2, v2[0]};\n");
+%!       fprintf(fd, "Recombine Surface{3, v3[0]};\n");
+%!       fprintf(fd, "Recombine Surface{4, v4[0]};\n");
+%!       fprintf(fd, "Recombine Surface{5, v5[0]};\n");
+%!       fprintf(fd, "Recombine Surface{6, v6[0]};\n");
+%!       fprintf(fd, "Recombine Surface{7, v7[0]};\n");
+%!       fprintf(fd, "Recombine Surface{8, v8[0]};\n");
+%!       fprintf(fd, "Recombine Surface{9, v9[0]};\n");
+%!       fprintf(fd, "Recombine Surface{10, v10[0]};\n");
+%!       fprintf(fd, "Recombine Surface{11, v11[0]};\n");
+%!       fprintf(fd, "Recombine Surface{12, v12[0]};\n");
+%!     endswitch
+%!     fprintf(fd, "Physical Volume(\"volume\", 1) = {1, 2, 3, 4, 7, 8, 9, 5, 10, 6, 11, 12};\n");
+%!     fprintf(fd, "Physical Surface(\"clamp\", 2) = {54, 98, 186, 274};\n");
+%!     fprintf(fd, "Physical Surface(\"pressure\", 3) = {68, 112, 134, 152};\n");
+%!     fprintf(fd, "Physical Surface(\"displacement\", 4) = {156, 244};\n");
+%!     fprintf(fd, "Physical Surface(\"stress\", 5) = {112, 134};\n");
+%!     fprintf(fd, "Physical Surface(\"top\", 6) = {1,2,3,4,5,6,7,8,9,10,11,12};\n");
+%!     fprintf(fd, "Physical Surface(\"bottom\", 7) = {v1[0],v2[0],v3[0],v4[0],v5[0],v6[0],v7[0],v8[0],v9[0],v10[0],v11[0],v12[0]};\n");
+%!     fprintf(fd, "Physical Curve(\"clampedge\", 8) = {40, 269};\n");
+%!     if (~param.transfinite)
+%!     fputs(fd, "MeshSize{PointsOf{Volume{1,2,3,4,5,6,7,8,9,10,11,12};}} = h;\n");
+%!     endif
+%!     switch (param.elem_type)
+%!     case {"penta15", "iso20"}
+%!       fprintf(fd, "Mesh.SecondOrderIncomplete = 1;\n");
+%!     endswitch
+%!     if (~param.transfinite)
+%!     switch (param.elem_type)
+%!     case {"penta15", "tet10", "tet10h", "tet20"}
+%!       fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!     endswitch
+%!     endif
+%!     switch (param.elem_type)
+%!     case {"iso8"}
+%!       fprintf(fd, "Mesh.ElementOrder = 1;\n");
+%!     case {"tet20"}
+%!       fprintf(fd, "Mesh.ElementOrder = 3;\n");
+%!     otherwise
+%!       fprintf(fd, "Mesh.ElementOrder = 2;\n");
+%!     endswitch
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
 %!     endif
+%!     fd = -1;
 %!   end_unwind_protect
 %!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
+%!   #spawn_wait(spawn("gmsh", {[filename, ".geo"]}));
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
+%!   switch (param.elem_type)
+%!   case {"iso8"}
+%!     param.elem_type_surf = {"iso4"};
+%!   case {"iso20"}
+%!     param.elem_type_surf = {"quad8"};
+%!   case {"iso27"}
+%!     param.elem_type_surf = {"quad9"};
+%!   case {"penta15"}
+%!     param.elem_type_surf = {"quad8", "tria6h"};
+%!   case "tet10"
+%!     param.elem_type_surf = {"tria6"};
+%!   case "tet10h"
+%!     param.elem_type_surf = {"tria6h"};
+%!   case "tet20"
+%!     param.elem_type_surf = {"tria10"};
+%!   endswitch
+%!   switch (param.elem_type)
+%!   case {"iso8"}
+%!     param.elem_type_line = "line2";
+%!   case {"tet20"}
+%!     param.elem_type_line = "line4";
+%!   otherwise
+%!     param.elem_type_line = "line3";
+%!   endswitch
+%!   opt_msh.elem_type = {param.elem_type, param.elem_type_surf{:}, param.elem_type_line, "point1"};
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.quad8].id] == 2);
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.quad8].id] == 3);
-%!   elem_id_p1 = mesh.groups.quad8(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.quad8(elem_id_p1, :);
-
-%!   load_case.pressure.quad8.elements = elno_p1;
-%!   load_case.pressure.quad8.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
-%!   dof_map.parallel.threads_ass = int32(4);
-%!   dof_map.parallel.threshold_elem = int32(10000);
-%!   opt_sol.number_of_threads = int32(4);
-%!   [mat_ass.K, ...
-%!    mat_ass.R, ...
-%!    mat_ass.mat_info, ...
-%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
-%!                                dof_map, ...
-%!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT], ...
-%!                                load_case);
-
-%!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_sol);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
-%!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
-%!                                      load_case, ...
-%!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.quad8].id] == 4);
-%!   elem_id_displacement = mesh.groups.quad8(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.quad8(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.quad8].id] == 5);
-%!   elem_id_stress = mesh.groups.quad8(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.quad8(elem_id_stress, :);
-%!   taum = zeros(6, numel(elno_id_stress));
-%!   taum_n = zeros(1, numel(elno_id_stress));
-%!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.penta15 == elno_id_stress(i));
-%!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.penta15(ridx(j), cidx(j), :), 6, 1);
-%!       ++taum_n(i);
-%!     endfor
-%!   endfor
-%!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
-%!   for i=1:columns(taum)
-%!     TAU = [taum(1, i), taum(4, i), taum(6, i);
-%!            taum(4, i), taum(2, i), taum(5, i);
-%!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
-%!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
-%!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
-%!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
-%!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
-%!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = false;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
-%! unwind_protect_cleanup
-%!   if (numel(filename))
-%!     fn = dir([filename, "*"]);
-%!     for i=1:numel(fn)
-%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
-%!     endfor
-%!   endif
-%! end_unwind_protect
-
-%!demo
-%! ## DEMO 8
-%! ## K.J.Bathe 2002, page 328 4.20a
-%! close all;
-%! filename = "";
-%! unwind_protect
-%!   filename = tempname();
-%!   if (ispc())
-%!     filename(filename == "\\") = "/";
-%!   endif
-%!   animate = true;
-%!   fd = -1;
-%!   unwind_protect
-%!     [fd, msg] = fopen([filename, ".geo"], "w");
-%!     if (fd == -1)
-%!       error("failed to open file \"%s.geo\"", filename);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
+%!   load_case.pressure = struct();
+%!   mesh.materials = struct();
+%!   for i=1:numel(param.elem_type_surf)
+%!   switch (param.bound_cond)
+%!   case "surface"
+%!     grp_id_clamp = find([[getfield(mesh.groups, param.elem_type_surf{i})].id] == 2);
+%!     if (~isempty(grp_id_clamp))
+%!       load_case_dof.locked_dof(getfield(mesh.groups, param.elem_type_surf{i})(grp_id_clamp).nodes, 1:3) = true;
 %!     endif
-%!     mesh_size = 1;
-%!     p1 = 0.006;
-%!     E = 55;
-%!     nu = 0.3;
-%!     rho = 1000e-12;
-%!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
-%!     fputs(fd, "Point(1) = { 0.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(2) = {10.0, 0.0,-20.0};\n");
-%!     fputs(fd, "Point(3) = {10.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(4) = {15.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(5) = {65.0, 0.0, -5.0};\n");
-%!     fputs(fd, "Point(6) = {65.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(7) = {15.0, 0.0,  5.0};\n");
-%!     fputs(fd, "Point(8) = {10.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Point(9) = {10.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(10)= { 0.0, 0.0, 20.0};\n");
-%!     fputs(fd, "Point(11)= {15.0, 0.0,-10.0};\n");
-%!     fputs(fd, "Point(12)= {15.0, 0.0, 10.0};\n");
-%!     fputs(fd, "Line(1) = {1,2};\n");
-%!     fputs(fd, "Line(2) = {2,3};\n");
-%!     fputs(fd, "Circle(3) = {3,11,4};\n");
-%!     fputs(fd, "Line(4) = {4,5};\n");
-%!     fputs(fd, "Line(5) = {5,6};\n");
-%!     fputs(fd, "Line(6) = {6,7};\n");
-%!     fputs(fd, "Circle(7) = {7,12,8};\n");
-%!     fputs(fd, "Line(8) = {8,9};\n");
-%!     fputs(fd, "Line(9) = {9,10};\n");
-%!     fputs(fd, "Line(10) = {10,1};\n");
-%!     fputs(fd, "Line Loop(11) = {1,2,3,4,5,6,7,8,9,10};\n");
-%!     fputs(fd, "Plane Surface(14) = {11};\n");
-%!     fprintf(fd, "tmp[] = Extrude {0, %g, 0}{ Surface{14}; };\n", mesh_size);
-%!     fputs(fd, "Physical Volume(\"volume\",1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\",2) = {tmp[11]};\n");
-%!     fputs(fd, "Physical Surface(\"pressure\",3) = {tmp[7],tmp[8],tmp[9]};\n");
-%!     fputs(fd, "Physical Surface(\"displacement\",4) = {tmp[6]};\n");
-%!     fputs(fd, "Physical Surface(\"stress\",5) = {tmp[8]};\n");
-%!     fputs(fd, "Mesh.HighOrderOptimize=2;\n");
-%!     fputs(fd, "Mesh.OptimizeThreshold=0.99;\n");
-%!   unwind_protect_cleanup
-%!     if (fd ~= -1)
-%!       fclose(fd);
+%!   case "edge"
+%!     grp_id_clamp = find([[getfield(mesh.groups, param.elem_type_line)].id] == 8);
+%!     if (~isempty(grp_id_clamp))
+%!       load_case_dof.locked_dof(getfield(mesh.groups, param.elem_type_line)(grp_id_clamp).nodes, 1:3) = true;
 %!     endif
-%!   end_unwind_protect
-%!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-ho_min", "0.9", "-ho_max", "1.1", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 * mesh_size), [filename, ".geo"]});
-%!   status = spawn_wait(pid);
-%!   if (status ~= 0)
-%!     warning("gmsh failed with status %d", status);
+%!   endswitch
+%!   switch (param.analysis)
+%!   case "plain strain"
+%!   if (isfield(mesh.groups, param.elem_type_surf{i}))
+%!   grp_id_top = find([[getfield(mesh.groups, param.elem_type_surf{i})].id] == 6);
+%!   grp_id_bottom = find([[getfield(mesh.groups, param.elem_type_surf{i})].id] == 7);
+%!   if (~isempty(grp_id_top))
+%!     load_case_dof.locked_dof(getfield(mesh.groups, param.elem_type_surf{i})(grp_id_top).nodes, 2) = true;
 %!   endif
-%!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
-%!   [~] = unlink([filename, ".msh"]);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.tria10].id] == 2);
-%!   load_case.locked_dof(mesh.groups.tria10(grp_id_clamp).nodes, 1:3) = true;
-%!   grp_id_p1 = find([[mesh.groups.tria10].id] == 3);
-%!   elem_id_p1 = mesh.groups.tria10(grp_id_p1).elements;
-%!   elno_p1 = mesh.elements.tria10(elem_id_p1, :);
-
-%!   load_case.pressure.tria10.elements = elno_p1;
-%!   load_case.pressure.tria10.p = [repmat(p1, rows(elno_p1), columns(elno_p1))];
-
-%!   mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
-%!   mesh.material_data.rho = rho;
-%!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   if (~isempty(grp_id_bottom))
+%!     load_case_dof.locked_dof(getfield(mesh.groups, param.elem_type_surf{i})(grp_id_bottom).nodes, 2) = true;
+%!   endif
+%!   endif
+%!   endswitch
+%!   grp_id_p1 = find([[getfield(mesh.groups, param.elem_type_surf{i})].id] == 3);
+%!   if (~isempty(grp_id_p1))
+%!     elem_id_p1 = getfield(mesh.groups, param.elem_type_surf{i})(grp_id_p1).elements;
+%!     elno_p1 = getfield(mesh.elements, param.elem_type_surf{i})(elem_id_p1, :);
+%!     press_load.elements = elno_p1;
+%!     press_load.p = [repmat(param.p1, rows(elno_p1), columns(elno_p1))];
+%!     load_case.pressure = setfield(load_case.pressure, param.elem_type_surf{i}, press_load);
+%!   endif
+%!   endfor
+%!   mesh.materials = setfield(mesh.materials, param.elem_type, ones(rows(getfield(mesh.elements, param.elem_type)), 1, "int32"));
+%!   mesh.material_data(1).E = param.E;
+%!   mesh.material_data(1).nu = param.nu;
+%!   mesh.material_data(1).rho = param.rho;
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.K, ...
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_VEC_LOAD_LUMPED], ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
-
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
 %!                                      [FEM_VEC_STRESS_CAUCH], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
-%!   grp_id_displacement = find([[mesh.groups.tria10].id] == 4);
-%!   elem_id_displacement = mesh.groups.tria10(grp_id_displacement).elements;
-%!   elno_id_displacement = mesh.elements.tria10(elem_id_displacement, :);
-%!   delta = mean(sol_stat.def(elno_id_displacement, 3));
-%!   grp_id_stress = find([[mesh.groups.tria10].id] == 5);
-%!   elem_id_stress = mesh.groups.tria10(grp_id_stress).elements;
-%!   elno_id_stress = mesh.elements.tria10(elem_id_stress, :);
+%!   delta = nan(1, numel(param.elem_type_surf));
+%!   sigma1_max = nan(1, numel(param.elem_type_surf));
+%!   for k=1:numel(param.elem_type_surf)
+%!   grp_id_displacement = find([[getfield(mesh.groups, param.elem_type_surf{k})].id] == 4);
+%!   if (~isempty(grp_id_displacement))
+%!   if (isfield(mesh.groups, param.elem_type_surf{k}))
+%!     elem_id_displacement = getfield(mesh.groups, param.elem_type_surf{k})(grp_id_displacement).elements;
+%!     elno_id_displacement = getfield(mesh.elements, param.elem_type_surf{k})(elem_id_displacement, :);
+%!     delta(k) = mean(sol_stat.def(elno_id_displacement, 3, end));
+%!   endif
+%!   endif
+%!   grp_id_stress = find([[getfield(mesh.groups, param.elem_type_surf{k})].id] == 5);
+%!   if(~isempty(grp_id_stress))
+%!   elem_id_stress = getfield(mesh.groups, param.elem_type_surf{k})(grp_id_stress).elements;
+%!   elno_id_stress = getfield(mesh.elements, param.elem_type_surf{k})(elem_id_stress, :);
 %!   taum = zeros(6, numel(elno_id_stress));
 %!   taum_n = zeros(1, numel(elno_id_stress));
 %!   for i=1:numel(elno_id_stress)
-%!     [ridx, cidx] = find(mesh.elements.tet20 == elno_id_stress(i));
+%!     [ridx, cidx] = find(getfield(mesh.elements, param.elem_type) == elno_id_stress(i));
 %!     for j=1:numel(ridx)
-%!       taum(:, i) += reshape(sol_stat.stress.taum.tet20(ridx(j), cidx(j), :), 6, 1);
+%!       taum(:, i) += reshape(getfield(sol_stat.stress.taum, param.elem_type)(ridx(j), cidx(j), :, end), 6, 1);
 %!       ++taum_n(i);
 %!     endfor
 %!   endfor
 %!   taum *= diag(1 ./ taum_n);
-%!   sigma1_max = 0;
 %!   for i=1:columns(taum)
 %!     TAU = [taum(1, i), taum(4, i), taum(6, i);
 %!            taum(4, i), taum(2, i), taum(5, i);
 %!            taum(6, i), taum(5, i), taum(3, i)];
-%!     sigma1_max = max(sigma1_max, max(eig(TAU)));
+%!     sigma1_max(k) = max(sigma1_max(k), max(eig(TAU)));
 %!   endfor
-%!   fprintf(stderr, "mesh size=%.1f\n", mesh_size);
+%!   endif
+%!   endfor
+%!   delta = mean(delta(isfinite(delta)));
+%!   sigma1_max = mean(sigma1_max(isfinite(sigma1_max)));
+%!   fprintf(stderr, "mesh size=%.1f\n", param.h);
 %!   fprintf(stderr, "max(sigma1)=%.3f [MPa]\n", sigma1_max);
 %!   fprintf(stderr, "delta=%.3f [mm]\n", delta);
-%!   ## K.J.Bathe page 329 4.20b
-%!   sigma1_max_ref = 0.6056;
-%!   delta_ref = -1.669;
+%!   ## K.J.Bathe page 329 chaper 4.4
+%!   sigma1_max_ref = 0.6056e6 / SI_unit_pascal;
+%!   delta_ref = -1.669e-3 / SI_unit_meter;
+%!   tol_sigma = 2.5e-2;
+%!   tol_delta = 1.25e-2;
 %!   fprintf(stderr, "difference(sigam1_max)=%.2f%%\n", (sigma1_max / sigma1_max_ref - 1) * 100);
 %!   fprintf(stderr, "difference(delta)=%.2f%%\n", (delta / delta_ref - 1) * 100);
-%!   if (animate)
-%!     opt_anim.scale_def = 10;
-%!     opt_anim.animation_delay = 1;
-%!     opt_anim.print_and_exit = true;
-%!     opt_anim.print_to_file = filename;
-%!     opt_anim.rotation_angle = [90, 0, 0] * pi / 180;
-%!     opt_anim.skin_only = true;
-%!     opt_anim.show_element = true;
-%!     unwind_protect
-%!       fem_post_sol_external(mesh, sol_stat, opt_anim);
-%!       [img, map, alpha] = imread([opt_anim.print_to_file, "_001.jpg"]);
-%!       figure("visible", "off");
-%!       imshow(img, map);
-%!       title("Gmsh - deformed mesh / continuous stress tensor");
-%!     unwind_protect_cleanup
-%!       unlink([opt_anim.print_to_file, "_001.jpg"]);
-%!     end_unwind_protect
-%!   endif
-%!   assert(sigma1_max, sigma1_max_ref, 0.02 * abs(sigma1_max_ref));
-%!   assert(delta, delta_ref, 0.04 * abs(delta_ref));
-%!   figure_list();
+%!   assert(sigma1_max, sigma1_max_ref, tol_sigma * abs(sigma1_max_ref));
+%!   assert(delta, delta_ref, tol_delta * abs(delta_ref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
+%!       if (0 ~= unlink(fullfile(fn(i).folder, fn(i).name)))
+%!         warning("failed to remove file \"%s\"", fn(i).name);
+%!       endif
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! endfor
+%! endfor

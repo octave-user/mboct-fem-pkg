@@ -1395,7 +1395,7 @@ endfunction
 %!                               [FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, options);
 %!
 %!   sol_stat.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_stat);
@@ -1521,7 +1521,7 @@ endfunction
 %!                               [FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, options);
 %!
 %!   sol_stat.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_stat);
@@ -1618,12 +1618,12 @@ endfunction
 %!				  FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   shift = sqrt(eps) * max(abs(diag(mat_ass.K))) / max(abs(diag(mat_ass.M)));
 %!   tol = eps^0.4;
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = 4;
+%!   num_threads = int32(2);
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.25 * geo.D / max(max(max(abs(sol_eig.def))));
@@ -1783,7 +1783,7 @@ endfunction
 %!   tol = eps^0.4;
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = 4;
+%!   num_threads = int32(2);
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.5 * geo.a / max(max(max(abs(sol_eig.def))));

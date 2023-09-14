@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -181,7 +181,7 @@ endfunction
 %!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "lu", "chol", "mldivide"};
 %!   M = 20;
 %!   options.refine_max_iter = 10;
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   tol = sqrt(eps);
 %!   for s=[false, true]
 %!     options.pre_scaling = s;

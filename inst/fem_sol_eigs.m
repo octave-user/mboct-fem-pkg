@@ -277,7 +277,7 @@ endfunction
 %!                 opt.solver = solvers{k};
 %!               endif
 %!               if (l > 6)
-%!                 opt.number_of_threads = int32(4);
+%!                 opt.number_of_threads = int32(2);
 %!               endif
 %!               if (l > 7)
 %!                 for m=1:numel(problems)
