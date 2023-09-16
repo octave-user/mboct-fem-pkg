@@ -61,7 +61,7 @@ function Afact = fem_sol_factor(A, options)
   if (~isfield(options, "epsilon_refinement"))
     options.epsilon_refinement = -1;
   endif
-  
+
   if (~isfield(options, "number_of_threads"))
     options.number_of_threads = int32(1);
   endif
@@ -94,7 +94,7 @@ function Afact = fem_sol_factor(A, options)
     Afact = fem_fact_scale(A, options);
     return;
   endif
-  
+
   switch (options.solver)
     case {"chol", "lu", "mldivide"}
       if (options.refine_max_iter > 0)
@@ -102,17 +102,26 @@ function Afact = fem_sol_factor(A, options)
         return;
       endif
   endswitch
-  
+
   blambda = full(any(diag(A) <= 0));
 
   options.solver = fem_sol_select(blambda, options.solver);
+
+  if (~issparse(A))
+    switch (options.solver)
+      case {"chol", "lu", "mldivide"}
+        ## solvers which can handle also dense matrices
+      otherwise
+        options.solver = "lu";
+    endswitch
+  endif
 
   switch (options.solver)
     case "pastix"
       if (options.symmetric)
         options.matrix_type = PASTIX_API_SYM_YES;
         options.factorization = PASTIX_API_FACT_LDLT;
-      else          
+      else
         options.matrix_type = PASTIX_API_SYM_NO;
         options.factorization = PASTIX_API_FACT_LU;
       endif
