@@ -286,7 +286,7 @@ endfunction
 
 function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   persistent gmsh_elem_types = {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "iso20r", "iso4", "quad8", "quad9", "tet4", "tet10", ...
-                                "tria6", "tria3", "beam2", "beam3", "penta15", "penta15upc", "tet10h", "tet20", "tria6h", "tria10", "quad8r", "iso20upcr"};
+                                "tria6", "tria3", "beam2", "beam3", "penta15", "penta15upc", "tet10h", "tet10upc", "tet20", "tria6h", "tria10", "quad8r", "iso20upcr"};
 
   if (~isfield(options, "elem_types"))
     options.elem_types = gmsh_elem_types;
@@ -342,7 +342,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     groups = getfield(mesh.groups, group_types{i});
 
     switch (group_types{i})
-      case {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "iso20r", "tet10", "penta15", "penta15upc", "tet10h", "tet20", "iso20upcr"}
+      case {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "iso20r", "tet10", "penta15", "penta15upc", "tet10h", "tet10upc", "tet20", "iso20upcr"}
         group_dim = 3;
       case {"iso4", "quad8", "quad9", "tria6", "tria3", "tria6h", "tria10", "quad8r"}
         group_dim = 2;
@@ -408,7 +408,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
       case "tria10"
         elem_type_id = 21;
         elem_node_order = 1:10;
-      case {"tet10", "tet10h"}
+      case {"tet10", "tet10h", "tet10upc"}
         elem_type_id = 11;
         elem_node_order([1:8, 10, 9]) = 1:10;
       case "tet20"
