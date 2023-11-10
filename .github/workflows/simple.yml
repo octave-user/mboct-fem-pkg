@@ -90,11 +90,6 @@ jobs:
       - name: Clone MBDyn
         run: |
           git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
-          pushd mbdyn
-          git config --local user.email mbdyn-user@a1.net
-          git config --local user.name mbdyn-user
-          git merge origin/inertia-beta-gamma
-          popd
 
       # Runs a set of commands using the runners shell
       - name: Compile MBDyn
@@ -159,7 +154,7 @@ jobs:
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b iso20upc https://github.com/octave-user/mboct-mbdyn-pkg.git && \
+           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
            make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
