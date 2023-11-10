@@ -21,5 +21,5 @@
 function x = mldivide(fact, b)
   narginchk(2, 2);
 
-  x = umfpack(fact.umfpackobj, b);
+  x = fem_sol_real_complex(fact.umfpackobj, @umfpack, b);
 endfunction

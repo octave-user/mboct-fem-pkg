@@ -21,5 +21,5 @@
 function X = mldivide(fact, B)
   narginchk(2, 2);
 
-  X = pastix(fact.pasobj, B);
+  X = fem_sol_real_complex(fact.pasobj, @pastix, B);
 endfunction

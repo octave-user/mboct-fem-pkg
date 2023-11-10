@@ -22,5 +22,5 @@
 function U = eigs_post(fact, X)
   narginchk(2, 2);
   
-  U(fact.Q, :) = fact.LT \ X;
+  U(fact.Q, :) = (X.' / fact.L).';
 endfunction

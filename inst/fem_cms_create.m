@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2022) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -29,7 +29,9 @@
 ##
 ## @var{cms_opt}.algorithm @dots{} Algorithm used for eigenanalysis
 ##
-## @var{cms_opt}.number_of_threads @dots{} Number of threads used for the linear solver
+## @var{cms_opt}.number_of_threads @dots{} Number of threads used for linear solver and assembly
+##
+## @var{cms_opt}.threshold_elem @dots{} Minimum number of elements for multithreaded assembly
 ##
 ## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver
 ##
@@ -62,14 +64,22 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     cms_opt.number_of_threads = int32(1);
   endif
 
+  if (~isfield(cms_opt, "threshold_elem"))
+    cms_opt.threshold_elem = int32(10000);
+  endif
+
   if (~isfield(cms_opt, "refine_max_iter"))
     cms_opt.refine_max_iter = int32(10);
+  endif
+
+  if (~isfield(cms_opt, "pre_scaling"))
+    cms_opt.pre_scaling = false;
   endif
 
   if (~isfield(cms_opt, "solver"))
     cms_opt.solver = "pastix";
   endif
-  
+
   if (~isfield(cms_opt, "scaling"))
     cms_opt.scaling = "diag M";
   endif
@@ -101,7 +111,11 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   if (~isfield(cms_opt, "modal_node_constraint"))
     cms_opt.modal_node_constraint = true;
   endif
-  
+
+  if (~isfield(cms_opt, "floating_frame"))
+    cms_opt.floating_frame = false;
+  endif
+
   if (cms_opt.modal_node_constraint)
     node_idx_itf = int32([cms_opt.nodes.modal.number]);
     istart_idx_joint = int32(2);
@@ -147,6 +161,14 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     endif
   endfor
 
+  for i=1:numel(load_case)
+    for j=1:numel(load_case(i).joints)
+      if (isempty(load_case(i).joints(j).U))
+        load_case(i).joints(j).U = zeros(rows(mesh.elements.joints(j).C), 1);
+      endif
+    endfor
+  endfor
+
   if (cms_opt.num_modes_itf > 0)
     ## Reduce memory consumption: do not duplicate load_case.locked_dof!
     load_case_itf = repmat(setfield(load_case(1), "locked_dof", []), 1, cms_opt.num_modes_itf - 1);
@@ -157,7 +179,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   else
     load_case_cms = load_case;
   endif
-  
+
   idx_load_case = int32(0);
 
   for i=istart_idx_joint:numel(node_idx_itf)
@@ -170,13 +192,15 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
 
   dof_map = fem_ass_dof_map(mesh, load_case(1));
 
+  dof_map.parallel.threads_ass = cms_opt.number_of_threads;
+  dof_map.parallel.threshold_elem = cms_opt.threshold_elem;
   mat_type_stiffness = FEM_MAT_STIFFNESS_SYM_L;
   mat_type_mass = FEM_MAT_MASS_SYM_L;
   mat_type_damping = FEM_MAT_DAMPING_SYM_L;
 
   cms_opt.solver = fem_sol_select(true, cms_opt.solver);
   cms_opt.symmetric = true;
-  
+
   switch (cms_opt.solver)
     case {"umfpack", "lu", "mldivide"}
       mat_type_stiffness = FEM_MAT_STIFFNESS;
@@ -188,7 +212,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       mat_type_stiffness = FEM_MAT_STIFFNESS;
       mat_type_mass = FEM_MAT_MASS;
   endswitch
-  
+
   if (cms_opt.invariants)
     [mat_ass.M, ...
      mat_ass.K, ...
@@ -252,33 +276,38 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     otherwise
       Msym = mat_ass.M;
   endswitch
-  
+
   Dsym = fem_mat_sym(mat_ass.D);
-  
+
   mat_ass.Tred = zeros(numel(dof_map.idx_node), columns(R_itf) + cms_opt.modes.number);
 
   opt_sol.number_of_threads = cms_opt.number_of_threads;
   opt_sol.refine_max_iter = cms_opt.refine_max_iter;
+  opt_sol.pre_scaling = cms_opt.pre_scaling;
   opt_sol.solver = cms_opt.solver;
   opt_sol.verbose = cms_opt.verbose;
-  
+
+  if (mat_type_stiffness == FEM_MAT_STIFFNESS_SYM_L || mat_type_mass == FEM_MAT_MASS_SYM_L)
+    opt_sol.pre_scaling = false;
+  endif
+
   Kfact = fem_sol_factor(mat_ass.K, opt_sol);
-  
-  for i=1:columns(R_itf)
-    mat_ass.Tred(:, cms_opt.modes.number + i) = (Kfact \ R_itf(:, i))(dof_map.idx_node);
-  endfor
+
+  if (columns(R_itf))
+    mat_ass.Tred(:, cms_opt.modes.number + (1:columns(R_itf))) = (Kfact \ R_itf)(dof_map.idx_node, :);
+  endif
 
   if (cms_opt.verbose)
     fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
     whos();
   endif
-  
+
   if (cms_opt.modes.number > 0)
     if (cms_opt.verbose)
       fprintf(stderr, "solving for normal modes ...\n");
       tic();
     endif
-    
+
     switch (cms_opt.algorithm)
       case {"unsymmetric", "shift-invert", "diag-shift-invert"}
         opts.disp = 0;
@@ -295,9 +324,9 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
               SIGMA = 0;
               op{1} = @(x) Msym * x;
               op{2} = @(x) Kfact \ x;
-              
+
               [PHI_d, mu] = eig_sym(op, columns(Msym), cms_opt.modes.number, SIGMA, opts);
-              
+
               clear op;
             case "unsymmetric"
               SIGMA = "LM";
@@ -319,7 +348,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
                   break;
                 endif
 
-                ## If PHI_d is not real, call eigs again with a new random starting vector
+                ## If PHI_d is not real, call eigs again with a new real starting vector
 
                 if (++iter_eig > max_iter_eig)
                   error("eigs returned complex eigenvectors");
@@ -364,9 +393,9 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
         endif
 
         if (any(err > cms_opt.tol))
-          warning("eigs failed to converge max(err)=%g", max(err));
+          warning("eigs algorithm %s failed to converge max(err)=%g", cms_opt.algorithm, max(err));
         endif
-        
+
         mat_ass.Tred(:, 1:cms_opt.modes.number) = PHI_d(dof_map.idx_node, :);
 
         if (cms_opt.verbose)
@@ -389,7 +418,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
         [Phi_d, lambda] = fem_sol_eigs(Kc, Mc, cms_opt.modes.number);
 
         mat_ass.Tred(:, 1:cms_opt.modes.number) = Tc * Phi_d;
-        
+
         clear Phi_d Tc Kc Mc;
       otherwise
         error("unknown algorithm \"%s\"", cms_opt.algorithm);
@@ -410,7 +439,55 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     whos();
     fprintf(stderr, "building reduced matrices ...\n");
   endif
-  
+
+  if (cms_opt.floating_frame)
+    A = zeros(6 * rows(mesh.nodes), 6);
+
+    for j=1:6
+      A(j:6:end, j) = 1;
+    endfor
+
+    dX = mesh.nodes(:, 1:3) - mesh.nodes(cms_opt.nodes.modal.number, 1:3);
+
+    A(1:6:end, 5) = dX(:, 3);
+    A(2:6:end, 4) = -dX(:, 3);
+    A(1:6:end, 6) = -dX(:, 2);
+    A(3:6:end, 4) = dX(:, 2);
+    A(2:6:end, 6) = dX(:, 1);
+    A(3:6:end, 5) = -dX(:, 1);
+
+    idxtrans = zeros(3 * rows(mesh.nodes), 1, "int32");
+
+    for j=1:3
+      idxtrans(j:3:end) = j:6:6 * rows(mesh.nodes);
+    endfor
+
+    idxmodal = (cms_opt.nodes.modal.number - 1) * 6 + (1:6);
+
+    A(idxmodal, :) = 0;
+    Adisp = A(idxtrans, :);
+
+    for j=1:columns(mat_ass.Tred)
+      Uj = zeros(6 * rows(mesh.nodes), 1);
+
+      for k=1:6
+        ndofk = dof_map.ndof(:, k);
+        idxndofk = find(ndofk > 0);
+        idxnodek = k:6:rows(Uj);
+        Uj(idxnodek(idxndofk)) = mat_ass.Tred(ndofk(idxndofk), j);
+      endfor
+
+      Uj -= A * (Adisp \ Uj(idxtrans));
+
+      for k=1:6
+        ndofk = dof_map.ndof(:, k);
+        idxndofk = find(ndofk > 0);
+        idxnodek = k:6:rows(Uj);
+        mat_ass.Tred(ndofk(idxndofk), j) = Uj(idxnodek(idxndofk));
+      endfor
+    endfor
+  endif
+
   mat_ass.Mred = fem_cms_matrix_trans(mat_ass.Tred, Msym(dof_map.idx_node, dof_map.idx_node), "Lower");
   mat_ass.Kred = fem_cms_matrix_trans(mat_ass.Tred, Ksym(dof_map.idx_node, dof_map.idx_node), "Lower");
   mat_ass.Dred = fem_cms_matrix_trans(mat_ass.Tred, Dsym(dof_map.idx_node, dof_map.idx_node), "Lower");
@@ -422,7 +499,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       mat_ass.Kred = PHI_diag.' * mat_ass.Kred * PHI_diag;
       mat_ass.Dred = PHI_diag.' * mat_ass.Dred * PHI_diag;
       mat_ass.Tred *= PHI_diag;
-      
+
       clear PHI_diag lambda_diag;
   endswitch
 
@@ -472,7 +549,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       mat_ass.Tred *= diag(s);
 
       clear s;
-      
+
       if (cms_opt.verbose)
         fprintf(stderr, "condition number after scaling ...\n");
       endif
@@ -499,16 +576,16 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       mat_ass.diagM((idx_act_dof - 1) * 6 + i) = diagMlumped(idx_glob_dof);
     endfor
   endif
-  
+
   if (nargout >= 4 || cms_opt.invariants)
     sol_eig.def = zeros(rows(mesh.nodes), columns(mesh.nodes), columns(mat_ass.Tred));
     PHI = zeros(dof_map.totdof, 1);
-    
+
     for i=1:columns(mat_ass.Tred)
       PHI(dof_map.idx_node) = mat_ass.Tred(:, i);
       sol_eig.def(:, :, i) = fem_post_def_nodal(mesh, dof_map, PHI);
     endfor
-    
+
     clear PHI;
     sol_eig.f = [imag(lambda) / (2 * pi), repmat(-inf, 1, columns(R_itf))];
   endif
@@ -519,7 +596,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
       whos();
       fprintf(stderr, "building invariants ...\n");
-      tic();      
+      tic();
     endif
 
     [mat_ass.Inv3, ...
@@ -584,7 +661,7 @@ endfunction
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
-%! sol = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
+%! sol = {"pardiso", "pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
@@ -596,43 +673,45 @@ endfunction
 %!       lambda_ref = [];
 %!       Phi_ref = [];
 %!       for iscal=1:numel(scaling)
-%! 	cms_opt.scaling=scaling{iscal};
-%! 	for isol=1:numel(sol)
-%! 	  cms_opt.solver = sol{isol};
-%! 	  for ialg=1:numel(alg)
-%! 	    for invariants=[true, false]
-%! 	      for verbose=[false]
-%! 		for threads=int32([1, 4])
-%! 		  cms_opt.verbose = verbose;
-%! 		  cms_opt.modes.number = modes;
-%! 		  cms_opt.number_of_threads = threads;
-%! 		  cms_opt.algorithm = alg{ialg};
-%! 		  cms_opt.invariants = invariants;
-%! 		  cms_opt.refine_max_iter = iter;
-%! 		  [mesh_cms, ...
-%! 		   mat_ass_cms, ...
-%! 		   dof_map_cms, ...
-%! 		   sol_eig_cms, ...
-%! 		   cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
-%! 		  [Phi, lambda] = eig(mat_ass_cms.Kred, mat_ass_cms.Mred);
-%! 		  [lambda, idx] = sort(diag(lambda));
-%! 		  Phi = mat_ass_cms.Tred * Phi(:, idx);
-%! 		  Phi *= diag(1 ./ max(abs(Phi), [], 1));
-%! 		  if (numel(lambda_ref))
-%! 		    assert(lambda, lambda_ref, tol * max(abs(lambda)));
-%! 		    for j=1:columns(Phi)
-%! 		      f = min(max(abs(Phi(:, j) + Phi_ref(:, j))), max(abs(Phi(:, j) - Phi_ref(:, j))));
-%! 		      assert(f < tol);
-%! 		    endfor
-%! 		  else
-%! 		    lambda_ref = lambda;
-%! 		    Phi_ref = Phi;
-%! 		  endif
-%! 		endfor
-%! 	      endfor
-%! 	    endfor
-%! 	  endfor
-%! 	endfor
+%!      cms_opt.scaling=scaling{iscal};
+%!      for isol=1:numel(sol)
+%!        cms_opt.solver = sol{isol};
+%!        for ialg=1:numel(alg)
+%!          for invariants=[true, false]
+%!            for verbose=[false]
+%!              for threads=int32([1, 2])
+%!                cms_opt.verbose = verbose;
+%!                cms_opt.modes.number = modes;
+%!                cms_opt.number_of_threads = threads;
+%!                cms_opt.threshold_elem = int32(1);
+%!                cms_opt.algorithm = alg{ialg};
+%!                cms_opt.invariants = invariants;
+%!                cms_opt.refine_max_iter = iter;
+%!                cms_opt.pre_scaling = true;
+%!                [mesh_cms, ...
+%!                 mat_ass_cms, ...
+%!                 dof_map_cms, ...
+%!                 sol_eig_cms, ...
+%!                 cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
+%!                [Phi, lambda] = eig(mat_ass_cms.Kred, mat_ass_cms.Mred);
+%!                [lambda, idx] = sort(diag(lambda));
+%!                Phi = mat_ass_cms.Tred * Phi(:, idx);
+%!                Phi *= diag(1 ./ max(abs(Phi), [], 1));
+%!                if (numel(lambda_ref))
+%!                  assert(lambda, lambda_ref, tol * max(abs(lambda)));
+%!                  for j=1:columns(Phi)
+%!                    f = min(max(abs(Phi(:, j) + Phi_ref(:, j))), max(abs(Phi(:, j) - Phi_ref(:, j))));
+%!                    assert(f < tol);
+%!                  endfor
+%!                else
+%!                  lambda_ref = lambda;
+%!                  Phi_ref = Phi;
+%!                endif
+%!              endfor
+%!            endfor
+%!          endfor
+%!        endfor
+%!      endfor
 %!       endfor
 %!     endfor
 %!   endfor
@@ -714,7 +793,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

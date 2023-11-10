@@ -42,7 +42,7 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
   if (~isfield(options, "elem_types"))
     ## Do not export surface elements by default
     ## because of issues related to the "Skin" plugin in Gmsh
-    options.elem_types = {"iso8", "iso20", "tet10", "beam2", "beam3", "penta15", "tet10h"};
+    options.elem_types = {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "tet10", "tet20", "beam2", "beam3", "penta15", "tet10h", "tet10upc", "iso20r", "iso20upcr", "penta15upc"};
   endif
 
   elem_types = fieldnames(mesh.elements);
@@ -68,6 +68,8 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
     num_steps = size(sol.def, 3);
   elseif (isfield(sol, "theta"))
     num_steps = size(sol.theta, 2);
+  elseif (isfield(sol, "p"))
+    num_steps = size(sol.p, 2);
   else
     error("there are no nodal fields in argument sol");
   endif
@@ -224,7 +226,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

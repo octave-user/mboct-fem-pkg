@@ -9,6 +9,11 @@ target
 *.oct
 *.o
 
+## gcov
+*.gcno
+*.gcda
+*.gcov
+
 # octave-forge.m4
 oct-alt-includes.h
 

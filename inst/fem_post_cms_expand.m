@@ -84,7 +84,7 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
       case {"modal node", "modal node*"}
         Un *= options.scale;
       case {"least square", "least square*"}
-        A = rigid_body_trans_mat(Xn);
+        A = fem_cms_rigid_body_trans_mat(Xn);
 
         Un3 = zeros(3 * rows(Un), size(Un, 3));
 
@@ -106,7 +106,7 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
           Un(:, j, :) = Un3(j:3:end, :);
         endfor
       case {"reference node", "reference node*"}
-        A = rigid_body_trans_mat(Xn);
+        A = fem_cms_rigid_body_trans_mat(Xn);
       otherwise
         error("unknown value for options.scale_type=%s", options.scale_type);
     endswitch
@@ -144,22 +144,6 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
         sol_tot.bodies(i).def = (sol_tot.bodies(i).def - def_rb) * options.scale + def_rb;
     endswitch
   endfor
-endfunction
-
-function A = rigid_body_trans_mat(Xn)
-  A = zeros(3 * rows(Xn), 6);
-
-  ## A(i:i+2, :) = [eye(3), -skew(Xn(i, :))]
-  for j=1:3
-    A(j:3:end, j) = 1;
-  endfor
-
-  A(1:3:end, 5) = Xn(:, 3);
-  A(2:3:end, 4) = -Xn(:, 3);
-  A(1:3:end, 6) = -Xn(:, 2);
-  A(3:3:end, 4) = Xn(:, 2);
-  A(2:3:end, 6) = Xn(:, 1);
-  A(3:3:end, 5) = -Xn(:, 1);
 endfunction
 
 %!test

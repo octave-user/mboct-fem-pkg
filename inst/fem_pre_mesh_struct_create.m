@@ -1395,7 +1395,7 @@ endfunction
 %!                               [FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, options);
 %!
 %!   sol_stat.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_stat);
@@ -1521,7 +1521,7 @@ endfunction
 %!                               [FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass, options);
 %!
 %!   sol_stat.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_stat);
@@ -1572,7 +1572,7 @@ endfunction
 %! geo.t = 0.0625 * 25.4e-3;
 %! N = 39;
 %!
-%! function [x, y, z] = sphere_geo(geo, r, s, t)
+%! function [x, y, z] = sphere_geo(geo, r, s, t, varagrin)
 %!   R = 0.5 * geo.D - r * geo.t;
 %!   Zeta = s;
 %!   Psi = t;
@@ -1581,12 +1581,12 @@ endfunction
 %!   z = R * sin(Zeta);
 %! endfunction
 %!
-%! function [F, locked] = sphere_bound(r, s, t, geo, load_data)
+%! function [F, locked] = sphere_bound(r, s, t, geo, load_data, varargin)
 %!   F = [];
 %!   locked = false(1, 3);
 %! endfunction
 %!
-%! function p = sphere_pressure(r, s, t, geo, load_data, perm_idx)
+%! function p = sphere_pressure(r, s, t, geo, load_data, perm_idx, varargin)
 %!   p = [];
 %!   if (r == 1)
 %!     p(perm_idx) = load_data.pressure;
@@ -1600,10 +1600,10 @@ endfunction
 %!   geometry.mesh_size.t = linspace(-180 * pi / 180, 180 * pi / 180, 36);
 %!   load_data.pressure = 1;
 %!   geometry.sewing.tolerance = sqrt(eps) * 0.5 * geo.D;
-%!   geometry.spatial_coordinates = @(r, s, t) feval("sphere_geo", geo, r, s, t);
-%!   geometry.material_selector = @(r, s, t) 1;
-%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("sphere_bound", r, s, t, geo, load_data);
-%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("sphere_pressure", r, s, t, geo, load_data, perm_idx);
+%!   geometry.spatial_coordinates = @(r, s, t, varargin) feval("sphere_geo", geo, r, s, t);
+%!   geometry.material_selector = @(r, s, t, varargin) 1;
+%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data, varargin) feval("sphere_bound", r, s, t, geo, load_data);
+%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx, varargin) feval("sphere_pressure", r, s, t, geo, load_data, perm_idx);
 %!   options.elem_type = "iso20";
 %!   [mesh, load_case] = fem_pre_mesh_struct_create(geometry, load_data, material, options);
 %!   [dof_map] = fem_ass_dof_map(mesh, load_case);
@@ -1618,12 +1618,12 @@ endfunction
 %!				  FEM_MAT_STIFFNESS, ...
 %!                                FEM_VEC_LOAD_CONSISTENT], ...
 %!                               load_case);
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   shift = sqrt(eps) * max(abs(diag(mat_ass.K))) / max(abs(diag(mat_ass.M)));
 %!   tol = eps^0.4;
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = 4;
+%!   num_threads = int32(2);
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.25 * geo.D / max(max(max(abs(sol_eig.def))));
@@ -1783,7 +1783,7 @@ endfunction
 %!   tol = eps^0.4;
 %!   alg = "shift-invert";
 %!   solver = "pastix";
-%!   num_threads = 4;
+%!   num_threads = int32(2);
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
 %!   opts.scale_def = 0.5 * geo.a / max(max(max(abs(sol_eig.def))));

@@ -310,32 +310,32 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
         endif
       endfor
     endfor
-
-    if (isfield(comp_mat, "D"))
-      for j=1:columns(comp_mat.D)
-        w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
-        for l=1:rows(w)
-          w(l, :) = comp_mat.D((l - 1) * columns(w) + (1:columns(w)), j);
-        endfor
-        zrange = 1e6 * linspace(min(min(w)), max(max(w)), options.contour_levels);
-        hnd = figure("visible", "off");
-        colormap jet;
-        contourf(1e3 * comp_mat.bearing_surf.grid_x, 1e3 * comp_mat.bearing_surf.grid_z, 1e6 * w.', zrange);
-        xlabel("x [mm]");
-        ylabel("z [mm]");
-        grid on;
-        grid minor on;
-        colorbar();
-        title(sprintf("contribution of mode (%d) min(w)=%.2fum, max(w)=%.2fum, w [um]", ...
-                      j, ...
-                      1e6 * min(min(w)), ...
-                      1e6 * max(max(w))));
-        
-        if (isfield(options, "output_file"))
-          output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
-        endif
+  endif
+  
+  if (isfield(comp_mat, "D") && ~isempty(comp_mat.D))
+    for j=1:columns(comp_mat.D)
+      w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
+      for l=1:rows(w)
+        w(l, :) = comp_mat.D((l - 1) * columns(w) + (1:columns(w)), j);
       endfor
-    endif
+      zrange = 1e6 * linspace(min(min(w)), max(max(w)), options.contour_levels);
+      hnd = figure("visible", "off");
+      colormap jet;
+      contourf(1e3 * comp_mat.bearing_surf.grid_x, 1e3 * comp_mat.bearing_surf.grid_z, 1e6 * w.', zrange);
+      xlabel("x [mm]");
+      ylabel("z [mm]");
+      grid on;
+      grid minor on;
+      colorbar();
+      title(sprintf("contribution of mode (%d) min(w)=%.2fum, max(w)=%.2fum, w [um]", ...
+                    j, ...
+                    1e6 * min(min(w)), ...
+                    1e6 * max(max(w))));
+      
+      if (isfield(options, "output_file"))
+        output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
+      endif
+    endfor
   endif
 endfunction
 
@@ -345,7 +345,7 @@ function output_file = gen_pdf_file(hnd, options, output_files)
 
   output_file  = fullfile(out_dir, sprintf("%s_%03d%s", out_name, numel(output_files) + 1, out_ext));
   
-  unlink(output_file);
+  [~] = unlink(output_file);
   print("-dpdf", "-color", "-landscape", "-S1024,768", output_file);
   [info, err] = stat(output_file);
   
@@ -389,10 +389,10 @@ endfunction
 
 function [t] = line_intersection(X0, n)
   A = [-n(:, 1).' * n(:, 1),  n(:, 1).' * n(:, 2);
-        n(:, 2).' * n(:, 1), -n(:, 2).' * n(:, 2)];
+       n(:, 2).' * n(:, 1), -n(:, 2).' * n(:, 2)];
 
   b = [ n(:, 1).' * (X0(:, 1) - X0(:, 2));
-       -n(:, 2).' * (X0(:, 1) - X0(:, 2))];
+        -n(:, 2).' * (X0(:, 1) - X0(:, 2))];
   
   t = A \ b;
 endfunction
@@ -456,7 +456,7 @@ endfunction
 %!  error("gmsh failed with status %d", status);
 %! endif
 
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %! grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
@@ -509,7 +509,7 @@ endfunction
 %! cms_opt.nodes.interfaces(1).name = "node_id_itf1";
 %! cms_opt.nodes.interfaces(2).number = node_idx_itf2;
 %! cms_opt.nodes.interfaces(2).name = "node_id_itf2";
-%! cms_opt.number_of_threads = int32(4);
+%! cms_opt.number_of_threads = int32(2);
 %! [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
 %! comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
 %! opt_plot.plot_nodal = true;

@@ -21,5 +21,5 @@
 function X = mldivide(fact, B)
   narginchk(2, 2);
 
-  X = pardiso(fact.parobj, B);
+  X = fem_sol_real_complex(fact.parobj, @pardiso, B);
 endfunction

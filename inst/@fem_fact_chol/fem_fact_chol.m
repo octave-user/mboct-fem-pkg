@@ -35,7 +35,5 @@ function Afact = fem_fact_chol(A, opts)
     error("matrix A is not positive definite");
   endif
         
-  Afact.LT = Afact.L.';
-
   Afact = class(Afact, "fem_fact_chol");
 endfunction

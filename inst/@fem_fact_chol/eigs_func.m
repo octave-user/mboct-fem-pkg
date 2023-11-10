@@ -22,7 +22,7 @@
 function f = eigs_func(fact, M, x)
   narginchk(3, 3);
   
-  A(fact.Q, :) = fact.LT \ x;
+  A(fact.Q, :) =  (x.' / fact.L).';
   B = M * A;
   f = fact.L \ B(fact.Q, :);
 endfunction

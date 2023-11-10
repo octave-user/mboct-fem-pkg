@@ -14,29 +14,16 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{X} = mldivide(@var{Afact}, @var{B})
-## Solve @var{Afact} * @var{X} = @var{B} by using the factor object @var{Afact}.
+## @deftypefn {Function File} [@var{X}] = fem_sol_real_complex(@var{obj}, @var{func}, @var{B})
+## Allow the solution of a real system of equations with complex right hand sides.
+##
+## Effectively return @var{func}(@var{obj}, @var{B})
 ## @end deftypefn
 
-function X = mldivide(fact, B)
-  narginchk(2, 2);
-
-  i = int32(0);  
-  X = zeros(columns(fact.A), columns(B));
-  R = B;
-  
-  do
-    X += pastix(fact.pasobj, R);
-    AX = fact.A * X;
-    R = B - AX;
-    f = max(norm(R, "cols") ./ norm(B + AX, "cols"));
-
-    if (fact.opts.verbose)
-      fprintf(stderr, "iteration %d: %.4e\n", i, f);
-    endif
-    
-    if (f < fact.opts.epsilon_refine)
-      break;
-    endif
-  until (++i > fact.opts.refine_max_iter)
+function X = fem_sol_real_complex(obj, func, B)
+  if (isreal(obj) && iscomplex(B))
+    X = complex(func(obj, real(B)), func(obj, imag(B)));
+  else
+    X = func(obj, B);
+  endif
 endfunction

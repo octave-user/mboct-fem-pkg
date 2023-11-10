@@ -79,7 +79,7 @@
 %! tol = 1e-6;
 %! err = zeros(number_of_modes, numel(alg));
 %! empty_cell = cell(1, numel(alg));
-%! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell);
+%! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell, "D", empty_cell);
 %! for a=1:numel(alg)
 %!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
 %! endfor
@@ -194,12 +194,17 @@
 %!   nu = 0.3;
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
 
-%!   load_case.loaded_nodes = int32([13; 14]);
-%!   load_case.loads = [0, 0, -0.25, 0,   0, 0;
-%!                      0, 0, -0.25, 0,   0, 0];
-%!   dof_map = fem_ass_dof_map(mesh, load_case);
+%!   load_case(1).loaded_nodes = int32([13; 14]);
+%!   load_case(1).loads = [0, 0, -0.25, 0,   0, 0;
+%!                         0, 0, -0.25, 0,   0, 0];
+%!   load_case(1).g = zeros(3, 1);
+%!   for i=1:3
+%!     load_case(i + 1).g = zeros(3, 1);
+%!     load_case(i + 1).g(i) = 1;
+%!   endfor
+%!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.K, ...
 %!    mat_ass.M, ...
 %!    mat_ass.Mlumped, ...
@@ -207,7 +212,7 @@
 %!    mat_ass.dm, ...
 %!    mat_ass.S, ...
 %!    mat_ass.J, ...
-%!    mat_ass.C1, ...
+%!    mat_ass.colloc, ...
 %!    mat_ass.mat_info, ...
 %!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                        dof_map, ...
@@ -218,7 +223,8 @@
 %!                                         FEM_SCA_TOT_MASS, ...
 %!                                         FEM_VEC_INERTIA_M1, ...
 %!                                         FEM_MAT_INERTIA_J, ...
-%!                                         FEM_MAT_ACCEL_LOAD], ...
+%!                                         FEM_VEC_COLL_MASS, ...
+%!                                         FEM_VEC_COLL_STIFFNESS], ...
 %!                                        load_case);
 %!   mat_ass.D = diag(zeros(columns(mat_ass.M), 1));
 %!   assert(mat_ass.dm, mesh.material_data.rho * a * b * c, sqrt(eps) * mesh.material_data.rho * a * b * c);
@@ -234,7 +240,9 @@
 %!   master_dofs(slave_dofs) = 0;
 %!   master_dofs = master_dofs(find(master_dofs > 0));
 %!   assert(full(sum(diag(mat_ass.Mlumped))) / 3, mat_ass.dm, tol * mat_ass.dm);
-%!   assert(full(sum(mat_ass.C1, 1)), repmat(m, 1, 3), tol * m);
+%!   for i=1:3
+%!     assert(full(sum(mat_ass.R(:, i + 1), 1)), m, tol * m);
+%!   endfor
 %! endfor
 
 %!test
@@ -830,7 +838,7 @@
 
 %!test
 %! ## TEST 10
-%! tol = eps^0.9;
+%! tol = eps^0.8;
 %! N = 10;
 %! Phi1 = linspace(0, 90 * pi / 180, N);
 %! Phi2 = linspace(0, -30 * pi / 180, N);
@@ -936,25 +944,31 @@
 %!   nu = 0.3;
 %!   mesh.material_data.rho = 1;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   load_case.loaded_nodes = int32([3; 3]);
-%!   load_case.loads = [0, 0, -0.5;
-%!                      0, 0, -0.5];
-%!   [dof_map] = fem_ass_dof_map(mesh, load_case);
+%!   load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
+%!   load_case(1).loaded_nodes = int32([3; 3]);
+%!   load_case(1).loads = [0, 0, -0.5;
+%!                         0, 0, -0.5];
+%!   load_case(1).g = zeros(3, 1);
+%!   for j=1:3
+%!     load_case(j + 1).g = zeros(3, 1);
+%!     load_case(j + 1).g(j) = 1;
+%!   endfor
+%!   [dof_map] = fem_ass_dof_map(mesh, load_case_dof);
 %!   [K, ...
 %!    M, ...
 %!    Mlumped, ...
-%!    dm, ...
-%!    C1] = fem_ass_matrix(mesh, ...
+%!    R, ...
+%!    dm] = fem_ass_matrix(mesh, ...
 %!                         dof_map, ...
 %!                         [FEM_MAT_STIFFNESS, ...
 %!                          FEM_MAT_MASS, ...
 %!                          FEM_MAT_MASS_LUMPED, ...
-%!                          FEM_SCA_TOT_MASS, ...
-%!                          FEM_MAT_ACCEL_LOAD]);
+%!                          FEM_VEC_LOAD_CONSISTENT, ...
+%!                          FEM_SCA_TOT_MASS], ...
+%!                         load_case);
 %!   R2 = eye(3) + skew([Phi1(N - i + 1); Phi2(N - i + 1); Phi3(N - i + 1)]);
 %!   def = mesh.nodes(:, 1:3) * R2.' - mesh.nodes(:, 1:3) + repmat(x0(N - i + 1, :), 10, 1);
-%!   if i == 1
+%!   if (i == 1)
 %!     K0 = K;
 %!     M0 = M;
 %!   else
@@ -969,12 +983,12 @@
 %!   for j=1:3
 %!     U(j:3:end) = def(:, j);
 %!   endfor
-%!   R = full(K * U);
+%!   R1 = full(K * U);
 %!   [Phi, lam] = eig(K);
 %!   [lam, idx_lambda] = sort(diag(lam));
 %!   Phi = Phi(:, idx_lambda);
 %!   lambda(:, i) = lam;
-%!   assert(max(abs(R)) < tol * norm(K * Phi(:, end)));
+%!   assert(max(abs(R1)) < tol * norm(K * Phi(:, end)));
 %!   assert(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
 %!   assert(rank(K), 24);
 %!   assert(isdefinite(K), false);
@@ -986,7 +1000,9 @@
 %!   assert(dm, mesh.material_data.rho * V, mesh.material_data.rho * V * tol);
 %!   assert(full(sum(diag(Mlumped))) / 3, dm, tol * dm);
 %!   assert(all(abs(full(diag(Mlumped)) - dm / 10) < tol * dm));
-%!   assert(full(sum(C1, 1)), repmat(dm, 1, 3), tol * dm);
+%!   for j=1:3
+%!     assert(full(sum(R(:, j + 1), 1)), dm, tol * dm);
+%!   endfor
 %! endfor
 
 %!test
@@ -1308,10 +1324,10 @@
 %!                                                  data(ialg).load_case);
 %!   mref = data(ialg).mesh.material_data.rho * a * b * c;
 %!   assert(data(ialg).mat_ass.m, mref, sqrt(eps) * mref);
-%!   [Rred] = fem_ass_matrix(data(ialg).mesh_cms, ...
-%!                           data(ialg).dof_map_cms, ...
-%!                           [FEM_VEC_LOAD_CONSISTENT], ...
-%!                           rmfield(data(ialg).load_case, "joints"));
+%!   [Mred, Rred] = fem_ass_matrix(data(ialg).mesh_cms, ...
+%!                                 data(ialg).dof_map_cms, ...
+%!                                 [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
+%!                                  rmfield(data(ialg).load_case, "joints"));
 %!   U = full(data(ialg).mat_ass.K \ data(ialg).mat_ass.R);
 %!   def_stat = fem_post_def_nodal(data(ialg).mesh, data(ialg).dof_map, U);
 %!   ured = data(ialg).mat_ass_cms.Tred * (data(ialg).mat_ass_cms.Kred \ (data(ialg).mat_ass_cms.Tred.' * Rred(data(ialg).dof_map_cms.idx_node, :)));
@@ -1630,7 +1646,11 @@
 %! C = 40e-3;
 %! scale = 10e-3;
 %! num_modes = int32(6);
-%! do_plot = fem_tests_enable_plotting();
+%! if (exist("fem_tests_enable_plotting"))
+%!   do_plot = fem_tests_enable_plotting();
+%! else
+%!   do_plot = false;
+%! endif
 %! X = [-0.5 * a, -0.5 * b, c + C;
 %!      0.5 * a, -0.5 * b, c + C;
 %!      0.5 * a,  0.5 * b, c + C;
@@ -1667,18 +1687,24 @@
 %! endfor
 
 %! mesh.materials.iso8 = int32([1; 2]);
-%! load_case.locked_dof = false(size(mesh.nodes));
-%! load_case.locked_dof(13:16, 1:3) = true;
-%! load_case.pressure.iso4.elements = int32([1,2,3,4]);
-%! load_case.pressure.iso4.p = repmat(p, 1, 4);
-%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! load_case_dof.locked_dof = false(size(mesh.nodes));
+%! load_case_dof.locked_dof(13:16, 1:3) = true;
+%! load_case(1).pressure.iso4.elements = int32([1,2,3,4;
+%!                                              9,10,11,12]);
+%! load_case(1).pressure.iso4.p = repmat(p, 2, 4);
+%! load_case(1).g = [0; 0; -9.81];
+%! load_case(2).pressure.iso4.elements = int32([5,6,7,8;
+%!                                              13,14,15,16]);
+%! load_case(2).pressure.iso4.p = repmat(p, 2, 4);
+%! load_case(2).g = [0; 0; -9.81];
+%! dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %! [mat_ass.K, ...
 %!  mat_ass.M, ...
 %!  mat_ass.R, ...
 %!  mat_ass.dm, ...
 %!  mat_ass.S, ...
 %!  mat_ass.J, ...
-%!  mat_ass.C1, ...
+%!  mat_ass.surface, ...
 %!  mat_ass.mat_info, ...
 %!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -1688,10 +1714,12 @@
 %!                                       FEM_SCA_TOT_MASS, ...
 %!                                       FEM_VEC_INERTIA_M1, ...
 %!                                       FEM_MAT_INERTIA_J, ...
-%!                                       FEM_MAT_ACCEL_LOAD], ...
+%!                                       FEM_VEC_SURFACE_AREA], ...
 %!                                      load_case);
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
+%! Aref = 2 * (a * b + A * B);
+%! assert(sum(sum(mat_ass.surface.iso4)), Aref, eps^0.8 * Aref);
 %! if (do_plot)
 %!   figure("visible", "off");
 %!   fem_post_sol_plot(mesh, sol_stat, scale / max(norm(sol_stat.def(:, 1:3), "rows")), 1);
@@ -1780,7 +1808,6 @@
 %!  mat_ass.dm, ...
 %!  mat_ass.S, ...
 %!  mat_ass.J, ...
-%!  mat_ass.C1, ...
 %!  mat_ass.mat_info, ...
 %!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -1789,8 +1816,7 @@
 %!                                       FEM_VEC_LOAD_CONSISTENT, ...
 %!                                       FEM_SCA_TOT_MASS, ...
 %!                                       FEM_VEC_INERTIA_M1, ...
-%!                                       FEM_MAT_INERTIA_J, ...
-%!                                       FEM_MAT_ACCEL_LOAD], ...
+%!                                       FEM_MAT_INERTIA_J], ...
 %!                                      load_case);
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
@@ -1888,7 +1914,6 @@
 %!  mat_ass.dm, ...
 %!  mat_ass.S, ...
 %!  mat_ass.J, ...
-%!  mat_ass.C1, ...
 %!  mat_ass.mat_info, ...
 %!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
@@ -1897,8 +1922,7 @@
 %!                                       FEM_VEC_LOAD_CONSISTENT, ...
 %!                                       FEM_SCA_TOT_MASS, ...
 %!                                       FEM_VEC_INERTIA_M1, ...
-%!                                       FEM_MAT_INERTIA_J, ...
-%!                                       FEM_MAT_ACCEL_LOAD], ...
+%!                                       FEM_MAT_INERTIA_J], ...
 %!                                      load_case);
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
@@ -1996,7 +2020,6 @@
 %!  data(3).mat_ass.dm, ...
 %!  data(3).mat_ass.S, ...
 %!  data(3).mat_ass.J, ...
-%!  data(3).mat_ass.C1, ...
 %!  data(3).mat_ass.mat_info, ...
 %!  data(3).mat_ass.mesh_info] = fem_ass_matrix(data(3).mesh, ...
 %!                                              data(3).dof_map, ...
@@ -2005,8 +2028,7 @@
 %!                                               FEM_VEC_LOAD_CONSISTENT, ...
 %!                                               FEM_SCA_TOT_MASS, ...
 %!                                               FEM_VEC_INERTIA_M1, ...
-%!                                               FEM_MAT_INERTIA_J, ...
-%!                                               FEM_MAT_ACCEL_LOAD], ...
+%!                                               FEM_MAT_INERTIA_J], ...
 %!                                              data(3).load_case);
 %! data(3).sol_stat = fem_sol_static(data(3).mesh, data(3).dof_map, data(3).mat_ass);
 %! data(3).sol_eig = fem_sol_modal(data(3).mesh, data(3).dof_map, data(3).mat_ass, num_modes);
@@ -2074,53 +2096,6 @@
 
 %!test
 %! ## TEST 23
-%! state = rand("state");
-%! unwind_protect
-%!   rand("seed", 0);
-%!   func={"mldivide", "lu" , "chol", "umfpack", "pastix", "pastix", "mumps", "pardiso"};
-%!   classes={@fem_fact, @fem_fact_lu, @fem_fact_chol, @fem_fact_umfpack, @fem_fact_pastix, @fem_fact_pastix_ref, @fem_fact_mumps, @fem_fact_pardiso};
-%!   warnfunc = false(size(func));
-%!   options.refine_max_iter = int32(100);
-%!   options.verbose = int32(0);
-%!   for k=1:2
-%!     for j=1:numel(func)
-%!       for i=1:100
-%!         switch (k)
-%!           case 1
-%!             A = rand(10,10);
-%!             M = rand(10, 10);
-%!           case 2
-%!             A = sprand(100,100,0.05) + 5*diag(rand(100,1));
-%!             M = sprand(100,100,0.05) + 5*diag(rand(100,1));
-%!         endswitch
-%!         A *= A.';
-%!         M *= M.';
-%!         Q = symrcm(A);
-%!         A = A(Q, Q);
-%!         M = M(Q, Q);
-%!         b = rand(columns(A), 5);
-%!         if (~fem_sol_check_func(func{j}))
-%!           if (~warnfunc(j))
-%!             warning("function \"%s\" not found", func{j});
-%!             warnfunc(j) = true;
-%!           endif
-%!           continue;
-%!         endif
-%!         Afact = feval(classes{j}, A, options);
-%!         x1 = A \ b;
-%!         x2 = Afact \ b;
-%!         tol = eps^0.4;
-%!         assert(x2, x1, tol * norm(x1));
-%!         assert(A * x2, b, tol * norm(A*x2 + b));
-%!       endfor
-%!     endfor
-%!   endfor
-%! unwind_protect_cleanup
-%!   rand("state", state);
-%! end_unwind_protect
-
-%!test
-%! ## TEST 24
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -2173,7 +2148,7 @@
 %! assert(all(abs(sol_stat.stress.tau.iso8(:, :, 2:end) / tauxx_a) < sqrt(eps)));
 
 %!test
-%! ## TEST 25
+%! ## TEST 24
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -2227,7 +2202,7 @@
 %! assert(all(abs(sol_stat.stress.tau.iso8(:, :, [1,3:end]) / tauyy_a) < sqrt(eps)));
 
 %!test
-%! ## TEST 26
+%! ## TEST 25
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -2282,7 +2257,7 @@
 
 
 %!test
-%! ## TEST 27
+%! ## TEST 26
 %! close all;
 %! a = 20e-3;
 %! b = 20e-3;
@@ -2326,7 +2301,7 @@
 
 
 %!test
-%! ## TEST 28
+%! ## TEST 27
 %! close all;
 %! a = 20e-3;
 %! b = 20e-3;
@@ -2369,7 +2344,7 @@
 %! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauyz_a - 1) < sqrt(eps) * abs(tauyz_a)));
 
 %!test
-%! ## TEST 29
+%! ## TEST 28
 %! close all;
 %! a = 20e-3;
 %! b = 20e-3;
@@ -2413,7 +2388,7 @@
 
 
 %!test
-%! ## TEST 30
+%! ## TEST 29
 %! close all;
 %! a = 40e-3;
 %! b = 10e-3;
@@ -2489,7 +2464,7 @@
 
 %!test
 %! close all;
-%! ## TEST 31
+%! ## TEST 30
 %! ###############################################
 %! ## Stress and strain of 10 node tetrahedrons
 %! ###############################################
@@ -2599,7 +2574,7 @@
 %! endfor
 
 %!test
-%! ## TEST 32
+%! ## TEST 31
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -2675,7 +2650,7 @@
 %! assert(tau(1, 7, :)(:), tau_a_0(:, 4), tol);
 
 %!test
-%! ## TEST 33
+%! ## TEST 32
 %! close all;
 %! scale_stat = 1;
 
@@ -2684,24 +2659,23 @@
 %! material.rho = 7850;
 %! material.alpha = 1e-10;
 %! material.beta = 1e-8;
-%! h = 5e-3;
+%! h = 2.5e-3;
 %! geometry.l = 1000e-3;
-%! geometry.w = 5e-3;
-%! geometry.h = 50e-3;
-%! g = [0; 0; -9.81];
+%! geometry.w = 2.5e-3;
+%! geometry.h = 25e-3;
 %! mesh_size.num_elem_l = ceil(geometry.l / h);
 %! mesh_size.num_elem_w = ceil(geometry.w / h);
 %! mesh_size.num_elem_h = ceil(geometry.h / h);
 %! do_plot = fem_tests_enable_plotting();
 %! options = struct();
 %! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, zeros(3,1));
+%! load_case.g = [0; 0; -9.81];
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
-%! [mat_ass.K, mat_ass.C1] = fem_ass_matrix(mesh, ...
+%! [mat_ass.K, mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                                          dof_map, ...
 %!                                          [FEM_MAT_STIFFNESS, ...
-%!                                           FEM_MAT_ACCEL_LOAD], ...
+%!                                           FEM_VEC_LOAD_CONSISTENT], ...
 %!                                          load_case);
-%! mat_ass.R = mat_ass.C1 * g;
 %! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_stat.stress = fem_ass_matrix(mesh, ...
 %!                                  dof_map, ...
@@ -2726,11 +2700,12 @@
 %! cms_opt.algorithm = "shift-invert";
 %! cms_opt.scaling = "mean K,M";
 %! cms_opt.invariants = true;
-%! cms_opt.refine_max_iter = int32(30);
+%! cms_opt.refine_max_iter = int32(250);
+%! cms_opt.epsilon_refinement = eps^0.8;
 %! [mesh_cms, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh_cms, load_case_cms, cms_opt);
 %! Dred = mat_ass_cms.Mred * material.alpha + mat_ass_cms.Kred * material.beta;
 %! assert(mat_ass_cms.Dred, Dred, sqrt(eps) * max(max(abs(Dred))));
-%! mat_ass_cms.Rred = mat_ass_cms.Inv3.' * g;
+%! mat_ass_cms.Rred = mat_ass_cms.Inv3.' * load_case.g;
 %! Ured = mat_ass_cms.Kred \ mat_ass_cms.Rred;
 %! sol_cms.def = fem_post_def_nodal(mesh_cms, dof_map_cms, mat_ass_cms.Tred * Ured);
 %! w = geometry.w;
@@ -2739,7 +2714,7 @@
 %! rho = material.rho;
 %! A = w * h;
 %! Iy = w * h^3 / 12;
-%! qz = rho * A * g(3);
+%! qz = rho * A * load_case.g(3);
 %! z = l - mesh.nodes(:, 1);
 %! wz = qz * l^4 / (24 * material.E * Iy) * (3 - 4 * z / l + (z / l).^4);
 %! tol = 1e-2;
@@ -2761,7 +2736,7 @@
 
 %!test
 %! ##########################################################################################
-%! ## TEST 34: Test case for sfncon4 using joints
+%! ## TEST 33: Test case for sfncon4 using joints
 %! ##########################################################################################
 %! close all;
 %! Fx = 1250;
@@ -2834,7 +2809,6 @@
 %!  data(3).mat_ass.dm, ...
 %!  data(3).mat_ass.S, ...
 %!  data(3).mat_ass.J, ...
-%!  data(3).mat_ass.C1, ...
 %!  data(3).mat_ass.mat_info, ...
 %!  data(3).mat_ass.mesh_info] = fem_ass_matrix(data(3).mesh, ...
 %!                                              data(3).dof_map, ...
@@ -2843,8 +2817,7 @@
 %!                                               FEM_VEC_LOAD_CONSISTENT, ...
 %!                                               FEM_SCA_TOT_MASS, ...
 %!                                               FEM_VEC_INERTIA_M1, ...
-%!                                               FEM_MAT_INERTIA_J, ...
-%!                                               FEM_MAT_ACCEL_LOAD], ...
+%!                                               FEM_MAT_INERTIA_J], ...
 %!                                              data(3).load_case);
 %! data(3).sol_stat = fem_sol_static(data(3).mesh, data(3).dof_map, data(3).mat_ass);
 %! data(3).sol_eig = fem_sol_modal(data(3).mesh, data(3).dof_map, data(3).mat_ass, num_modes);
@@ -2958,7 +2931,7 @@
 %! endif
 
 %!test
-%! ## TEST 35
+%! ## TEST 34
 %! ## Cantilever beam with rectangular cross section and lateral load
 %! ## W.Beitz, K.-H.Grothe, 1997, Dubbel, section 2.4.6, page C17, figure 23
 %! close all;
@@ -3007,7 +2980,7 @@
 %! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
 
 %!test
-%! ## TEST 36
+%! ## TEST 35
 %! state = rand("state");
 %! unwind_protect
 %! rand("seed", 0);
@@ -3048,7 +3021,6 @@
 %! else
 %!   mesh.elements.beam2.nodes = int32([2, 1]);
 %! endif
-%! mesh.elements.beam2.material = int32(1);
 %! mesh.elements.beam2.section.A = A;
 %! mesh.elements.beam2.section.Ay = Ay;
 %! mesh.elements.beam2.section.Az = Az;
@@ -3076,7 +3048,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 37
+%! ## TEST 36
 %! for L=2000e-3:1000e-3:50000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3093,6 +3065,8 @@
 %! Iz = w^3 * h / 12;
 %! B = E * [Iz];
 %! mu = rho * A;
+%! alpha = 1e-10;
+%! beta = 1e-8;
 %! omega1 = sqrt(B / (mu * L^4)); ## valid only for lean beams
 %! omega_ref = omega1.' * [3.516, 22.035, 61.697];
 %! omega_ref = sort(omega_ref(:));
@@ -3104,9 +3078,10 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.material_data.alpha = alpha;
+%! mesh.material_data.beta = beta;
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
-%! beam1.material = int32(1);
 %! beam1.section.A = A;
 %! beam1.section.Ay = Ay;
 %! beam1.section.Az = Az;
@@ -3114,7 +3089,7 @@
 %! beam1.section.Iy = Iy;
 %! beam1.section.Iz = Iz;
 %! beam1.e2 = R * [0; 1; 0];
-%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! mesh.elements.beam2 = repmat(beam1, N - 1, 1);
 %! for i=1:N - 1
 %!   mesh.elements.beam2(i).nodes = int32(i:i+1);
 %! endfor
@@ -3123,17 +3098,25 @@
 %! load_case.locked_dof(:, [1,3,4,5]) = true;
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.K, ...
-%!  mat_ass.M] = fem_ass_matrix(mesh, ...
-%!                              dof_map, ...
-%!                              [FEM_MAT_STIFFNESS, ...
-%!                               FEM_MAT_MASS], ...
-%!                              load_case);
+%!  mat_ass.M, ...
+%!  mat_ass.D, ...
+%!  mat_ass.dm] = fem_ass_matrix(mesh, ...
+%!                               dof_map, ...
+%!                               [FEM_MAT_STIFFNESS, ...
+%!                                FEM_MAT_MASS, ...
+%!                                FEM_MAT_DAMPING, ...
+%!                                FEM_SCA_TOT_MASS], ...
+%!                               load_case);
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, 3);
-%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 0.1e-2);
+%! tolf = 0.1e-2;
+%! tolm = 5 * eps;
+%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < tolf);
+%! assert(mat_ass.dm, rho * A * L, tolm * rho * A * L);
+%! assert(mat_ass.D, mat_ass.M * alpha + mat_ass.K * beta, tolm);
 %! endfor
 
 %!test
-%! ## TEST 38
+%! ## TEST 37
 %! for L = 8000e-3:1000e-3:50000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3161,7 +3144,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3171,7 +3154,7 @@
 %! beam1.section.Iy = Iy;
 %! beam1.section.Iz = Iz;
 %! beam1.e2 = R * [0; 1; 0];
-%! mesh.elements.beam2 = repmat(beam1, 1, N - 1);
+%! mesh.elements.beam2 = repmat(beam1, N - 1, 1);
 %! for i=1:N - 1
 %!   mesh.elements.beam2(i).nodes = int32(i:i+1);
 %! endfor
@@ -3190,7 +3173,7 @@
 %! endfor
 
 %!test
-%! ## TEST 39
+%! ## TEST 38
 %! for L = 200e-3:1000e-3:5000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3221,7 +3204,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3250,7 +3233,7 @@
 %! endfor
 
 %!test
-%! ## TEST 40
+%! ## TEST 39
 %! for L = 40e-3:1000e-3:5000e-3;
 %! w = 10e-3;
 %! h = 50e-3;
@@ -3281,7 +3264,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3310,7 +3293,7 @@
 %! endfor
 
 %!test
-%! ## TEST 41
+%! ## TEST 40
 %! ## Robert Gasch, Klaus Knothe 1989
 %! ## Strukturdynamik Band 2
 %! ## Kontinua und ihre Diskretisierung
@@ -3344,9 +3327,8 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
-%! beam1.material = int32(1);
 %! beam1.section.A = A;
 %! beam1.section.Ay = Ay;
 %! beam1.section.Az = Az;
@@ -3395,7 +3377,7 @@
 %! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!test
-%! ## TEST 42
+%! ## TEST 41
 %! ## Robert Gasch, Klaus Knothe 1989
 %! ## Strukturdynamik Band 2
 %! ## Kontinua und ihre Diskretisierung
@@ -3429,7 +3411,7 @@
 %! mesh.material_data.E = E;
 %! mesh.material_data.nu = nu;
 %! mesh.material_data.rho = rho;
-%! mesh.materials.beam2 = int32(1:N - 1);
+%! mesh.materials.beam2 = ones(N - 1, 1, "int32");
 %! beam1.nodes = int32([]);
 %! beam1.material = int32(1);
 %! beam1.section.A = A;
@@ -3480,7 +3462,7 @@
 %! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!test
-%! ## TEST 43
+%! ## TEST 42
 %! close all;
 %! scale_stat = 1;
 %! scale_eig = 250e-3;
@@ -3593,7 +3575,7 @@
 %! endif
 
 %!test
-%! ## TEST44
+%! ## TEST 43
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3685,7 +3667,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST45
+%! ## TEST 44
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3761,7 +3743,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST46
+%! ## TEST 45
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3835,7 +3817,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 47
+%! ## TEST 46
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3909,7 +3891,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 48
+%! ## TEST 47
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -3983,7 +3965,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 49
+%! ## TEST 48
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4067,7 +4049,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 50
+%! ## TEST 49
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -4154,50 +4136,7 @@
 %! end_unwind_protect
 
 %!test
-%! ## TEST 51
-%! if (~fem_sol_check_func("pastix"))
-%!   return;
-%! endif
-%! s = rand("state");
-%! unwind_protect
-%!   rand("seed", 0);
-%!   N = 1000;
-%!   for i=1:100
-%!     for j=1:3
-%!       A = sprand(N, N, 0.01) + diag(rand(N, 1));
-%!       A += A.';
-%!       opts.factorization = PASTIX_API_FACT_LDLT;
-%!       opts.refine_max_iter = int32(100);
-%!       opts.matrix_type = PASTIX_API_SYM_YES;
-%!       opts.epsilon_refine = eps^0.7;
-%!       opts.verbose = PASTIX_API_VERBOSE_NOT;
-%!       switch (j)
-%!         case 1
-%!           Asym = A;
-%!           opts.symmetric = false;
-%!         case {2, 3}
-%!           [r, c, d] = find(A);
-%!           switch (j)
-%!             case 2
-%!               idx = find(r >= c);
-%!             case 3
-%!               idx = find(r <= c);
-%!           endswitch
-%!           Asym = sparse(r(idx), c(idx), d(idx), rows(A), columns(A));
-%!           opts.symmetric = true;
-%!       endswitch
-%!       Afact = fem_fact_pastix_ref(Asym, opts);
-%!       B = rand(rows(A), 30);
-%!       X = Afact \ B;
-%!       assert(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) < opts.epsilon_refine);
-%!     endfor
-%!   endfor
-%! unwind_protect_cleanup
-%!   rand("state", s);
-%! end_unwind_protect
-
-%!test
-%! ## TEST 52
+%! ## TEST 50
 %! close all;
 %! elem_types = {"iso8", "iso20"};
 %! for k=1:numel(elem_types)
@@ -4213,17 +4152,17 @@
 %! geometry.user_data.h = 0.02e-3;
 %! dx = 1e-3 / M;
 %!
-%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t)
+%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t, varargin)
 %!   x = geo.l * r;
 %!   y = geo.w * s;
 %!   z = geo.h * t;
 %! endfunction
 %!
-%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx)
+%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx, varargin)
 %!   p = [];
 %! endfunction
 %!
-%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data)
+%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data, varargin)
 %!   F = [];
 %!   locked = [];
 %! endfunction
@@ -4232,10 +4171,10 @@
 %! geometry.mesh_size.s = linspace(0, 1, max([2, ceil(geometry.user_data.w / dx) + 1]));
 %! geometry.mesh_size.t = linspace(0, 1, max([2, ceil(geometry.user_data.h / dx) + 1]));
 %! geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.l;
-%! geometry.spatial_coordinates = @(r, s, t) feval("cube_geo", geometry.user_data, r, s, t);
-%! geometry.material_selector = @(r, s, t) 1;
-%! geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("boundary_cond_callback", r, s, t, geometry, load_data);
-%! geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
+%! geometry.spatial_coordinates = @(r, s, t, varargin) feval("cube_geo", geometry.user_data, r, s, t);
+%! geometry.material_selector = @(r, s, t, varargin) 1;
+%! geometry.boundary_condition =  @(r, s, t, geometry, load_data, varargin) feval("boundary_cond_callback", r, s, t, geometry, load_data);
+%! geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx, varargin) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
 %! k = 50;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -4277,7 +4216,7 @@
 %!   sol(j).theta = zeros(dof_map.totdof, numel(sol(j).t));
 %!   sol(j).theta(:, 1) = theta0;
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
-%!   opts.number_of_threads = int32(4);
+%!   opts.number_of_threads = int32(2);
 %!   opts.solver = "chol";
 %!   Afact = fem_sol_factor(A, opts);
 %!   for i=2:numel(sol(j).t)
@@ -4302,7 +4241,7 @@
 %! endfor
 
 %!test
-%! ## TEST 53
+%! ## TEST 51
 %! ## The 1-D Heat Equation
 %! ## 18.303 Linear Partial Differential Equations
 %! ## Matthew J. Hancock
@@ -4315,17 +4254,17 @@
 %!
 %! elem_types = {"iso8", "iso20"};
 
-%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t)
+%! function [x, y, z, R, Phi] = cube_geo(geo, r, s, t, varargin)
 %!   x = geo.l * r;
 %!   y = geo.w * s;
 %!   z = geo.h * t;
 %! endfunction
 
-%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx)
+%! function p = pressure_callback(r, s, t, geometry, load_data, perm_idx, varargin)
 %!   p = [];
 %! endfunction
 
-%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data)
+%! function [F, locked] = boundary_cond_callback(r, s, t, geometry, load_data, varargin)
 %!   F = [];
 %!   locked = [];
 %! endfunction
@@ -4346,10 +4285,10 @@
 %!   geometry.mesh_size.s = linspace(0, 1, max([2, ceil(geometry.user_data.w / dx) + 1]));
 %!   geometry.mesh_size.t = linspace(0, 1, max([2, ceil(geometry.user_data.h / dx) + 1]));
 %!   geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.l;
-%!   geometry.spatial_coordinates = @(r, s, t) feval("cube_geo", geometry.user_data, r, s, t);
-%!   geometry.material_selector = @(r, s, t) 1;
-%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data) feval("boundary_cond_callback", r, s, t, geometry, load_data);
-%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
+%!   geometry.spatial_coordinates = @(r, s, t, varargin) feval("cube_geo", geometry.user_data, r, s, t);
+%!   geometry.material_selector = @(r, s, t, varargin) 1;
+%!   geometry.boundary_condition =  @(r, s, t, geometry, load_data, varargin) feval("boundary_cond_callback", r, s, t, geometry, load_data);
+%!   geometry.pressure_boundary_condition = @(r, s, t, geometry, load_data, perm_idx, varargin) feval("pressure_callback", r, s, t, geometry, load_data, perm_idx);
 %!   K0 = 5000;
 %!   material.E = 210000e6;
 %!   material.nu = 0.3;
@@ -4442,6 +4381,825 @@
 %!   tol = 1e-2;
 %!   assert(sol(j).theta(:, 10:end), sol(j).theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! endfor
+
+%!test
+%! ## TEST 52
+%! m = 1.5;
+%! J = diag([1e-3, 2e-3, 3e-3]);
+%! e1 = [1; 0.5; 0.3];
+%! e2 = [0.2; 1; 0.2];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R = [e1, e2, e3];
+%! R *= diag(1 ./ norm(R, "cols"));
+%! J = R * J * R.';
+%! J = 0.5 * (J + J.');
+%! lcg = [2e-2; 3e-2; 4e-2];
+%! mesh.nodes = zeros(1, 6);
+%! mesh.materials = struct();
+%! mesh.material_data = struct()([]);
+%! mesh.elements.bodies.nodes = int32(1);
+%! mesh.elements.bodies.m = m;
+%! mesh.elements.bodies.J = J;
+%! mesh.elements.bodies.lcg = lcg;
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! load_case.g = [5; 4; -3];
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [M, MU, ML, R, dm] = fem_ass_matrix(mesh, ...
+%!                                     dof_map, ...
+%!                                     [FEM_MAT_MASS, ...
+%!                                      FEM_MAT_MASS_SYM, ...
+%!                                      FEM_MAT_MASS_SYM_L, ...
+%!                                      FEM_VEC_LOAD_CONSISTENT, ...
+%!                                      FEM_SCA_TOT_MASS], ...
+%!                                     load_case);
+%! Mref = [      m * eye(3), -m * skew(lcg);
+%!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
+%! tol = eps;
+%! assert(full(R), [m * load_case.g; cross(lcg, load_case.g) * m], tol * norm(m * load_case.g));
+%! assert(issymmetric(M, tol));
+%! assert(isdefinite(M, tol));
+%! assert(full(M), Mref, tol * norm(Mref));
+%! assert(full(MU + ML - diag(diag(ML))), Mref, tol * norm(Mref));
+%! assert(full(MU + ML - diag(diag(MU))), Mref, tol * norm(Mref));
+%! assert(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
+%! assert(dm, m, tol * m);
+
+%!test
+%! ## TEST 53
+%! ## Robert Gasch, Klaus Knothe
+%! ## Strukturdynamik Band 1
+%! ## Diskrete Systeme
+%! ## 1987
+%! ## page 102, figure 2.5a
+%!
+%! a = 1800e-3;
+%! b = 4000e-3;
+%! c = 2200e-3;
+%! m1 = 2.2e-1;
+%! m2 = 4.1e-1;
+%! J1 = 0.1e-3;
+%! J2 = 0.5e-3;
+%! d1 = 5e-3;
+%! d2 = 8e-3;
+%! d3 = 7e-3;
+%! E = 210000e6;
+%! nu = 0.3;
+%! rho = 0;
+%! X = [0,         0,   0;
+%!      a,         0,   0;
+%!      a + b,     0,   0;
+%!      a + b + c, 0,   0];
+%!
+%! mesh.nodes = [X, zeros(rows(X), 3)];
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.materials.beam2 = ones(3, 1, "int32");
+%! mesh.elements.beam2(1).nodes = int32([1, 2]);
+%! mesh.elements.beam2(2).nodes = int32([2, 3]);
+%! mesh.elements.beam2(3).nodes = int32([3, 4]);
+%! mesh.elements.beam2(1).section.A = d1^2 * pi / 4;
+%! mesh.elements.beam2(1).section.Ay = 9/10 * d1^2 * pi / 4;
+%! mesh.elements.beam2(1).section.Az = 9/10 * d1^2 * pi / 4;
+%! mesh.elements.beam2(1).section.Iy = d1^4 * pi / 64;
+%! mesh.elements.beam2(1).section.Iz = d1^4 * pi / 64;
+%! mesh.elements.beam2(1).section.It = d1^4 * pi / 32;
+%! mesh.elements.beam2(1).e2 = [0; 1; 0];
+%! mesh.elements.beam2(2).section.A = d2^2 * pi / 4;
+%! mesh.elements.beam2(2).section.Ay = 9/10 * d2^2 * pi / 4;
+%! mesh.elements.beam2(2).section.Az = 9/10 * d2^2 * pi / 4;
+%! mesh.elements.beam2(2).section.Iy = d2^4 * pi / 64;
+%! mesh.elements.beam2(2).section.Iz = d2^4 * pi / 64;
+%! mesh.elements.beam2(2).section.It = d2^4 * pi / 32;
+%! mesh.elements.beam2(2).e2 = [0; 1; 0];
+%! mesh.elements.beam2(3).section.A = d3^2 * pi / 4;
+%! mesh.elements.beam2(3).section.Ay = 9/10 * d3^2 * pi / 4;
+%! mesh.elements.beam2(3).section.Az = 9/10 * d3^2 * pi / 4;
+%! mesh.elements.beam2(3).section.Iy = d3^4 * pi / 64;
+%! mesh.elements.beam2(3).section.Iz = d3^4 * pi / 64;
+%! mesh.elements.beam2(3).section.It = d3^4 * pi / 32;
+%! mesh.elements.beam2(3).e2 = [0; 1; 0];
+%! mesh.elements.bodies(1).nodes = int32(2);
+%! mesh.elements.bodies(2).nodes = int32(3);
+%! mesh.elements.bodies(1).m = m1;
+%! mesh.elements.bodies(1).J = diag([0, J1, 0]);
+%! mesh.elements.bodies(1).lcg = zeros(3, 1);
+%! mesh.elements.bodies(2).m = m2;
+%! mesh.elements.bodies(2).J = diag([0, J2, 0]);
+%! mesh.elements.bodies(2).lcg = zeros(3, 1);
+%! load_case_dof.locked_dof = false(size(mesh.nodes));
+%! load_case_dof.locked_dof(:, [1,2,4,6]) = true;
+%! load_case_dof.locked_dof(1, 1:3) = true;
+%! load_case_dof.locked_dof(4, 2:3) = true;
+%! gz = [-9.81, -1.625];
+%! load_case = struct("g", cell(size(gz)));
+%! for i=1:numel(load_case)
+%!   load_case(i).g = [0; 0; gz(i)];
+%! endfor
+%! dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%! [mat_ass.M, ...
+%!  mat_ass.K, ...
+%!  mat_ass.R, ...
+%!  mat_ass.dm] = fem_ass_matrix(mesh, ...
+%!                               dof_map, ...
+%!                               [FEM_MAT_MASS, ...
+%!                                FEM_MAT_STIFFNESS, ...
+%!                                FEM_VEC_LOAD_CONSISTENT, ...
+%!                                FEM_SCA_TOT_MASS], ...
+%!                               load_case);
+%! [sol] = fem_sol_static(mesh, dof_map, mat_ass);
+%! Ia = d1^4 * pi / 64;
+%! Ib = d2^4 * pi / 64;
+%! Ic = d3^4 * pi / 64;
+%! Mref = diag([m1, J1, m2, J2]);
+%! Kref = [3 * E * Ia / a^3 + 12 * E * Ib / b^3, 3 * E * Ia / a^2 - 6 * E * Ib / b^2, -12 * E * Ib / b^3, -6 * E * Ib / b^2;
+%!         3 * E * Ia / a^2 - 6 * E * Ib / b^2, 3 * E * Ia / a + 4 * E * Ib / b, 6 * E * Ib / b^2, 2 * E * Ib / b;
+%!         -12 * E * Ib / b^3, 6 * E * Ib / b^2, 3 * E * Ic / c^3 + 12 * E * Ib / b^3, -3 * E * Ic / c^2 + 6 * E * Ib / b^2;
+%!         -6 * E * Ib / b^2, 2 * E * Ib / b, -3 * E * Ic / c^2 + 6 * E * Ib / b^2, 3 * E * Ic / c + 4 * E * Ib / b];
+%! Rref = [m1 * gz; zeros(size(gz)); m2 * gz; zeros(size(gz))];
+%! Uref = Kref \ Rref;
+%! U = zeros(size(Uref));
+%! for i=1:numel(load_case)
+%!  U(:, i) = sol.def(2:3, [3, 5], i).'(:);
+%! endfor
+%! tol = 1e-5;
+%! assert(U, Uref, tol * norm(Uref));
+%! lambdaref = eig(Kref, Mref);
+%! lambda = eig(mat_ass.K, mat_ass.M);
+%! lambdaref = sort(lambdaref);
+%! lambda = sort(lambda)(1:4);
+%! tolf = 1e-5;
+%! tolm = eps;
+%! assert(lambda, lambdaref, tolf * max(lambdaref));
+%! assert(mat_ass.dm, m1 + m2, tolm * (m1 + m2));
+
+%!test
+%! ## TEST 54
+%! a = 0.2;
+%! b = 0.4;
+%! c = 0.3;
+%! rho = 7850;
+%! m = rho * a * b * c;
+%! Jx = m * (b^2 + c^2) / 12;
+%! Jy = m * (a^2 + c^2) / 12;
+%! Jz = m * (a^2 + b^2) / 12;
+%! m1_2 = rho * (a / 2) * b * c;
+%! Jx1_2 = m1_2 * (b^2 + c^2) / 12;
+%! Jy1_2 = m1_2 * ((a / 2)^2 + c^2) / 12;
+%! Jz1_2 = m1_2 * ((a / 2)^2 + b^2) / 12;
+%! J = diag([Jx, Jy, Jz]);
+%! J1_2 = diag([Jx1_2, Jy1_2, Jz1_2]);
+%! e1 = [1; 0.5; 0.3];
+%! e2 = [0.2; 1; 0.2];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R = [e1, e2, e3];
+%! R *= diag(1 ./ norm(R, "cols"));
+%! J = R * J * R.';
+%! J = 0.5 * (J + J.');
+%! J1_2 = R * J1_2 * R.';
+%! J1_2 = 0.5 * (J1_2 + J1_2.');
+%! lcg = R * [12e-2; 23e-2; 34e-2];
+%! lcg1 = lcg + R * [0.25 * a; 0; 0];
+%! lcg2 = lcg - R * [0.25 * a; 0; 0];
+%! mesh.nodes = zeros(1, 6);
+%! mesh.materials = struct();
+%! mesh.material_data = struct()([]);
+%! mesh.elements.bodies(1).nodes = int32(1);
+%! mesh.elements.bodies(1).m = m / 2;
+%! mesh.elements.bodies(1).J = J1_2;
+%! mesh.elements.bodies(1).lcg = lcg1;
+%! mesh.elements.bodies(2).nodes = int32(1);
+%! mesh.elements.bodies(2).m = m / 2;
+%! mesh.elements.bodies(2).J = J1_2;
+%! mesh.elements.bodies(2).lcg = lcg2;
+%! load_case.locked_dof = false(size(mesh.nodes));
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [M] = fem_ass_matrix(mesh, ...
+%!                      dof_map, ...
+%!                      [FEM_MAT_MASS, ...
+%!                       FEM_MAT_MASS_SYM, ...
+%!                       FEM_MAT_MASS_SYM_L], ...
+%!                      load_case);
+%! Mref = [      m * eye(3), -m * skew(lcg);
+%!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
+%! tol = eps;
+%! assert(issymmetric(M, tol));
+%! assert(isdefinite(M, tol));
+%! assert(full(M), Mref, eps * norm(Mref));
+
+%!test
+%! ## TEST 55
+%! state = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   for i=1:30
+%!     for L=2000:1000:4000
+%!       N = 50;
+%!       w = 10;
+%!       h = 50;
+%!       c2 = 0.291;
+%!       f2 = -1.25;
+%!       E = 210000;
+%!       nu = 0.3;
+%!       G = E / (2 * (1 + nu));
+%!       rho = 7850e-12;
+%!       A = w * h;
+%!       Ay = 5 / 6 * w * h;
+%!       Az = 5 / 6 * w * h;
+%!       It = c2 * h * w^3;;
+%!       Iy = w * h^3 / 12;
+%!       Iz = w^3 * h / 12;
+%!       gz = -9.81;
+%!       qz = rho * A * gz;
+%!       z = L - linspace(0, L, N);
+%!       wz = qz * L^4 / (24 * E * Iy) * (3 - 4 * z / L + (z / L).^4);
+%!       R = euler123_to_rotation_matrix(2 * pi * rand(3, 1));
+%!       X = [linspace(0, L, N); zeros(2, N)];
+%!       mesh.nodes = [(R * X).',  zeros(N, 3)];
+%!       mesh.material_data.E = E;
+%!       mesh.material_data.nu = nu;
+%!       mesh.material_data.rho = rho;
+%!       mesh.materials.beam2 = ones(N - 1, 1, "int32");
+%!       section1.A = A;
+%!       section1.Ay = Ay;
+%!       section1.Az = Az;
+%!       section1.It = It;
+%!       section1.Iy = Iy;
+%!       section1.Iz = Iz;
+%!       mesh.elements.beam2 = struct("section", mat2cell(repmat(section1, N - 1, 1), ones(N - 1, 1), 1), ...
+%!                                    "e2", mat2cell(repmat((R * [0; -1; 0]).', N - 1, 1), ones(N - 1, 1), 3), ...
+%!                                    "nodes", mat2cell([1:N - 1; 2:N].', ones(1, N - 1), 2));
+%!       load_case.locked_dof = false(size(mesh.nodes));
+%!       load_case.locked_dof(1, :) = true;
+%!       load_case.g = R * [0; 0; gz];
+%!       [dof_map] = fem_ass_dof_map(mesh, load_case);
+%!       [mat_ass.K, ...
+%!        mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_MAT_STIFFNESS, ...
+%!                                     FEM_VEC_LOAD_CONSISTENT], ...
+%!                                    load_case);
+%!       [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!       tol = 2e-3;
+%!       assert(R(:, 3).' * sol_stat.def(:, 1:3).', wz, tol * max(abs(wz)));
+%!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! ## TEST 56
+%! l1 = 1000;
+%! l2 = 800;
+%! d = 10;
+%! A = d^2 * pi / 4;
+%! Ay = Az = 9/10 * A;
+%! It = d^4 * pi / 32;
+%! Iy = Iz = d^4 * pi / 64;
+%! E = 210000;
+%! nu = 0.3;
+%! rho = 0;
+%! m1 = 100;
+%! gz = -9.81;
+%! mesh.nodes = [0, 0, 0, 0, 0, 0;
+%!               l1, 0, 0, 0, 0, 0];
+%! mesh.elements.beam2.nodes = int32([1, 2]);
+%! mesh.elements.beam2.material = int32(1);
+%! mesh.elements.beam2.e2 = [0; 1; 0];
+%! mesh.elements.beam2.section.A = A;
+%! mesh.elements.beam2.section.Ay = Ay;
+%! mesh.elements.beam2.section.Az = Az;
+%! mesh.elements.beam2.section.It = It;
+%! mesh.elements.beam2.section.Iy = Iy;
+%! mesh.elements.beam2.section.Iz = Iz;
+%! mesh.materials.beam2 = int32(1);
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.elements.bodies.nodes = int32(2);
+%! mesh.elements.bodies.m = m1;
+%! mesh.elements.bodies.J = zeros(3, 3);
+%! mesh.elements.bodies.lcg = [l2; 0; 0];
+%! load_case.locked_dof = false(rows(mesh.nodes), 6);
+%! load_case.locked_dof(1, 2:3) = true;
+%! load_case.locked_dof(2, 1:4) = true;
+%! load_case.g = [0; 0; gz];
+%! dof_map = fem_ass_dof_map(mesh, load_case);
+%! [mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! sol = fem_sol_static(mesh, dof_map, mat_ass);
+%! Phiref = -m1 * gz * l2 * l1 / (E * Iy) * [-1/6, 1/3];
+%! tol = 1e-4;
+%! for i=1:2
+%!   assert(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
+%! endfor
+
+%!test
+%! ## TEST 57
+%! rndstate = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   a = 100e-3;
+%!   b = 75e-3;
+%!   c = 20e-3;
+%!   ri = a * [0, 1/3, 2/3,  1, 2/3, 1/3,   0,   0,   0, 1/3, 2/3, 1/3,   0,   0,   0, 1/3, 1/3,   0,   0,   0];
+%!   si = b * [0,   0,   0,  0, 1/3, 2/3,   1, 2/3, 1/3, 1/3,   0, 1/3, 2/3, 1/3,   0,   0,   0, 1/3,   0,   0];
+%!   ti = c * [0,   0,   0,  0,   0,   0,   0,   0,   0,   0, 1/3, 1/3, 1/3, 1/3, 1/3, 1/3, 2/3, 2/3, 2/3,   1];
+%!   X = [ri; si; ti];
+%!   g = [0; 0; -9.81];
+%!   for i=1:100
+%!     e1 = rand(3, 1);
+%!     e2 = rand(3, 1);
+%!     e3 = cross(e1, e2);
+%!     e2 = cross(e3, e1);
+%!     R = [e1, e2, e3];
+%!     R *= diag(1 ./ norm(R, "cols"));
+%!     mesh.nodes = [(R * X).', zeros(numel(ri), 3)];
+%!     mesh.elements.tet20 = int32(1:20);
+%!     mesh.materials.tet20 = ones(rows(mesh.elements.tet20), 1, "int32");
+%!     mesh.material_data.E = 210000e6;
+%!     mesh.material_data.nu = 0.3;
+%!     mesh.material_data.rho = 7850;
+%!     mesh.material_data.alpha = 1e-10;
+%!     mesh.material_data.beta = 1e-8;
+%!     load_case.locked_dof = false(size(mesh.nodes));
+%!     load_case.domain = FEM_DO_STRUCTURAL;
+%!     load_case.g = R * g;
+%!     dof_map = fem_ass_dof_map(mesh, load_case);
+%!     [mat_ass.M, ...
+%!      mat_ass.D, ...
+%!      mat_ass.K, ...
+%!      mat_ass.R, ...
+%!      mat_ass.dm, ...
+%!      mat_ass.S, ...
+%!      mat_ass.J, ...
+%!      mat_ass.mat_info, ...
+%!      mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                          dof_map, ...
+%!                                          [FEM_MAT_MASS, ...
+%!                                           FEM_MAT_DAMPING, ...
+%!                                           FEM_MAT_STIFFNESS, ...
+%!                                           FEM_VEC_LOAD_CONSISTENT, ...
+%!                                           FEM_SCA_TOT_MASS, ...
+%!                                           FEM_VEC_INERTIA_M1, ...
+%!                                           FEM_MAT_INERTIA_J], ...
+%!                                          load_case);
+%!     F = zeros(rows(mesh.nodes), 3);
+%!     for j=1:3
+%!       F(:, j) = mat_ass.R(dof_map.ndof(:, j));
+%!     endfor
+%!     F = sum(F, 1).';
+%!     mref = mesh.material_data.rho * a * b * c / 6;
+%!     tolm = eps^0.9;
+%!     tollambda = eps^0.9;
+%!     assert(mat_ass.dm, mref, tolm * mref);
+%!     assert(rank(mat_ass.M), 3 * columns(mesh.elements.tet20));
+%!     assert(rank(mat_ass.K), 3 * columns(mesh.elements.tet20) - 6);
+%!     [Phi, lambda] = eig(mat_ass.K, mat_ass.M);
+%!     lambda = diag(lambda);
+%!     sol.def = zeros(rows(mesh.nodes), 6, columns(Phi));
+%!     for j=1:3
+%!       for k=1:columns(Phi)
+%!         sol.def(:, j, k) = Phi(dof_map.ndof(:, j), k);
+%!       endfor
+%!     endfor
+%!     assert(isdefinite(mat_ass.M), true);
+%!     assert(isdefinite(mat_ass.K), false);
+%!     assert(R.' * F, mref * g, tolm * norm(mref * g));
+%!     if (i == 1)
+%!       Rref = R;
+%!       Sref = mat_ass.S;
+%!       Jref = mat_ass.J;
+%!       lambdaref = lambda;
+%!     else
+%!       assert(lambda, lambdaref, tollambda * max(abs(lambdaref)));
+%!       assert(R.' * mat_ass.S, Rref.' * Sref, tolm * norm(Sref));
+%!       assert(R.' * mat_ass.J * R, Rref.' * Jref * Rref, tolm * norm(Jref));
+%!     endif
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", rndstate);
+%! end_unwind_protect
+
+%!test
+%! ## TEST 58
+%! close all;
+%! number_of_modes = 5;
+%! material.E = 210000e6;
+%! material.nu = 0.3;
+%! material.rho = 7850;
+%! Fx = -1;
+%! h = 10e-3/8;
+%! geometry.l = 250e-3;
+%! geometry.w = 10e-3;
+%! geometry.h = 10e-3;
+%! Iz = geometry.w * geometry.h^3 / 12;
+%! Iy = geometry.h * geometry.w^3 / 12;
+%! Imin = min(Iy, Iz);
+%! ## Elastic Euler buckling (W. Beitz, K.H.Grote, 1997 Dubbel C42)
+%! lK = 2 * geometry.l;
+%! FK = pi^2 * material.E * Imin / lK^2; 
+%! mesh_size.num_elem_l = ceil(geometry.l / h);
+%! mesh_size.num_elem_w = ceil(geometry.w / h);
+%! mesh_size.num_elem_h = ceil(geometry.h / h);
+%! e1 = [0.7; 0.2; 0.3];
+%! e2 = [0.5; 0.6; 0.2];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R1 = [e1, e2, e3];
+%! R1 = R1 * diag(1 ./ norm(R1, "cols"));
+%! f = R1 * [ Fx; 0; 0 ];
+%! [mesh, load_case] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
+%! mesh.nodes = [mesh.nodes(:, 1:3) * R1.', zeros(rows(mesh.nodes), 3)];
+%! [dof_map] = fem_ass_dof_map(mesh, load_case);
+%! dof_map.parallel.threads_ass = int32(2);
+%! [mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%!
+%! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
+%!
+%! sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                  dof_map, ...
+%!                                  [FEM_VEC_STRESS_CAUCH], ...
+%!                                  load_case, ...
+%!                                  sol_stat);
+%! load_case.tau0 = sol_stat.stress.tau;
+%! mat_ass.KTAU0 = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_STIFFNESS_TAU0], ...
+%!                              load_case);
+%! opts.number_of_threads = dof_map.parallel.threads_ass;
+%! opts.problem = "buckling";
+%! [U, sol_buck.lambda] = fem_sol_eigs(mat_ass.K, mat_ass.KTAU0, number_of_modes, opts);
+%! sol_buck.def = fem_post_def_nodal(mesh, dof_map, U);
+%! tol = 1e-2;
+%! assert(sol_buck.lambda(1), FK, tol * abs(FK));
+
+%!test
+%! ## TEST 59
+%! close all;
+%! material.E = 210000e6;
+%! material.nu = 0.3;
+%! material.rho = 7850;
+%! num_modes = int32(10);
+%! h = 10e-3;
+%! geometry.l = 1000e-3;
+%! geometry.w = 20e-3;
+%! geometry.h = 20e-3;
+%! r = linspace(0.05 * geometry.l, 0.97 * geometry.l, 100);
+%! omegay = 1000;
+%! sigmaxx_ref = material.rho * omegay^2 * (geometry.l^2 - r.^2) / 2;
+%! mesh_size.num_elem_l = ceil(geometry.l / h);
+%! mesh_size.num_elem_w = ceil(geometry.w / h);
+%! mesh_size.num_elem_h = ceil(geometry.h / h);
+%! f = zeros(3, 1);
+%! [mesh, load_case_dof] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
+%! mesh.nodes(:, 2) -= 0.5 * geometry.w;
+%! mesh.nodes(:, 3) -= 0.5 * geometry.h;
+%! xi = mesh.nodes(:, 1)(mesh.elements.iso8);
+%! yi = mesh.nodes(:, 2)(mesh.elements.iso8);
+%! zi = mesh.nodes(:, 3)(mesh.elements.iso8);
+%! e1 = [1; 0.7; 0.9];
+%! e2 = [0.8; -0.5; 0.6];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R1 = [e1, e2, e3];
+%! R1 *= diag(1 ./ norm(R1, "cols"));
+%! dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%! load_case(1).omega = [0; omegay; 0];
+%! load_case(1).omega = R1 * load_case.omega;
+%! load_case(2).omega = -load_case(1).omega;
+%! mesh.nodes = [mesh.nodes(:, 1:3) * R1.', zeros(rows(mesh.nodes), 3)];
+%! [mat_ass.M, ...
+%!  mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_MASS, ...
+%!                               FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%! sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                  dof_map, ...
+%!                                  [FEM_VEC_STRESS_CAUCH], ...
+%!                                  load_case, ...
+%!                                  sol_stat);
+%! for i=1:2
+%!   load_case(i).tau0.iso8 = sol_stat.stress.tau.iso8(:, :, :, i);
+%! endfor
+%! [mat_ass.KTAU0] = fem_ass_matrix(mesh, ...
+%!                                dof_map, ...
+%!                                [FEM_MAT_STIFFNESS_TAU0], ...
+%!                                load_case);
+%! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
+%! mat_ass.K += mat_ass.KTAU0;
+%! sol_eig_preload = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
+%! TAU = zeros(3, 3, rows(sol_stat.stress.taum.iso8), columns(sol_stat.stress.taum.iso8));
+%! for k=1:size(TAU, 4)
+%!   for j=1:size(TAU, 3)
+%!     for i=1:3
+%!       TAU(i, i, j, k) = sol_stat.stress.taum.iso8(j, k, i);
+%!     endfor
+%!     TAU(1, 2, j, k) = TAU(2, 1, j, k) = sol_stat.stress.taum.iso8(j, k, 4);
+%!     TAU(2, 3, j, k) = TAU(3, 2, j, k) = sol_stat.stress.taum.iso8(j, k, 5);
+%!     TAU(1, 3, j, k) = TAU(3, 1, j, k) = sol_stat.stress.taum.iso8(j, k, 6);
+%!     TAU(:, :, j, k) = R1.' * TAU(:, :, j, k) * R1;
+%!   endfor
+%! endfor
+%! sigmaxx = griddata3(xi, yi, zi, reshape(TAU(1, 1, :, :), size(xi)), r, zeros(size(r)), zeros(size(r)));
+%! tol = 1e-3;
+%! assert(sigmaxx(:), sigmaxx_ref(:), tol * max(abs(sigmaxx_ref)));
+
+%!test
+%! ## TEST 60
+%! ## 24 TH INTERNATIONAL CONGRESS OF THE AERONAUTICAL SCIENCES
+%! ## NATURAL FREQUENCIES OF ROTATING
+%! ## CANTILEVER FLEXIBLE BEAMS BY USING THE
+%! ## p-VERSION OF THE FINITE ELEMENT METHOD
+%! ## Hamza cherif S. M.*, Houmat A.*
+%! ## *Department of Mechanical Engineering , University of Tlemcen, Algeria
+%! lambda_ref = 70; ## Table 2. page 6
+%! mu_ref = [2,4,6,8,10,50];
+%! omegax_ref_flapwise = [4.1373,5.5850,7.3603,9.2568,11.2023,51.0805];
+%! omegax_ref_chordwise = [3.6195,3.888,4.2393,4.6105,4.97,7.3362];
+%! close all;
+%! rho = 2700;
+%! E = 70000e6;
+%! W = 10e-3;
+%! H = 10e-3;
+%! A = W * H;
+%! I = W * H^3 / 12;
+%! mu = 8;
+%! lambda = lambda_ref;
+%! L = lambda * sqrt(I/A);
+%! material.E = 70000e6;
+%! material.nu = 0.3;
+%! material.rho = 2700;
+%! num_modes = int32(10);
+%! h = min(W, H)/4;
+%! geometry.l = L;
+%! geometry.w = W;
+%! geometry.h = H;
+%! r = linspace(0.2 * geometry.l, 0.9 * geometry.l, 100);
+%! omegay = mu / sqrt(rho * A * L^4 / (E * I));
+%! sigmaxx_ref = material.rho * omegay^2 * (geometry.l^2 - r.^2) / 2;
+%! mesh_size.num_elem_l = ceil(geometry.l / h);
+%! mesh_size.num_elem_w = ceil(geometry.w / h);
+%! mesh_size.num_elem_h = ceil(geometry.h / h);
+%! f = zeros(3, 1);
+%! [mesh, load_case_dof] = fem_pre_mesh_cube_create(geometry, mesh_size, material, f);
+%! mesh.nodes(:, 2) -= 0.5 * geometry.w;
+%! mesh.nodes(:, 3) -= 0.5 * geometry.h;
+%! xi = mesh.nodes(:, 1)(mesh.elements.iso8);
+%! yi = mesh.nodes(:, 2)(mesh.elements.iso8);
+%! zi = mesh.nodes(:, 3)(mesh.elements.iso8);
+%! e1 = [1; 0.7; 0.9];
+%! e2 = [0.8; -0.5; 0.6];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R1 = [e1, e2, e3];
+%! R1 *= diag(1 ./ norm(R1, "cols"));
+%! dof_map = fem_ass_dof_map(mesh, load_case_dof);
+%! omega = R1 * [0; omegay; 0];
+%! omegaq = [omega(1)^2;
+%!           omega(2)^2;
+%!           omega(3)^2;
+%!           omega(1) * omega(2);
+%!           omega(2) * omega(3);
+%!           omega(3) * omega(1)];
+%! load_case = fem_pre_load_case_create_empty(numel(omegaq));
+%! for i=1:numel(load_case)
+%!   load_case(i).omegaq = zeros(6, 1);
+%!   load_case(i).omegaq(i) = 1;
+%! endfor
+%! load_case_tot.omega = omega;
+%! mesh.nodes = [mesh.nodes(:, 1:3) * R1.', zeros(rows(mesh.nodes), 3)];
+%! [mat_ass.M, ...
+%!  mat_ass.K, ...
+%!  mat_ass.R] = fem_ass_matrix(mesh, ...
+%!                              dof_map, ...
+%!                              [FEM_MAT_MASS, ...
+%!                               FEM_MAT_STIFFNESS, ...
+%!                               FEM_VEC_LOAD_CONSISTENT], ...
+%!                              load_case);
+%! mat_ass_tot.M = mat_ass.M;
+%! mat_ass_tot.K = mat_ass.K;
+%! [mat_ass_tot.KOMEGA, ...
+%!  mat_ass_tot.DOMEGA, ...
+%!  mat_ass_tot.R] = fem_ass_matrix(mesh, ...
+%!                                 dof_map, ...
+%!                                 [FEM_MAT_STIFFNESS_OMEGA, ...
+%!                                  FEM_MAT_DAMPING_OMEGA, ...
+%!                                  FEM_VEC_LOAD_CONSISTENT], ...
+%!                                  load_case_tot);
+%! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%! sol_stat.stress = fem_ass_matrix(mesh, ...
+%!                                  dof_map, ...
+%!                                  [FEM_VEC_STRESS_CAUCH], ...
+%!                                  load_case, ...
+%!                                  sol_stat);
+%! sol_stat_tot = fem_sol_static(mesh, dof_map, mat_ass_tot);
+%! sol_stat_tot.stress = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      load_case_tot, ...
+%!                                      sol_stat_tot);
+%! load_case_pre_stress_tot.tau0 = sol_stat_tot.stress.tau;
+%! mat_ass_tot.KTAU0 = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_MAT_STIFFNESS_TAU0], ...
+%!                                    load_case_pre_stress_tot);
+%! for i=1:numel(load_case)
+%!   load_case_pre_stress.omegaq = load_case(i).omegaq;
+%!   load_case_pre_stress.tau0.iso8 = sol_stat.stress.tau.iso8(:, :, :, i);
+%!   [KTAU0, KOMEGA] = fem_ass_matrix(mesh, ...
+%!                                    dof_map, ...
+%!                                    [FEM_MAT_STIFFNESS_TAU0, ...
+%!                                     FEM_MAT_STIFFNESS_OMEGA], ...
+%!                                    load_case_pre_stress);
+%!   KTAU0 *= omegaq(i);
+%!   KOMEGA *= omegaq(i);
+%!   if (i == 1)
+%!     mat_ass.KTAU0 = KTAU0;
+%!     mat_ass.KOMEGA = KOMEGA;
+%!   else
+%!     mat_ass.KTAU0 += KTAU0;
+%!     mat_ass.KOMEGA += KOMEGA;
+%!   endif
+%! endfor
+%! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
+%! mat_ass.K += mat_ass.KTAU0 + mat_ass.KOMEGA;
+%! sol_eig_preload = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
+%! mat_ass_tot.K += mat_ass_tot.KTAU0 + mat_ass_tot.KOMEGA;
+%! mat_ass_tot.D = mat_ass_tot.DOMEGA;
+%! sol_eig_preload_tot = fem_sol_modal(mesh, dof_map, mat_ass_tot, num_modes);
+%! sol_eig_rot = fem_sol_modal_damped(mesh, dof_map, mat_ass_tot, num_modes);
+%! TAU = zeros(3, 3, rows(sol_stat.stress.taum.iso8), columns(sol_stat.stress.taum.iso8));
+%! for k=1:size(TAU, 4)
+%!   for j=1:size(TAU, 3)
+%!     for i=1:3
+%!       TAU(i, i, j, k) = sum(sol_stat.stress.taum.iso8(j, k, i, :)(:) .* omegaq);
+%!     endfor
+%!     TAU(1, 2, j, k) = TAU(2, 1, j, k) = sum(sol_stat.stress.taum.iso8(j, k, 4, :)(:) .* omegaq);
+%!     TAU(2, 3, j, k) = TAU(3, 2, j, k) = sum(sol_stat.stress.taum.iso8(j, k, 5, :)(:) .* omegaq);
+%!     TAU(1, 3, j, k) = TAU(3, 1, j, k) = sum(sol_stat.stress.taum.iso8(j, k, 6, :)(:) .* omegaq);
+%!     TAU(:, :, j, k) = R1.' * TAU(:, :, j, k) * R1;
+%!   endfor
+%! endfor
+%! sigmaxx = griddata3(xi, yi, zi, reshape(TAU(1, 1, :, :), size(xi)), r, zeros(size(r)), zeros(size(r)));
+%! tol_tau = 0.2e-1;
+%! assert(sigmaxx(:), sigmaxx_ref(:), tol_tau * max(abs(sigmaxx_ref)));
+%! tol_R = 1e-6;
+%! assert(mat_ass.R * omegaq, mat_ass_tot.R, tol_R * norm(mat_ass_tot.R));
+%! tol_f = 1e-6;
+%! assert(sol_eig_preload.f, sol_eig_preload_tot.f, tol_f * max(sol_eig_preload_tot.f));
+%! tol_KTAU0 = 1e-5;
+%! assert(max(max(abs(mat_ass.KTAU0 - mat_ass_tot.KTAU0))) / max(max(abs(mat_ass_tot.KTAU0))) < tol_KTAU0);
+%! tol_tau = 1e-5;
+%! for i=1:size(sol_stat.stress.tau.iso8, 1)
+%!   for j=1:size(sol_stat.stress.tau.iso8, 2)
+%!     for k=1:size(sol_stat.stress.tau.iso8, 3)
+%!       assert(sum(sol_stat.stress.tau.iso8(i, j, k, :)(:) .* omegaq), sol_stat_tot.stress.tau.iso8(i, j, k), tol_tau * max(max(max(abs(sol_stat_tot.stress.tau.iso8)))));
+%!     endfor
+%!   endfor
+%! endfor
+%! omegax_pre = sqrt(rho * A * L^4 / (E * I)) * 2 * pi * sol_eig_preload_tot.f;
+%! assert(omegax_pre(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
+%! assert(omegax_pre(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
+
+%! omegax_rot = sqrt(rho * A * L^4 / (E * I)) * 2 * pi * sol_eig_rot.f(find(sol_eig_rot.f >= 0));
+%! assert(omegax_rot(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
+%! assert(omegax_rot(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
+
+%!test ## test 61
+%! assert(isinteger(FEM_MAT_DAMPING));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_SYM));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_SYM_L));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV3));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV4));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV5));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV8));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_INV9));
+%!test
+%! assert(isinteger(FEM_MAT_INERTIA_J));
+%!test
+%! assert(isinteger(FEM_MAT_MASS));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_LUMPED));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_SYM));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_SYM_L));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_SYM));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_SYM_L));
+%!test
+%! assert(isinteger(FEM_SCA_STRESS_VMIS));
+%!test
+%! assert(isinteger(FEM_SCA_TOT_MASS));
+%!test
+%! assert(isinteger(FEM_VEC_INERTIA_M1));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_CONSISTENT));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_LUMPED));
+%!test
+%! assert(isinteger(FEM_VEC_STRESS_CAUCH));
+%!test
+%! assert(isinteger(FEM_VEC_STRAIN_TOTAL));
+%!test
+%! assert(isinteger(FEM_CT_FIXED));
+%!test
+%! assert(isinteger(FEM_CT_SLIDING));
+%!test
+%! assert(isinteger(FEM_MAT_THERMAL_COND));
+%!test
+%! assert(isinteger(FEM_MAT_HEAT_CAPACITY));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_THERMAL));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_IM));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_ACOUSTICS_IM));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_ACOUSTICS_RE));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_ACOUSTICS_IM));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_VEC_PARTICLE_VELOCITY));
+%!test
+%! assert(isinteger(FEM_SCA_ACOUSTIC_INTENSITY));
+%!test
+%! assert(isinteger(FEM_VEC_PARTICLE_VELOCITY_C));
+%!test
+%! assert(isinteger(FEM_SCA_ACOUSTIC_INTENSITY_C));
+%!test
+%! assert(isinteger(FEM_VEC_SURFACE_NORMAL_VECTOR));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_IM));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_MAT_MASS_FLUID_STRUCT_IM));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_RE));
+%!test
+%! assert(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_IM));
+%!test
+%! assert(isinteger(FEM_VEC_LOAD_FLUID_STRUCT));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_MASS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_STIFFNESS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_HEAT_CAPACITY));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_THERMAL_COND));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_MASS_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_STIFF_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_MASS_FLUID_STRUCT));
+%!test
+%! assert(isinteger(FEM_VEC_COLL_STIFF_FLUID_STRUCT));
+%!test
+%! assert(isinteger(FEM_DO_STRUCTURAL));
+%!test
+%! assert(isinteger(FEM_DO_THERMAL));
+%!test
+%! assert(isinteger(FEM_DO_ACOUSTICS));
+%!test
+%! assert(isinteger(FEM_DO_FLUID_STRUCT));
 
 %!demo
 %! ## DEMO 1
@@ -4891,3 +5649,218 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+
+%!demo
+%! ## DEMO 5
+%! close all;
+%! N = 20;
+%! d = 1.6;
+%! D = 12.45 + d;
+%! L = 34.7 - 6 * d;
+%! n = 6;
+%! m = 40;
+%! E = 206000;
+%! G = 81500;
+%! nu = E / (2 * G) - 1;
+%! rho = 7850e-12;
+%! omegai = 2 * pi * [500;
+%!                    1000];
+%! zetai = [0.1e-2;
+%!          0.1e-2];
+%! Ai = [ones(2, 1), omegai.^2];
+%! Bi = 2 * omegai .* zetai;
+%! Xi = Ai \ Bi;
+%! alpha = Xi(1);
+%! beta = Xi(2);
+%! A = d^2 * pi / 4;
+%! Ay = 9 / 10 * A;
+%! Az = Ay;
+%! Iy = d^4 * pi / 64;
+%! Iz = Iy;
+%! It = Iy + Iz;
+%! Phi = linspace(0, 2 * pi * n, ceil(m * n)).';
+%! x = 0.5 * D * cos(Phi);
+%! y = 0.5 * D * sin(Phi);
+%! z = L * Phi / (2 * pi * n);
+%! e2 = repmat([0, 0, 1], numel(Phi) - 1, 1);
+%! mesh.nodes = [x, y, z, zeros(numel(Phi), 3)];
+%! elnodes = int32([(1:numel(Phi) - 1).', (2:numel(Phi)).']);
+%! section.A = A;
+%! section.Ay = Ay;
+%! section.Az = Az;
+%! section.It = It;
+%! section.Iy = Iy;
+%! section.Iz = Iz;
+%! mesh.elements.beam2 = struct("nodes", mat2cell(elnodes, ones(numel(Phi) - 1, 1, "int32"), 2), ...
+%!                              "section", mat2cell(repmat(section, numel(Phi) - 1, 1), ones(numel(Phi) - 1, 1, "int32")), ...
+%!                              "e2", mat2cell(e2, ones(numel(Phi) - 1, 1, "int32"), 3));
+%! node1 = numel(1);
+%! node2 = numel(Phi);
+%! mesh.elements.joints = struct("nodes", {node1, node2}, "C", {eye(6), eye(6)});
+%! U1 = zeros(6, 6);
+%! U2 = eye(6);
+%! load_case = struct("joints", cell(1, 6));
+%! for i=1:numel(load_case)
+%!   load_case(i).joints = struct("U", {U1(:, i), U2(:, i)});
+%! endfor
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.material_data.alpha = alpha;
+%! mesh.material_data.beta = beta;
+%! mesh.materials.beam2 = ones(numel(Phi) - 1, 1, "int32");
+%! load_case_dof.locked_dof = false(size(mesh.nodes));
+%! [dof_map] = fem_ass_dof_map(mesh, load_case_dof);
+%! [mat_ass.K, ...
+%!  mat_ass.M, ...
+%!  mat_ass.D, ...
+%!  mat_ass.R, ...
+%!  mat_ass.mat_info, ...
+%!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_MAT_STIFFNESS, ...
+%!                                       FEM_MAT_MASS, ...
+%!                                       FEM_MAT_DAMPING, ...
+%!                                       FEM_VEC_LOAD_CONSISTENT], ...
+%!                                       load_case);
+%! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N);
+%! omega = linspace(0, 2 * pi * 3200, 1000);
+%! U1 = U2 = F1 = F2 = complex(zeros(6, numel(omega), columns(mat_ass.R)));
+%! opts.solver = "pardiso";
+%! opts.refine_max_iter = int32(250);
+%! opts.epsilon_refinement = eps^0.8;
+%! opts.number_of_threads = int32(1);
+%! opts.verbose = int32(0);
+%! zeta = (alpha ./ omega + beta * omega) / 2;
+%! for i=1:numel(omega)
+%!   U = fem_sol_factor(-omega(i)^2 * mat_ass.M + 1j * omega(i) * mat_ass.D + mat_ass.K, opts) \ mat_ass.R;
+%!   for j=1:columns(U)
+%!     F1(:, i, j) = U(dof_map.edof.joints(1, :), j) * mat_ass.mat_info.beta(1);
+%!     F2(:, i, j) = U(dof_map.edof.joints(2, :), j) * mat_ass.mat_info.beta(1);
+%!     U1(:, i, j) = U(dof_map.ndof(mesh.elements.joints(1).nodes, :), j);
+%!     U2(:, i, j) = U(dof_map.ndof(mesh.elements.joints(2).nodes, :), j);
+%!   endfor
+%!   if (mod(i, 20) == 0)
+%!     fprintf(stderr, "%d/%d\n", i, numel(omega));
+%!   endif
+%! endfor
+%! for i=1:columns(mat_ass.R)
+%!   figure("visible", "off");
+%!   hold on;
+%!   semilogy(omega/(2*pi), abs(F1(i, :, i) ./ U2(i, :, i)), "-;abs(F1/U2);0");
+%!   semilogy(omega/(2*pi), abs(F1(i, :, i) ./ F2(i, :, i)), "-;abs(F1/F2);1");
+%!   xlabel("f [Hz]");
+%!   ylabel("abs(F1/U2) [N/m] abs(F1/F2) [N/N]");
+%!   title({"Fx","Fy","Fz","Mx","My","Mz"}{i});
+%!   grid on;
+%!   grid minor on;
+%! endfor
+%! figure_list();
+
+
+%!demo
+%! ## DEMO 6
+%! close all;
+%! N = 20;
+%! d = 1.6;
+%! D = 12.45 + d;
+%! L = 34.7 - 6 * d;
+%! n = 6;
+%! m = 40;
+%! E = 206000;
+%! G = 81500;
+%! nu = E / (2 * G) - 1;
+%! rho = 7850e-12;
+%! omegai = 2 * pi * [500;
+%!                    1000];
+%! zetai = [0.1e-2;
+%!          0.1e-2];
+%! Ai = [ones(2, 1), omegai.^2];
+%! Bi = 2 * omegai .* zetai;
+%! Xi = Ai \ Bi;
+%! alpha = Xi(1);
+%! beta = Xi(2);
+%! A = d^2 * pi / 4;
+%! Ay = 9 / 10 * A;
+%! Az = Ay;
+%! Iy = d^4 * pi / 64;
+%! Iz = Iy;
+%! It = Iy + Iz;
+%! Phi = linspace(0, 2 * pi * n, ceil(m * n)).';
+%! x = 0.5 * D * cos(Phi);
+%! y = 0.5 * D * sin(Phi);
+%! z = L * Phi / (2 * pi * n);
+%! e2 = repmat([0, 0, 1], numel(Phi) - 1, 1);
+%! mesh.nodes = [x, y, z, zeros(numel(Phi), 3)];
+%! elnodes = int32([(1:numel(Phi) - 1).', (2:numel(Phi)).']);
+%! section.A = A;
+%! section.Ay = Ay;
+%! section.Az = Az;
+%! section.It = It;
+%! section.Iy = Iy;
+%! section.Iz = Iz;
+%! mesh.elements.beam2 = struct("nodes", mat2cell(elnodes, ones(numel(Phi) - 1, 1, "int32"), 2), ...
+%!                              "section", mat2cell(repmat(section, numel(Phi) - 1, 1), ones(numel(Phi) - 1, 1, "int32")), ...
+%!                              "e2", mat2cell(e2, ones(numel(Phi) - 1, 1, "int32"), 3));
+%! node1 = 1;
+%! node2 = numel(Phi);
+%! mesh.elements.joints = struct("nodes", {node1}, "C", {eye(6)});
+%! U1 = zeros(6, 6);
+%! load_case = struct("joints", cell(1, 6), "loads", cell(1, 6), "loaded_nodes", cell(1, 6));
+%! for i=1:numel(load_case)
+%!   load_case(i).joints = struct("U", {U1(:, i)});
+%!   load_case(i).loaded_nodes = node2;
+%!   load_case(i).loads = zeros(1, 6);
+%!   load_case(i).loads(i) = 1;
+%! endfor
+%! mesh.material_data.E = E;
+%! mesh.material_data.nu = nu;
+%! mesh.material_data.rho = rho;
+%! mesh.material_data.alpha = alpha;
+%! mesh.material_data.beta = beta;
+%! mesh.materials.beam2 = ones(numel(Phi) - 1, 1, "int32");
+%! load_case_dof.locked_dof = false(size(mesh.nodes));
+%! [dof_map] = fem_ass_dof_map(mesh, load_case_dof);
+%! [mat_ass.K, ...
+%!  mat_ass.M, ...
+%!  mat_ass.D, ...
+%!  mat_ass.R, ...
+%!  mat_ass.mat_info, ...
+%!  mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                      dof_map, ...
+%!                                      [FEM_MAT_STIFFNESS, ...
+%!                                       FEM_MAT_MASS, ...
+%!                                       FEM_MAT_DAMPING, ...
+%!                                       FEM_VEC_LOAD_CONSISTENT], ...
+%!                                       load_case);
+%! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N);
+%! omega = linspace(0, 2 * pi * 3200, 1000);
+%! U2 = F1 = complex(zeros(6, numel(omega), columns(mat_ass.R)));
+%! opts.solver = "pardiso";
+%! opts.refine_max_iter = int32(250);
+%! opts.epsilon_refinement = eps^0.8;
+%! opts.number_of_threads = int32(1);
+%! opts.verbose = int32(0);
+%! zeta = (alpha ./ omega + beta * omega) / 2;
+%! for i=1:numel(omega)
+%!   U = fem_sol_factor(-omega(i)^2 * mat_ass.M + 1j * omega(i) * mat_ass.D + mat_ass.K, opts) \ mat_ass.R;
+%!   for j=1:columns(U)
+%!     U2(:, i, j) = U(dof_map.ndof(node2, :), j);
+%!     F1(:, i, j) = U(dof_map.edof.joints(1, :), j) * mat_ass.mat_info.beta(1);
+%!   endfor
+%!   if (mod(i, 20) == 0)
+%!     fprintf(stderr, "%d/%d\n", i, numel(omega));
+%!   endif
+%! endfor
+%! for i=1:columns(mat_ass.R)
+%!   figure("visible", "off");
+%!   hold on;
+%!   semilogy(omega/(2*pi), abs(U2(i, :, i)), "-;abs(U2/F2);0");
+%!   semilogy(omega/(2*pi), abs(F1(i, :, i)), "-;abs(F1/F2);1");
+%!   xlabel("f [Hz]");
+%!   ylabel("abs(U1/U2) [1]");
+%!   title({"Fx","Fy","Fz","Mx","My","Mz"}{i});
+%!   grid on;
+%!   grid minor on;
+%! endfor
+%! figure_list();

@@ -54,7 +54,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
   endif
 
   if (~isfield(cms_opt, "refine_max_iter"))
-    cms_opt.refine_max_iter = int32(3);
+    cms_opt.refine_max_iter = int32(10);
   endif
 
   if (~isfield(cms_opt, "number_of_threads"))
@@ -71,6 +71,8 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
                     "E", empty_cell, ...
                     "xi", empty_cell, ...
                     "zi", empty_cell, ...
+                    "dX", empty_cell, ...
+                    "dR", empty_cell, ...
                     "bearing_surf", empty_cell, ...
                     "bearing_dimensions", empty_cell, ...
                     "reference_pressure", empty_cell);
@@ -230,6 +232,9 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
       A_X0 = mesh.nodes(cms_opt.nodes.modal.number, 1:3);
     endif
 
+    comp_mat(i).dX = bearing_surf(i).X0 - mesh.nodes(cms_opt.nodes.modal.number, 1:3).';
+    comp_mat(i).dR = bearing_surf(i).R;
+    
     A_dX = mesh.nodes(bearing_surf(i).nodes, 1:3) - A_X0;
 
     ir = int32([3, 2;
@@ -533,7 +538,7 @@ endfunction
 %!  error("gmsh failed with status %d", status);
 %! endif
 
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
@@ -590,7 +595,7 @@ endfunction
 %! data(imat).cms_opt.nodes.interfaces(1).name = "node_id_itf1";
 %! data(imat).cms_opt.nodes.interfaces(2).number = node_idx_itf2;
 %! data(imat).cms_opt.nodes.interfaces(2).name = "node_id_itf2";
-%! data(imat).cms_opt.number_of_threads = int32(4);
+%! data(imat).cms_opt.number_of_threads = int32(2);
 %! [data(imat).mesh, data(imat).mat_ass, data(imat).dof_map, data(imat).sol_eig, data(imat).cms_opt] = fem_cms_create(data(imat).mesh, data(imat).load_case, data(imat).cms_opt);
 %! data(imat).comp_mat = fem_ehd_pre_comp_mat_unstruct(data(imat).mesh, data(imat).mat_ass, data(imat).dof_map, data(imat).cms_opt, data(imat).bearing_surf);
 %! data(imat).opt_plot.plot_nodal = true;

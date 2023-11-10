@@ -42,12 +42,20 @@
 ## @seealso{fem_ehd_pre_comp_mat_unstruct}
 ## @end deftypefn
 
-function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf)
-  if (nargin ~= 2 || nargout < 2 || nargout > 3)
+function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf, options)
+  if (nargin < 2 || nargin > 3 || nargout < 2 || nargout > 3)
     print_usage();
   endif
 
-  [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf);
+  if (nargin < 3)
+    options = struct();
+  endif
+
+  if (~isfield(options, "elem_type"))
+    options.elem_type = "tria6";
+  endif
+
+  [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options);
 
   load_case = fem_pre_load_case_create_empty(idx);
 
@@ -56,7 +64,7 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
 
   for i=1:numel(bearing_surf)
     idx_group(i) = idx + 1;
-    elements = mesh.elements.tria6(mesh.groups.tria6(bearing_surf(i).group_idx).elements, :);
+    elements = getfield(mesh.elements, options.elem_type)(getfield(mesh.groups, options.elem_type)(bearing_surf(i).group_idx).elements, :);
 
     N = [numel(bearing_surf(i).grid_x), numel(bearing_surf(i).grid_z)];
 
@@ -85,8 +93,7 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
 	p_U = interp2(xi_S, zi_S, p_S, xi, zi, "linear");
 
 	idx_press = any(p_U, 2);
-	load_case(++idx).pressure.tria6.elements = elements(idx_press, :);
-	load_case(idx).pressure.tria6.p = p_U(idx_press, :);
+        load_case(++idx).pressure = struct(options.elem_type, struct("elements", elements(idx_press, :), "p", p_U(idx_press, :)));
       endfor
     endfor
   endfor
@@ -98,10 +105,10 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
   endfor
 endfunction
 
-function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf)
+function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options)
   for i=1:numel(bearing_surf)
-    nodes = mesh.groups.tria6(bearing_surf(i).group_idx).nodes;
-    elements = mesh.elements.tria6(mesh.groups.tria6(bearing_surf(i).group_idx).elements, :);
+    nodes = getfield(mesh.groups, options.elem_type)(bearing_surf(i).group_idx).nodes;
+    elements = getfield(mesh.elements, options.elem_type)(getfield(mesh.groups, options.elem_type)(bearing_surf(i).group_idx).elements, :);
 
     if (isfield(bearing_surf(i), "relative_tolerance") && isfield(bearing_surf(i), "absolute_tolerance"))
       z = bearing_surf(i).R(:, 3).' * (mesh.nodes(nodes, 1:3).' - bearing_surf(i).X0);
@@ -122,8 +129,16 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf)
   idx = int32(0);
 
   for i=1:numel(bearing_surf)
-    dx = bearing_surf(i).options.mesh_size;
-    N = [max(4, round(2 * pi * bearing_surf(i).r / dx)), max(3, round(bearing_surf(i).w / dx))];
+    if (isfield(bearing_surf(i).options, "mesh_size"))
+      dx = bearing_surf(i).options.mesh_size;
+      Nx = round(2 * pi * bearing_surf(i).r / dx);
+      Nz = round(bearing_surf(i).w / dx);
+    else
+      Nx = bearing_surf(i).options.number_of_nodes_x;
+      Nz = bearing_surf(i).options.number_of_nodes_z;
+    endif
+    
+    N = [max(4, Nx), max(3, Nz)];
 
     if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
       switch (bearing_surf(i).options.bearing_model)
@@ -139,7 +154,7 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf)
     bearing_surf(i).grid_x = linspace(0, 2 * pi * bearing_surf(i).r, N(1));
     bearing_surf(i).grid_z = linspace(-0.5 * bearing_surf(i).w, 0.5 * bearing_surf(i).w, N(2));
     idx += (numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z);
-    clear dx N;
+    clear dx N Nx Nz;
   endfor
 endfunction
 
@@ -206,7 +221,7 @@ endfunction
 %! endif
 
 %! fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %! fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %! grp_id_clamp = find([[mesh.groups.tria6].id] == 1);
 %! grp_id_p1 = find([[mesh.groups.tria6].id] == 3);
@@ -302,8 +317,8 @@ endfunction
 %!   pid = spawn("gmsh", {post_pro_file});
 %!   status = spawn_wait(pid);
 %!   unwind_protect_cleanup
-%!     unlink(post_pro_file);
-%!     unlink(deformation_file);
+%!     [~] = unlink(post_pro_file);
+%!     [~] = unlink(deformation_file);
 %!   end_unwind_protect
 %!   if (0 ~= status)
 %!     error("gmsh failed with status %d", status);

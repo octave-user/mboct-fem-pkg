@@ -123,6 +123,8 @@ function [comp_mat] = fem_ehd_pre_comp_mat_struct(bearing_dimensions, material, 
   comp_mat.reference_pressure = options.reference_pressure;
   comp_mat.mesh = mesh;
   comp_mat.dof_map = dof_map;
+  comp_mat.dX = zeros(3, 1);
+  comp_mat.dR = eye(3);
   N = length(comp_mat.bearing_surf.s) * length(comp_mat.bearing_surf.t);
 
   if (options.number_of_modes <= 0)
@@ -552,7 +554,7 @@ endfunction
 %!   if (numel(comp_mat_file))
 %!     fn = dir([comp_mat_file, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
@@ -758,7 +760,7 @@ endfunction
 %!   if (numel(comp_mat_file))
 %!     fn = dir([comp_mat_file, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect

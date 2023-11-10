@@ -26,11 +26,6 @@ function flag = fem_sol_check_func(func)
     print_usage();
   endif
 
-  switch (func)
-    case "pastix_ref"
-      func = "pastix";
-  endswitch
-  
   flag = false;
   
   switch (exist(func))
@@ -45,7 +40,7 @@ function flag = fem_sol_check_func(func)
 
   fname = which(func);
 
-  if (numel(fname))
+  if (~isempty(fname))
     flag = true;
   endif
 endfunction

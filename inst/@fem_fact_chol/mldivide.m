@@ -21,5 +21,5 @@
 function X = mldivide(fact, B)
   narginchk(2, 2);
 
-  X(fact.Q, :) = fact.LT \ full(fact.L \ B(fact.Q, :));
+  X(fact.Q, :) = (full(fact.L \ B(fact.Q, :)).' / fact.L).';
 endfunction

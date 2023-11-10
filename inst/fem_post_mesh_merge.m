@@ -42,12 +42,14 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   if (~isfield(options, "group_id"))
     options.group_id = "preserve";
   endif
-  
+
   num_nodes = int32(0);
   num_mat = int32(0);
 
-  elem_types = struct("name", cell(1, 10), "have_mat", cell(1, 10));
-  
+  empty_cell = cell(1, 22);
+
+  elem_types = struct("name", empty_cell, "have_mat", empty_cell);
+
   elem_types(1).name = "iso8";
   elem_types(1).have_mat = true;
   elem_types(2).name = "tet10";
@@ -68,6 +70,30 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   elem_types(9).have_mat = true;
   elem_types(10).name = "penta15";
   elem_types(10).have_mat = true;
+  elem_types(11).name = "tet20";
+  elem_types(11).have_mat = true;
+  elem_types(12).name = "tria10";
+  elem_types(12).have_mat = false;
+  elem_types(13).name = "iso20r";
+  elem_types(13).have_mat = true;
+  elem_types(14).name = "quad8r";
+  elem_types(14).have_mat = false;
+  elem_types(15).name = "iso27";
+  elem_types(15).have_mat = true;
+  elem_types(16).name = "quad9";
+  elem_types(16).have_mat = false;
+  elem_types(17).name = "iso27upc";
+  elem_types(17).have_mat = true;
+  elem_types(18).name = "iso20upc";
+  elem_types(18).have_mat = true;
+  elem_types(19).name = "iso8upc";
+  elem_types(19).have_mat = true;
+  elem_types(20).name = "iso20upcr";
+  elem_types(20).have_mat = true;
+  elem_types(21).name = "penta15upc";
+  elem_types(21).have_mat = true;
+  elem_types(22).name = "tet10upc";
+  elem_types(22).have_mat = true;
   
   for i=1:numel(mesh_data)
     if (nargout >= 2)
@@ -96,7 +122,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
     dof_map.idx_lambda = [];
     dof_map.submesh.offset.dof = zeros(numel(mesh_data), 1, "int32");
   endif
-  
+
   dof_map.submesh.offset.nodes = zeros(numel(mesh_data), 1, "int32");
   dof_map.submesh.offset.materials = zeros(numel(mesh_data), 1, "int32");
 
@@ -118,25 +144,25 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   endfor
 
   mat_prop = fieldnames(mesh.material_data);
-  
+
   for i=1:numel(mesh_data)
     for j=1:numel(mesh_data(i).mesh.material_data)
       for k=1:numel(mat_prop)
-	if (isfield(mesh_data(i).mesh.material_data(j), mat_prop{k}))
-	  mesh.material_data(dof_map.submesh.offset.materials(i) + j) = setfield(mesh.material_data(dof_map.submesh.offset.materials(i) + j), ...
-										 mat_prop{k}, ...
-										 getfield(mesh_data(i).mesh.material_data(j), mat_prop{k}));
-	endif
+        if (isfield(mesh_data(i).mesh.material_data(j), mat_prop{k}))
+          mesh.material_data(dof_map.submesh.offset.materials(i) + j) = setfield(mesh.material_data(dof_map.submesh.offset.materials(i) + j), ...
+                                                                                 mat_prop{k}, ...
+                                                                                 getfield(mesh_data(i).mesh.material_data(j), mat_prop{k}));
+        endif
       endfor
     endfor
   endfor
 
   dof_map.submesh.offset.elements = struct();
-  
+
   for i=1:numel(elem_types)
     elem_types(i).num_elem = int32(0);
     elem_types(i).num_nodes = int32(0);
-    
+
     for j=1:numel(mesh_data)
       if (isfield(mesh_data(j).mesh.elements, elem_types(i).name))
         elem_nodes = getfield(mesh_data(j).mesh.elements, elem_types(i).name);
@@ -149,11 +175,11 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
 
     for j=1:numel(mesh_data) - 1
       num_elem = int32(0);
-      
+
       if (isfield(mesh_data(j).mesh.elements, elem_types(i).name))
         num_elem = rows(getfield(mesh_data(j).mesh.elements, elem_types(i).name));
       endif
-      
+
       elem_offset(j + 1) = elem_offset(j) + num_elem;
     endfor
 
@@ -299,7 +325,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
       if (~isfield(mesh, "groups"))
         mesh.groups = struct();
       endif
-      
+
       mesh.groups = setfield(mesh.groups, elem_types(j).name, curr_group_m);
     endif
   endfor

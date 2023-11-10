@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -59,70 +59,70 @@ function [sol] = fem_post_cms_sol_merge(mesh, dof_map, sol_tot)
   endfor
 
   if (isfield(sol_tot.bodies(i), "stress"))
-    elem_type = {"iso4", "quad8", "iso8", "iso20", "tet10", "penta15", "tet10h"};
+    elem_type = {"iso4", "quad8", "quad9", "iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "iso20r", "tet10", "penta15", "penta15upc", "tet10h", "tet10upc", "quad8r", "iso20upcr"};
     stress_type = {"tau", "taum", "vmis"};
 
     sol.stress = struct();
 
     for k=1:numel(stress_type)
       for j=1:numel(elem_type)
-	num_elem = int32(0);
-	num_nodes = int32(-1);
-	num_comp = int32(-1);
-	num_steps = int32(-1);
+        num_elem = int32(0);
+        num_nodes = int32(-1);
+        num_comp = int32(-1);
+        num_steps = int32(-1);
 
-	stress_elem_type_m = struct();
+        stress_elem_type_m = struct();
 
-	for i=1:numel(sol_tot.bodies)
-	  if (isfield(sol_tot.bodies(i).stress, stress_type{k}))
-	    stress_type_k = getfield(sol_tot.bodies(i).stress, stress_type{k});
+        for i=1:numel(sol_tot.bodies)
+          if (isfield(sol_tot.bodies(i).stress, stress_type{k}))
+            stress_type_k = getfield(sol_tot.bodies(i).stress, stress_type{k});
 
-	    if (isfield(stress_type_k, elem_type{j}))
-	      stress_elem = getfield(stress_type_k, elem_type{j});
-	      num_elem += size(stress_elem, 1);
+            if (isfield(stress_type_k, elem_type{j}))
+              stress_elem = getfield(stress_type_k, elem_type{j});
+              num_elem += size(stress_elem, 1);
 
-	      if (num_nodes == -1)
-		num_nodes = size(stress_elem, 2);
-	      elseif (num_nodes ~= size(stress_elem, 2))
-		error("invalid number of element nodes detected");
-	      endif
+              if (num_nodes == -1)
+                num_nodes = size(stress_elem, 2);
+              elseif (num_nodes ~= size(stress_elem, 2))
+                error("invalid number of element nodes detected");
+              endif
 
-	      if (num_comp == -1)
-		num_comp = size(stress_elem, 3);
-	      elseif (num_comp ~= size(stress_elem, 3))
-		error("invalid number of stress components detected");
-	      endif
+              if (num_comp == -1)
+                num_comp = size(stress_elem, 3);
+              elseif (num_comp ~= size(stress_elem, 3))
+                error("invalid number of stress components detected");
+              endif
 
-	      if (num_steps == -1)
-		num_steps = size(stress_elem, 4);
-	      elseif (num_steps ~= size(stress_elem, 4))
-		error("invalid number of load steps detected");
-	      endif
-	    endif
-	  endif
-	endfor
+              if (num_steps == -1)
+                num_steps = size(stress_elem, 4);
+              elseif (num_steps ~= size(stress_elem, 4))
+                error("invalid number of load steps detected");
+              endif
+            endif
+          endif
+        endfor
 
-	if (num_elem > 0)
-	  stress_elem_m = zeros(num_elem, num_nodes, num_comp, num_steps);
-	  offset_elem = getfield(dof_map.submesh.offset.elements, elem_type{j});
+        if (num_elem > 0)
+          stress_elem_m = zeros(num_elem, num_nodes, num_comp, num_steps);
+          offset_elem = getfield(dof_map.submesh.offset.elements, elem_type{j});
 
-	  for i=1:numel(sol_tot.bodies)
-	    if (isfield(sol_tot.bodies(i).stress, stress_type{k}))
-	      stress_type_b = getfield(sol_tot.bodies(i).stress, stress_type{k});
+          for i=1:numel(sol_tot.bodies)
+            if (isfield(sol_tot.bodies(i).stress, stress_type{k}))
+              stress_type_b = getfield(sol_tot.bodies(i).stress, stress_type{k});
 
-	      if (isfield(stress_type_b, elem_type{j}))
-		stress_elem_b = getfield(stress_type_b, elem_type{j});
-		stress_elem_m(offset_elem(i) + (1:size(stress_elem_b, 1)), :, :, :) = stress_elem_b;
-	      endif
-	    endif
-	  endfor
+              if (isfield(stress_type_b, elem_type{j}))
+                stress_elem_b = getfield(stress_type_b, elem_type{j});
+                stress_elem_m(offset_elem(i) + (1:size(stress_elem_b, 1)), :, :, :) = stress_elem_b;
+              endif
+            endif
+          endfor
 
-	  stress_elem_type_m = setfield(stress_elem_type_m, elem_type{j}, stress_elem_m);
-	endif
-	
-	if (numel(fieldnames(stress_elem_type_m)))
-	  sol.stress = setfield(sol.stress, stress_type{k}, stress_elem_type_m);
-	endif	
+          stress_elem_type_m = setfield(stress_elem_type_m, elem_type{j}, stress_elem_m);
+        endif
+
+        if (numel(fieldnames(stress_elem_type_m)))
+          sol.stress = setfield(sol.stress, stress_type{k}, stress_elem_type_m);
+        endif
       endfor
     endfor
   endif
@@ -187,13 +187,13 @@ endfunction
 %!         warning("gmsh failed with status %d", status);
 %!       endif
 %!     unwind_protect_cleanup
-%!       unlink([filename, ".geo"]);
+%!       [~] = unlink([filename, ".geo"]);
 %!     end_unwind_protect
 %!     fprintf(stderr, "loading mesh \"%s\" ...\n", [filename, ".msh"]);
-%!     mesh_data(i).mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
+%!     mesh_data(i).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!     fprintf(stderr, "%d nodes\n", rows(mesh_data(1).mesh.nodes));
 %!   unwind_protect_cleanup
-%!     unlink([filename, ".msh"]);
+%!     [~] = unlink([filename, ".msh"]);
 %!   end_unwind_protect
 %! endfor
 %! for i=1:numel(mesh_data)
@@ -234,14 +234,14 @@ endfunction
 %!   imshow(img, map);
 %!   title("Gmsh - stress and deformation");
 %! unwind_protect_cleanup
-%!   unlink([opts.print_to_file, "_001.jpg"]);
+%!   [~] = unlink([opts.print_to_file, "_001.jpg"]);
 %! end_unwind_protect
 %! figure_list();
 %! unwind_protect_cleanup
 %! if (numel(filename))
 %!   fn = dir([filename, "*"]);
 %!   for i=1:numel(fn)
-%!     unlink(fullfile(fn(i).folder, fn(i).name));
+%!     [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!   endfor
 %! endif
 %! end_unwind_protect

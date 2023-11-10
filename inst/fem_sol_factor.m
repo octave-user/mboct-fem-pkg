@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -30,19 +30,12 @@
 ##
 ## @var{options}.number_of_threads @dots{} Number of threads to use of a SMP solution.
 ##
-## @var{options}.factorization @dots{} Kind of factorization to use.
-##
-## If solver == "pastix" use one of @{PASTIX_API_FACT_LDLT | PASTIX_API_FACT_LLT | PASTIX_API_FACT_LU@}
-##
-## @var{options}.matrix_type @dots{} Type of input matrix.
-##
-## If solver == "pastix" use one of @{PASTIX_API_SYM_YES | PASTIX_API_SYM_NO@}
-##
-## If solver == "mumps" use one of @{MUMPS_MAT_DEF | MUMPS_MAT_GEN | MUMPS_MAT_SYM@}
+## @var{options}.symmetric @dots{} Define if @var{A} is a symmetric matrix even if only the
+##                                 upper or lower triangular part of @var{A} is passed
 ##
 ## @var{options}.verbose @dots{} A value greater than zero enables verbose output.
 ##
-## @var{options}.bind_thread_mode @dots{} If solver == "pastix" use one of @{PASTIX_API_BIND_NO, PASTIX_API_BIND_AUTO@}
+## @var{options}.bind_thread_mode @dots{} Define if thread affinity should used
 ##
 ## @var{options}.workspace_inc @dots{} Memory allocation flag used only if solver == "mumps".
 ##
@@ -62,50 +55,91 @@ function Afact = fem_sol_factor(A, options)
   endif
 
   if (~isfield(options, "refine_max_iter"))
-    options.refine_max_iter = int32(3);
+    options.refine_max_iter = int32(10);
+  endif
+
+  if (~isfield(options, "epsilon_refinement"))
+    options.epsilon_refinement = -1;
   endif
 
   if (~isfield(options, "number_of_threads"))
     options.number_of_threads = int32(1);
   endif
 
-  blambda = full(any(diag(A) <= 0));
-  
-  options.solver = fem_sol_select(blambda, options.solver);
-  
+  if (~isfield(options, "pre_scaling"))
+    options.pre_scaling = false;
+  endif
+
+  if (~isfield(options, "scale_tol"))
+    options.scale_tol = sqrt(eps);
+  endif
+
+  if (~isfield(options, "scale_max_iter"))
+    options.scale_max_iter = int32(100);
+  endif
+
+  if (~isfield(options, "symmetric"))
+    options.symmetric = true;
+  endif
+
+  if (~isfield(options, "bind_thread_mode"))
+    options.bind_thread_mode = false;
+  endif
+
+  if (~isfield(options, "verbose"))
+    options.verbose = false;
+  endif
+
+  if (options.pre_scaling)
+    Afact = fem_fact_scale(A, options);
+    return;
+  endif
+
   switch (options.solver)
-    case {"pastix", "pastix_ref"}
-      if (~isfield(options, "matrix_type"))
+    case {"chol", "lu", "mldivide"}
+      if (options.refine_max_iter > 0)
+        Afact = fem_fact_refine(A, options);
+        return;
+      endif
+  endswitch
+
+  blambda = full(any(diag(A) <= 0));
+
+  options.solver = fem_sol_select(blambda, options.solver);
+
+  if (~issparse(A))
+    switch (options.solver)
+      case {"chol", "lu", "mldivide"}
+        ## solvers which can handle also dense matrices
+      otherwise
+        options.solver = "lu";
+    endswitch
+  endif
+
+  switch (options.solver)
+    case "pastix"
+      if (options.symmetric)
         options.matrix_type = PASTIX_API_SYM_YES;
-      endif
-
-      if (~isfield(options, "factorization"))
         options.factorization = PASTIX_API_FACT_LDLT;
+      else
+        options.matrix_type = PASTIX_API_SYM_NO;
+        options.factorization = PASTIX_API_FACT_LU;
       endif
 
-      if (~isfield(options, "verbose"))
+      if (options.verbose)
+        options.verbose = PASTIX_API_VERBOSE_YES;
+      else
         options.verbose = PASTIX_API_VERBOSE_NOT;
       endif
 
-      if (~isfield(options, "bind_thread_mode"))
+      if (options.bind_thread_mode)
+        options.bind_thread_mode = PASTIX_API_BIND_AUTO;
+      else
         options.bind_thread_mode = PASTIX_API_BIND_NO;
       endif
 
-      switch (options.solver)
-	case "pastix"
-	  linear_solver = @fem_fact_pastix;
-	case "pastix_ref"
-	  linear_solver = @fem_fact_pastix_ref;
-      endswitch
+      linear_solver = @fem_fact_pastix;
     case "pardiso"
-      if (~isfield(options, "symmetric"))
-        options.symmetric = true;
-      endif
-
-      if (~isfield(options, "verbose"))
-        options.verbose = false;
-      endif
-
       if (~isfield(options, "scaling"))
         options.scaling = blambda;
       endif
@@ -113,23 +147,25 @@ function Afact = fem_sol_factor(A, options)
       if (~isfield(options, "weighted_matching"))
         options.weighted_matching = blambda;
       endif
-      
+
       linear_solver = @fem_fact_pardiso;
     case "mumps"
-      if (blambda)
+      if (options.symmetric)
         options.matrix_type = MUMPS_MAT_SYM;
       else
-        options.matrix_type = MUMPS_MAT_DEF;
+        options.matrix_type = MUMPS_MAT_GEN;
       endif
 
       if (~isfield(options, "workspace_inc"))
         options.workspace_inc = int32(50);
       endif
 
-      if (~isfield(options, "verbose"))
+      if (options.verbose)
+        options.verbose = MUMPS_VER_ALL;
+      else
         options.verbose = MUMPS_VER_ERR;
       endif
-      
+
       linear_solver = @fem_fact_mumps;
     case "umfpack"
       linear_solver = @fem_fact_umfpack;
@@ -154,20 +190,76 @@ endfunction
 %!   solvers = {"pastix", "pardiso", "mumps", "umfpack", "lu", "chol", "mldivide"};
 %!   M = 20;
 %!   options.refine_max_iter = 10;
-%!   options.number_of_threads = int32(4);
+%!   options.number_of_threads = int32(2);
 %!   tol = sqrt(eps);
-%!   for N=2.^(1:8)
-%!     A = gallery("poisson", N);
-%!     A += A.';
-%!     b = rand(columns(A), M);
-%!     for i=1:numel(solvers)
-%!       options.solver = solvers{i};
-%!       Afact = fem_sol_factor(A, options);
-%!       x = Afact \ b;
-%!       f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
-%!       assert(f < tol);
+%!   for s=[false, true]
+%!     options.pre_scaling = s;
+%!     for N=2.^(1:8)
+%!       A = gallery("poisson", N);
+%!       A += A.';
+%!       b = rand(columns(A), M);
+%!       for i=1:numel(solvers)
+%!         options.solver = solvers{i};
+%!         Afact = fem_sol_factor(A, options);
+%!         x = Afact \ b;
+%!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
+%!         assert(f < tol);
+%!       endfor
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup
 %!   rand("state", state);
+%! end_unwind_protect
+
+%!test
+%! s = rand("state");
+%! unwind_protect
+%!   rand("seed", 0);
+%!   solvers = {"chol", "lu", "mldivide", "pastix", "pardiso", "mumps", "umfpack"};
+%!   N = 20;
+%!   for k=1:numel(solvers)
+%!     if (~fem_sol_check_func(solvers{k}))
+%!       warning("linear solver %s is not installed", solvers{k});
+%!       continue;
+%!     endif
+%!     for i=1:100
+%!       for j=1:3
+%!         A = gallery("Poisson", N);
+%!         opts.refine_max_iter = int32(100);
+%!         opts.epsilon_refinement = eps^0.8;
+%!         opts.solver = solvers{k};
+%!         switch (j)
+%!           case 1
+%!             Asym = A;
+%!             opts.symmetric = false;
+%!           case {2, 3}
+%!             switch (opts.solver)
+%!             case {"umfpack", "lu", "mldivide"}
+%!               Asym = A;
+%!             otherwise
+%!               [r, c, d] = find(A);
+%!               switch (opts.solver)
+%!                 case "chol"
+%!                   idx = find(r <= c); ## chol uses only the upper triangular part
+%!                 otherwise
+%!                 switch (j)
+%!                 case 2
+%!                   idx = find(r >= c);
+%!                 case 3
+%!                   idx = find(r <= c);
+%!                 endswitch
+%!               endswitch
+%!               Asym = sparse(r(idx), c(idx), d(idx), rows(A), columns(A));
+%!             endswitch
+%!             opts.symmetric = true;
+%!         endswitch
+%!         Afact = fem_sol_factor(Asym, opts);
+%!         B = rand(rows(A), 30);
+%!         X = Afact \ B;
+%!         assert(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) <= opts.epsilon_refinement);
+%!       endfor
+%!     endfor
+%!   endfor
+%! unwind_protect_cleanup
+%!   rand("state", s);
 %! end_unwind_protect

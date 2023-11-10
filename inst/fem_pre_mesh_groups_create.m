@@ -15,7 +15,7 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {Function File} @var{groups} = fem_pre_mesh_groups_create(@var{mesh}, @var{group_defs}, @var{tol_rel})
-## @deftypefnx {} @dots{} = fem_pre_mesh_groups_create(@dots{}, @var{tol_abs})
+## @deftypefnx {} @dots{} = fem_pre_mesh_groups_create(@dots{}, @var{tol_abs}, @var{elem_type})
 ## Create groups of elements or nodes which are located within geometrical limits defined by simple shapes like boxes or cylinders
 ##
 ## @var{mesh} @dots{} Finite element mesh data structure
@@ -52,6 +52,8 @@
 ##
 ## @var{tol_abs} @dots{} absolute tolerance for node positions
 ##
+## @var{elem_type} @dots{} selected element type
+##
 ## @end deftypefn
 
 function groups = fem_pre_mesh_groups_create(mesh, group_defs, tolrel, tolabs, elem_type)
@@ -76,7 +78,7 @@ function groups = fem_pre_mesh_groups_create(mesh, group_defs, tolrel, tolabs, e
 
   tol = norm(dX) * tolrel + tolabs;
 
-  elem_types = {"iso4", "quad8", "tria6", "quad8", "tria6h"};
+  elem_types = {"iso4", "quad8", "quad9", "tria6", "quad8", "tria6h", "tria10", "quad8r"};
 
   empty_cell = cell(1, 0);
 
@@ -95,7 +97,7 @@ function groups = fem_pre_mesh_groups_create(mesh, group_defs, tolrel, tolabs, e
     endif
     
     switch (elem_type)
-      case {"iso4", "tria6", "quad8", "tria6h"}
+      case {"iso4", "tria6", "quad8", "quad9", "tria6h", "tria10", "quad8r"}
         if (isfield(mesh.groups, elem_type))
           grp_data = getfield(groups, elem_type);
           mgrp_data = getfield(mesh.groups, elem_type);
@@ -252,9 +254,9 @@ endfunction
 %! if (status ~= 0)
 %!  warning("gmsh failed with status %d", status);
 %! endif
-%! unlink([filename, ".geo"]);
-%! mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh");
-%! unlink([filename, ".msh"]);
+%! [~] = unlink([filename, ".geo"]);
+%! mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
+%! [~] = unlink([filename, ".msh"]);
 %! group_defs(1).id = 1;
 %! group_defs(1).name = "box1";
 %! group_defs(1).R = eye(3);
@@ -319,7 +321,7 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
