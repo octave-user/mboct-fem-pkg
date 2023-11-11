@@ -6,14 +6,17 @@ name: Docker
 # documentation.
 
 on:
-  schedule:
-    - cron: '18 19 * * *'
+  #schedule:
+  #  - cron: '18 19 * * *'
   push:
     branches: [ master ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
     branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -25,7 +28,7 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     permissions:
       contents: read
       packages: write
@@ -36,12 +39,15 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install GNU/Octave
         run: |
+           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
            sudo apt-get update
-           sudo apt-get dist-upgrade
-           sudo apt-get install octave liboctave-dev \
+           sudo apt-get build-dep octave
+           sudo apt-get install octave liboctave-dev octave-nurbs \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
-           libmetis-dev octave-nurbs libnlopt-dev \
+           libmetis-dev libnlopt-dev \
+           trilinos-all-dev libopenmpi-dev libptscotch-dev libsuitesparse-dev libqrupdate-dev \
            libmkl-full-dev
+
       # Runs a single command using the runners shell
       - name: Install Gmsh
         run: |
@@ -52,15 +58,17 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
-          wget https://public.gitlab.polimi.it/DAER/mbdyn/-/archive/develop/mbdyn-develop.tar.bz2 && \
-          tar -jxvf mbdyn-develop.tar.bz2 && \
-          pushd mbdyn-develop && \
-          ./bootstrap.sh && \
+          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
+          pushd mbdyn
+          ./bootstrap.sh
           ./configure --with-static-modules \
-          --enable-octave --enable-sparse_autodiff --enable-autodiff \
-          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native" CPPFLAGS=-I/usr/include/suitesparse \
-          --with-arpack --with-umfpack --without-metis && \
-          make -j4 && sudo make install && popd
+          --enable-octave \
+          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native -mtune=native" \
+          CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
+          LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
+          --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+          make -j4
+          popd
       - name: Install mboct-octave-pkg
         run: |
            git clone -b master https://github.com/octave-user/mboct-octave-pkg.git && \
