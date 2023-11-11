@@ -90,11 +90,6 @@ jobs:
       - name: Clone MBDyn
         run: |
           git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
-          pushd mbdyn
-          git config --local user.email mbdyn-user@a1.net
-          git config --local user.name mbdyn-user
-          git merge origin/inertia-beta-gamma
-          popd
 
       # Runs a set of commands using the runners shell
       - name: Compile MBDyn
