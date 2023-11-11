@@ -154,7 +154,7 @@ jobs:
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b iso20upc https://github.com/octave-user/mboct-mbdyn-pkg.git && \
+           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
            pushd mboct-mbdyn-pkg && \
            make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
