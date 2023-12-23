@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cstddef>
 #include <cstdlib>
+#include <cstdio.h>
 #include <cmath>
 #include <array>
 #include <algorithm>
