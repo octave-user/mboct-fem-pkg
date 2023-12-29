@@ -135,9 +135,9 @@ endfunction
 %!                zeros(size(z)), ...
 %!                "linear");
 %! tol = 1e-2;
-%! assert(uz, y(3, :).', tol * max(abs(y(3, :))))
+%! assert_simple(uz, y(3, :).', tol * max(abs(y(3, :))))
 
-%!demo
+%!test
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -184,4 +184,4 @@ endfunction
 %! title("deflection of cantilever beam");
 %! figure_list();
 %! tol = 1e-2;
-%! assert(uz, y(3, :).', tol * max(abs(y(3, :))))
+%! assert_simple(uz, y(3, :).', tol * max(abs(y(3, :))))

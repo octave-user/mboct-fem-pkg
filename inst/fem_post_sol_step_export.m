@@ -177,7 +177,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
   end_unwind_protect
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! E1 = 70000e6;
 %! nu1 = 0.3;
@@ -193,6 +193,7 @@ endfunction
 %! param.o = 25e-3;
 %! param.g = 0.5e-3;
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -318,18 +319,20 @@ endfunction
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
-%!   status = spawn_wait(spawn("gmsh", {[filename, "_post_pro.geo"]}));
-%!   if (status ~= 0)
-%!     error("gmsh failed with status %d", status);
+%!   if (f_run_post_proc)
+%!     status = spawn_wait(spawn("gmsh", {[filename, "_post_pro.geo"]}));
+%!     if (status ~= 0)
+%!       error("gmsh failed with status %d", status);
+%!     endif
+%!     fn = dir([filename, "_post_pro_*.jpg"]);
+%!     for i=1:numel(fn)
+%!       [img, alpha, map] = imread(fullfile(fn(i).folder, fn(i).name));
+%!       figure("visible", "off");
+%!       imshow(img, map);
+%!       title(sprintf("deformed mesh load case %d", i));
+%!     endfor
+%!     figure_list();
 %!   endif
-%!   fn = dir([filename, "_post_pro_*.jpg"]);
-%!   for i=1:numel(fn)
-%!     [img, alpha, map] = imread(fullfile(fn(i).folder, fn(i).name));
-%!     figure("visible", "off");
-%!     imshow(img, map);
-%!     title(sprintf("deformed mesh load case %d", i));
-%!   endfor
-%!   figure_list();
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

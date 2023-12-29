@@ -63,7 +63,7 @@ function fem_post_sol_external(mesh, sol, varargin)
   end_unwind_protect
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! E1 = 70000e6;
 %! nu1 = 0.3;
@@ -79,6 +79,7 @@ endfunction
 %! param.o = 25e-3;
 %! param.g = 0.5e-3;
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -166,6 +167,7 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post_pro_jpg"];
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
 %!   opt_post.scale_def = 300;
+%!   if (f_run_post_proc)
 %!   fem_post_sol_external(mesh, sol_stat, opt_post);
 %!   fn = dir([filename, "_post_pro_jpg*.jpg"]);
 %!   for i=1:numel(fn)
@@ -175,6 +177,7 @@ endfunction
 %!    title("van Mises stress - Gmsh");
 %!   endfor
 %!   figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

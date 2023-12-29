@@ -211,14 +211,14 @@ endfunction
 %!     A2(mesh2.elements.iso4(i, :), mesh2.elements.iso4(i, :)) += x2(mesh2.elements.iso4(i, :));
 %!   endfor
 %!
-%!   assert(s2, s);
-%!   assert(mesh2.nodes(iperm,:), mesh.nodes)
-%!   assert(A2(iperm, iperm), A);
-%!   assert(A2, A(perm, perm));
+%!   assert_simple(s2, s);
+%!   assert_simple(mesh2.nodes(iperm,:), mesh.nodes)
+%!   assert_simple(A2(iperm, iperm), A);
+%!   assert_simple(A2, A(perm, perm));
 %!   for i=1:numel(mesh.groups.iso4)
-%!     assert(mesh2.groups.iso4(i).elements, mesh.groups.iso4(i).elements);
-%!     assert(mesh2.groups.iso4(i).name, mesh.groups.iso4(i).name);
-%!     assert(perm(mesh2.groups.iso4(i).nodes), mesh.groups.iso4(i).nodes);
+%!     assert_simple(mesh2.groups.iso4(i).elements, mesh.groups.iso4(i).elements);
+%!     assert_simple(mesh2.groups.iso4(i).name, mesh.groups.iso4(i).name);
+%!     assert_simple(perm(mesh2.groups.iso4(i).nodes), mesh.groups.iso4(i).nodes);
 %!   endfor
 %!   g2 = zeros(numel(mesh2.groups.iso4), 1);
 %!   for i=1:numel(mesh2.groups.iso4)

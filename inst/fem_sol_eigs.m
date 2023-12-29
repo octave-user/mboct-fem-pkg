@@ -283,11 +283,11 @@ endfunction
 %!                 for m=1:numel(problems)
 %!                   opt.problem = opt.problem = problems{m};
 %!                   [U, lambda, err] = fem_sol_eigs(K, M, n, opt);
-%!                   assert(max(err) < tol);
+%!                   assert_simple(max(err) < tol);
 %!                 endfor
 %!               else
 %!                   [U, lambda, err] = fem_sol_eigs(K, M, n, opt);
-%!                   assert(max(err) < tol);
+%!                   assert_simple(max(err) < tol);
 %!               endif
 %!           endswitch
 %!           t(a, k) += toc(start);
@@ -325,7 +325,7 @@ endfunction
 %! for i=1:columns(v)
 %!  a = K * v(:, i);
 %!  b = lambda(i,i) * M * v(:, i);
-%!  assert(a, b, tol * norm(abs(a)+abs(b)));
+%!  assert_simple(a, b, tol * norm(abs(a)+abs(b)));
 %! endfor
 
 %!test
@@ -354,22 +354,22 @@ endfunction
 %! [lambda3, idx_lambda3] = sort(diag(lambda3));
 %! v3 = v3(:, idx_lambda3);
 %! [L, P] = chol(B, "lower");
-%! assert(P,0);
+%! assert_simple(P,0);
 %! A2 = (L \ A) / L.';
-%! assert(issymmetric(A2, tol*norm(A2)));
+%! assert_simple(issymmetric(A2, tol*norm(A2)));
 %! [L2, P2] = chol(A2, "lower");
-%! assert(P2,0);
+%! assert_simple(P2,0);
 %! [v2, lambda2, flag2] = eigs(@(y) L2.' \ (L2 \ y), columns(A2), M, "sm", opts);
 %! [lambda2, idx_lambda2] = sort(diag(lambda2));
 %! v2 = v2(:, idx_lambda2);
 %! v2 = L.' \ v2;
-%! assert(flag2, 0);
-%! assert(lambda(1:3), lambda3(1:M), tol*max(max(abs(lambda(1:M)))));
-%! assert(lambda(1:M), lambda2, tol*max(max(abs(lambda(1:M)))));
+%! assert_simple(flag2, 0);
+%! assert_simple(lambda(1:3), lambda3(1:M), tol*max(max(abs(lambda(1:M)))));
+%! assert_simple(lambda(1:M), lambda2, tol*max(max(abs(lambda(1:M)))));
 %! for k=1:M
-%!  assert(A * v(:, k), lambda(k) * B * v(:, k), tol * norm(A * v(:, k)));
-%!  assert(A * v3(:, k), lambda3(k) * B * v3(:, k), tol * norm(A * v3(:, k)));
-%!  assert(A * v2(:, k), lambda2(k) * B * v2(:, k), tol * norm(A * v2(:, k)));
+%!  assert_simple(A * v(:, k), lambda(k) * B * v(:, k), tol * norm(A * v(:, k)));
+%!  assert_simple(A * v3(:, k), lambda3(k) * B * v3(:, k), tol * norm(A * v3(:, k)));
+%!  assert_simple(A * v2(:, k), lambda2(k) * B * v2(:, k), tol * norm(A * v2(:, k)));
 %! endfor
 %! endfor
 %! endfor
@@ -410,37 +410,37 @@ endfunction
 %! [v4, kappa4, flag4] = eigs(@(x) (A \ B) * x, columns(A), M, "lm", opts);
 %! kappa4 = diag(kappa4);
 %! for k=1:columns(v4)
-%!  assert(kappa4(k) * A * v4(:, k), B * v4(:, k), tol2 * norm(B * v4(:, k)));
+%!  assert_simple(kappa4(k) * A * v4(:, k), B * v4(:, k), tol2 * norm(B * v4(:, k)));
 %! endfor
 %! [v5, kappa5, flag5] = eigs(@(x) A \ (B * x), columns(A), M, "lm", opts);
 %! kappa5 = diag(kappa5);
 %! for k=1:columns(v5)
-%!  assert(kappa5(k) * A * v5(:, k), B * v5(:, k), tol2 * norm(B * v5(:, k)));
+%!  assert_simple(kappa5(k) * A * v5(:, k), B * v5(:, k), tol2 * norm(B * v5(:, k)));
 %! endfor
 %! start = tic();
 %! [L, P, Q] = chol(A, "lower", "vector");
 %! Bperm = B(Q, Q);
 %! [v2(Q, :), kappa2, flag2] = eigs(@(x) (L.' \ (L \ (Bperm * x))), columns(A), M, "lm", opts);
 %! time_lambda2 += tic() - start;
-%! assert(flag2, 0);
+%! assert_simple(flag2, 0);
 %! kappa2 = diag(kappa2);
 %! [lambda2, idx_lambda2] = sort(1./kappa2);
 %! kappa2 = kappa2(idx_lambda2);
 %! v2 = v2(:, idx_lambda2);
 %! for k=1:columns(v2)
-%!  assert(kappa2(k) * A * v2(:, k), B * v2(:, k), tol2 * max([norm(kappa2(k) * A * v2(:, k)), norm(B * v2(:, k))]));
-%!  assert(A * v2(:, k), lambda2(k) * B * v2(:, k), tol2 * max([norm(lambda2(k) * B * v2(:, k)), norm(A * v2(:, k))]));
+%!  assert_simple(kappa2(k) * A * v2(:, k), B * v2(:, k), tol2 * max([norm(kappa2(k) * A * v2(:, k)), norm(B * v2(:, k))]));
+%!  assert_simple(A * v2(:, k), lambda2(k) * B * v2(:, k), tol2 * max([norm(lambda2(k) * B * v2(:, k)), norm(A * v2(:, k))]));
 %! endfor
-%! assert(lambda, lambda3, tol1*max(max(abs(lambda))));
-%! assert(lambda, lambda2, tol1*max(max(abs(lambda))));
+%! assert_simple(lambda, lambda3, tol1*max(max(abs(lambda))));
+%! assert_simple(lambda, lambda2, tol1*max(max(abs(lambda))));
 %! for k=1:columns(v)
-%!  assert(A * v(:, k), lambda(k) * B * v(:, k), tol1 * norm(A * v(:, k)));
-%!  assert(A * v3(:, k), lambda3(k) * B * v3(:, k), tol1 * norm(A * v3(:, k)));
-%!  assert(A * v2(:, k), lambda2(k) * B * v2(:, k), tol2 * norm(A * v2(:, k)));
+%!  assert_simple(A * v(:, k), lambda(k) * B * v(:, k), tol1 * norm(A * v(:, k)));
+%!  assert_simple(A * v3(:, k), lambda3(k) * B * v3(:, k), tol1 * norm(A * v3(:, k)));
+%!  assert_simple(A * v2(:, k), lambda2(k) * B * v2(:, k), tol2 * norm(A * v2(:, k)));
 %! endfor
 %! endfor
 
-%!demo
+%!test
 %! state = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);

@@ -59,4 +59,4 @@ endfunction
 %! omega = 2 * pi * f;
 %! [alpha, beta] = fem_pre_mat_rayleigh_damping(D, f);
 %! Dref = 1/2* (alpha ./ omega + beta * omega);
-%! assert(D, Dref, eps * norm(Dref));
+%! assert_simple(D, Dref, eps * norm(Dref));

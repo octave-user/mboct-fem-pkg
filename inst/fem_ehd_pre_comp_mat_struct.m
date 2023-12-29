@@ -559,7 +559,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test
 %! do_plot = true;
 %! if (do_plot)
 %!   close all;

@@ -51,7 +51,7 @@ function Afact = fem_sol_factor(A, options)
   endif
 
   if (~isfield(options, "solver"))
-    options.solver = "pastix";
+    options.solver = fem_sol_select(false);
   endif
 
   if (~isfield(options, "refine_max_iter"))
@@ -203,7 +203,7 @@ endfunction
 %!         Afact = fem_sol_factor(A, options);
 %!         x = Afact \ b;
 %!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
-%!         assert(f < tol);
+%!         assert_simple(f < tol);
 %!       endfor
 %!     endfor
 %!   endfor
@@ -256,7 +256,7 @@ endfunction
 %!         Afact = fem_sol_factor(Asym, opts);
 %!         B = rand(rows(A), 30);
 %!         X = Afact \ B;
-%!         assert(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) <= opts.epsilon_refinement);
+%!         assert_simple(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) <= opts.epsilon_refinement);
 %!       endfor
 %!     endfor
 %!   endfor

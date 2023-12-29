@@ -110,7 +110,7 @@ endfunction
 %!   angle_data(j) = fem_pre_mesh_elem_angle(mesh);
 %! endfor
 %! for j=1:numel(angle_data)
-%!   assert(all(all(all(abs(angle_data(j).iso8 - pi / 2) < 2 * pi * tol))));
+%!   assert_simple(all(all(all(abs(angle_data(j).iso8 - pi / 2) < 2 * pi * tol))));
 %! endfor
 
 %!test
@@ -145,8 +145,8 @@ endfunction
 %! for i=1:numel(angle_data)
 %!   for j=1:rows(angle_data(j).iso8)
 %!     for k=1:2
-%!       assert(all(abs(angle_data(j).iso8(j, 1:4, k) - alpha) < 2 * pi * tol));
-%!       assert(all(abs(angle_data(j).iso8(j, 5:end, k) - pi / 2) < 2 * pi * tol));
+%!       assert_simple(all(abs(angle_data(j).iso8(j, 1:4, k) - alpha) < 2 * pi * tol));
+%!       assert_simple(all(abs(angle_data(j).iso8(j, 5:end, k) - pi / 2) < 2 * pi * tol));
 %!     endfor
 %!   endfor
 %! endfor

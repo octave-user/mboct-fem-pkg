@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
   if (~isfield(options, "scale"))
     options.scale = 1;
   endif
-  
+
   if (~isfield(options, "scale_type"))
     options.scale_type = "modal node";
   endif
@@ -63,7 +63,7 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
     else
       q = sol_dyn.bodies(i).q(:, idx_t);
     endif
-    
+
     Xn = cms_data(i).mesh.nodes;
     Xm = Xn(cms_data(i).cms_opt.nodes.modal.number, :);
     Un = fem_post_cms_expand_body(cms_data(i).mesh, ...
@@ -101,7 +101,7 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
           case "least square*"
             Un3 -= Urb3;
         endswitch
-        
+
         for j=1:3
           Un(:, j, :) = Un3(j:3:end, :);
         endfor
@@ -127,12 +127,12 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
           endfor
         endfor
     endswitch
-    
+
     switch (options.scale_type)
       case "reference node"
         def_rb = zeros(size(Xn, 1), 6, numel(idx_t));
         ln_ref = Xn - Xm;
-        
+
         for j=1:3
           def_rb(:, j, :) = -Xn(:, j) + sol_dyn.bodies(i).X_ref(j, idx_t);
 
@@ -223,7 +223,7 @@ endfunction
 %!   endif
 %! endfor
 
-%!demo
+%!test
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;

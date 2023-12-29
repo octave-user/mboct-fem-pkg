@@ -65,7 +65,7 @@ endfunction
 %!           options.verbose = int32(0);
 %!           x = fem_sol_linsolve(A, b, options);
 %!           f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
-%!           assert(f <= options.epsilon_refinement);
+%!           assert_simple(f <= options.epsilon_refinement);
 %!         endfor
 %!       endfor
 %!     endfor
@@ -91,7 +91,7 @@ endfunction
 %!         options.pre_scaling = s;
 %!         U = fem_sol_linsolve(K, R, options);
 %!         f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
-%!         assert(f < tol);
+%!         assert_simple(f < tol);
 %!       endfor
 %!     endfor
 %!   endfor
@@ -120,7 +120,7 @@ endfunction
 %!       options.symmetric = false;
 %!       U = fem_sol_linsolve(K, R, options);
 %!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
-%!       assert(f < tol);
+%!       assert_simple(f < tol);
 %!     endfor
 %!   endfor
 %!   endfor
@@ -145,7 +145,7 @@ endfunction
 %!       options.pre_scaling = s;
 %!       U = fem_sol_linsolve(K, R, options);
 %!       f = max(norm(K * U - R, "cols") ./ norm(K * U + R, "cols"));
-%!       assert(f < tol);
+%!       assert_simple(f < tol);
 %!     endfor
 %!   endfor
 %!   endfor
@@ -177,13 +177,13 @@ endfunction
 %!         options.verbose = int32(0);
 %!         x = fem_sol_linsolve(A, b, options);
 %!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
-%!         assert(f < tol);
+%!         assert_simple(f < tol);
 %!         max_f = max(f, max_f);
 %!       endfor
 %!     endfor
 %!   endfor
 %!   endfor
-%!   assert(max_f < tol);
+%!   assert_simple(max_f < tol);
 %! unwind_protect_cleanup
 %!   rand("state", state);
 %! end_unwind_protect
@@ -238,8 +238,8 @@ endfunction
 %!         x1 = A \ b;
 %!         x2 = Afact \ b;
 %!         tol = eps^0.4;
-%!         assert(x2, x1, tol * norm(x1));
-%!         assert(A * x2, b, tol * norm(A*x2 + b));
+%!         assert_simple(x2, x1, tol * norm(x1));
+%!         assert_simple(A * x2, b, tol * norm(A*x2 + b));
 %!       endfor
 %!     endfor
 %!   endfor
@@ -247,7 +247,7 @@ endfunction
 %!   rand("state", state);
 %! end_unwind_protect
 
-%!demo
+%!test
 %! N = 100;
 %! K = gallery("Poisson", N);
 %! R = linspace(0, 1, columns(K)).';

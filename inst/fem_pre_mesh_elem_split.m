@@ -1,5 +1,4 @@
-
-## Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -60,7 +59,7 @@ function mesh_split = fem_pre_mesh_elem_split(mesh, options)
     mesh_split.elements.iso8(1:inum_elem, :) = mesh.elements.iso8(idx_elem_keep, :);
     mesh_split.materials.iso8(1:inum_elem, :) = mesh.materials.iso8(idx_elem_keep);
   endif
-  
+
   for i=1:numel(idx_elem_split)
     Phi = mean(angle_data.iso8(idx_elem_split(i), :, :), 3);
 
@@ -89,7 +88,7 @@ function mesh_split = fem_pre_mesh_elem_split(mesh, options)
         otherwise
           error("invalid node index %d detected", idx_max_angle(1));
       endswitch
-      
+
       for j=1:rows(idx_nodes)
         mesh_split.elements.iso8(++inum_elem, :) = mesh.elements.iso8(idx_elem_split(i), idx_nodes(j, :));
         mesh_split.materials.iso8(inum_elem) = mesh.materials.iso8(idx_elem_split(i));
@@ -177,8 +176,8 @@ endfunction
 %!   endif
 %! endfor
 %! endfor
-%! assert(all(abs([mat_ass.m] - m) < tol * m));
-%! assert(all(abs([mat_ass_split.m] - m) < tol * m));
+%! assert_simple(all(abs([mat_ass.m] - m) < tol * m));
+%! assert_simple(all(abs([mat_ass_split.m] - m) < tol * m));
 %! if (do_plot)
 %! figure_list();
 %! endif
@@ -262,14 +261,14 @@ endfunction
 %!   endif
 %! endfor
 %! endfor
-%! assert(all(abs([mat_ass.m] - m) < tol * m));
-%! assert(all(abs([mat_ass_split.m] - m) < tol * m));
+%! assert_simple(all(abs([mat_ass.m] - m) < tol * m));
+%! assert_simple(all(abs([mat_ass_split.m] - m) < tol * m));
 %! if (do_plot)
 %! figure_list();
 %! endif
 
-%!demo
-%! do_plot = true;
+%!test
+%! do_plot = false;
 %! if (do_plot)
 %! close all;
 %! endif
@@ -314,7 +313,7 @@ endfunction
 %!                                             mesh_data(i).load_case);
 %!   mesh_data(i).sol_eig = fem_sol_modal(mesh_data(i).mesh, mesh_data(i).dof_map, mesh_data(i).mat_ass, N, r);
 %! endfor
-%! assert(mesh_data(2).sol_eig.f, mesh_data(1).sol_eig.f, tol_f * max(mesh_data(1).sol_eig.f));
+%! assert_simple(mesh_data(2).sol_eig.f, mesh_data(1).sol_eig.f, tol_f * max(mesh_data(1).sol_eig.f));
 %! opts.print_and_exit = true;
 %! opts.print_to_file = "";
 %! unwind_protect
@@ -323,9 +322,9 @@ endfunction
 %!     for j=8:9
 %!       opts.scale_def = 2.5e-3 / max(max(abs(mesh_data(i).sol_eig.def(:, 1:3, j))));
 %!       opts.output_step_idx = j;
-%!       fem_post_sol_external(mesh_data(i).mesh, mesh_data(i).sol_eig, opts);
-%!       [img, map, alpha] = imread(sprintf("%s_%03d.jpg", opts.print_to_file, 1));
 %!       if (do_plot)
+%!         fem_post_sol_external(mesh_data(i).mesh, mesh_data(i).sol_eig, opts);
+%!         [img, map, alpha] = imread(sprintf("%s_%03d.jpg", opts.print_to_file, 1));
 %!         figure("visible", "off");
 %!         imshow(img, map);
 %!         title(sprintf("mode %d f=%.0fHz", j, mesh_data(i).sol_eig.f(j)));
@@ -341,6 +340,8 @@ endfunction
 %!   endif
 %! end_unwind_protect
 %! for i=1:numel(mesh_data)
-%!   assert(mesh_data(i).mat_ass.m, m, tol_m * m);
+%!   assert_simple(mesh_data(i).mat_ass.m, m, tol_m * m);
 %! endfor
-%! figure_list();
+%! if (do_plot)
+%!   figure_list();
+%! endif

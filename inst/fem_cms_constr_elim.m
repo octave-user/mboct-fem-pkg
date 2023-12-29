@@ -77,7 +77,7 @@ function Ared = fem_transf_mat(A, idx1, idx2, T1)
           Ared12.', A22];
 endfunction
 
-%!demo
+%!test
 %! ## Build a simple mesh made of a single hexahedron
 %! X = [ 1,  1,  1;
 %!      -1,  1,  1;
@@ -136,7 +136,7 @@ endfunction
 %! ## Solve the full set of equations
 %! [sol_ref] = fem_sol_static(mesh, dof_map, mat_ass);
 %! ## Check if we got the same result with reduced set of equations and full set of equations
-%! assert(sol_red.def, sol_ref.def, tol * norm(sol_ref.def));
+%! assert_simple(sol_red.def, sol_ref.def, tol * norm(sol_ref.def));
 %! ## Check if constraint we imposed for the top nodes is satisfied
-%! assert(sol_red.def(1:4, :), repmat(sol_red.def(1, :), 4, 1), tol * norm(sol_red.def(1, :)));
+%! assert_simple(sol_red.def(1:4, :), repmat(sol_red.def(1, :), 4, 1), tol * norm(sol_red.def(1, :)));
 

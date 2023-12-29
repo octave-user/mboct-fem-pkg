@@ -35,10 +35,10 @@
 ##
 ## @var{U} @dots{} mode shapes
 ##
-## @seealso{fem_sol_eigs}
+## @seealso{fem_sol_eigs, fem_sol_modes_scale2, fem_sol_harmonic_modal2}
 ## @end deftypefn
 
-function [sol, err, U] = fem_sol_modal(mesh, dof_map, mat_ass, N, varargin)
+function [sol, U, err] = fem_sol_modal(mesh, dof_map, mat_ass, N, varargin)
   if (nargin < 4 || nargout > 3)
     print_usage();
   endif
@@ -51,7 +51,7 @@ function [sol, err, U] = fem_sol_modal(mesh, dof_map, mat_ass, N, varargin)
   sol.def = fem_post_def_nodal(mesh, dof_map, U * diag(1 ./ norm(U, "cols")));
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -73,4 +73,4 @@ endfunction
 %!                              [FEM_MAT_MASS, ...
 %!                               FEM_MAT_STIFFNESS], ...
 %!                              load_case);
-%! [sol_eig, err] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes);
+%! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes);

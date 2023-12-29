@@ -185,8 +185,8 @@ function mesh = fem_pre_mesh_unstruct_create(geo_file, param_dim, options)
   end_unwind_protect
 endfunction
 
-%!demo
-%! ## DEMO1
+%!test
+%! ## TEST1
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -208,6 +208,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.D^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -290,24 +291,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.15 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.15 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO2
+%!test
+%! ## TEST2
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -329,6 +332,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.d^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -407,24 +411,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.15 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.15 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO3
+%!test
+%! ## TEST3
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -446,6 +452,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.D^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -525,24 +532,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.08 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.08 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO4
+%!test
+%! ## TEST4
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -564,6 +573,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.d^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -641,24 +651,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.05 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.05 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO5
+%!test
+%! ## TEST5
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -680,6 +692,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.D^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -763,24 +776,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.15 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.15 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO6
+%!test
+%! ## TEST6
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -802,6 +817,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.d^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -881,24 +897,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.15 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.15 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO7
+%!test
+%! ## TEST7
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -920,6 +938,7 @@ endfunction
 %! tauxx_a = tauxx_n * Kt_a;
 %! p = -F1 / (geo.D^2 * pi / 4);
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -1015,24 +1034,26 @@ endfunction
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
-%!   assert(Kt, Kt_a, 0.15 * Kt_a);
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
+%!   assert_simple(Kt, Kt_a, 0.15 * Kt_a);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO8
+%!test
+%! ## TEST8
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
@@ -1043,6 +1064,7 @@ endfunction
 %! geo.Di = 2e-3;
 %! geo.L = 4e-3;
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -1132,29 +1154,31 @@ endfunction
 %!     error("Jacobian is singular");
 %!   endif
 %!   m_a = (geo.Do^2 - geo.Di^2) * pi / 4 * geo.L / 4 * rho;
-%!   assert(mat_ass.mtot, m_a, eps^0.4 * m_a);
+%!   assert_simple(mat_ass.mtot, m_a, eps^0.4 * m_a);
 %!   opt_post.scale_def = 3000;
 %!   opt_post.show_element = true;
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO9
+%!test
+%! ## TEST9
 %! close all;
 %! SI_unit_meter = 1;
 %! SI_unit_second = 1;
@@ -1237,13 +1261,13 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO10
+%!test
+%! ## TEST10
 %! close all;
 %! SI_unit_meter = 1e-3;
 %! SI_unit_second = 1;
@@ -1291,7 +1315,7 @@ endfunction
 %! param.eta3 = 3 / 4 * param.tau3 * param.rho3 * param.c3^2;
 %! param.tau3_ = 1 / (param.rho3 * param.c3^2) * (4/3 * param.eta3);
 %! param.k3 = 1 / sqrt(1 + 1j * param.omegaref * param.tau3_) * param.omegaref / param.c3;
-%! assert(1j * param.k3, param.Gamma3 * param.omegaref / param.c3, eps^0.9 * abs(param.Gamma3 * param.omegaref / param.c3));
+%! assert_simple(1j * param.k3, param.Gamma3 * param.omegaref / param.c3, eps^0.9 * abs(param.Gamma3 * param.omegaref / param.c3));
 %! param.m1 = 2.2 / SI_unit_kilogram;
 %! param.J1 = 1e-6 * [2.4427674e+03 -3.2393301e+01 -5.3623318e+02
 %!                    -3.2393301e+01  3.7506484e+03  7.9745924e+01
@@ -1673,13 +1697,13 @@ endfunction
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO11
+%!test
+%! ## TEST11
 %! close all;
 %! SI_unit_meter = 1e-3;
 %! SI_unit_second = 1;
@@ -1702,19 +1726,31 @@ endfunction
 %! param.N = 200;
 %! param.maxdef = 10e-3 / SI_unit_meter;
 %! param.fmin = 0;
-%! param.fmax = 2000 / (SI_unit_second^-1);
-%! param.num_freq_modal = 10000;
+%! param.fmax = 15000/ (SI_unit_second^-1);
+%! param.num_freq_modal = 5000;
 %! param.num_freq_nodal = 0;
+%! param.damping = "local";
+%! param.solver = "undamped";
+%! switch (param.solver)
+%! case "damped"
+%!   param.N *= 2;
+%! endswitch
+%! damp.D_helspr1 = [1e-2; 0.03e-2];
+%! damp.f_helspr1 = [20, 1000] / (SI_unit_second^-1);
+%! damp.D_rubspr1 = [10e-2; 30e-2];
+%! damp.f_rubspr1 = [30, 100] / (SI_unit_second^-1);
+%! damp.D_global = [1e-3; 1e-3];
+%! damp.f_global = [10, 10000] / (SI_unit_second^-1);
 %! helspr1.d = 1.3e-3 / SI_unit_meter;
 %! helspr1.D = 12.12e-3 / SI_unit_meter + helspr1.d;
-%! helspr1.L = 27.7e-3 / SI_unit_meter;
+%! helspr1.L = 24.2e-3 / SI_unit_meter;
 %! helspr1.n = 5.7;
 %! helspr1.ni = 2.7;
 %! helspr1.ng = 0.75;
-%! helspr1.m = 40;
+%! helspr1.m = 200;
 %! helspr1.material.E = 206000e6 / SI_unit_pascal;
 %! helspr1.material.G = 81500e6 / SI_unit_pascal;
-%! [helspr1.material.alpha, helspr1.material.beta] = fem_pre_mat_rayleigh_damping([1e-2; 0.03e-2], [20, 1000] / (SI_unit_second^-1));
+%! [helspr1.material.alpha, helspr1.material.beta] = fem_pre_mat_rayleigh_damping(damp.D_helspr1, damp.f_helspr1);
 %! helspr1.material.nu = helspr1.material.E / (2 * helspr1.material.G) - 1;
 %! helspr1.material.rho = 7850 / (SI_unit_kilogram / SI_unit_meter^3);
 %! helspr1.X = [[45.20e-3,  45.20e-3, -62.5e-3;
@@ -1731,7 +1767,7 @@ endfunction
 %! rubspr1.L = 10.5e-3 / SI_unit_meter;
 %! rubspr1.material.E = 2.6e6 / SI_unit_pascal;
 %! rubspr1.material.nu = 0.499;
-%! [rubspr1.material.alpha, rubspr1.material.beta] = fem_pre_mat_rayleigh_damping([10e-2; 30e-2], [30, 100] / (SI_unit_second^-1));
+%! [rubspr1.material.alpha, rubspr1.material.beta] = fem_pre_mat_rayleigh_damping(damp.D_rubspr1, damp.f_rubspr1);
 %! rubspr1.material.rho = 910 / (SI_unit_kilogram / SI_unit_meter^3);
 %! rubspr1.X = [(170e-3 * [0.5, 0.5, -0.5, -0.5] + 8e-3) / SI_unit_meter;
 %!              70e-3 * [-0.5, 0.5, -0.5, 0.5] / SI_unit_meter;
@@ -1874,7 +1910,15 @@ endfunction
 %!                                       FEM_MAT_DAMPING, ...
 %!                                       FEM_VEC_LOAD_CONSISTENT], ...
 %!                                      load_case);
-%! opt_linsol.solver = "pastix";
+%! switch (param.damping)
+%! case "global"
+%!  [damp.alpha_global, damp.beta_global] = fem_pre_mat_rayleigh_damping(damp.D_global, damp.f_global);
+%!  mat_ass.D = damp.alpha_global * mat_ass.M + damp.beta_global * mat_ass.K;
+%! case "local"
+%! otherwise
+%!  error("unknown damping model: \"%s\"", param.damping);
+%! endswitch
+%! opt_linsol.solver = "umfpack";
 %! opt_linsol.pre_scaling = true;
 %! opt_linsol.number_of_threads = int32(2);
 %! opt_linsol.refine_max_iter = int32(50);
@@ -1882,10 +1926,18 @@ endfunction
 %! opt_linsol.verbose = int32(0);
 %! opt_eig.p = 5 * param.N;
 %! opt_eig.maxit = int32(100);
-%! [sol_eig, Phi] = fem_sol_modal_damped(mesh, dof_map, mat_ass, param.N, opt_linsol, opt_eig);
-%! [Phi, h] = fem_sol_modes_scale(mat_ass.M, mat_ass.K, sol_eig.lambda, Phi, mat_ass.R);
 %! omega = linspace(2 * pi * param.fmin, 2 * pi * param.fmax, param.num_freq_modal);
-%! U2 = fem_sol_harmonic_modal(h, sol_eig.lambda, Phi(dof_map.ndof(node_idx_rb2, :), :), omega);
+%! switch(param.solver)
+%! case "damped"
+%!   [sol_eig, Phi] = fem_sol_modal_damped(mesh, dof_map, mat_ass, param.N, opt_linsol, opt_eig);
+%!   [Phi, h] = fem_sol_modes_scale(mat_ass.M, mat_ass.K, sol_eig.lambda, Phi, mat_ass.R);
+%!   U2 = fem_sol_harmonic_modal(h, sol_eig.lambda, Phi(dof_map.ndof(node_idx_rb2, :), :), omega);
+%! case "undamped"
+%!   [sol_eig, Phi] = fem_sol_modal(mesh, dof_map, mat_ass, param.N, opt_linsol, opt_eig);
+%!   [dgen, kgen, rgen] = fem_sol_modes_scale2(mat_ass.M, mat_ass.D, mat_ass.K, Phi, mat_ass.R);
+%!   U2 = fem_sol_harmonic_modal2(dgen, kgen, rgen, Phi(dof_map.ndof(node_idx_rb2, :), :), omega);
+%! endswitch
+
 %! for i=1:size(sol_eig.def, 3)
 %!   sre = max(max(abs(real(sol_eig.def(:, 1:3, i)))));
 %!   sim = max(max(abs(imag(sol_eig.def(:, 1:3, i)))));

@@ -39,7 +39,7 @@
 ##
 ## @var{bearing_surf}.nodes @dots{} Node numbers of all Finite Element nodes at the bearing surface.
 ##
-## @var{bearing_surf}.matrix_type @dots{} One of "nodal", "nodal substruct", "nodal substruct total", "modal substruct", "modal substruct total".
+## @var{bearing_surf}.matrix_type @dots{} One of "nodal", "nodal substruct", "nodal substruct total", "modal substruct total".
 ##
 ## @var{bearing_surf}.master_node_no @dots{} Node number of the master node connected to the RBE3 element of the bearing surface.
 ##
@@ -479,7 +479,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_
   endfor
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! fd = -1;
 %! filename = "";
@@ -551,7 +551,7 @@ endfunction
 %! mesh.nodes(node_idx_itf1, 1:3) = [0, 0, c + 0.5 * b];
 %! mesh.nodes(node_idx_modal, :) = 0;
 %! mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, [grp_id_p1, grp_id_p2], [node_idx_itf1, node_idx_itf2], "tria6");
-%! mat_type = {"nodal", "nodal substruct", "nodal substruct total", "modal substruct"};
+%! mat_type = {"nodal", "nodal substruct", "nodal substruct total", "modal substruct total"};
 %! for imat=1:numel(mat_type)
 %! data(imat).mesh = mesh;
 %! data(imat).bearing_surf(1).group_idx = grp_id_p1;

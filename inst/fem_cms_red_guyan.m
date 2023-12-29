@@ -87,9 +87,9 @@ endfunction
 %!
 %! Kred2 = [ s / 3,    -s / 3;
 %!          -s / 3,     s + s / 3];
-%! assert(Kred, Kred2, eps * norm(Kred2));
+%! assert_simple(Kred, Kred2, eps * norm(Kred2));
 
-%!demo
+%!test
 %! E = 210000e6;
 %! A = 100e-6;
 %! l = 50e-3;
@@ -104,4 +104,4 @@ endfunction
 %! s2 = A * E / (3 * l);
 %! Kred2 = [ s2,    -s2;
 %!          -s2,     s2];
-%! assert(Kred, Kred2, eps * norm(Kred2));
+%! assert_simple(Kred, Kred2, eps * norm(Kred2));

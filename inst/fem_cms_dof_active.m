@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@ function dof_in_use = fem_cms_dof_active(mesh)
   endif
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -82,6 +82,6 @@ endfunction
 %! mesh.elements.rbe3(2).nodes = int32([14, 2, 3, 6, 7]);
 %! mesh.elements.rbe3(2).weight = ones(1, 4);
 %! dof_status = fem_cms_dof_active(mesh);
-%! assert(all(all(dof_status(1:14, 1:3))));
-%! assert(all(all(dof_status(13:14, 1:6))));
-%! assert(~any(dof_status(15, :)));
+%! assert_simple(all(all(dof_status(1:14, 1:3))));
+%! assert_simple(all(all(dof_status(13:14, 1:6))));
+%! assert_simple(~any(dof_status(15, :)));

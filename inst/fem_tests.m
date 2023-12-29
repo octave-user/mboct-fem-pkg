@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@
 %! empty_cell = cell(1, numel(alg));
 %! sol_eig = struct("def", empty_cell, "f", empty_cell, "lambda", empty_cell, "D", empty_cell);
 %! for a=1:numel(alg)
-%!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
+%!   [sol_eig(a), ~, err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
 %! endfor
 
 %! z = linspace(0,geometry.l,100);
@@ -103,7 +103,7 @@
 %! f_ref = omega_ref / (2 * pi);
 
 %! for a=1:numel(sol_eig)
-%!   assert(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
+%!   assert_simple(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
 %! endfor
 
 %! if (plot_def)
@@ -227,9 +227,9 @@
 %!                                         FEM_VEC_COLL_STIFFNESS], ...
 %!                                        load_case);
 %!   mat_ass.D = diag(zeros(columns(mat_ass.M), 1));
-%!   assert(mat_ass.dm, mesh.material_data.rho * a * b * c, sqrt(eps) * mesh.material_data.rho * a * b * c);
-%!   assert(mat_ass.S, xgc * m, m * sqrt(eps))
-%!   assert(mat_ass.J, J, sqrt(eps) * norm(J));
+%!   assert_simple(mat_ass.dm, mesh.material_data.rho * a * b * c, sqrt(eps) * mesh.material_data.rho * a * b * c);
+%!   assert_simple(mat_ass.S, xgc * m, m * sqrt(eps))
+%!   assert_simple(mat_ass.J, J, sqrt(eps) * norm(J));
 %!   slave_dofs = [];
 %!   for i=1:numel(mesh.elements.rbe3)
 %!     slave_ndofs = dof_map.ndof(mesh.elements.rbe3(i).nodes(2:end), :);
@@ -239,9 +239,9 @@
 %!   master_dofs = int32(1:dof_map.totdof);
 %!   master_dofs(slave_dofs) = 0;
 %!   master_dofs = master_dofs(find(master_dofs > 0));
-%!   assert(full(sum(diag(mat_ass.Mlumped))) / 3, mat_ass.dm, tol * mat_ass.dm);
+%!   assert_simple(full(sum(diag(mat_ass.Mlumped))) / 3, mat_ass.dm, tol * mat_ass.dm);
 %!   for i=1:3
-%!     assert(full(sum(mat_ass.R(:, i + 1), 1)), m, tol * m);
+%!     assert_simple(full(sum(mat_ass.R(:, i + 1), 1)), m, tol * m);
 %!   endfor
 %! endfor
 
@@ -314,20 +314,20 @@
 %!                                      FEM_VEC_LOAD_CONSISTENT, ...
 %!                                      FEM_SCA_TOT_MASS], ...
 %!                                     load_case);
-%! assert(rank(mat_ass.K), columns(mat_ass.K));
+%! assert_simple(rank(mat_ass.K), columns(mat_ass.K));
 %! [Tred, Kred, Mred, Rred] = fem_cms_constr_elim(mesh, dof_map, mat_ass);
-%! assert(isdefinite(Kred), true);
-%! assert(isdefinite(Mred), true);
+%! assert_simple(isdefinite(Kred), true);
+%! assert_simple(isdefinite(Mred), true);
 %! lambda = eig(mat_ass.K, mat_ass.M);
 %! lambda = sort(lambda(find(isfinite(lambda))));
 %! lambdared = eig(Kred, Mred);
 %! lambdared = sort(lambdared);
 %! U = full(mat_ass.K \ mat_ass.R);
 %! Ured = Tred * (Kred \ Rred);
-%! assert(Ured, U(dof_map.idx_node), tol * norm(U(dof_map.idx_node)));
-%! assert(lambda(1:length(lambdared)), lambdared, tol * max(abs(lambda(1:length(lambdared)))));
+%! assert_simple(Ured, U(dof_map.idx_node), tol * norm(U(dof_map.idx_node)));
+%! assert_simple(lambda(1:length(lambdared)), lambdared, tol * max(abs(lambda(1:length(lambdared)))));
 %! sol_stat.def = fem_post_def_nodal(mesh, dof_map, full(mat_ass.K \ mat_ass.R));
-%! assert(mat_ass.dm, mesh.material_data.rho * a * b * c, sqrt(eps) * mesh.material_data.rho * a * b * c);
+%! assert_simple(mat_ass.dm, mesh.material_data.rho * a * b * c, sqrt(eps) * mesh.material_data.rho * a * b * c);
 %! if (plot_def)
 %!   figure("visible", "off");
 %!   fem_post_sol_plot(mesh, sol_stat, scale_def / max(norm(sol_stat.def(:, 1:3), "cols")));
@@ -369,8 +369,8 @@
 %! Phi3 = [0, -15, 30] * pi / 180;
 %! for j=1:length(Phi1)
 %!   R1 = euler123_to_rotation_matrix([Phi1(j); Phi2(j); Phi3(j)]);
-%!   assert(R1.' * R1, eye(3), tol);
-%!   assert(R1 * R1.', eye(3), tol);
+%!   assert_simple(R1.' * R1, eye(3), tol);
+%!   assert_simple(R1 * R1.', eye(3), tol);
 %!   data(j).T1 = [R1, zeros(3, 3);
 %!                 zeros(3, 3), R1];
 %!   data(j).mesh.nodes = [X * R1.', zeros(rows(X), 3)];
@@ -414,11 +414,11 @@
 %!                                                FEM_VEC_LOAD_CONSISTENT, ...
 %!                                                FEM_SCA_TOT_MASS], ...
 %!                                               data(j).load_case);
-%!   assert(data(j).mat_ass.dm, data(j).mesh.material_data.rho * a * b * c, sqrt(eps) * data(j).mesh.material_data.rho * a * b * c);
-%!   assert(rank(data(j).mat_ass.K), columns(data(j).mat_ass.K));
+%!   assert_simple(data(j).mat_ass.dm, data(j).mesh.material_data.rho * a * b * c, sqrt(eps) * data(j).mesh.material_data.rho * a * b * c);
+%!   assert_simple(rank(data(j).mat_ass.K), columns(data(j).mat_ass.K));
 %!   [data(j).Tred, data(j).Kred, data(j).Mred, data(j).Rred] = fem_cms_constr_elim(data(j).mesh, data(j).dof_map, data(j).mat_ass);
-%!   assert(isdefinite(data(j).Kred), true);
-%!   assert(isdefinite(data(j).Mred), true);
+%!   assert_simple(isdefinite(data(j).Kred), true);
+%!   assert_simple(isdefinite(data(j).Mred), true);
 %!   [data(j).Phi, data(j).lambda] = eig(data(j).mat_ass.K, data(j).mat_ass.M);
 %!   data(j).lambda = diag(data(j).lambda);
 %!   idx_lambda = find(isfinite(data(j).lambda));
@@ -433,8 +433,8 @@
 %!   data(j).lambdared = sort(data(j).lambdared);
 %!   data(j).U = full(data(j).mat_ass.K \ data(j).mat_ass.R);
 %!   data(j).Ured = data(j).Tred * (data(j).Kred \ data(j).Rred);
-%!   assert(data(j).Ured, data(j).U(data(j).dof_map.idx_node), tol * norm(data(j).U(data(j).dof_map.idx_node)));
-%!   assert(data(j).lambda(1:length(data(j).lambdared)), data(j).lambdared, tol * max(abs(data(j).lambda(1:length(data(j).lambdared)))));
+%!   assert_simple(data(j).Ured, data(j).U(data(j).dof_map.idx_node), tol * norm(data(j).U(data(j).dof_map.idx_node)));
+%!   assert_simple(data(j).lambda(1:length(data(j).lambdared)), data(j).lambdared, tol * max(abs(data(j).lambda(1:length(data(j).lambdared)))));
 %!   data(j).sol_stat.def = fem_post_def_nodal(data(j).mesh, data(j).dof_map, full(data(j).mat_ass.K \ data(j).mat_ass.R)) * data(j).T1;
 %!   for k=1:columns(data(j).Phi)
 %!     data(j).modal(k).f = sqrt(data(j).lambda(k)) / (2 * pi);
@@ -442,12 +442,12 @@
 %!   endfor
 %! endfor
 %! for j=2:length(Phi1)
-%!   assert(data(j).sol_stat.def, data(1).sol_stat.def, tol * max(max(max(abs(data(1).sol_stat.def)))));
+%!   assert_simple(data(j).sol_stat.def, data(1).sol_stat.def, tol * max(max(max(abs(data(1).sol_stat.def)))));
 %!   N = min([length(data(1).lambda), length(data(j).lambda)]);
-%!   assert(data(j).lambda(1:N), data(1).lambda(1:N), tol * max(abs(data(1).lambda(1:N))));
-%!   assert(data(j).lambdared, data(1).lambdared, tol * max(abs(data(1).lambdared)));
+%!   assert_simple(data(j).lambda(1:N), data(1).lambda(1:N), tol * max(abs(data(1).lambda(1:N))));
+%!   assert_simple(data(j).lambdared, data(1).lambdared, tol * max(abs(data(1).lambdared)));
 %!   for k=1:N
-%!     assert(max(max(max(abs(data(j).modal(k).def - data(1).modal(k).def)))) < tol2 * max(max(max(abs(data(1).modal(k).def)))) || max(max(max(abs(data(j).modal(k).def + data(1).modal(k).def)))) < tol2 * max(max(max(abs(data(1).modal(k).def)))));
+%!     assert_simple(max(max(max(abs(data(j).modal(k).def - data(1).modal(k).def)))) < tol2 * max(max(max(abs(data(1).modal(k).def)))) || max(max(max(abs(data(j).modal(k).def + data(1).modal(k).def)))) < tol2 * max(max(max(abs(data(1).modal(k).def)))));
 %!   endfor
 %! endfor
 
@@ -556,7 +556,7 @@
 %!                                              FEM_MAT_MASS, ...
 %!                                              FEM_VEC_LOAD_CONSISTENT], ...
 %!                                             data(i, j).load_case);
-%!     assert(rank(data(i, j).mat_ass.K), columns(data(i, j).mat_ass.K));
+%!     assert_simple(rank(data(i, j).mat_ass.K), columns(data(i, j).mat_ass.K));
 %!     data(i, j).U = full(data(i, j).mat_ass.K \ data(i, j).mat_ass.R);
 %!     data(i, j).sol_stat.def = fem_post_def_nodal(data(i, j).mesh, data(i, j).dof_map, data(i, j).U);
 %!     if (b_plot)
@@ -564,7 +564,7 @@
 %!       fem_post_sol_plot(data(i, j).mesh, data(i, j).sol_stat, scale_def / max(norm(data(1,1).sol_stat.def(1:12, 1:3), "rows")));
 %!     endif
 %!   endfor
-%!   assert(data(2, j).sol_stat.def(1:12, :) * Tref, data(1, 1).sol_stat.def, tol * max(norm(data(1,1).sol_stat.def, "rows")));
+%!   assert_simple(data(2, j).sol_stat.def(1:12, :) * Tref, data(1, 1).sol_stat.def, tol * max(norm(data(1,1).sol_stat.def, "rows")));
 %!   if (b_plot)
 %!     xlabel("x [m]");
 %!     ylabel("y [m]");
@@ -671,7 +671,7 @@
 %!                                             [FEM_MAT_STIFFNESS, ...
 %!                                              FEM_VEC_LOAD_CONSISTENT], ...
 %!                                             data(i, j).load_case);
-%!     assert(rank(data(i, j).mat_ass.K), columns(data(i, j).mat_ass.K));
+%!     assert_simple(rank(data(i, j).mat_ass.K), columns(data(i, j).mat_ass.K));
 %!     data(i, j).U = full(data(i, j).mat_ass.K \ data(i, j).mat_ass.R);
 %!     data(i, j).sol_stat.def = fem_post_def_nodal(data(i, j).mesh, data(i, j).dof_map, data(i, j).U);
 %!     if (b_plot)
@@ -679,7 +679,7 @@
 %!       fem_post_sol_plot(data(i, j).mesh, data(i, j).sol_stat, scale_def / max(norm(data(1,1).sol_stat.def(1:12, 1:3), "rows")));
 %!     endif
 %!   endfor
-%!   assert(data(2, j).sol_stat.def(1:12, :) * Tref, data(1, 1).sol_stat.def, tol * max(norm(data(1,1).sol_stat.def, "rows")));
+%!   assert_simple(data(2, j).sol_stat.def(1:12, :) * Tref, data(1, 1).sol_stat.def, tol * max(norm(data(1,1).sol_stat.def, "rows")));
 %!   if (b_plot)
 %!     xlabel("x [m]");
 %!     ylabel("y [m]");
@@ -718,13 +718,13 @@
 %! lambda1 = data(2,1).U(edof(1:6));
 %! lambda2 = data(2,1).U(edof(7:12));
 %! R = B1 * lambda1 + B2 * lambda2;
-%! assert(-lambda1 - lambda2, RM);
-%! assert(R, -R1, tol * norm(R1));
-%! assert(B3.' * U1, UM, tol * norm(UM));
-%! assert(B4.' * U1, UM, tol * norm(UM));
-%! assert(B1, B2);
-%! assert(B1, B3);
-%! assert(B1, B4);
+%! assert_simple(-lambda1 - lambda2, RM);
+%! assert_simple(R, -R1, tol * norm(R1));
+%! assert_simple(B3.' * U1, UM, tol * norm(UM));
+%! assert_simple(B4.' * U1, UM, tol * norm(UM));
+%! assert_simple(B1, B2);
+%! assert_simple(B1, B3);
+%! assert_simple(B1, B4);
 
 %!test
 %! ## TEST 7
@@ -778,9 +778,9 @@
 %!                                    FEM_VEC_LOAD_CONSISTENT], ...
 %!                                   load_case(i));
 %!   sol_stat(i).def = fem_post_def_nodal(mesh(i), dof_map{i}, full(mat_ass(i).K \ mat_ass(i).R));
-%!   assert(mat_ass(i).dm, mesh(i).material_data.rho * a * b * c, sqrt(eps) * mesh(i).material_data.rho * a * b * c);
+%!   assert_simple(mat_ass(i).dm, mesh(i).material_data.rho * a * b * c, sqrt(eps) * mesh(i).material_data.rho * a * b * c);
 %! endfor
-%! assert(sol_stat(2).def(1:8, :), sol_stat(1).def, tol * max(max(abs(sol_stat(1).def))));
+%! assert_simple(sol_stat(2).def(1:8, :), sol_stat(1).def, tol * max(max(abs(sol_stat(1).def))));
 
 %!test
 %! ## TEST 8
@@ -808,9 +808,9 @@
 %!                    0, 0, -0.25];
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [K, M, R, dm] = fem_ass_matrix(mesh, dof_map, [FEM_MAT_STIFFNESS, FEM_MAT_MASS, FEM_VEC_LOAD_CONSISTENT, FEM_SCA_TOT_MASS], load_case);
-%! assert(isdefinite(K), true);
-%! assert(isdefinite(M), true);
-%! assert(dm, mesh.material_data.rho * 8, sqrt(eps) * mesh.material_data.rho * 8);
+%! assert_simple(isdefinite(K), true);
+%! assert_simple(isdefinite(M), true);
+%! assert_simple(dm, mesh.material_data.rho * 8, sqrt(eps) * mesh.material_data.rho * 8);
 
 %!test
 %! ## TEST 9
@@ -832,9 +832,9 @@
 %! load_case.locked_dof = false(rows(mesh.nodes), 6);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [K, M, dm] = fem_ass_matrix(mesh, dof_map, [FEM_MAT_STIFFNESS, FEM_MAT_MASS, FEM_SCA_TOT_MASS]);
-%! assert(isdefinite(K), false);
-%! assert(isdefinite(M), true);
-%! assert(dm, mesh.material_data.rho * 8, sqrt(eps) * mesh.material_data.rho * 8);
+%! assert_simple(isdefinite(K), false);
+%! assert_simple(isdefinite(M), true);
+%! assert_simple(dm, mesh.material_data.rho * 8, sqrt(eps) * mesh.material_data.rho * 8);
 
 %!test
 %! ## TEST 10
@@ -884,8 +884,8 @@
 %!     for j=1:rows(mesh.nodes)
 %!       T((j - 1) * 3 + (1:3), (j - 1) * 3 + (1:3)) = R1;
 %!     endfor
-%!     assert(T.' * K * T, K0, tol * norm(K0));
-%!     assert(T.' * M * T, M0, tol * norm(M0));
+%!     assert_simple(T.' * K * T, K0, tol * norm(K0));
+%!     assert_simple(T.' * M * T, M0, tol * norm(M0));
 %!   endif
 %!   R2 = eye(3) + skew([Phi1(N - i + 1); Phi2(N - i + 1); Phi3(N - i + 1)]);
 %!   def = mesh.nodes(:, 1:3) * R2.' - mesh.nodes(:, 1:3) + repmat(x0(N - i + 1, :), rows(xi), 1);
@@ -898,15 +898,15 @@
 %!   [lam, idx_lambda] = sort(diag(lam));
 %!   Phi = Phi(:, idx_lambda);
 %!   lambda(:, i) = lam;
-%!   assert(max(abs(R)) < tol * norm(K * Phi(:, end)));
-%!   assert(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
-%!   assert(rank(K), columns(K) - 6);
-%!   assert(isdefinite(K), false);
-%!   assert(isdefinite(M), true);
-%!   assert(length(find(lambda(:, i) < tol * max(lambda(:, i)))), 6);
-%!   assert(all(lambda(:, i) > -tol * max(lambda(:, i))));
-%!   assert(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
-%!   assert(dm, mesh.material_data.rho * V, mesh.material_data.rho * V * tol);
+%!   assert_simple(max(abs(R)) < tol * norm(K * Phi(:, end)));
+%!   assert_simple(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
+%!   assert_simple(rank(K), columns(K) - 6);
+%!   assert_simple(isdefinite(K), false);
+%!   assert_simple(isdefinite(M), true);
+%!   assert_simple(length(find(lambda(:, i) < tol * max(lambda(:, i)))), 6);
+%!   assert_simple(all(lambda(:, i) > -tol * max(lambda(:, i))));
+%!   assert_simple(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
+%!   assert_simple(dm, mesh.material_data.rho * V, mesh.material_data.rho * V * tol);
 %! endfor
 
 
@@ -976,8 +976,8 @@
 %!     for j=1:rows(mesh.nodes)
 %!       T((j - 1) * 3 + (1:3), (j - 1) * 3 + (1:3)) = R1;
 %!     endfor
-%!     assert(T.' * K * T, K0, tol * norm(K0));
-%!     assert(T.' * M * T, M0, tol * norm(M0));
+%!     assert_simple(T.' * K * T, K0, tol * norm(K0));
+%!     assert_simple(T.' * M * T, M0, tol * norm(M0));
 %!   endif
 %!   U = zeros(30, 1);
 %!   for j=1:3
@@ -988,20 +988,20 @@
 %!   [lam, idx_lambda] = sort(diag(lam));
 %!   Phi = Phi(:, idx_lambda);
 %!   lambda(:, i) = lam;
-%!   assert(max(abs(R1)) < tol * norm(K * Phi(:, end)));
-%!   assert(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
-%!   assert(rank(K), 24);
-%!   assert(isdefinite(K), false);
-%!   assert(isdefinite(M), true);
-%!   assert(isdefinite(Mlumped), true);
-%!   assert(length(find(lambda(:, i) < tol * max(lambda(:, i)))), 6);
-%!   assert(all(lambda(:, i) > -tol * max(lambda(:, i))));
-%!   assert(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
-%!   assert(dm, mesh.material_data.rho * V, mesh.material_data.rho * V * tol);
-%!   assert(full(sum(diag(Mlumped))) / 3, dm, tol * dm);
-%!   assert(all(abs(full(diag(Mlumped)) - dm / 10) < tol * dm));
+%!   assert_simple(max(abs(R1)) < tol * norm(K * Phi(:, end)));
+%!   assert_simple(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
+%!   assert_simple(rank(K), 24);
+%!   assert_simple(isdefinite(K), false);
+%!   assert_simple(isdefinite(M), true);
+%!   assert_simple(isdefinite(Mlumped), true);
+%!   assert_simple(length(find(lambda(:, i) < tol * max(lambda(:, i)))), 6);
+%!   assert_simple(all(lambda(:, i) > -tol * max(lambda(:, i))));
+%!   assert_simple(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
+%!   assert_simple(dm, mesh.material_data.rho * V, mesh.material_data.rho * V * tol);
+%!   assert_simple(full(sum(diag(Mlumped))) / 3, dm, tol * dm);
+%!   assert_simple(all(abs(full(diag(Mlumped)) - dm / 10) < tol * dm));
 %!   for j=1:3
-%!     assert(full(sum(R(:, j + 1), 1)), dm, tol * dm);
+%!     assert_simple(full(sum(R(:, j + 1), 1)), dm, tol * dm);
 %!   endfor
 %! endfor
 
@@ -1042,10 +1042,10 @@
 %!                        FEM_MAT_MASS_LUMPED, ...
 %!                        FEM_SCA_TOT_MASS]);
 %! Vref = 4;
-%! assert(dm, Vref, tol * Vref);
-%! assert(isdefinite(K), false);
-%! assert(isdefinite(M), true);
-%! assert(isdefinite(Mlumped), true);
+%! assert_simple(dm, Vref, tol * Vref);
+%! assert_simple(isdefinite(K), false);
+%! assert_simple(isdefinite(M), true);
+%! assert_simple(isdefinite(Mlumped), true);
 %! Kref = [447	324	72	1	-6	-12	54	48	0	94	66	36	-152	-90	12	55	42	-12	-311	-252	-24	-431	-306	-132	95	60	24	148	114	36
 %!         324	1032	162	24	-104	-42	24	216	12	60	232	84	-180	-32	72	48	112	-30	-180	-992	-90	-288	-1040	-306	84	128	42	84	448	96
 %!         72	162	339	0	-30	-35	0	24	54	24	60	94	-24	36	-8	0	-6	19	-24	-126	-275	-96	-234	-395	24	30	59	24	84	148
@@ -1077,9 +1077,9 @@
 %!         114	448	84	-42	148	60	36	288	72	36	268	72	-288	-2384	-576	288	256	-288	-672	-1568	-480	-408	-1424	48	504	352	144	432	3616	864
 %!         36	96	148	-12	48	64	0	144	72	-24	0	4	-96	-576	-848	96	-144	-152	-288	-528	-680	-48	-48	-248	144	144	232	192	864	1408];
 
-%! assert(full(K(iperm,iperm)), Kref, tol * norm(Kref));
-%! assert(eig(K), eig(Kref), tol * max(eig(Kref)));
-%! assert(sum(full(diag(Mlumped))) / 3, dm, tol * dm);
+%! assert_simple(full(K(iperm,iperm)), Kref, tol * norm(Kref));
+%! assert_simple(eig(K), eig(Kref), tol * max(eig(Kref)));
+%! assert_simple(sum(full(diag(Mlumped))) / 3, dm, tol * dm);
 
 %!test
 %! ## TEST 13
@@ -1142,8 +1142,8 @@
 %!     for j=1:rows(mesh.nodes)
 %!       T((j - 1) * 3 + (1:3), (j - 1) * 3 + (1:3)) = R1;
 %!     endfor
-%!     assert(T.' * K * T, K0, tol * norm(K0));
-%!     assert(T.' * M * T, M0, tol * norm(M0));
+%!     assert_simple(T.' * K * T, K0, tol * norm(K0));
+%!     assert_simple(T.' * M * T, M0, tol * norm(M0));
 %!   endif
 %!   U = zeros(30, 1);
 %!   for j=1:3
@@ -1154,19 +1154,19 @@
 %!   [lam, idx_lambda] = sort(diag(lam));
 %!   Phi = Phi(:, idx_lambda);
 %!   lambda(:, i) = lam;
-%!   assert(max(abs(R)) < tol * norm(K * Phi(:, end)));
-%!   assert(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
-%!   assert(rank(K), 24);
-%!   assert(isdefinite(K), false);
-%!   assert(isdefinite(M), true);
-%!   assert(isdefinite(Mlumped), true);
-%!   assert(length(find(lambda(:, i) < tol * max(lambda(:, i)))), 6);
-%!   assert(all(lambda(:, i) > -tol * max(lambda(:, i))));
-%!   assert(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
+%!   assert_simple(max(abs(R)) < tol * norm(K * Phi(:, end)));
+%!   assert_simple(0.5 * U.' * K * U < tol * Phi(:, end).' * K * Phi(:, end));
+%!   assert_simple(rank(K), 24);
+%!   assert_simple(isdefinite(K), false);
+%!   assert_simple(isdefinite(M), true);
+%!   assert_simple(isdefinite(Mlumped), true);
+%!   assert_simple(length(find(lambda(:, i) < tol * max(lambda(:, i)))), 6);
+%!   assert_simple(all(lambda(:, i) > -tol * max(lambda(:, i))));
+%!   assert_simple(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
 %!   diagM = full(diag(Mlumped));
-%!   assert(diagM(1:3:end), diagM(2:3:end));
-%!   assert(diagM(1:3:end), diagM(3:3:end));
-%!   assert(sum(diagM) / 3, dm, tol * dm);
+%!   assert_simple(diagM(1:3:end), diagM(2:3:end));
+%!   assert_simple(diagM(1:3:end), diagM(3:3:end));
+%!   assert_simple(sum(diagM) / 3, dm, tol * dm);
 %! endfor
 
 %!test
@@ -1237,9 +1237,9 @@
 %!                        FEM_MAT_MASS_LUMPED, ...
 %!                        FEM_SCA_TOT_MASS]);
 %! diagM = full(diag(Mlumped));
-%! assert(sum(diagM) / 3, dm, tol * dm);
-%! assert(diagM(1:3:end), diagM(2:3:end));
-%! assert(diagM(1:3:end), diagM(3:3:end));
+%! assert_simple(sum(diagM) / 3, dm, tol * dm);
+%! assert_simple(diagM(1:3:end), diagM(2:3:end));
+%! assert_simple(diagM(1:3:end), diagM(3:3:end));
 
 %!test
 %! ## TEST 15
@@ -1323,7 +1323,7 @@
 %!                                                   FEM_SCA_TOT_MASS], ...
 %!                                                  data(ialg).load_case);
 %!   mref = data(ialg).mesh.material_data.rho * a * b * c;
-%!   assert(data(ialg).mat_ass.m, mref, sqrt(eps) * mref);
+%!   assert_simple(data(ialg).mat_ass.m, mref, sqrt(eps) * mref);
 %!   [Mred, Rred] = fem_ass_matrix(data(ialg).mesh_cms, ...
 %!                                 data(ialg).dof_map_cms, ...
 %!                                 [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], ...
@@ -1363,17 +1363,17 @@
 %!         lambda_red_opt = lambda_red(j);
 %!       endif
 %!     endfor
-%!     assert(phi_red_opt, phi, tol2 * norm(phi));
-%!     assert(lambda_red_opt, lambda(i), tol2 * max(abs(lambda)));
+%!     assert_simple(phi_red_opt, phi, tol2 * norm(phi));
+%!     assert_simple(lambda_red_opt, lambda(i), tol2 * max(abs(lambda)));
 %!   endfor
-%!   assert(lambda_red, lambda, tol2 * max(abs(lambda)));
+%!   assert_simple(lambda_red, lambda, tol2 * max(abs(lambda)));
 %!   for i=1:size(def_stat, 3)
-%!     assert(def_red_stat, def_stat, tol * max(norm(def_stat(:, :, i), "rows")));
+%!     assert_simple(def_red_stat, def_stat, tol * max(norm(def_stat(:, :, i), "rows")));
 %!   endfor
-%!   assert(isdefinite(data(ialg).mat_ass_cms.Kred), true);
-%!   assert(isdefinite(data(ialg).mat_ass_cms.Mred), true);
+%!   assert_simple(isdefinite(data(ialg).mat_ass_cms.Kred), true);
+%!   assert_simple(isdefinite(data(ialg).mat_ass_cms.Mred), true);
 %!   for i=1:3
-%!     assert(sum(data(ialg).mat_ass_cms.diagM(i:3:end)), data(ialg).mat_ass.m, tol * data(ialg).mat_ass.m);
+%!     assert_simple(sum(data(ialg).mat_ass_cms.diagM(i:3:end)), data(ialg).mat_ass.m, tol * data(ialg).mat_ass.m);
 %!   endfor
 %!   if (do_plot)
 %!     for i=1:numel(data(ialg).sol_eig_cms.f)
@@ -1390,9 +1390,9 @@
 %!   endif
 %! endfor
 %! for i=2:numel(data)
-%!   assert([data(i).sol_eig_cms.f],[data(1).sol_eig_cms.f], tol * max([data(1).sol_eig_cms.f]));
-%!   assert(data(i).mat_ass.M, data(1).mat_ass.M, 0);
-%!   assert(data(i).mat_ass.K, data(1).mat_ass.K, 0);
+%!   assert_simple([data(i).sol_eig_cms.f],[data(1).sol_eig_cms.f], tol * max([data(1).sol_eig_cms.f]));
+%!   assert_simple(data(i).mat_ass.M, data(1).mat_ass.M, 0);
+%!   assert_simple(data(i).mat_ass.K, data(1).mat_ass.K, 0);
 %! endfor
 
 %!test
@@ -1426,7 +1426,7 @@
 %! opt_sol.solver = "chol";
 %! [sol_stat_sym] = fem_sol_static(mesh, dof_map, mat_ass_sym, opt_sol);
 %! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%! assert(sol_stat_sym.def, sol_stat.def, sqrt(eps) * max(norm(sol_stat.def, "rows")));
+%! assert_simple(sol_stat_sym.def, sol_stat.def, sqrt(eps) * max(norm(sol_stat.def, "rows")));
 %! z = linspace(0,geometry.l,100);
 %! I = [ geometry.w * geometry.h, geometry.h * geometry.w^3 / 12, geometry.w * geometry.h^3 / 12 ];
 %! y(1,:) = f(1) * geometry.l / ( material.E * I(1) ) * ( 1 - z / geometry.l );
@@ -1441,7 +1441,7 @@
 %!                zeros(size(z)), ...
 %!                zeros(size(z)), ...
 %!                "linear");
-%! assert(uz, y(3, :).', 1e-2 * max(abs(y(3, :))));
+%! assert_simple(uz, y(3, :).', 1e-2 * max(abs(y(3, :))));
 
 %!test
 %! ##########################################################################################
@@ -1475,8 +1475,8 @@
 %! Phi3 = [0, (2 * rand(1, N) - 1) * 180] * pi / 180;
 %! for j=1:length(Phi1)
 %!   R1 = euler123_to_rotation_matrix([Phi1(j); Phi2(j); Phi3(j)]);
-%!   assert(R1.' * R1, eye(3), tol);
-%!   assert(R1 * R1.', eye(3), tol);
+%!   assert_simple(R1.' * R1, eye(3), tol);
+%!   assert_simple(R1 * R1.', eye(3), tol);
 %!   data(j).T1 = [R1, zeros(3, 3);
 %!                 zeros(3, 3), R1];
 %!   data(j).mesh.nodes = [X * R1.', zeros(rows(X), 3)];
@@ -1537,13 +1537,13 @@
 %!   Msym = data(j).mat_ass_sym.M + data(j).mat_ass_sym.M.' - diag(diag(data(j).mat_ass_sym.M));
 %!   Msym_L = data(j).mat_ass_sym_L.M + data(j).mat_ass_sym_L.M.' - diag(diag(data(j).mat_ass_sym_L.M));
 %!   data(j).U = data(j).mat_ass.K \ full(data(j).mat_ass.R);
-%!   assert(data(j).mat_ass.K * data(j).U, data(j).mat_ass.R, sqrt(eps) * max(max(abs(data(j).mat_ass.R))));
-%!   assert(data(j).mat_ass.dm, data(j).mesh.material_data.rho * a * b * c, sqrt(eps) * data(j).mesh.material_data.rho * a * b * c);
-%!   assert(rank(data(j).mat_ass.K), columns(data(j).mat_ass.K));
-%!   assert(Ksym, data(j).mat_ass.K);
-%!   assert(Msym, data(j).mat_ass.M);
-%!   assert(Ksym_L, data(j).mat_ass.K);
-%!   assert(Msym_L, data(j).mat_ass.M);
+%!   assert_simple(data(j).mat_ass.K * data(j).U, data(j).mat_ass.R, sqrt(eps) * max(max(abs(data(j).mat_ass.R))));
+%!   assert_simple(data(j).mat_ass.dm, data(j).mesh.material_data.rho * a * b * c, sqrt(eps) * data(j).mesh.material_data.rho * a * b * c);
+%!   assert_simple(rank(data(j).mat_ass.K), columns(data(j).mat_ass.K));
+%!   assert_simple(Ksym, data(j).mat_ass.K);
+%!   assert_simple(Msym, data(j).mat_ass.M);
+%!   assert_simple(Ksym_L, data(j).mat_ass.K);
+%!   assert_simple(Msym_L, data(j).mat_ass.M);
 %! endfor
 
 %!test
@@ -1605,8 +1605,8 @@
 %!                                              data(i).load_case);
 %!   data(i).Flumped = fem_post_def_nodal(data(i).mesh, data(i).dof_map, data(i).mat_ass.Rlumped);
 %!   data(i).Fcon = fem_post_def_nodal(data(i).mesh, data(i).dof_map, data(i).mat_ass.R);
-%!   assert(R1.' * sum(data(i).Fcon(:, 1:3), 1).', a * b * p / 3 * [0; 0; -1], eps * p);
-%!   assert(R1.' * sum(data(i).Flumped(:, 1:3), 1).', a * b * p / 3 * [0; 0; -1], eps * p);
+%!   assert_simple(R1.' * sum(data(i).Fcon(:, 1:3), 1).', a * b * p / 3 * [0; 0; -1], eps * p);
+%!   assert_simple(R1.' * sum(data(i).Flumped(:, 1:3), 1).', a * b * p / 3 * [0; 0; -1], eps * p);
 %!   data(i).sol_stat = fem_sol_static(data(i).mesh, data(i).dof_map, data(i).mat_ass);
 %!   data(i).sol_stat_lumped = fem_sol_static(data(i).mesh, data(i).dof_map, setfield(data(i).mat_ass, "R", data(i).mat_ass.Rlumped));
 %!   if (do_plot)
@@ -1719,7 +1719,7 @@
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes);
 %! Aref = 2 * (a * b + A * B);
-%! assert(sum(sum(mat_ass.surface.iso4)), Aref, eps^0.8 * Aref);
+%! assert_simple(sum(sum(mat_ass.surface.iso4)), Aref, eps^0.8 * Aref);
 %! if (do_plot)
 %!   figure("visible", "off");
 %!   fem_post_sol_plot(mesh, sol_stat, scale / max(norm(sol_stat.def(:, 1:3), "rows")), 1);
@@ -2144,8 +2144,8 @@
 %!                                  load_case, ...
 %!                                  sol_stat);
 %! tauxx_a = Fx / (b * c);
-%! assert(all(abs(sol_stat.stress.tau.iso8(:, :, 1) / tauxx_a - 1) < sqrt(eps)));
-%! assert(all(abs(sol_stat.stress.tau.iso8(:, :, 2:end) / tauxx_a) < sqrt(eps)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, 1) / tauxx_a - 1) < sqrt(eps)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, 2:end) / tauxx_a) < sqrt(eps)));
 
 %!test
 %! ## TEST 24
@@ -2198,8 +2198,8 @@
 %!                                  load_case, ...
 %!                                  sol_stat);
 %! tauyy_a = Fy / (a * c);
-%! assert(all(abs(sol_stat.stress.tau.iso8(:, :, 2) / tauyy_a - 1) < sqrt(eps)));
-%! assert(all(abs(sol_stat.stress.tau.iso8(:, :, [1,3:end]) / tauyy_a) < sqrt(eps)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, 2) / tauyy_a - 1) < sqrt(eps)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, [1,3:end]) / tauyy_a) < sqrt(eps)));
 
 %!test
 %! ## TEST 25
@@ -2252,8 +2252,8 @@
 %!                                  load_case, ...
 %!                                  sol_stat);
 %! tauzz_a = Fz / (a * b);
-%! assert(all(abs(sol_stat.stress.tau.iso8(:, :, 3) / tauzz_a - 1) < sqrt(eps)));
-%! assert(all(abs(sol_stat.stress.tau.iso8(:, :, [1:2, 4:end]) / tauzz_a) < sqrt(eps)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, 3) / tauzz_a - 1) < sqrt(eps)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, [1:2, 4:end]) / tauzz_a) < sqrt(eps)));
 
 
 %!test
@@ -2297,7 +2297,7 @@
 %! G = E / (2 * (1 + nu));
 %! gamma = ux / c;
 %! tauzx_a = G * gamma;
-%! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauzx_a - 1) < sqrt(eps) * abs(tauzx_a)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauzx_a - 1) < sqrt(eps) * abs(tauzx_a)));
 
 
 %!test
@@ -2341,7 +2341,7 @@
 %! G = E / (2 * (1 + nu));
 %! gamma = uy / c;
 %! tauyz_a = G * gamma;
-%! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauyz_a - 1) < sqrt(eps) * abs(tauyz_a)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauyz_a - 1) < sqrt(eps) * abs(tauyz_a)));
 
 %!test
 %! ## TEST 28
@@ -2384,7 +2384,7 @@
 %! G = E / (2 * (1 + nu));
 %! gamma = uy / a;
 %! tauxy_a = G * gamma;
-%! assert(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauxy_a - 1) < sqrt(eps) * abs(tauxy_a)));
+%! assert_simple(all(abs(sol_stat.stress.tau.iso8(:,:,6) / tauxy_a - 1) < sqrt(eps) * abs(tauxy_a)));
 
 
 %!test
@@ -2459,7 +2459,7 @@
 %!                  tau_a_tens(1, 3)];
 %! endfor
 %! for i=1:columns(tau_a)
-%!   assert(tau_a(:, i), sol_stat.stress.tau.iso8(1, i, :)(:), sqrt(eps) * norm(tau_a(:, i)));
+%!   assert_simple(tau_a(:, i), sol_stat.stress.tau.iso8(1, i, :)(:), sqrt(eps) * norm(tau_a(:, i)));
 %! endfor
 
 %!test
@@ -2489,8 +2489,8 @@
 %! Phi = rand(3, 5) * pi / 180;
 %! for r=1:columns(Phi)
 %!   R = euler123_to_rotation_matrix(Phi(:, r));
-%!   assert(R*R.', eye(3), eps^0.8);
-%!   assert(R.'*R, eye(3), eps^0.8);
+%!   assert_simple(R*R.', eye(3), eps^0.8);
+%!   assert_simple(R.'*R, eye(3), eps^0.8);
 %!   data(r).mesh.nodes = [xi * R.' + x0, zeros(rows(xi), 3)];
 %!   data(r).mesh.elements.tet10 = int32(1:10);
 %!   data(r).mesh.materials.tet10 = int32(1);
@@ -2562,11 +2562,11 @@
 %!           epsilon_0 = data(r).mesh.material_data.C \ tau_0;
 %!           epsilon = data(r).mesh.material_data.C \ tau;
 %!           tau_eps_a = data(r).mesh.material_data.C * epsilon_a;
-%!           assert(tau, tau_a,  max(abs(tau_a)) * (eps)^0.75);
-%!           assert(tau, tau_eps_a,  max(abs(tau_eps_a)) * (eps)^0.75);
-%!           assert(tau_0, tau_a_0,  max(abs(tau_a_0)) * (eps)^0.75);
-%!           assert(epsilon_0, epsilon_a_0,  max(abs(epsilon_a_0)) * (eps)^0.75);
-%!           assert(epsilon, epsilon_a,  max(abs(epsilon_a)) * (eps)^0.75);
+%!           assert_simple(tau, tau_a,  max(abs(tau_a)) * (eps)^0.75);
+%!           assert_simple(tau, tau_eps_a,  max(abs(tau_eps_a)) * (eps)^0.75);
+%!           assert_simple(tau_0, tau_a_0,  max(abs(tau_a_0)) * (eps)^0.75);
+%!           assert_simple(epsilon_0, epsilon_a_0,  max(abs(epsilon_a_0)) * (eps)^0.75);
+%!           assert_simple(epsilon, epsilon_a,  max(abs(epsilon_a)) * (eps)^0.75);
 %!         endfor
 %!       endfor
 %!     endfor
@@ -2640,14 +2640,14 @@
 %!                                    sol_stat);
 %! tau = sol_stat.stress.tau.iso8;
 %! tol = sqrt(eps) * norm(tau_a);
-%! assert(tau(1, 1, :)(:), tau_a_0(:, 1), tol);
-%! assert(tau(1, 4, :)(:), tau_a_0(:, 1), tol);
-%! assert(tau(1, 2, :)(:), tau_a_0(:, 2), tol);
-%! assert(tau(1, 3, :)(:), tau_a_0(:, 2), tol);
-%! assert(tau(1, 5, :)(:), tau_a_0(:, 3), tol);
-%! assert(tau(1, 8, :)(:), tau_a_0(:, 3), tol);
-%! assert(tau(1, 6, :)(:), tau_a_0(:, 4), tol);
-%! assert(tau(1, 7, :)(:), tau_a_0(:, 4), tol);
+%! assert_simple(tau(1, 1, :)(:), tau_a_0(:, 1), tol);
+%! assert_simple(tau(1, 4, :)(:), tau_a_0(:, 1), tol);
+%! assert_simple(tau(1, 2, :)(:), tau_a_0(:, 2), tol);
+%! assert_simple(tau(1, 3, :)(:), tau_a_0(:, 2), tol);
+%! assert_simple(tau(1, 5, :)(:), tau_a_0(:, 3), tol);
+%! assert_simple(tau(1, 8, :)(:), tau_a_0(:, 3), tol);
+%! assert_simple(tau(1, 6, :)(:), tau_a_0(:, 4), tol);
+%! assert_simple(tau(1, 7, :)(:), tau_a_0(:, 4), tol);
 
 %!test
 %! ## TEST 32
@@ -2704,7 +2704,7 @@
 %! cms_opt.epsilon_refinement = eps^0.8;
 %! [mesh_cms, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh_cms, load_case_cms, cms_opt);
 %! Dred = mat_ass_cms.Mred * material.alpha + mat_ass_cms.Kred * material.beta;
-%! assert(mat_ass_cms.Dred, Dred, sqrt(eps) * max(max(abs(Dred))));
+%! assert_simple(mat_ass_cms.Dred, Dred, sqrt(eps) * max(max(abs(Dred))));
 %! mat_ass_cms.Rred = mat_ass_cms.Inv3.' * load_case.g;
 %! Ured = mat_ass_cms.Kred \ mat_ass_cms.Rred;
 %! sol_cms.def = fem_post_def_nodal(mesh_cms, dof_map_cms, mat_ass_cms.Tred * Ured);
@@ -2731,8 +2731,8 @@
 %!   title('deformed mesh');
 %!   figure_list();
 %! endif
-%! assert(sol_stat.def(:, 3), wz, tol * max(abs(wz)));
-%! assert(sol_cms.def(1:rows(mesh.nodes), 3), wz, tol * max(abs(wz)));
+%! assert_simple(sol_stat.def(:, 3), wz, tol * max(abs(wz)));
+%! assert_simple(sol_cms.def(1:rows(mesh.nodes), 3), wz, tol * max(abs(wz)));
 
 %!test
 %! ##########################################################################################
@@ -2976,8 +2976,8 @@
 %! tauxx_a = -Fz / Iy * (geometry.l - xx) .* zz;
 %! tauxz_a = 3 / 2 * Fz / (geometry.h * geometry.w) * (1 - (zz / (0.5 * geometry.h)).^2);
 %! idx_x = find((xx(:) > 0.1 * geometry.l) & (xx(:) < 0.9 * geometry.l));
-%! assert(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
-%! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
+%! assert_simple(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
+%! assert_simple(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
 
 %!test
 %! ## TEST 35
@@ -3040,7 +3040,7 @@
 %!                               FEM_VEC_LOAD_CONSISTENT], ...
 %!                              load_case);
 %! [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
-%! assert(sol_stat.def, Uref, 1e-3 * norm(Uref));
+%! assert_simple(sol_stat.def, Uref, 1e-3 * norm(Uref));
 %! endfor
 %! endfor
 %! unwind_protect_cleanup
@@ -3110,9 +3110,9 @@
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, 3);
 %! tolf = 0.1e-2;
 %! tolm = 5 * eps;
-%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < tolf);
-%! assert(mat_ass.dm, rho * A * L, tolm * rho * A * L);
-%! assert(mat_ass.D, mat_ass.M * alpha + mat_ass.K * beta, tolm);
+%! assert_simple(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < tolf);
+%! assert_simple(mat_ass.dm, rho * A * L, tolm * rho * A * L);
+%! assert_simple(mat_ass.D, mat_ass.M * alpha + mat_ass.K * beta, tolm);
 %! endfor
 
 %!test
@@ -3169,7 +3169,7 @@
 %!                               FEM_MAT_MASS], ...
 %!                              load_case);
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, 3);
-%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 0.1e-2);
+%! assert_simple(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 0.1e-2);
 %! endfor
 
 %!test
@@ -3229,7 +3229,7 @@
 %!                               FEM_MAT_MASS], ...
 %!                              load_case);
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, numel(n));
-%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
+%! assert_simple(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
 %! endfor
 
 %!test
@@ -3289,7 +3289,7 @@
 %!                               FEM_MAT_MASS], ...
 %!                              load_case);
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, numel(n));
-%! assert(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
+%! assert_simple(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
 %! endfor
 
 %!test
@@ -3372,9 +3372,9 @@
 %!   grid minor on;
 %!   title("frequency response cantilever beam z-direction");
 %! endif
-%! assert(wstat, wstat_a, 1e-3 * wstat_a);
+%! assert_simple(wstat, wstat_a, 1e-3 * wstat_a);
 %! idx = find(abs(V_a) < 2);
-%! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
+%! assert_simple(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!test
 %! ## TEST 41
@@ -3457,9 +3457,9 @@
 %!   grid minor on;
 %!   title("frequency response cantilever beam y-direction");
 %! endif
-%! assert(wstat, wstat_a, 1e-3 * wstat_a);
+%! assert_simple(wstat, wstat_a, 1e-3 * wstat_a);
 %! idx = find(abs(V_a) < 2);
-%! assert(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
+%! assert_simple(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
 
 %!test
 %! ## TEST 42
@@ -3511,7 +3511,7 @@
 %! tol = 1e-6;
 %! err = zeros(number_of_modes, numel(alg));
 %! for a=1:numel(alg)
-%!   [sol_eig(a), err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
+%!   [sol_eig(a), ~, err(:, a)] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes, rho, tol, alg{a});
 %! endfor
 
 %! z = linspace(0,geometry.l,100);
@@ -3533,7 +3533,7 @@
 %! f_ref = omega_ref / (2 * pi);
 
 %! for a=1:numel(sol_eig)
-%!   assert(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
+%!   assert_simple(sol_eig(a).f(1:5), f_ref(1:5), 4e-2 * max(f_ref(1:5)));
 %! endfor
 
 %! if (plot_def)
@@ -3617,14 +3617,14 @@
 %!                                      FEM_VEC_LOAD_CONSISTENT, ...
 %!                                      FEM_SCA_TOT_MASS], ...
 %!                                     load_case);
-%!     assert(isdefinite(mat_ass.K));
-%!     assert(isdefinite(mat_ass.M));
-%!     assert(isdefinite(mat_ass.Mdiag));
+%!     assert_simple(isdefinite(mat_ass.K));
+%!     assert_simple(isdefinite(mat_ass.M));
+%!     assert_simple(isdefinite(mat_ass.Mdiag));
 %!     m_a = 0.5 * a * b * c * mesh.material_data.rho;
 %!     tol_m = eps^0.8;
 %!     tol_stat = sqrt(eps);
 %!     tol_eig = sqrt(eps);
-%!     assert(mat_ass.mtot, m_a, tol_m * m_a);
+%!     assert_simple(mat_ass.mtot, m_a, tol_m * m_a);
 %!
 %!     sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!     sol_stat.stress = fem_ass_matrix(mesh, ...
@@ -3649,15 +3649,15 @@
 %!       vmis_stat = sol_stat.stress.vmis.penta15;
 %!       vmis_eig = sol_eig.stress.vmis.penta15;
 %!     else
-%!       assert(R.' * sol_stat.def(:, 1:3).', U_ref_stat, tol_stat * norm(U_ref_stat));
-%!       assert(sol_eig.f, f_ref, sqrt(eps) * max(f_ref));
-%!       assert(sol_stat.stress.vmis.penta15, vmis_stat, tol_stat * max(max(max(abs(vmis_stat)))));
-%!       assert(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
+%!       assert_simple(R.' * sol_stat.def(:, 1:3).', U_ref_stat, tol_stat * norm(U_ref_stat));
+%!       assert_simple(sol_eig.f, f_ref, sqrt(eps) * max(f_ref));
+%!       assert_simple(sol_stat.stress.vmis.penta15, vmis_stat, tol_stat * max(max(max(abs(vmis_stat)))));
+%!       assert_simple(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
 %!       for i=1:size(sol_eig.def, 3)
 %!         try
-%!           assert(sol_eig.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
+%!           assert_simple(sol_eig.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
 %!         catch
-%!           assert(sol_eig.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
+%!           assert_simple(sol_eig.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
 %!         end_try_catch
 %!       endfor
 %!     endif
@@ -3703,9 +3703,9 @@
 %!                                   FEM_VEC_LOAD_CONSISTENT, ...
 %!                                   FEM_SCA_TOT_MASS], ...
 %!                                   load_case);
-%!     assert(isdefinite(mat_ass.K) == 0);
-%!     assert(isdefinite(mat_ass.M) == 1);
-%!     assert(rank(mat_ass.K), columns(mat_ass.K) - 6);
+%!     assert_simple(isdefinite(mat_ass.K) == 0);
+%!     assert_simple(isdefinite(mat_ass.M) == 1);
+%!     assert_simple(rank(mat_ass.K), columns(mat_ass.K) - 6);
 %!     tol_eig = sqrt(eps);
 %!     N = 20;
 %!     shift = 1e-2 * max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M)));
@@ -3715,8 +3715,8 @@
 %!                                     FEM_SCA_STRESS_VMIS, ...
 %!                                     load_case, ...
 %!                                     sol_eig);
-%!     assert(max(sol_eig.f(1:6)) < eps^0.3 * min(sol_eig.f(7:end)));
-%!     assert(max(max(abs(sol_eig.stress.vmis.penta15(:,:,1:6)))) < eps^0.5 * min(min(abs(sol_eig.stress.vmis.penta15(:, :, 7:end)))));
+%!     assert_simple(max(sol_eig.f(1:6)) < eps^0.3 * min(sol_eig.f(7:end)));
+%!     assert_simple(max(max(abs(sol_eig.stress.vmis.penta15(:,:,1:6)))) < eps^0.5 * min(min(abs(sol_eig.stress.vmis.penta15(:, :, 7:end)))));
 %!     sol_eig_t = sol_eig;
 %!     for i=1:size(sol_eig.def, 3)
 %!       sol_eig_t.def(:, 1:3, i) = (R.' * sol_eig_t.def(:, 1:3, i).').';
@@ -3727,13 +3727,13 @@
 %!       f_ref = sol_eig.f;
 %!       vmis_eig = sol_eig.stress.vmis.penta15;
 %!     else
-%!       assert(sol_eig.f(7:end), f_ref(7:end), sqrt(eps) * max(f_ref));
-%!       assert(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
+%!       assert_simple(sol_eig.f(7:end), f_ref(7:end), sqrt(eps) * max(f_ref));
+%!       assert_simple(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
 %!       for i=7:size(sol_eig.def, 3)
 %!         try
-%!           assert(sol_eig_t.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
+%!           assert_simple(sol_eig_t.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
 %!         catch
-%!           assert(sol_eig_t.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
+%!           assert_simple(sol_eig_t.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
 %!         end_try_catch
 %!       endfor
 %!     endif
@@ -3793,7 +3793,7 @@
 %!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
 %!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
 %!       sol_stat.def(:, 1) = u;
-%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 2) = v;
 %!       sol_stat.def(:, 3) = w;
 %!       tau = mesh.material_data.C * epsilon;
 %!       sol_stat.stress = fem_ass_matrix(mesh, ...
@@ -3804,11 +3804,11 @@
 %!      switch (k)
 %!      case {1,2,3}
 %!        for i=1:3
-%!          assert(max(abs(sol_stat.stress.tau.penta15(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
-%!          assert(max(abs(sol_stat.stress.tau.penta15(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.penta15(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.penta15(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
 %!        endfor
 %!      otherwise
-%!        assert(max(abs(sol_stat.stress.tau.penta15(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!        assert_simple(max(abs(sol_stat.stress.tau.penta15(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
 %!      endswitch
 %!   endfor
 %!   endfor
@@ -3867,7 +3867,7 @@
 %!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
 %!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
 %!       sol_stat.def(:, 1) = u;
-%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 2) = v;
 %!       sol_stat.def(:, 3) = w;
 %!       tau = mesh.material_data.C * epsilon;
 %!       sol_stat.stress = fem_ass_matrix(mesh, ...
@@ -3878,11 +3878,11 @@
 %!      switch (k)
 %!      case {1,2,3}
 %!        for i=1:3
-%!          assert(max(abs(sol_stat.stress.tau.iso20(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
-%!          assert(max(abs(sol_stat.stress.tau.iso20(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.iso20(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.iso20(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
 %!        endfor
 %!      otherwise
-%!        assert(max(abs(sol_stat.stress.tau.iso20(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!        assert_simple(max(abs(sol_stat.stress.tau.iso20(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
 %!      endswitch
 %!   endfor
 %!   endfor
@@ -3941,7 +3941,7 @@
 %!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
 %!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
 %!       sol_stat.def(:, 1) = u;
-%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 2) = v;
 %!       sol_stat.def(:, 3) = w;
 %!       tau = mesh.material_data.C * epsilon;
 %!       sol_stat.stress = fem_ass_matrix(mesh, ...
@@ -3952,11 +3952,11 @@
 %!      switch (k)
 %!      case {1,2,3}
 %!        for i=1:3
-%!          assert(max(abs(sol_stat.stress.tau.iso8(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
-%!          assert(max(abs(sol_stat.stress.tau.iso8(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.iso8(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.iso8(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
 %!        endfor
 %!      otherwise
-%!        assert(max(abs(sol_stat.stress.tau.iso8(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!        assert_simple(max(abs(sol_stat.stress.tau.iso8(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
 %!      endswitch
 %!   endfor
 %!   endfor
@@ -4025,7 +4025,7 @@
 %!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
 %!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
 %!       sol_stat.def(:, 1) = u;
-%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 2) = v;
 %!       sol_stat.def(:, 3) = w;
 %!       tau = mesh.material_data.C * epsilon;
 %!       sol_stat.stress = fem_ass_matrix(mesh, ...
@@ -4036,11 +4036,11 @@
 %!      switch (k)
 %!      case {1,2,3}
 %!        for i=1:3
-%!          assert(max(abs(sol_stat.stress.tau.tet10(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
-%!          assert(max(abs(sol_stat.stress.tau.tet10(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.tet10(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.tet10(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
 %!        endfor
 %!      otherwise
-%!        assert(max(abs(sol_stat.stress.tau.tet10(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!        assert_simple(max(abs(sol_stat.stress.tau.tet10(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
 %!      endswitch
 %!   endfor
 %!   endfor
@@ -4109,7 +4109,7 @@
 %!       v = ((-X.*Z.*gammazx)+Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Y) + gammayy * Y;
 %!       w = -((-X.*Z.*gammazx)-Y.*Z.*gammayz+X.*Y.*gammaxy)./(2.*Z) + gammazz * Z;
 %!       sol_stat.def(:, 1) = u;
-%!       sol_stat.def(:, 2) = v; 
+%!       sol_stat.def(:, 2) = v;
 %!       sol_stat.def(:, 3) = w;
 %!       tau = mesh.material_data.C * epsilon;
 %!       m_a = a * b * c * mesh.material_data.rho / 6;
@@ -4119,15 +4119,15 @@
 %!                                       [FEM_VEC_STRESS_CAUCH, FEM_SCA_TOT_MASS], ...
 %!                                       load_case, ...
 %!                                       sol_stat);
-%!      assert(mat_ass.mtot, m_a, eps^0.9 * m_a);
+%!      assert_simple(mat_ass.mtot, m_a, eps^0.9 * m_a);
 %!      switch (k)
 %!      case {1,2,3}
 %!        for i=1:3
-%!          assert(max(abs(sol_stat.stress.tau.tet10h(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
-%!          assert(max(abs(sol_stat.stress.tau.tet10h(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.tet10h(1, :, i) ./ tau(i) - 1)) < sqrt(eps));
+%!          assert_simple(max(abs(sol_stat.stress.tau.tet10h(1, :, i + 3) ./ max(abs(tau)))) < sqrt(eps));
 %!        endfor
 %!      otherwise
-%!        assert(max(abs(sol_stat.stress.tau.tet10h(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
+%!        assert_simple(max(abs(sol_stat.stress.tau.tet10h(1, :, k) ./ tau(k) - 1)) < sqrt(eps));
 %!      endswitch
 %!   endfor
 %!   endfor
@@ -4206,7 +4206,7 @@
 %!                                             FEM_MAT_HEAT_CAPACITY], ...
 %!                                            load_case);
 %!   qref = material.rho * material.cp * geometry.user_data.l * geometry.user_data.w * geometry.user_data.h;
-%!   assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!   assert_simple(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
 %!   theta_x0 = 20;
 %!   theta_xl = 100;
 %!   theta0 = (R(:,1).' * mesh.nodes(:, 1:3).' - R(:, 1).' * mesh.nodes(1, 1:3).') / geometry.user_data.l * (theta_xl - theta_x0) + theta_x0;
@@ -4222,9 +4222,9 @@
 %!   for i=2:numel(sol(j).t)
 %!     sol(j).theta(:, i) = Afact \ (mat_ass.C * (sol(j).theta(:, i - 1)) / dt - mat_ass.Kk * (sol(j).theta(:, i - 1) * (1 - alpha)));
 %!   endfor
-%!   assert(sol(j).theta(:, end), repmat(0.5 * (theta_x0 + theta_xl), rows(sol(j).theta), 1), eps^0.5 * abs(theta_xl));
+%!   assert_simple(sol(j).theta(:, end), repmat(0.5 * (theta_x0 + theta_xl), rows(sol(j).theta), 1), eps^0.5 * abs(theta_xl));
 %! endfor
-%! assert(sol(2).theta, sol(1).theta, eps^0.5 * abs(theta_xl));
+%! assert_simple(sol(2).theta, sol(1).theta, eps^0.5 * abs(theta_xl));
 %! if (exist("fem_tests_enable_plotting") && fem_tests_enable_plotting())
 %!   figure("visible", "off");
 %!   hold on;
@@ -4331,7 +4331,7 @@
 %!     theta_b = repmat(ub, numel(idx_b), 1);
 %!     theta0 = repmat(u0, dof_map.totdof, 1);
 %!     qref = material.rho * material.cp * geometry.user_data.l * geometry.user_data.w * geometry.user_data.h;
-%!     assert(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
+%!     assert_simple(sum(sum(mat_ass.C)), qref, eps^0.5 * abs(qref));
 %!     kappa = K0 / (material.rho * material.cp);
 %!     T_ = geometry.user_data.l^2 / kappa;
 %!     dt = dx^2 / (2 * kappa);
@@ -4379,7 +4379,7 @@
 %!   endfor
 %!   endif
 %!   tol = 1e-2;
-%!   assert(sol(j).theta(:, 10:end), sol(j).theta_ref(:, 10:end), tol * abs(u0 - ub));
+%!   assert_simple(sol(j).theta(:, 10:end), sol(j).theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! endfor
 
 %!test
@@ -4416,14 +4416,14 @@
 %! Mref = [      m * eye(3), -m * skew(lcg);
 %!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
 %! tol = eps;
-%! assert(full(R), [m * load_case.g; cross(lcg, load_case.g) * m], tol * norm(m * load_case.g));
-%! assert(issymmetric(M, tol));
-%! assert(isdefinite(M, tol));
-%! assert(full(M), Mref, tol * norm(Mref));
-%! assert(full(MU + ML - diag(diag(ML))), Mref, tol * norm(Mref));
-%! assert(full(MU + ML - diag(diag(MU))), Mref, tol * norm(Mref));
-%! assert(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
-%! assert(dm, m, tol * m);
+%! assert_simple(full(R), [m * load_case.g; cross(lcg, load_case.g) * m], tol * norm(m * load_case.g));
+%! assert_simple(issymmetric(M, tol));
+%! assert_simple(isdefinite(M, tol));
+%! assert_simple(full(M), Mref, tol * norm(Mref));
+%! assert_simple(full(MU + ML - diag(diag(ML))), Mref, tol * norm(Mref));
+%! assert_simple(full(MU + ML - diag(diag(MU))), Mref, tol * norm(Mref));
+%! assert_simple(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
+%! assert_simple(dm, m, tol * m);
 
 %!test
 %! ## TEST 53
@@ -4524,15 +4524,15 @@
 %!  U(:, i) = sol.def(2:3, [3, 5], i).'(:);
 %! endfor
 %! tol = 1e-5;
-%! assert(U, Uref, tol * norm(Uref));
+%! assert_simple(U, Uref, tol * norm(Uref));
 %! lambdaref = eig(Kref, Mref);
 %! lambda = eig(mat_ass.K, mat_ass.M);
 %! lambdaref = sort(lambdaref);
 %! lambda = sort(lambda)(1:4);
 %! tolf = 1e-5;
 %! tolm = eps;
-%! assert(lambda, lambdaref, tolf * max(lambdaref));
-%! assert(mat_ass.dm, m1 + m2, tolm * (m1 + m2));
+%! assert_simple(lambda, lambdaref, tolf * max(lambdaref));
+%! assert_simple(mat_ass.dm, m1 + m2, tolm * (m1 + m2));
 
 %!test
 %! ## TEST 54
@@ -4585,9 +4585,9 @@
 %! Mref = [      m * eye(3), -m * skew(lcg);
 %!         -m * skew(lcg).', J - m * skew(lcg) * skew(lcg)];
 %! tol = eps;
-%! assert(issymmetric(M, tol));
-%! assert(isdefinite(M, tol));
-%! assert(full(M), Mref, eps * norm(Mref));
+%! assert_simple(issymmetric(M, tol));
+%! assert_simple(isdefinite(M, tol));
+%! assert_simple(full(M), Mref, eps * norm(Mref));
 
 %!test
 %! ## TEST 55
@@ -4643,7 +4643,7 @@
 %!                                    load_case);
 %!       [sol_stat] = fem_sol_static(mesh, dof_map, mat_ass);
 %!       tol = 2e-3;
-%!       assert(R(:, 3).' * sol_stat.def(:, 1:3).', wz, tol * max(abs(wz)));
+%!       assert_simple(R(:, 3).' * sol_stat.def(:, 1:3).', wz, tol * max(abs(wz)));
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup
@@ -4698,7 +4698,7 @@
 %! Phiref = -m1 * gz * l2 * l1 / (E * Iy) * [-1/6, 1/3];
 %! tol = 1e-4;
 %! for i=1:2
-%!   assert(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
+%!   assert_simple(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
 %! endfor
 
 %!test
@@ -4759,9 +4759,9 @@
 %!     mref = mesh.material_data.rho * a * b * c / 6;
 %!     tolm = eps^0.9;
 %!     tollambda = eps^0.9;
-%!     assert(mat_ass.dm, mref, tolm * mref);
-%!     assert(rank(mat_ass.M), 3 * columns(mesh.elements.tet20));
-%!     assert(rank(mat_ass.K), 3 * columns(mesh.elements.tet20) - 6);
+%!     assert_simple(mat_ass.dm, mref, tolm * mref);
+%!     assert_simple(rank(mat_ass.M), 3 * columns(mesh.elements.tet20));
+%!     assert_simple(rank(mat_ass.K), 3 * columns(mesh.elements.tet20) - 6);
 %!     [Phi, lambda] = eig(mat_ass.K, mat_ass.M);
 %!     lambda = diag(lambda);
 %!     sol.def = zeros(rows(mesh.nodes), 6, columns(Phi));
@@ -4770,18 +4770,18 @@
 %!         sol.def(:, j, k) = Phi(dof_map.ndof(:, j), k);
 %!       endfor
 %!     endfor
-%!     assert(isdefinite(mat_ass.M), true);
-%!     assert(isdefinite(mat_ass.K), false);
-%!     assert(R.' * F, mref * g, tolm * norm(mref * g));
+%!     assert_simple(isdefinite(mat_ass.M), true);
+%!     assert_simple(isdefinite(mat_ass.K), false);
+%!     assert_simple(R.' * F, mref * g, tolm * norm(mref * g));
 %!     if (i == 1)
 %!       Rref = R;
 %!       Sref = mat_ass.S;
 %!       Jref = mat_ass.J;
 %!       lambdaref = lambda;
 %!     else
-%!       assert(lambda, lambdaref, tollambda * max(abs(lambdaref)));
-%!       assert(R.' * mat_ass.S, Rref.' * Sref, tolm * norm(Sref));
-%!       assert(R.' * mat_ass.J * R, Rref.' * Jref * Rref, tolm * norm(Jref));
+%!       assert_simple(lambda, lambdaref, tollambda * max(abs(lambdaref)));
+%!       assert_simple(R.' * mat_ass.S, Rref.' * Sref, tolm * norm(Sref));
+%!       assert_simple(R.' * mat_ass.J * R, Rref.' * Jref * Rref, tolm * norm(Jref));
 %!     endif
 %!   endfor
 %! unwind_protect_cleanup
@@ -4805,7 +4805,7 @@
 %! Imin = min(Iy, Iz);
 %! ## Elastic Euler buckling (W. Beitz, K.H.Grote, 1997 Dubbel C42)
 %! lK = 2 * geometry.l;
-%! FK = pi^2 * material.E * Imin / lK^2; 
+%! FK = pi^2 * material.E * Imin / lK^2;
 %! mesh_size.num_elem_l = ceil(geometry.l / h);
 %! mesh_size.num_elem_w = ceil(geometry.w / h);
 %! mesh_size.num_elem_h = ceil(geometry.h / h);
@@ -4844,7 +4844,7 @@
 %! [U, sol_buck.lambda] = fem_sol_eigs(mat_ass.K, mat_ass.KTAU0, number_of_modes, opts);
 %! sol_buck.def = fem_post_def_nodal(mesh, dof_map, U);
 %! tol = 1e-2;
-%! assert(sol_buck.lambda(1), FK, tol * abs(FK));
+%! assert_simple(sol_buck.lambda(1), FK, tol * abs(FK));
 
 %!test
 %! ## TEST 59
@@ -4919,7 +4919,7 @@
 %! endfor
 %! sigmaxx = griddata3(xi, yi, zi, reshape(TAU(1, 1, :, :), size(xi)), r, zeros(size(r)), zeros(size(r)));
 %! tol = 1e-3;
-%! assert(sigmaxx(:), sigmaxx_ref(:), tol * max(abs(sigmaxx_ref)));
+%! assert_simple(sigmaxx(:), sigmaxx_ref(:), tol * max(abs(sigmaxx_ref)));
 
 %!test
 %! ## TEST 60
@@ -5059,154 +5059,154 @@
 %! endfor
 %! sigmaxx = griddata3(xi, yi, zi, reshape(TAU(1, 1, :, :), size(xi)), r, zeros(size(r)), zeros(size(r)));
 %! tol_tau = 0.2e-1;
-%! assert(sigmaxx(:), sigmaxx_ref(:), tol_tau * max(abs(sigmaxx_ref)));
+%! assert_simple(sigmaxx(:), sigmaxx_ref(:), tol_tau * max(abs(sigmaxx_ref)));
 %! tol_R = 1e-6;
-%! assert(mat_ass.R * omegaq, mat_ass_tot.R, tol_R * norm(mat_ass_tot.R));
+%! assert_simple(mat_ass.R * omegaq, mat_ass_tot.R, tol_R * norm(mat_ass_tot.R));
 %! tol_f = 1e-6;
-%! assert(sol_eig_preload.f, sol_eig_preload_tot.f, tol_f * max(sol_eig_preload_tot.f));
+%! assert_simple(sol_eig_preload.f, sol_eig_preload_tot.f, tol_f * max(sol_eig_preload_tot.f));
 %! tol_KTAU0 = 1e-5;
-%! assert(max(max(abs(mat_ass.KTAU0 - mat_ass_tot.KTAU0))) / max(max(abs(mat_ass_tot.KTAU0))) < tol_KTAU0);
+%! assert_simple(max(max(abs(mat_ass.KTAU0 - mat_ass_tot.KTAU0))) / max(max(abs(mat_ass_tot.KTAU0))) < tol_KTAU0);
 %! tol_tau = 1e-5;
 %! for i=1:size(sol_stat.stress.tau.iso8, 1)
 %!   for j=1:size(sol_stat.stress.tau.iso8, 2)
 %!     for k=1:size(sol_stat.stress.tau.iso8, 3)
-%!       assert(sum(sol_stat.stress.tau.iso8(i, j, k, :)(:) .* omegaq), sol_stat_tot.stress.tau.iso8(i, j, k), tol_tau * max(max(max(abs(sol_stat_tot.stress.tau.iso8)))));
+%!       assert_simple(sum(sol_stat.stress.tau.iso8(i, j, k, :)(:) .* omegaq), sol_stat_tot.stress.tau.iso8(i, j, k), tol_tau * max(max(max(abs(sol_stat_tot.stress.tau.iso8)))));
 %!     endfor
 %!   endfor
 %! endfor
 %! omegax_pre = sqrt(rho * A * L^4 / (E * I)) * 2 * pi * sol_eig_preload_tot.f;
-%! assert(omegax_pre(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
-%! assert(omegax_pre(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
+%! assert_simple(omegax_pre(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
+%! assert_simple(omegax_pre(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
 
 %! omegax_rot = sqrt(rho * A * L^4 / (E * I)) * 2 * pi * sol_eig_rot.f(find(sol_eig_rot.f >= 0));
-%! assert(omegax_rot(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
-%! assert(omegax_rot(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
+%! assert_simple(omegax_rot(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
+%! assert_simple(omegax_rot(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
 
 %!test ## test 61
-%! assert(isinteger(FEM_MAT_DAMPING));
+%! assert_simple(isinteger(FEM_MAT_DAMPING));
 %!test
-%! assert(isinteger(FEM_MAT_DAMPING_SYM));
+%! assert_simple(isinteger(FEM_MAT_DAMPING_SYM));
 %!test
-%! assert(isinteger(FEM_MAT_DAMPING_SYM_L));
+%! assert_simple(isinteger(FEM_MAT_DAMPING_SYM_L));
 %!test
-%! assert(isinteger(FEM_MAT_INERTIA_INV3));
+%! assert_simple(isinteger(FEM_MAT_INERTIA_INV3));
 %!test
-%! assert(isinteger(FEM_MAT_INERTIA_INV4));
+%! assert_simple(isinteger(FEM_MAT_INERTIA_INV4));
 %!test
-%! assert(isinteger(FEM_MAT_INERTIA_INV5));
+%! assert_simple(isinteger(FEM_MAT_INERTIA_INV5));
 %!test
-%! assert(isinteger(FEM_MAT_INERTIA_INV8));
+%! assert_simple(isinteger(FEM_MAT_INERTIA_INV8));
 %!test
-%! assert(isinteger(FEM_MAT_INERTIA_INV9));
+%! assert_simple(isinteger(FEM_MAT_INERTIA_INV9));
 %!test
-%! assert(isinteger(FEM_MAT_INERTIA_J));
+%! assert_simple(isinteger(FEM_MAT_INERTIA_J));
 %!test
-%! assert(isinteger(FEM_MAT_MASS));
+%! assert_simple(isinteger(FEM_MAT_MASS));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_LUMPED));
+%! assert_simple(isinteger(FEM_MAT_MASS_LUMPED));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_SYM));
+%! assert_simple(isinteger(FEM_MAT_MASS_SYM));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_SYM_L));
+%! assert_simple(isinteger(FEM_MAT_MASS_SYM_L));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS_SYM));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS_SYM));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS_SYM_L));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS_SYM_L));
 %!test
-%! assert(isinteger(FEM_SCA_STRESS_VMIS));
+%! assert_simple(isinteger(FEM_SCA_STRESS_VMIS));
 %!test
-%! assert(isinteger(FEM_SCA_TOT_MASS));
+%! assert_simple(isinteger(FEM_SCA_TOT_MASS));
 %!test
-%! assert(isinteger(FEM_VEC_INERTIA_M1));
+%! assert_simple(isinteger(FEM_VEC_INERTIA_M1));
 %!test
-%! assert(isinteger(FEM_VEC_LOAD_CONSISTENT));
+%! assert_simple(isinteger(FEM_VEC_LOAD_CONSISTENT));
 %!test
-%! assert(isinteger(FEM_VEC_LOAD_LUMPED));
+%! assert_simple(isinteger(FEM_VEC_LOAD_LUMPED));
 %!test
-%! assert(isinteger(FEM_VEC_STRESS_CAUCH));
+%! assert_simple(isinteger(FEM_VEC_STRESS_CAUCH));
 %!test
-%! assert(isinteger(FEM_VEC_STRAIN_TOTAL));
+%! assert_simple(isinteger(FEM_VEC_STRAIN_TOTAL));
 %!test
-%! assert(isinteger(FEM_CT_FIXED));
+%! assert_simple(isinteger(FEM_CT_FIXED));
 %!test
-%! assert(isinteger(FEM_CT_SLIDING));
+%! assert_simple(isinteger(FEM_CT_SLIDING));
 %!test
-%! assert(isinteger(FEM_MAT_THERMAL_COND));
+%! assert_simple(isinteger(FEM_MAT_THERMAL_COND));
 %!test
-%! assert(isinteger(FEM_MAT_HEAT_CAPACITY));
+%! assert_simple(isinteger(FEM_MAT_HEAT_CAPACITY));
 %!test
-%! assert(isinteger(FEM_VEC_LOAD_THERMAL));
+%! assert_simple(isinteger(FEM_VEC_LOAD_THERMAL));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_RE));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_RE));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_IM));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS_ACOUSTICS_IM));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_ACOUSTICS_RE));
+%! assert_simple(isinteger(FEM_MAT_MASS_ACOUSTICS_RE));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_ACOUSTICS_IM));
+%! assert_simple(isinteger(FEM_MAT_MASS_ACOUSTICS_IM));
 %!test
-%! assert(isinteger(FEM_MAT_DAMPING_ACOUSTICS_RE));
+%! assert_simple(isinteger(FEM_MAT_DAMPING_ACOUSTICS_RE));
 %!test
-%! assert(isinteger(FEM_MAT_DAMPING_ACOUSTICS_IM));
+%! assert_simple(isinteger(FEM_MAT_DAMPING_ACOUSTICS_IM));
 %!test
-%! assert(isinteger(FEM_VEC_LOAD_ACOUSTICS));
+%! assert_simple(isinteger(FEM_VEC_LOAD_ACOUSTICS));
 %!test
-%! assert(isinteger(FEM_VEC_PARTICLE_VELOCITY));
+%! assert_simple(isinteger(FEM_VEC_PARTICLE_VELOCITY));
 %!test
-%! assert(isinteger(FEM_SCA_ACOUSTIC_INTENSITY));
+%! assert_simple(isinteger(FEM_SCA_ACOUSTIC_INTENSITY));
 %!test
-%! assert(isinteger(FEM_VEC_PARTICLE_VELOCITY_C));
+%! assert_simple(isinteger(FEM_VEC_PARTICLE_VELOCITY_C));
 %!test
-%! assert(isinteger(FEM_SCA_ACOUSTIC_INTENSITY_C));
+%! assert_simple(isinteger(FEM_SCA_ACOUSTIC_INTENSITY_C));
 %!test
-%! assert(isinteger(FEM_VEC_SURFACE_NORMAL_VECTOR));
+%! assert_simple(isinteger(FEM_VEC_SURFACE_NORMAL_VECTOR));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_RE));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_RE));
 %!test
-%! assert(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_IM));
+%! assert_simple(isinteger(FEM_MAT_STIFFNESS_FLUID_STRUCT_IM));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_FLUID_STRUCT_RE));
+%! assert_simple(isinteger(FEM_MAT_MASS_FLUID_STRUCT_RE));
 %!test
-%! assert(isinteger(FEM_MAT_MASS_FLUID_STRUCT_IM));
+%! assert_simple(isinteger(FEM_MAT_MASS_FLUID_STRUCT_IM));
 %!test
-%! assert(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_RE));
+%! assert_simple(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_RE));
 %!test
-%! assert(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_IM));
+%! assert_simple(isinteger(FEM_MAT_DAMPING_FLUID_STRUCT_IM));
 %!test
-%! assert(isinteger(FEM_VEC_LOAD_FLUID_STRUCT));
+%! assert_simple(isinteger(FEM_VEC_LOAD_FLUID_STRUCT));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_MASS));
+%! assert_simple(isinteger(FEM_VEC_COLL_MASS));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_STIFFNESS));
+%! assert_simple(isinteger(FEM_VEC_COLL_STIFFNESS));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_HEAT_CAPACITY));
+%! assert_simple(isinteger(FEM_VEC_COLL_HEAT_CAPACITY));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_THERMAL_COND));
+%! assert_simple(isinteger(FEM_VEC_COLL_THERMAL_COND));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_MASS_ACOUSTICS));
+%! assert_simple(isinteger(FEM_VEC_COLL_MASS_ACOUSTICS));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_STIFF_ACOUSTICS));
+%! assert_simple(isinteger(FEM_VEC_COLL_STIFF_ACOUSTICS));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_MASS_FLUID_STRUCT));
+%! assert_simple(isinteger(FEM_VEC_COLL_MASS_FLUID_STRUCT));
 %!test
-%! assert(isinteger(FEM_VEC_COLL_STIFF_FLUID_STRUCT));
+%! assert_simple(isinteger(FEM_VEC_COLL_STIFF_FLUID_STRUCT));
 %!test
-%! assert(isinteger(FEM_DO_STRUCTURAL));
+%! assert_simple(isinteger(FEM_DO_STRUCTURAL));
 %!test
-%! assert(isinteger(FEM_DO_THERMAL));
+%! assert_simple(isinteger(FEM_DO_THERMAL));
 %!test
-%! assert(isinteger(FEM_DO_ACOUSTICS));
+%! assert_simple(isinteger(FEM_DO_ACOUSTICS));
 %!test
-%! assert(isinteger(FEM_DO_FLUID_STRUCT));
+%! assert_simple(isinteger(FEM_DO_FLUID_STRUCT));
 
-%!demo
+%!test
 %! ## DEMO 1
 %! ## Cantilever beam with rectangular cross section and lateral load
 %! ## W.Beitz, K.-H.Grothe, 1997, Dubbel, section 2.4.6, page C17, figure 23
 %! close all;
-%! do_post_pro = true;
+%! do_post_pro = false;
 %! num_iso = 10;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -5310,16 +5310,16 @@
 %!     title("Gmsh - deformed mesh / continuous stress tensor");
 %!   unwind_protect_cleanup
 %!     if (numel(opts.print_to_file))
-%!       unlink([opts.print_to_file, "_001.jpg"]);
+%!       [~] = unlink([opts.print_to_file, "_001.jpg"]);
 %!     endif
 %!   end_unwind_protect
 %! endif
 %! figure_list();
 %! idx_x = find((xx(:) > 0.4 * geometry.l) & (xx(:) < 0.6 * geometry.l));
-%! assert(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
-%! assert(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 6e-2 * max(abs(tauxz_a(:)(idx_x))));
+%! assert_simple(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
+%! assert_simple(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 6e-2 * max(abs(tauxz_a(:)(idx_x))));
 
-%!demo
+%!test
 %! close all;
 %! ## DEMO 2
 %! E1 = 70000e6;
@@ -5336,6 +5336,7 @@
 %! param.o = 25e-3;
 %! param.g = 0.5e-3;
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -5422,32 +5423,34 @@
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test
 %! ## DEMO3
 %! close all;
 
-%! function [x, y, z, R, Phi] = cooks_membrane_geo(r, s, t, geometry)
+%! function [x, y, z, R, Phi] = cooks_membrane_geo(r, s, t, geometry, varargin)
 %!   x = r * geometry.b;
 %!   y = r * geometry.c + (r * (geometry.a1 + geometry.c - geometry.a0) + geometry.a0 - r * geometry.c) * s;
 %!   z = t * geometry.h;
 %! endfunction
 
-%! function [F, locked] = cooks_membrane_bound_cond(r, s, t, geo, load)
+%! function [F, locked] = cooks_membrane_bound_cond(r, s, t, geo, load, varargin)
 %!   if (r == 1)
 %!     F = load.F;
 %!   else
@@ -5472,9 +5475,9 @@
 %! material.rho = 1000;
 
 %! geometry.sewing.tolerance = 0;
-%! geometry.spatial_coordinates = @(r, s, t) feval("cooks_membrane_geo", r, s, t, geometry.user_data);
-%! geometry.material_selector = @(r, s, t) 1;
-%! geometry.boundary_condition = @(r, s, t, geo, load) feval("cooks_membrane_bound_cond", r, s, t, geo, load);
+%! geometry.spatial_coordinates = @(r, s, t, varargin) feval("cooks_membrane_geo", r, s, t, geometry.user_data, varargin);
+%! geometry.material_selector = @(r, s, t, varargin) int32(1);
+%! geometry.boundary_condition = @(r, s, t, geo, load, varargin) feval("cooks_membrane_bound_cond", r, s, t, geo, load, varargin);
 
 %! N = 2:22;
 
@@ -5529,7 +5532,7 @@
 
 %! figure_list();
 
-%!demo
+%!test
 %! close all;
 %! ## DEMO 4
 %! E1 = 70000e6;
@@ -5546,6 +5549,7 @@
 %! param.o = 25e-3;
 %! param.g = 0.5e-3;
 %! filename = "";
+%! f_run_post_proc = false;
 %! unwind_protect
 %!   filename = tempname();
 %!   if (ispc())
@@ -5635,23 +5639,25 @@
 %!   opt_post.print_to_file = [filename, "_post"];
 %!   opt_post.print_and_exit = true;
 %!   opt_post.rotation_angle = [-pi/2, 0, 0];
-%!   fem_post_sol_external(mesh, sol_stat, opt_post);
-%!   figure("visible", "off");
-%!   [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
-%!   imshow(img, alpha);
-%!   title("deformed mesh/van Mises stress");
-%!   figure_list();
+%!   if (f_run_post_proc)
+%!     fem_post_sol_external(mesh, sol_stat, opt_post);
+%!     figure("visible", "off");
+%!     [img, map, alpha] = imread([opt_post.print_to_file, "_001.jpg"]);
+%!     imshow(img, alpha);
+%!     title("deformed mesh/van Mises stress");
+%!     figure_list();
+%!   endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
 %!     for i=1:numel(fn)
-%!       unlink(fullfile(fn(i).folder, fn(i).name));
+%!       [~] = unlink(fullfile(fn(i).folder, fn(i).name));
 %!     endfor
 %!   endif
 %! end_unwind_protect
 
-%!demo
-%! ## DEMO 5
+%!test
+%! ## TEST 124
 %! close all;
 %! N = 20;
 %! d = 1.6;
@@ -5758,8 +5764,8 @@
 %! figure_list();
 
 
-%!demo
-%! ## DEMO 6
+%!test
+%! ## TEST 125
 %! close all;
 %! N = 20;
 %! d = 1.6;

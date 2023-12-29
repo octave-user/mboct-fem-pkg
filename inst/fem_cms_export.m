@@ -290,7 +290,7 @@ endfunction
 %!   endif
 %! end_unwind_protect
 
-%!demo
+%!test
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -336,7 +336,7 @@ endfunction
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.nodes.interfaces.name = "node_id_cube_interface1";
 %! cms_opt.number_of_threads = 1;
-%! cms_opt.algorithm = "eliminate";
+%! cms_opt.algorithm = "shift-invert";
 %! cms_opt.invariants = true;
 %! [mesh_cms, ...
 %!  mat_ass_cms, ...

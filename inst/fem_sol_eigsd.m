@@ -145,11 +145,11 @@ endfunction
 %!                   -d2 / (2 * m2) + [1, -1] * sqrt((d2 / (2 * m2))^2 - k2 / m2)];
 %!     tol_lambda = eps^0.8;
 %!     tol_U = eps^0.7;
-%!     assert(sort(lambda), sort(lambda_ref), tol_lambda * norm(lambda_ref));
+%!     assert_simple(sort(lambda), sort(lambda_ref), tol_lambda * norm(lambda_ref));
 %!     for i=1:columns(U)
 %!       v1 = lambda(i)^2 * (M * U(:, i)) + lambda(i) * (D * U(:, i));
 %!       v2 = -K * U(:, i);
-%!       assert(v1, v2, max(norm(v1), norm(v2)) * tol_U);
+%!       assert_simple(v1, v2, max(norm(v1), norm(v2)) * tol_U);
 %!     endfor
 %!   endfor
 %! unwind_protect_cleanup

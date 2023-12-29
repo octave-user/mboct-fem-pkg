@@ -43,39 +43,39 @@ endfunction
 %!test
 %! C = [eye(3), -eye(3), zeros(3, 6)];
 %! [T, res] = fem_cms_constr_mat(C);
-%! assert(size(T),[12, 9]);
-%! assert(res <= eps^0.9);
+%! assert_simple(size(T),[12, 9]);
+%! assert_simple(res <= eps^0.9);
 
 %!test
 %! C = [zeros(3, 6), eye(3), -eye(3)];
 %! [T, res] = fem_cms_constr_mat(C);
-%! assert(size(T),[12, 9]);
-%! assert(res <= eps^0.9);
+%! assert_simple(size(T),[12, 9]);
+%! assert_simple(res <= eps^0.9);
 
 %!test
 %! C = [eye(3), zeros(3, 6), -eye(3)];
 %! [T, res] = fem_cms_constr_mat(C);
-%! assert(size(T),[12, 9]);
-%! assert(res <= eps^0.9);
+%! assert_simple(size(T),[12, 9]);
+%! assert_simple(res <= eps^0.9);
 
 %!test
 %! C = [-eye(3), zeros(3, 6), eye(3)];
 %! [T, res] = fem_cms_constr_mat(C);
-%! assert(size(T),[12, 9]);
-%! assert(res <= eps^0.9);
+%! assert_simple(size(T),[12, 9]);
+%! assert_simple(res <= eps^0.9);
 
 %!test
 %! C = [1, 2, 3, 0, 0, 0];
 %! [T, res] = fem_cms_constr_mat(C);
-%! assert(size(T),[6, 5]);
-%! assert(res <= eps^0.9);
+%! assert_simple(size(T),[6, 5]);
+%! assert_simple(res <= eps^0.9);
 
 %!test
 %! C = [1, 2, 3, 0, 0, 0;
 %!      0, 0, 0, 1, 2, 3];
 %! [T, res] = fem_cms_constr_mat(C);
-%! assert(size(T),[6, 4]);
-%! assert(res <= eps^0.9);
+%! assert_simple(size(T),[6, 4]);
+%! assert_simple(res <= eps^0.9);
 
 %!test
 %! C = [7.00000000e+000 1.00000000e+000 1.00000000e+000
@@ -6814,10 +6814,10 @@ endfunction
 
 %! C = spconvert(C);
 %! [T,res] = fem_cms_constr_mat(C);
-%! assert(res < eps^0.5);
+%! assert_simple(res < eps^0.5);
 
-%!demo
+%!test
 %! C = [eye(3), -eye(3), zeros(3, 6)];
 %! [T, res] = fem_cms_constr_mat(C);
 %! f = C * T;
-%! assert(all(all(f == 0)));
+%! assert_simple(norm(f) < eps);

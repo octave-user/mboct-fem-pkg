@@ -127,7 +127,7 @@ endfunction
 %!     title("acceleration versus time");
 %!   endif
 %!   tol = eps^0.3;
-%!   assert(U, Uref, tol * max(abs(Uref)));
-%!   assert(dU_dt, dUref_dt, tol * max(abs(dUref_dt)));
-%!   assert(dU_dt2, dUref_dt2, tol * max(abs(dUref_dt2)));
+%!   assert_simple(U, Uref, tol * max(abs(Uref)));
+%!   assert_simple(dU_dt, dUref_dt, tol * max(abs(dUref_dt)));
+%!   assert_simple(dU_dt2, dUref_dt2, tol * max(abs(dUref_dt2)));
 %! endfor

@@ -39,7 +39,7 @@ function def = fem_post_def_nodal(mesh, dof_map, U)
   endfor
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -106,7 +106,7 @@ endfunction
 %! Ured = zeros(columns(mat_ass.K), columns(mat_ass.R));
 %! Ured(dof_map.idx_node, :) = Tred * (Kred \ Rred);
 %! sol_red.def = fem_post_def_nodal(mesh, dof_map, Ured);
-%! assert(sol_red.def, sol.def, sqrt(eps) * max(max(max(abs(sol.def)))));
+%! assert_simple(sol_red.def, sol.def, sqrt(eps) * max(max(max(abs(sol.def)))));
 %! figure("visible", "off");
 %! fem_post_sol_plot(mesh, sol_red, scale_def / max(norm(sol_red.def(:, 1:3), "cols")));
 %! xlabel("x [m]");

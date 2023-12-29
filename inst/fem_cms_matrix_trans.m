@@ -62,8 +62,8 @@ endfunction
 %! A += A.';
 %! T = eye(N, N)(:, 1:floor(0.75*N));
 %! TAT = fem_cms_matrix_trans(T, A, t);
-%! assert(TAT, T.' * A * T, eps);
-%! assert(issymmetric(TAT));
+%! assert_simple(TAT, T.' * A * T, eps);
+%! assert_simple(issymmetric(TAT));
 %! endfor
 %! endfor
 
@@ -75,8 +75,8 @@ endfunction
 %! A += A.';
 %! T = eye(N, N)(:, 1:floor(0.9*N));
 %! TAT = fem_cms_matrix_trans(T, A, t);
-%! assert(TAT, T.' * A * T, eps);
-%! assert(issymmetric(TAT));
+%! assert_simple(TAT, T.' * A * T, eps);
+%! assert_simple(issymmetric(TAT));
 %! endfor
 %! endfor
 
@@ -100,16 +100,16 @@ endfunction
 %! Asym = sparse(r, c, d, N, N);
 %! switch matrix_type(Asym)
 %! case "Upper"
-%! assert(j, 1);
+%! assert_simple(j, 1);
 %! case "Lower"
-%! assert(j, 0);
+%! assert_simple(j, 0);
 %! otherwise
-%! assert(false);
+%! assert_simple(false);
 %! endswitch
 %! T = eye(N, N)(:, 1:floor(0.1 * N));
 %! TAT = fem_cms_matrix_trans(T, Asym, mat_type);
-%! assert(TAT, T.' * A * T, eps);
-%! assert(issymmetric(TAT));
+%! assert_simple(TAT, T.' * A * T, eps);
+%! assert_simple(issymmetric(TAT));
 %! endfor
 %! endfor
 
@@ -120,15 +120,15 @@ endfunction
 %! A += A.';
 %! T = rand(rows(A), floor(0.75 * columns(A)));
 %! TAT = fem_cms_matrix_trans(T, A, "Lower");
-%! assert(TAT, T.' * A * T, eps^0.7);
+%! assert_simple(TAT, T.' * A * T, eps^0.7);
 %! endfor
 
-%!demo
+%!test
 %! A = rand(10, 10);
 %! A *= A.';
 %! T = rand(10, 3);
 %! TAT1 = fem_cms_matrix_trans(T, A, "Upper");
 %! TAT2 = fem_cms_matrix_trans(T, A, "Lower");
-%! assert(isdefinite(A));
-%! assert(isdefinite(TAT1));
-%! assert(TAT2, TAT1, eps * norm(TAT1));
+%! assert_simple(isdefinite(A));
+%! assert_simple(isdefinite(TAT1));
+%! assert_simple(TAT2, TAT1, eps * norm(TAT1));

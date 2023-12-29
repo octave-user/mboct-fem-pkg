@@ -46,19 +46,19 @@ endfunction
 %! load_case3(1).joints.U = zeros(3, 1);
 %! load_case3(2).joints.U = ones(3, 1);
 %! load_case = fem_pre_load_case_merge(load_case1, load_case2, load_case3);
-%! assert(numel(load_case), 4);
-%! assert(isfield(load_case, "locked_dof"));
-%! assert(isfield(load_case, "pressure"));
-%! assert(isfield(load_case, "joints"));
-%! assert(all(all(load_case(1).locked_dof == load_case1.locked_dof)));
-%! assert(all(all(load_case(2).pressure.tria6 == load_case2.pressure.tria6)));
-%! assert(all(all(load_case(3).joints.U == load_case3(1).joints.U)));
-%! assert(all(all(load_case(4).joints.U == load_case3(2).joints.U)));
+%! assert_simple(numel(load_case), 4);
+%! assert_simple(isfield(load_case, "locked_dof"));
+%! assert_simple(isfield(load_case, "pressure"));
+%! assert_simple(isfield(load_case, "joints"));
+%! assert_simple(all(all(load_case(1).locked_dof == load_case1.locked_dof)));
+%! assert_simple(all(all(load_case(2).pressure.tria6 == load_case2.pressure.tria6)));
+%! assert_simple(all(all(load_case(3).joints.U == load_case3(1).joints.U)));
+%! assert_simple(all(all(load_case(4).joints.U == load_case3(2).joints.U)));
 
 %!test
 %! load_case = fem_pre_load_case_merge();
 
-%!demo
+%!test
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;

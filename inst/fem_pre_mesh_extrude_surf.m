@@ -1,4 +1,4 @@
-## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2021(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -31,9 +31,9 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
   if (nargin ~= 4 || nargout ~= 2)
     print_usage();
   endif
-  
+
   layers = numel(h);
-  
+
   elem_grp = getfield(mesh.groups, elem_type);
 
   grp_idx = find([elem_grp.id] == grp_id);
@@ -150,9 +150,9 @@ endfunction
 %!     sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, rho);
 %!     mref = mesh.material_data.rho;
 %!     rtol = sqrt(eps);
-%!     assert(mat_ass.mtot, mref, rtol * mref);
-%!     assert(all(sol_eig.f(1:6) < 1e-4 * max(sol_eig.f)));
-%!     assert(all(sol_eig.f(7:end) > 1e-1 * max(sol_eig.f)));
+%!     assert_simple(mat_ass.mtot, mref, rtol * mref);
+%!     assert_simple(all(sol_eig.f(1:6) < 1e-4 * max(sol_eig.f)));
+%!     assert_simple(all(sol_eig.f(7:end) > 1e-1 * max(sol_eig.f)));
 %!   endfor
 %! unwind_protect_cleanup
 %!   rand("state", rndstate);
@@ -210,9 +210,9 @@ endfunction
 %!     sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, rho);
 %!     mref = 8 * mesh.material_data.rho;
 %!     rtol = 10 * eps;
-%!     assert(mat_ass.mtot, mref, rtol * mref);
-%!     assert(all(sol_eig.f(1:6) < 1e-6 * max(sol_eig.f)));
-%!     assert(all(sol_eig.f(7:end) > 1e-1 * max(sol_eig.f)));
+%!     assert_simple(mat_ass.mtot, mref, rtol * mref);
+%!     assert_simple(all(sol_eig.f(1:6) < 1e-6 * max(sol_eig.f)));
+%!     assert_simple(all(sol_eig.f(7:end) > 1e-1 * max(sol_eig.f)));
 %!   endfor
 %! unwind_protect_cleanup
 %!   rand("state", rndstate);
@@ -402,7 +402,7 @@ endfunction
 %!   tol = 1e-2;
 %!   for j=1:numel(solR.t)
 %!     prefj = real(pref(rg, solR.t(j)));
-%!     assert(solR.p(idx, j), prefj, tol * max(abs(prefj)));
+%!     assert_simple(solR.p(idx, j), prefj, tol * max(abs(prefj)));
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))
@@ -601,7 +601,7 @@ endfunction
 %!   idx = idx(idx2);
 %!   tol = 2e-2;
 %!   pref = real(pref(rg, solR.t));
-%!   assert(solR.p(idx, :), pref, tol * max(max(abs(pref))));
+%!   assert_simple(solR.p(idx, :), pref, tol * max(max(abs(pref))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
@@ -641,7 +641,7 @@ endfunction
 %!     d3 = 60e-3 / unit_meters;
 %!     t = 3.5e-3 / unit_meters;
 %!     r = 1500e-3 / unit_meters;
-%!     h1 = 10 * t;
+%!     h1 = 40 * t;
 %!     h2 = 200e-3 / unit_meters;
 %!     E1 = 210000e6 / unit_pascal;
 %!     rho1 = 7800 / (unit_kilograms / unit_meters^3);
@@ -651,7 +651,7 @@ endfunction
 %!     c2 = 340 / (unit_meters / unit_second);
 %!     rho2 = 1.225 / (unit_kilograms / unit_meters^3);
 %!     Fz = (1 + 0j) / unit_newton;
-%!     f = (100) / (unit_second^-1);
+%!     f = [100] / (unit_second^-1);
 %!     solver = "precond";
 %!     f_enable_PML = true;
 %!     f_enable_plot = false;

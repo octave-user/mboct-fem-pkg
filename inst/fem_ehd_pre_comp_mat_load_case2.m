@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2022) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
   endif
 
   if (~isfield(options, "solver"))
-    options.solver = "pastix";
+    options.solver = fem_sol_select(true);
   endif
 
   if (~isfield(options, "number_of_threads"))
@@ -667,8 +667,8 @@ endfunction
 %!           dof_map, ...
 %!           sol_eig_cms, ...
 %!           cms_optp] = fem_cms_create(mesh, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_optp, bearing_surf);
 %!        endfor
 %!      endfor
@@ -840,8 +840,8 @@ endfunction
 %!        cms_opt.solver = opt_modes.solver;
 %!        [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!        [mesh, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
-%!        assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!        assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!        assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!        assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!        comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
 %!        load_case_itf = fem_pre_load_case_create_empty(6);
 %!        for i=1:6
@@ -916,7 +916,7 @@ endfunction
 %!        for i=1:size(sol_post.def, 3)
 %!          fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!        endfor
-%!        assert(all(err_red < tol_red(j)));
+%!        assert_simple(all(err_red < tol_red(j)));
 %!      endfor
 %!    endfor
 %!  unwind_protect_cleanup
@@ -1092,8 +1092,8 @@ endfunction
 %!          endfor
 %!          [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!          [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
 %!          [lambda, idx_lambda] = sort(diag(lambda));
 %!          qred = qred(:, idx_lambda);
@@ -1235,9 +1235,9 @@ endfunction
 %!    tol_red = 5e-2;
 %!    tol_mod = 2e-2;
 %!    tol_w = 1e-2;
-%!    assert(all(err_red(:, end) < tol_red));
-%!    assert(err_mod(end) < tol_mod);
-%!    assert(err_w(end) < tol_w);
+%!    assert_simple(all(err_red(:, end) < tol_red));
+%!    assert_simple(err_mod(end) < tol_mod);
+%!    assert_simple(err_w(end) < tol_w);
 %!  unwind_protect_cleanup
 %!    if (numel(filename))
 %!      fn = dir([filename, "*"]);
@@ -1383,8 +1383,8 @@ endfunction
 %!          endfor
 %!          [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!          [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
 %!          [lambda, idx_lambda] = sort(diag(lambda));
 %!          qred = qred(:, idx_lambda);
@@ -1510,9 +1510,9 @@ endfunction
 %!    tol_red = 3e-2;
 %!    tol_mod = 2e-2;
 %!    tol_w = 2e-2;
-%!    assert(all(err_red(:, end) < tol_red));
-%!    assert(err_mod(end) < tol_mod);
-%!    assert(err_w(end) < tol_w);
+%!    assert_simple(all(err_red(:, end) < tol_red));
+%!    assert_simple(err_mod(end) < tol_mod);
+%!    assert_simple(err_w(end) < tol_w);
 %!  unwind_protect_cleanup
 %!    if (numel(filename))
 %!      fn = dir([filename, "*"]);
@@ -1681,8 +1681,8 @@ endfunction
 %!          endfor
 %!          [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!          [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
 %!          [lambda, idx_lambda] = sort(diag(lambda));
 %!          qred = qred(:, idx_lambda);
@@ -1808,9 +1808,9 @@ endfunction
 %!    tol_red = 1e-2;
 %!    tol_mod = 1e-2;
 %!    tol_w = 1e-2;
-%!    assert(all(err_red(:, end) < tol_red));
-%!    assert(err_mod(end) < tol_mod);
-%!    assert(err_w(end) < tol_w);
+%!    assert_simple(all(err_red(:, end) < tol_red));
+%!    assert_simple(err_mod(end) < tol_mod);
+%!    assert_simple(err_w(end) < tol_w);
 %!  unwind_protect_cleanup
 %!    if (numel(filename))
 %!      fn = dir([filename, "*"]);
@@ -1979,8 +1979,8 @@ endfunction
 %!        cms_opt.solver = opt_modes.solver;
 %!        [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!        [mesh, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
-%!        assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!        assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!        assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!        assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!        comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_opt, bearing_surf);
 %!        load_case_itf = fem_pre_load_case_create_empty(6);
 %!        for i=1:6
@@ -2055,7 +2055,7 @@ endfunction
 %!        for i=1:size(sol_post.def, 3)
 %!          fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!        endfor
-%!        assert(all(err_red < tol_red(j)));
+%!        assert_simple(all(err_red < tol_red(j)));
 %!      endfor
 %!    endfor
 %!  unwind_protect_cleanup
@@ -2244,8 +2244,8 @@ endfunction
 %!           dof_map, ...
 %!           sol_eig_cms, ...
 %!           cms_optp] = fem_cms_create(mesh, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          comp_mat = fem_ehd_pre_comp_mat_unstruct(mesh, mat_ass, dof_map, cms_optp, bearing_surf);
 %!        endfor
 %!      endfor
@@ -2424,8 +2424,8 @@ endfunction
 %!          endfor
 %!          [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!          [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
 %!          [lambda, idx_lambda] = sort(diag(lambda));
 %!          qred = qred(:, idx_lambda);
@@ -2567,9 +2567,9 @@ endfunction
 %!    tol_red = 5e-2;
 %!    tol_mod = 2e-2;
 %!    tol_w = 1e-2;
-%!    assert(all(err_red(:, end) < tol_red));
-%!    assert(err_mod(end) < tol_mod);
-%!    assert(err_w(end) < tol_w);
+%!    assert_simple(all(err_red(:, end) < tol_red));
+%!    assert_simple(err_mod(end) < tol_mod);
+%!    assert_simple(err_w(end) < tol_w);
 %!  unwind_protect_cleanup
 %!    if (numel(filename))
 %!      fn = dir([filename, "*"]);
@@ -2716,8 +2716,8 @@ endfunction
 %!          endfor
 %!          [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!          [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
 %!          [lambda, idx_lambda] = sort(diag(lambda));
 %!          qred = qred(:, idx_lambda);
@@ -2843,9 +2843,9 @@ endfunction
 %!    tol_red = 3e-2;
 %!    tol_mod = 2e-2;
 %!    tol_w = 2e-2;
-%!    assert(all(err_red(:, end) < tol_red));
-%!    assert(err_mod(end) < tol_mod);
-%!    assert(err_w(end) < tol_w);
+%!    assert_simple(all(err_red(:, end) < tol_red));
+%!    assert_simple(err_mod(end) < tol_mod);
+%!    assert_simple(err_w(end) < tol_w);
 %!  unwind_protect_cleanup
 %!    if (numel(filename))
 %!      fn = dir([filename, "*"]);
@@ -3015,8 +3015,8 @@ endfunction
 %!          endfor
 %!          [mesh_l, load_case_bearing, bearing_surf_l, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!          [mesh_l, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh_l, load_case_bearing, cms_opt);
-%!          assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!          assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!          assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!          assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!          [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
 %!          [lambda, idx_lambda] = sort(diag(lambda));
 %!          qred = qred(:, idx_lambda);
@@ -3142,9 +3142,9 @@ endfunction
 %!    tol_red = 1e-2;
 %!    tol_mod = 1e-2;
 %!    tol_w = 1e-2;
-%!    assert(all(err_red(:, end) < tol_red));
-%!    assert(err_mod(end) < tol_mod);
-%!    assert(err_w(end) < tol_w);
+%!    assert_simple(all(err_red(:, end) < tol_red));
+%!    assert_simple(err_mod(end) < tol_mod);
+%!    assert_simple(err_w(end) < tol_w);
 %!  unwind_protect_cleanup
 %!    if (numel(filename))
 %!      fn = dir([filename, "*"]);
@@ -3157,7 +3157,7 @@ endfunction
 %!    endif
 %!  end_unwind_protect
 
-%!demo
+%!test
 %!  ## DEMO1
 %!  do_plot = false;
 %!  if (do_plot)
@@ -3316,8 +3316,8 @@ endfunction
 %!        cms_opt.number_of_threads = opt_modes.number_of_threads;
 %!        [mesh, load_case_bearing, bearing_surf, cms_opt.load_cases_index, sol_eig] = fem_ehd_pre_comp_mat_load_case2(mesh, load_case, bearing_surf, opt_modes);
 %!        [mesh, mat_ass, dof_map, sol_eig_cms, cms_opt] = fem_cms_create(mesh, load_case_bearing, cms_opt);
-%!        assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
-%!        assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
+%!        assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!        assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!        [qred, lambda_red] = eig(mat_ass.Kred, mat_ass.Mred);
 %!        [lambda_red, idx_lambda_red] = sort(diag(lambda_red));
 %!        qred = qred(:, idx_lambda_red);
@@ -3389,7 +3389,7 @@ endfunction
 %!                                           FEM_VEC_LOAD_CONSISTENT], ...
 %!                                          load_case_post);
 %!        sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, opt_modes);
-%!        sol_post_modal = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, cms_opt.modes.number + 6, 0, sqrt(eps), "shift-invert", opt_modes);
+%!        sol_post_modal = fem_sol_modal(mesh_post, dof_map_post, mat_ass_post, cms_opt.modes.number + 6, 0, sqrt(eps), "shift-invert", opt_modes.solver);
 %!        for i=1:size(sol_post_modal.def, 3)
 %!          sol_post_modal.def(:, :, i) *= 10e-3 / max(max(abs(sol_post_modal.def(:, 1:3, i))));
 %!          if (norm(sol_post_modal.def(:, :, i) + sol_red_modal.def(:, :, i)) < norm(sol_post_modal.def(:, :, i) - sol_red_modal.def(:, :, i)))
@@ -3437,7 +3437,7 @@ endfunction
 %!                  100 * (sol_red_modal.f(i) / sol_post_modal.f(i) - 1), ...
 %!                  MAC(i));
 %!        endfor
-%!        assert(all(err_red < tol_red(j)));
+%!        assert_simple(all(err_red < tol_red(j)));
 %!      endfor
 %!    endfor
 %!  unwind_protect_cleanup

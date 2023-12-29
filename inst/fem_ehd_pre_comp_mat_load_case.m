@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -76,23 +76,23 @@ function [load_case, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(m
     xi = mod(atan2(Xn(2, :)(elements), Xn(1, :)(elements)), 2 * pi) * bearing_surf(i).r;
 
     xi_S = [bearing_surf(i).grid_x(end - 1) - 2 * pi * bearing_surf(i).r, ...
-	    bearing_surf(i).grid_x, ...
-	    bearing_surf(i).grid_x(2) + 2 * pi * bearing_surf(i).r];
+            bearing_surf(i).grid_x, ...
+            bearing_surf(i).grid_x(2) + 2 * pi * bearing_surf(i).r];
 
     zi_S = [2 * bearing_surf(i).grid_z(1) - bearing_surf(i).grid_z(2), ...
-	    bearing_surf(i).grid_z, ...
-	    2 * bearing_surf(i).grid_z(end) - bearing_surf(i).grid_z(end - 1)];
+            bearing_surf(i).grid_z, ...
+            2 * bearing_surf(i).grid_z(end) - bearing_surf(i).grid_z(end - 1)];
 
     p_S = zeros(numel(zi_S), numel(xi_S));
 
     for k=1:N(1) - 1
       for j=1:N(2)
-	p_S(:, :) = 0;
-	p_S(j + 1, k + 1) = bearing_surf(i).options.reference_pressure;
-	p_S(j + 1, idx_dst_per) = p_S(j + 1, idx_src_per);
-	p_U = interp2(xi_S, zi_S, p_S, xi, zi, "linear");
+        p_S(:, :) = 0;
+        p_S(j + 1, k + 1) = bearing_surf(i).options.reference_pressure;
+        p_S(j + 1, idx_dst_per) = p_S(j + 1, idx_src_per);
+        p_U = interp2(xi_S, zi_S, p_S, xi, zi, "linear");
 
-	idx_press = any(p_U, 2);
+        idx_press = any(p_U, 2);
         load_case(++idx).pressure = struct(options.elem_type, struct("elements", elements(idx_press, :), "p", p_U(idx_press, :)));
       endfor
     endfor
@@ -114,12 +114,12 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
       z = bearing_surf(i).R(:, 3).' * (mesh.nodes(nodes, 1:3).' - bearing_surf(i).X0);
 
       dz = abs([0.5 * bearing_surf(i).w - max(z);
-		0.5 * bearing_surf(i).w + min(z)]);
+                0.5 * bearing_surf(i).w + min(z)]);
 
       tol = bearing_surf(i).relative_tolerance * bearing_surf(i).w + bearing_surf(i).absolute_tolerance;
 
       if (any(dz > tol))
-	error("z-coordinate of nodes at bearing %d does not cover the complete bearing width", i);
+        error("z-coordinate of nodes at bearing %d does not cover the complete bearing width", i);
       endif
     endif
 
@@ -137,17 +137,17 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
       Nx = bearing_surf(i).options.number_of_nodes_x;
       Nz = bearing_surf(i).options.number_of_nodes_z;
     endif
-    
+
     N = [max(4, Nx), max(3, Nz)];
 
     if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
       switch (bearing_surf(i).options.bearing_model)
-	case "EHD/FE"
-	  for j=1:numel(N)
-	    if (mod(N(j), 2) == 0)
-	      ++N(j);
-	    endif
-	  endfor
+        case "EHD/FE"
+          for j=1:numel(N)
+            if (mod(N(j), 2) == 0)
+              ++N(j);
+            endif
+          endfor
       endswitch
     endif
 
@@ -158,7 +158,7 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
   endfor
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! fd = -1;
 %! filename = "";
@@ -179,6 +179,7 @@ endfunction
 %! b = h - 2 * c;
 %! scale_def = 5e-3;
 %! mesh_size = 5e-3;
+%! f_post_pro = false;
 %! fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %! fprintf(fd, "ri = %g;\n", ri);
 %! fprintf(fd, "ro = %g;\n", ro);
@@ -267,6 +268,7 @@ endfunction
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass, opt_solver);
 %! fprintf(stderr, "solving for static deflection (lumped load) ...\n");
 %! sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped), opt_solver);
+%! if (f_post_pro)
 %! post_pro_file = [filename, "_post_pro.geo"];
 %! for j=1:numel(idx_group) - 1
 %!  max_def = 0;
@@ -333,6 +335,7 @@ endfunction
 %! endfor
 %! endfor
 %! figure_list();
+%! endif
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

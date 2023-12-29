@@ -30,6 +30,7 @@
 ##
 ## @var{h} @dots{} Modal load vector
 ##
+## @seealso{fem_sol_modal_damped, fem_sol_harmonic_modal}
 ## @end deftypefn
 
 function [Phi, h] = fem_sol_modes_scale(M, K, lambda, Phi, R)

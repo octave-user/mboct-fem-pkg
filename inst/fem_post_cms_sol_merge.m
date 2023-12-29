@@ -128,8 +128,8 @@ function [sol] = fem_post_cms_sol_merge(mesh, dof_map, sol_tot)
   endif
 endfunction
 
-%!demo
-%! ## DEMO
+%!test
+%! ## TEST
 %! close all;
 %! number_of_modes = 10;
 %! a = [30e-3, 100e-3];
@@ -138,6 +138,7 @@ endfunction
 %! d = [0, 40e-3];
 %! h = 3.5e-3;
 %! p = [25e6, 25e6];
+%! f_run_post_proc = false;
 %! filename = "";
 %! unwind_protect
 %! filename = tempname();
@@ -227,6 +228,7 @@ endfunction
 %! opts.print_to_file = filename;
 %! opts.skin_only = true;
 %! opts.show_element = true;
+%! if (f_run_post_proc)
 %! unwind_protect
 %!   fem_post_sol_external(mesh_comb, sol_comb, opts);
 %!   [img, map, alpha] = imread([opts.print_to_file, "_001.jpg"]);
@@ -237,6 +239,7 @@ endfunction
 %!   [~] = unlink([opts.print_to_file, "_001.jpg"]);
 %! end_unwind_protect
 %! figure_list();
+%! endif
 %! unwind_protect_cleanup
 %! if (numel(filename))
 %!   fn = dir([filename, "*"]);

@@ -14,38 +14,29 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{U} = fem_sol_harmonic_modal(@var{h}, @var{lambda}, @var{Phi}, @var{omega})
-## Compute the harmonic solution based on eigenvalues @var{lambda}, normalized mode shapes @var{Phi} and modal excitation @var{h}
+## @deftypefn {Function File} @var{U} = fem_sol_harmonic_modal2(@var{dgen}, @var{kgen}, @var{rgen}, @var{Phi}, @var{omega})
+## Compute the harmonic solution based on modal damping @var{dgen}, modal stiffness @var{kgen} modal excitation @var{rgen} and mode shapes @var{Phi}.
+## It is assumed, that the modal mass @var{mgen} is equal to ones(size(kgen)).
 ##
-## @var{h} @dots{} Modal excitation returned from fem_sol_modes_scale
+## @var{dgen} @dots{} Modal damping returned from fem_sol_modes_scale2
 ##
-## @var{lambda} @dots{} Complex eigenvalues returned from fem_sol_modal_damped
+## @var{kgen} @dots{} Modal stiffness returned from fem_sol_modes_scale2
 ##
-## @var{Phi} @dots{} Complex mode shapes returned from fem_sol_modal_damped
+## @var{rgen} @dots{} Modal excitation returned from fem_sol_modes_scale2
 ##
-## @var{omega} @dots{} Angular velocity of harmonic excitation @var{h}
+## @var{Phi} @dots{} Real mode shapes returned from fem_sol_modal
 ##
-## @seealso{fem_sol_modal_damped}
+## @var{omega} @dots{} Angular velocity of harmonic excitation @var{rgen}
+##
+## @seealso{fem_sol_modal, fem_sol_modes_scale2}
 ## @end deftypefn
 
-function U = fem_sol_harmonic_modal(h, lambda, Phi, omega)
-  if (nargout > 1 || nargin ~= 4)
-    print_usage();
-  endif
+function U = fem_sol_harmonic_modal2(dgen, kgen, rgen, Phi, omega)
+  U = zeros(rows(Phi), numel(omega), columns(rgen));
 
-  if (~(rows(h) == columns(Phi) && columns(Phi) == numel(lambda)))
-    error("size of h, lambda and Phi is not consistent");
-  endif
-
-  if (rows(omega) ~= 1)
-    error("omega must be a row vector");
-  endif
-
-  U = zeros(rows(Phi), numel(omega), columns(h));
-
-  for j=1:columns(h)
+  for j=1:columns(rgen)
     for i=1:columns(Phi)
-      qi = h(i, j) ./ (lambda(i) - 1j * omega);
+      qi = rgen(i, j) ./ (-omega.^2 + 1j * omega * dgen(i) + kgen(i)); ## assume mgen == 1
       U(:, :, j) += Phi(:, i) * qi;
     endfor
   endfor
@@ -73,8 +64,8 @@ endfunction
 %! r5 = 1e10;
 %! r6 = 1e7;
 %! c5 = c6 = norm([k1, k2, k3, k4]);
-%! omega = linspace(0, 2 * pi * 10, 10000);
-%! num_modes = 4;
+%! omega = linspace(0, 2 * pi * 10, 100000);
+%! num_modes = 2;
 %! mat_ass.M = [m1,  0,  0,  0,  0,  0;
 %!              0,  m2,  0,  0,  0,  0;
 %!              0,   0, m3,  0,  0,  0;
@@ -109,24 +100,34 @@ endfunction
 %! dof_map.ndof = zeros(4, 6, "int32");
 %! dof_map.ndof(1, 1:2) = [1:2];
 %! dof_map.ndof(2, 1:2) = [3:4];
-%! solvers = {"pastix", "pardiso", "umfpack", "lu", "mldivide"};
+%! solvers = {"pastix", "pardiso", "mumps", "chol", "umfpack", "lu", "mldivide"};
 %! for i=1:numel(solvers)
+%!   fprintf(stderr, "linear solver: \"%s\"\n", solvers{i});
+%!   if (~fem_sol_check_func(solvers{i}))
+%!     fprintf(stderr, "solver %s is not available\n", solvers{i});
+%!     continue;
+%!   endif
 %!   opt_sol.solver = solvers{i};
+%!   opt_sol.verbose = int32(0);
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.pre_scaling = true;
-%!   opt_sol.verbose = int32(0);
-%!   opt_sol.scaling = false;
-%!   opt_sol.weighted_matching = false; ## FIXME: Pardiso is not able to solve it with weighted matching enabled
+%!   opt_sol.scaling = true;
 %!   opt_eig.disp = int32(0);
 %!   opt_eig.maxit = int32(10);
-%!   opt_sol.symmetric = true; 
-%!   [sol, Phi] = fem_sol_modal_damped(mesh, dof_map, mat_ass, num_modes, opt_sol, opt_eig);
-%!   [Phi, h] = fem_sol_modes_scale(mat_ass.M, mat_ass.K, sol.lambda, Phi, mat_ass.R);
-%!   U = fem_sol_harmonic_modal(h, sol.lambda, Phi(dof_map.ndof(1, 1:2), :), omega);
+%!   switch (solvers{i})
+%!   case "pardiso"
+%!     opt_sol.symmetric = false; ## FIXME: Pardiso is not able to solve it in symmetric mode with weighted matching enabled
+%!     opt_sol.weighted_matching = false;
+%!   otherwise
+%!     opt_sol.symmetric = true;
+%!     opt_sol.weighted_matching = true;
+%!   endswitch
+%!   opt_sol.algorithm = "generic";
+%!   [sol, Phi] = fem_sol_modal(mesh, dof_map, mat_ass, num_modes, opt_sol, opt_eig);
+%!   [dgen, kgen, rgen] = fem_sol_modes_scale2(mat_ass.M, mat_ass.D, mat_ass.K, Phi, mat_ass.R);
+%!   U = fem_sol_harmonic_modal2(dgen, kgen, rgen, Phi(dof_map.ndof(1, 1:2), :), omega);
 %!   Uref = [r1 ./ (-omega.^2 * m1 + 1j * omega * d1 + k1);
 %!           r2 ./ (-omega.^2 * m2 + 1j * omega * d2 + k2)];
-%!   lambda1ref = -d1/(2*m1) + [1, -1] * sqrt((d1/(2*m1))^2 - k1/m1);
-%!   lambda2ref = -d2/(2*m2) + [1, -1] * sqrt((d2/(2*m2))^2 - k2/m2);
 %!   omega01 = sqrt(k1 / m1);
 %!   omega02 = sqrt(k2 / m2);
 %!   delta1 = d1 / (2 * m1);
@@ -134,12 +135,11 @@ endfunction
 %!   D1 = delta1 / omega01;
 %!   D2 = delta2 / omega02;
 %!   Dref = [D1, D1, D2, D2];
-%!   lambdaref = [lambda1ref, lambda2ref];
+%!   lambdaref = 1j * [omega01, omega02];
 %!   [~, idx] = sortrows([imag(lambdaref)(:), real(lambdaref)(:)]);
 %!   lambdaref = lambdaref(idx);
 %!   Dref = min(1, Dref(idx));
 %!   tol = eps^0.9;
 %!   assert_simple(U, Uref, tol * norm(Uref));
-%!   assert_simple(sol.lambda, lambdaref, tol * norm(lambdaref));
-%!   assert_simple(sol.D, Dref, tol * norm(Dref));
+%!   assert_simple(imag(sol.lambda), imag(lambdaref), tol * norm(imag(lambdaref)));
 %! endfor

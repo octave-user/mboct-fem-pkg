@@ -77,7 +77,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   endif
 
   if (~isfield(cms_opt, "solver"))
-    cms_opt.solver = "pastix";
+    cms_opt.solver = fem_sol_select(true);
   endif
 
   if (~isfield(cms_opt, "scaling"))
@@ -698,10 +698,10 @@ endfunction
 %!                Phi = mat_ass_cms.Tred * Phi(:, idx);
 %!                Phi *= diag(1 ./ max(abs(Phi), [], 1));
 %!                if (numel(lambda_ref))
-%!                  assert(lambda, lambda_ref, tol * max(abs(lambda)));
+%!                  assert_simple(lambda, lambda_ref, tol * max(abs(lambda)));
 %!                  for j=1:columns(Phi)
 %!                    f = min(max(abs(Phi(:, j) + Phi_ref(:, j))), max(abs(Phi(:, j) - Phi_ref(:, j))));
-%!                    assert(f < tol);
+%!                    assert_simple(f < tol);
 %!                  endfor
 %!                else
 %!                  lambda_ref = lambda;
@@ -717,8 +717,9 @@ endfunction
 %!   endfor
 %! endfor
 
-%!demo
+%!test
 %! close all;
+%! f_run_post_proc = false;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
 %! SI_unit_s = 1e-1;
@@ -769,6 +770,7 @@ endfunction
 %!  dof_map_cms, ...
 %!  sol_eig_cms, ...
 %!  cms_opt] = fem_cms_create(mesh, load_case, cms_opt);
+%! if (f_run_post_proc)
 %! filename = "";
 %! unwind_protect
 %!   filename = tempname();
@@ -797,3 +799,4 @@ endfunction
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! endif

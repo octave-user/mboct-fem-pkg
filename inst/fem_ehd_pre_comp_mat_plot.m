@@ -1,4 +1,4 @@
-## Copyright (C) 2016(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2016(-2023) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ function fem_ehd_pre_comp_mat_plot(comp_mat, options)
   if (~isfield(options, "scale_modes"))
     options.scale_modes = 1;
   endif
-  
+
   if (~isfield(options, "plot_mesh"))
     options.plot_mesh = true;
   endif
@@ -81,7 +81,7 @@ function fem_ehd_pre_comp_mat_plot(comp_mat, options)
   endif
 
   if (isfield(options, "output_file"))
-    unlink(options.output_file);
+    [~] = unlink(options.output_file);
   endif
 
   if (~isfield(options, "contour_levels"))
@@ -94,7 +94,7 @@ function fem_ehd_pre_comp_mat_plot(comp_mat, options)
     if (~(isfield(comp_mat(i), "mesh") && isfield(comp_mat(i).mesh, "structured")))
       is_struct_mesh = false;
       break;
-    endif   
+    endif
   endfor
 
   if (~isfield(options, "plot_matrix"))
@@ -106,15 +106,15 @@ function fem_ehd_pre_comp_mat_plot(comp_mat, options)
   endif
 
   output_files = {};
-  
+
   for i=1:numel(comp_mat)
     output_files = fem_ehd_comp_mat_plot_generic(comp_mat(i), output_files, options);
-    
+
     if (is_struct_mesh)
       output_files = fem_ehd_comp_mat_plot_struct_mesh(comp_mat(i), output_files, options);
     endif
   endfor
-  
+
   if (options.merge_files && isfield(options, "output_file"))
     pdf_merge(output_files, options.output_file);
   endif
@@ -130,23 +130,23 @@ function output_files = fem_ehd_comp_mat_plot_struct_mesh(comp_mat, output_files
   Phi = zeros(1, numel(s));
   z = zeros(1, numel(t));
   X = zeros(3, numel(s));
-  
+
   for j=1:numel(s)
     inode = comp_mat.mesh.structured.inode_idx(find(r == comp_mat.loads(1).position.r), j, find(t == comp_mat.loads(1).position.t));
     X(:, j) = comp_mat.mesh.nodes(inode, 1:3);
   endfor
 
   [rc, Xc] = fem_ehd_center_of_circle(X);
-  
+
   Phi = atan2(X(2, 1) - Xc(2), X(1, 1) - Xc(1)) + comp_mat.bearing_surf.grid_x / rc;
-  
+
   for k=1:numel(t)
     inode = comp_mat.mesh.structured.inode_idx(find(r == comp_mat.loads(1).position.r), 1, k);
     z(k) = comp_mat.mesh.nodes(inode, 3);
   endfor
-  
+
   hnd = -1;
-  
+
   if (options.nodal_plot && isfield(comp_mat, "sol_stat") && options.plot_load_cases)
     for i=1:size(comp_mat.sol_stat.def, 3)
       for j=1:numel(s)
@@ -186,7 +186,7 @@ function output_files = fem_ehd_comp_mat_plot_struct_mesh(comp_mat, output_files
       endif
     endfor
   endif
-  
+
   if (options.modal_plot)
     if (isfield(comp_mat, "modal") && options.plot_mesh)
       for i=1:size(comp_mat.modal.def, 3)
@@ -204,16 +204,16 @@ function output_files = fem_ehd_comp_mat_plot_struct_mesh(comp_mat, output_files
         endif
       endfor
     endif
-    
+
     if (isfield(comp_mat, "modal_sol") && options.plot_load_cases)
       U = comp_mat.modal_sol.def;
-      
+
       for i=1:size(U, 3)
         inode_load = comp_mat.mesh.structured.inode_idx(find(r == comp_mat.loads(i).position.r), ...
                                                         comp_mat.loads(i).index.i, ...
                                                         comp_mat.loads(i).index.j ...
                                                         + comp_mat.bearing_surf.offset_t);
-        
+
         for j=1:numel(s)
           for k=1:numel(t)
             inode = comp_mat.mesh.structured.inode_idx(find(r == comp_mat.loads(i).position.r), j, k);
@@ -221,7 +221,7 @@ function output_files = fem_ehd_comp_mat_plot_struct_mesh(comp_mat, output_files
             Ur(j, k) = U(inode, 1:2, i) * (n / norm(n));
           endfor
         endfor
-        
+
 
         hnd = figure("visible", "off");
         contourf(180/pi * Phi, 1e3 * z, 1e6 * Ur.');
@@ -243,7 +243,7 @@ function output_files = fem_ehd_comp_mat_plot_struct_mesh(comp_mat, output_files
                       comp_mat.reference_pressure, ...
                       1e6 * min(min(Ur)), ...
                       1e6 * max(max(Ur))));
-        
+
         if (isfield(options, "output_file"))
           output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
         endif
@@ -254,14 +254,14 @@ endfunction
 
 function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, options)
   hnd = -1;
-  
+
   if (options.plot_const_pressure && isfield(comp_mat, "C") && ~isempty(comp_mat.C))
     w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
 
     for l=1:rows(w)
       w(l, :) = sum(comp_mat.C((l - 1) * columns(w) + (1:columns(w)), 1:end - columns(w)), 2);
     endfor
-    
+
     zrange = 1e6 * linspace(min(min(w)), max(max(w)), options.contour_levels);
     hnd = figure("visible", "off");
     colormap jet;
@@ -274,12 +274,12 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
     title(sprintf("constant pressure load case min(w)=%.2fum, max(w)=%.2fum, w [um]", ...
                   1e6 * min(min(w)), ...
                   1e6 * max(max(w))));
-    
+
     if (isfield(options, "output_file"))
       output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
     endif
   endif
-  
+
   if (options.plot_matrix && isfield(comp_mat, "C") && ~isempty(comp_mat.C))
     for j=1:options.plot_step.x:numel(comp_mat.bearing_surf.grid_x)
       for k=1:options.plot_step.z:numel(comp_mat.bearing_surf.grid_z)
@@ -304,14 +304,14 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
                       1e3 * comp_mat.bearing_surf.grid_z(k), ...
                       1e6 * min(min(w)), ...
                       1e6 * max(max(w))));
-        
+
         if (isfield(options, "output_file"))
           output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
         endif
       endfor
     endfor
   endif
-  
+
   if (isfield(comp_mat, "D") && ~isempty(comp_mat.D))
     for j=1:columns(comp_mat.D)
       w = zeros(numel(comp_mat.bearing_surf.grid_x), numel(comp_mat.bearing_surf.grid_z));
@@ -331,7 +331,7 @@ function output_files = fem_ehd_comp_mat_plot_generic(comp_mat, output_files, op
                     j, ...
                     1e6 * min(min(w)), ...
                     1e6 * max(max(w))));
-      
+
       if (isfield(options, "output_file"))
         output_files{end + 1} = gen_pdf_file(hnd, options, output_files);
       endif
@@ -344,15 +344,15 @@ function output_file = gen_pdf_file(hnd, options, output_files)
   out_ext = ".pdf";
 
   output_file  = fullfile(out_dir, sprintf("%s_%03d%s", out_name, numel(output_files) + 1, out_ext));
-  
+
   [~] = unlink(output_file);
   print("-dpdf", "-color", "-landscape", "-S1024,768", output_file);
   [info, err] = stat(output_file);
-  
+
   if (err ~= 0 || info.size == 0)
     error("failed to create file \"%s\"", output_file);
   endif
-  
+
   close(hnd);
 endfunction
 
@@ -376,12 +376,12 @@ function [r, Xc, Rc] = fem_ehd_center_of_circle(X)
 
   n12 = Rc * R1 * Rc.' * n12;
   n23 = Rc * R1 * Rc.' * n23;
-  
+
   X12 = 0.5 * (X1 + X2);
   X23 = 0.5 * (X2 + X3);
 
   t = line_intersection([X12, X23], [n12, n23]);
-  
+
   Xc = t(1) * n12 + X12;
 
   r = norm(Xc - X1);
@@ -393,11 +393,11 @@ function [t] = line_intersection(X0, n)
 
   b = [ n(:, 1).' * (X0(:, 1) - X0(:, 2));
         -n(:, 2).' * (X0(:, 1) - X0(:, 2))];
-  
+
   t = A \ b;
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! fd = -1;
 %! filename = "";
@@ -416,7 +416,7 @@ endfunction
 %! h = 12e-3;
 %! c = 2e-3;
 %! b = h - 2 * c;
-%! mesh_size = 1.5e-3;
+%! mesh_size = 5e-3;
 %! fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %! fprintf(fd, "ri = %g;\n", ri);
 %! fprintf(fd, "ro = %g;\n", ro);
@@ -445,6 +445,7 @@ endfunction
 %! fputs(fd, "Physical Surface(\"clamp\",1) = {tmp[2]};\n");
 %! fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
 %! fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
+%! fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %! unwind_protect_cleanup
 %!   if (fd ~= -1)
 %!     fclose(fd);

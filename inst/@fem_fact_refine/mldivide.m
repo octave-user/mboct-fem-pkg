@@ -31,10 +31,10 @@ function X = mldivide(fact, B)
     X += fact.Afact \ R;
     AX = fact.A * X;
     R = B - AX;
-    f = max(norm(R, "cols") ./ norm(B + AX, "cols"));
+    f = max(norm(R, "cols") ./ max(1, norm(B + AX, "cols"))); ## Avoid division by zero
 
     if (fact.opts.verbose)
-      fprintf(stderr, "iteration %d: %.4e\n", i, f);
+      fprintf(stderr, "iteration %d: %e\n", i, f);
     endif
     
     if (f <= fact.opts.epsilon_refinement)

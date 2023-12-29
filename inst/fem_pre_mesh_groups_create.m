@@ -204,7 +204,7 @@ function idx = nodes_in_group(X, group_def, tol)
   endswitch
 endfunction
 
-%!demo
+%!test
 %! close all;
 %! filename = "";
 %! unwind_protect
