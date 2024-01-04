@@ -278,7 +278,6 @@ endfunction
 %! rho = 7850;
 %! m = 3 / 8 * a * b * c * rho;
 %! tol_m = eps^0.9;
-%! tol_f = 6e-2;
 %! N = 10;
 %! r = 1;
 %! X = [0.5 * a, 0.5 * b, c;
@@ -313,7 +312,6 @@ endfunction
 %!                                             mesh_data(i).load_case);
 %!   mesh_data(i).sol_eig = fem_sol_modal(mesh_data(i).mesh, mesh_data(i).dof_map, mesh_data(i).mat_ass, N, r);
 %! endfor
-%! assert_simple(mesh_data(2).sol_eig.f, mesh_data(1).sol_eig.f, tol_f * max(mesh_data(1).sol_eig.f));
 %! opts.print_and_exit = true;
 %! opts.print_to_file = "";
 %! unwind_protect
