@@ -137,7 +137,7 @@ endif
 	${FIX_PERMISSIONS} "$@"
 
 run_in_place = $(OCTAVE) --eval ' pkg ("local_list", "$(package_list)"); ' \
-                         --eval ' pkg ("load", "$(package)"); '
+			 --eval ' pkg ("load", "$(package)"); '
 
 html_options = --eval 'options = get_html_options ("octave-forge");'
 ## Uncomment this for package documentation.
@@ -146,9 +146,9 @@ html_options = --eval 'options = get_html_options ("octave-forge");'
 $(html_dir): $(install_stamp)
 	$(RM) -r "$@";
 	$(run_in_place)                    \
-        --eval ' pkg load generate_html; ' \
+	--eval ' pkg load generate_html; ' \
 	$(html_options)                    \
-        --eval ' generate_package_html ("$(package)", "$@", options); ';
+	--eval ' generate_package_html ("$(package)", "$@", options); ';
 	$(FIX_PERMISSIONS) "$@";
 
 clean-unpacked-release:
@@ -185,9 +185,20 @@ $(install_stamp): $(release_tarball)
 	$(OCTAVE) --eval $(octave_install_commands)
 	touch $(install_stamp)
 
+
+ifeq ($(OCTAVE_PKG_PREFIX),)
+octave_pkg_prefix_local_cmd=
+else
+octave_pkg_prefix_local_cmd=pkg("prefix","$(OCTAVE_PKG_PREFIX)","$(OCTAVE_PKG_PREFIX)");pkg("local_list","$(OCTAVE_PKG_PREFIX)/octave_packages");
+endif
+
+run_local: $(release_tarball)
+	@echo "Run locally ..."
+	$(OCTAVE) --persist --eval '$(octave_pkg_prefix_local_cmd)pkg("load","$(package)");'
+
 install_local: $(release_tarball)
 	@echo "Installing package locally ..."
-	$(OCTAVE) --eval 'pkg("install","-local","-verbose","$(release_tarball)");'
+	$(OCTAVE) --eval '$(octave_pkg_prefix_local_cmd)pkg("install","-local","-verbose","$(release_tarball)");'
 
 install_global: $(release_tarball)
 	@echo "Installing package globally ..."
@@ -244,7 +255,7 @@ check: $(install_stamp)
 	$(run_in_place) --eval $(octave_test_commands)
 
 check_installed:
-	$(OCTAVE) --eval ' pkg ("load", "$(package)"); ' \
+	$(OCTAVE) --eval '$(octave_pkg_prefix_local_cmd) pkg ("load", "$(package)"); ' \
 		  --eval $(octave_test_commands)
 ##
 ## CLEAN
@@ -258,4 +269,3 @@ clean: clean-tarballs clean-unpacked-release clean-install
 	@echo
 	@echo "## Cleaning done"
 	@echo
-
