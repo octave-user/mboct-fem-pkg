@@ -101,6 +101,7 @@
 %! assert_simple(U, Uref, tol * norm(Uref));
 %! lambdaref = eig(Kref, Mref);
 %! lambda = eig(mat_ass.K, mat_ass.M);
+%! lambda = lambda(isfinite(lambda));
 %! lambdaref = sort(lambdaref);
 %! lambda = sort(lambda)(1:4);
 %! tolf = 1e-5;
