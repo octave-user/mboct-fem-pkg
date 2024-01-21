@@ -30,13 +30,13 @@ jobs:
         run: |
            sudo apt-get install libglu1-mesa
            GMSH_URL="http://www.gmsh.info/bin/Linux/"
-           GMSH_VERSION="stable"           
+           GMSH_VERSION="stable"
            GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
            wget "${GMSH_URL}${GMSH_TAR}"
            tar -zxvf "${GMSH_TAR}"
            sudo install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
            gmsh --version
-        
+
       # Runs a single command using the runners shell
       - name: Install build dependencies for GNU/Octave
         run: |
@@ -176,6 +176,7 @@ jobs:
 
       - name: Run all tests
         run: |
+             export MBD_NUM_THREADS=2
              make -C $GITHUB_WORKSPACE check_installed 2>&1 | tee fntests.out
              cat ${GITHUB_WORKSPACE}/fntests.log
              tail -n 14 fntests.out

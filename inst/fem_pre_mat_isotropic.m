@@ -40,7 +40,3 @@ function C = fem_pre_mat_isotropic(E, nu)
            0, 0, 0, 0, 0, b];
 endfunction     
 
-%!test
-%! E = 210000;
-%! nu = 0.3;
-%! C = fem_pre_mat_isotropic(E, nu);

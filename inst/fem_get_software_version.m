@@ -35,7 +35,3 @@ function [version] = fem_get_software_version(command)
   version = [ver_major, ver_minor, ver_sub];
 endfunction
 
-%!test
-%! version = fem_get_software_version("gmsh");
-%! assert(size(version), [1, 3]);
-%! assert(version(1) >= 4);

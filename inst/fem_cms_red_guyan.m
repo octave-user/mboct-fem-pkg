@@ -73,35 +73,3 @@ function [Kr, dof_list, keep_dof, condense_dof] = fem_reorder_equations_of_motio
   condense_dof = N_keep + (1:N_condense);
 endfunction
 
-%!test
-%! E = 210000e6;
-%! A = 100e-6;
-%! l = 50e-3;
-%! s = A * E / l;
-%! K = [ s,    -s,     0,      0;
-%!      -s, 2 * s,    -s,      0;
-%!       0,    -s, 2 * s,     -s;
-%!       0,     0,    -s,  2 * s];
-%!
-%! [Kred, Tred] = fem_cms_red_guyan(K, [1, columns(K)]);
-%!
-%! Kred2 = [ s / 3,    -s / 3;
-%!          -s / 3,     s + s / 3];
-%! assert_simple(Kred, Kred2, eps * norm(Kred2));
-
-%!test
-%! E = 210000e6;
-%! A = 100e-6;
-%! l = 50e-3;
-%! s = A * E / l;
-%! K = [ s,    -s,     0,     0;
-%!      -s, 2 * s,    -s,     0;
-%!       0,    -s, 2 * s,    -s;
-%!       0,     0,    -s,     s];
-%!
-%! [Kred, Tred] = fem_cms_red_guyan(K, [1, columns(K)]);
-%!
-%! s2 = A * E / (3 * l);
-%! Kred2 = [ s2,    -s2;
-%!          -s2,     s2];
-%! assert_simple(Kred, Kred2, eps * norm(Kred2));

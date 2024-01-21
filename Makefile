@@ -245,7 +245,7 @@ octave_test_commands = \
   else \
     dirs = \
     cellfun (@ (x) canonicalize_file_name (x), dirs, "UniformOutput", false); \
-    __run_test_suite__ (dirs, {}); \
+    __run_test_suite__ (dirs, dirs); \
   endif '
 ## the following works, too, but provides no overall summary output as
 ## __run_test_suite__ does:
