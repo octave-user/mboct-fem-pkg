@@ -47,7 +47,7 @@
 %!                 opt.solver = solvers{k};
 %!               endif
 %!               if (l > 6)
-%!                 opt.number_of_threads = int32(2);
+%!                 opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!               endif
 %!               if (l > 7)
 %!                 for m=1:numel(problems)
