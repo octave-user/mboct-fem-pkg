@@ -14,7 +14,7 @@
 %!    endif
 %!    f_enable_constraint = [false, true];
 %!    interfaces = {"flexible","rigid"};
-%!    num_modes = int32([0, 10]);
+%!    num_modes = int32([0, 5]);
 %!    for l=1:numel(num_modes)
 %!      for k=1:numel(f_enable_constraint)
 %!        for j=1:numel(interfaces)
@@ -27,17 +27,18 @@
 %!              error("failed to open file \"%s.geo\"", filename);
 %!            endif
 %!            ri = 8e-3;
-%!            ro = 10e-3;
-%!            h = 12e-3;
-%!            c = 2e-3;
+%!            ro = 18e-3;
+%!            h = 28e-3;
+%!            c = 10e-3;
 %!            b = h - 2 * c;
 %!            scale_def = 5e-3;
-%!            mesh_size = 6e-3;
+%!            mesh_size = 100e-3;
 %!            fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!            fprintf(fd, "ri = %g;\n", ri);
 %!            fprintf(fd, "ro = %g;\n", ro);
 %!            fprintf(fd, "h = %g;\n", h);
 %!            fprintf(fd, "c = %g;\n", c);
+%!            fprintf(fd, "m = %g;\n", mesh_size);
 %!            fputs(fd, "Point(1) = {ri,0.0,0.0};\n");
 %!            fputs(fd, "Point(2) = {ro,0.0,0.0};\n");
 %!            fputs(fd, "Point(3) = {ro,0.0,c};\n");
@@ -63,6 +64,9 @@
 %!            fputs(fd, "Physical Surface(\"load1\",2) = {tmp[4]};\n");
 %!            fputs(fd, "Physical Surface(\"load2\",3) = {tmp[8]};\n");
 %!            fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
+%!            fputs(fd, "MeshSize{PointsOf{Volume{tmp[1]};}} = m;\n");
+%!            fputs(fd, "Mesh.ElementOrder = 3;\n");
+%!            fputs(fd, "Mesh.OptimizeThreshold = 0.99;\n");
 %!          unwind_protect_cleanup
 %!            if (fd ~= -1)
 %!              fclose(fd);
@@ -70,7 +74,7 @@
 %!            endif
 %!          end_unwind_protect
 %!          fprintf(stderr, "meshing ...\n");
-%!          pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "3", "-ho_min", "0.5", "-ho_max", "1.5", "-clmin", sprintf("%g", 0.75 * mesh_size), "-clmax", sprintf("%g", 1.25 *mesh_size), [filename, ".geo"]});
+%!          pid = spawn("gmsh", {"-format", "msh2", "-3", [filename, ".geo"]});
 %!          status = spawn_wait(pid);
 %!          if (status ~= 0)
 %!            error("gmsh failed with status %d", status);
@@ -79,7 +83,7 @@
 %!          mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!          fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!          cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
-%!          cms_opt.solver = "mldivide";
+%!          cms_opt.solver = "pastix";
 %!          switch (interfaces{j})
 %!            case "flexible"
 %!              cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 2;
