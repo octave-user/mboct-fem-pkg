@@ -60,6 +60,7 @@ jobs:
       - name: Compile GNU/Octave
         run: |
            pushd octave
+           chmod +x ./bootstrap
            ./bootstrap
            ./configure --disable-java
            make -j4
@@ -99,6 +100,7 @@ jobs:
       - name: Compile MBDyn
         run: |
           pushd mbdyn
+          chmod +x ./bootstrap.sh
           ./bootstrap.sh
           ./configure --with-static-modules \
           --enable-octave \
@@ -171,6 +173,7 @@ jobs:
       - name: Install fem_pre_mesh_size
         run: |
              pushd $GITHUB_WORKSPACE/src
+             chmod +x ./bootstrap             
              ./bootstrap && ./configure && make && sudo make install
              popd
 
