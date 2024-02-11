@@ -94,7 +94,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Clone MBDyn
         run: |
-          git clone -b master https://public.gitlab.polimi.it/DAER/mbdyn.git
+          git clone -b develop  https://public.gitlab.polimi.it/DAER/mbdyn.git
 
       # Runs a set of commands using the runners shell
       - name: Compile MBDyn
