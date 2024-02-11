@@ -94,7 +94,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Clone MBDyn
         run: |
-          git clone -b develop  https://public.gitlab.polimi.it/DAER/mbdyn.git
+          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
 
       # Runs a set of commands using the runners shell
       - name: Compile MBDyn
@@ -173,7 +173,7 @@ jobs:
       - name: Install fem_pre_mesh_size
         run: |
              pushd $GITHUB_WORKSPACE/src
-             chmod +x ./bootstrap             
+             chmod +x ./bootstrap
              ./bootstrap && ./configure && make && sudo make install
              popd
 
