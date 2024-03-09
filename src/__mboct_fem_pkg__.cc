@@ -17500,7 +17500,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          const Cell ov_fn = m_etype.contents(iter_fn);
 
-                         Cell ov_constr, ov_elnodes_master;
+                         Cell ov_constr;
 
                          switch (oElemType.type) {
                          case ElementTypes::ELEM_SFNCON4:
@@ -17512,12 +17512,6 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                               if (iter_constr != m_etype.end()) {
                                    ov_constr = m_etype.contents(iter_constr);
-                              }
-
-                              const auto iter_master = m_etype.seek("master");
-
-                              if (iter_master != m_etype.end()) {
-                                   ov_elnodes_master = m_etype.contents(iter_master);
                               }
                          } break;
                          default:
@@ -17544,38 +17538,6 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
                                         edof[CS_JOINT].elem_count += ov_fn(j).numel();
-
-                                        {
-                                             octave_idx_type iNodeDofMin = 0, iNodeDofMax = -1;
-
-                                             switch (eDomain) {
-                                             case DofMap::DO_STRUCTURAL:
-                                                  iNodeDofMin = 0;
-                                                  iNodeDofMax = 2;
-                                                  break;
-                                             case DofMap::DO_THERMAL:
-                                             case DofMap::DO_ACOUSTICS:
-                                                  iNodeDofMin = iNodeDofMax = 0;
-                                                  break;
-                                             case DofMap::DO_FLUID_STRUCT:
-                                                  // FIXME: Not implemented yet!
-                                                  break;
-                                             default:
-                                                  throw std::runtime_error("fem_ass_dof_map: unknown value for dof_map.domain");
-                                             }
-
-                                             for (octave_idx_type k = 0; k < ov_elnodes_master.numel(); ++k) {
-                                                  const int32NDArray elnodes_master = ov_elnodes_master.xelem(k).int32_array_value();
-
-                                                  for (octave_idx_type i = 0; i < elnodes_master.numel(); ++i) {
-                                                       const octave_idx_type idxnode = elnodes_master.xelem(i);
-
-                                                       for (octave_idx_type l = iNodeDofMin; l <= iNodeDofMax; ++l) {
-                                                            dof_in_use.xelem(idxnode - 1, l) = true;
-                                                       }
-                                                  }
-                                             }
-                                        }
 #else
                                         error(SurfToNodeConstrBase::szErrCompileWithNlopt);
                                         return retval;
