@@ -16852,6 +16852,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
           "@deftypefn {} @var{dof_map} = fem_ass_dof_map(@var{mesh}, @var{load_case})\n"
+          "@deftypefnx {} @var{dof_map} = fem_ass_dof_map(@dots{}, @var{dof_in_use})\n"
           "Build a data structure which assigns global degrees of freedom to each node and each element with Lagrange multipliers.\n\n"
           "@var{mesh} @dots{} Finite element mesh data structure\n\n"
           "@var{load_case} @dots{} Scalar struct for defining nodal constraints.\n\n"
@@ -16862,7 +16863,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      octave_value_list retval;
 
      try {
-          if (args.length() != 2) {
+          if (args.length() < 2 || args.length() > 3) {
                print_usage();
                return retval;
           }
@@ -16986,7 +16987,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const vector<Material> rgMaterials = Material::ExtractMaterialData(material_data, eDomain);
 
-          boolNDArray dof_in_use(dim_vector(iNumNodes, iNodeMaxDofIndex), false);
+          boolNDArray dof_in_use(args.length() > 2 ? args(2).bool_array_value() : boolNDArray(dim_vector(iNumNodes, iNodeMaxDofIndex), false));
+
+          if (dof_in_use.ndims() != 2 || dof_in_use.rows() != iNumNodes || dof_in_use.columns() != iNodeMaxDofIndex) {
+               throw std::runtime_error("fem_ass_dof_map: invalid size for dof_in_use");
+          }
 
           for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
                const auto& oElemType = ElementTypes::GetType(i);
@@ -17495,7 +17500,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          const Cell ov_fn = m_etype.contents(iter_fn);
 
-                         Cell ov_constr;
+                         Cell ov_constr, ov_elnodes_master;
 
                          switch (oElemType.type) {
                          case ElementTypes::ELEM_SFNCON4:
@@ -17507,6 +17512,12 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                               if (iter_constr != m_etype.end()) {
                                    ov_constr = m_etype.contents(iter_constr);
+                              }
+
+                              const auto iter_master = m_etype.seek("master");
+
+                              if (iter_master != m_etype.end()) {
+                                   ov_elnodes_master = m_etype.contents(iter_master);
                               }
                          } break;
                          default:
@@ -17533,6 +17544,38 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
                                         edof[CS_JOINT].elem_count += ov_fn(j).numel();
+
+                                        {
+                                             octave_idx_type iNodeDofMin = 0, iNodeDofMax = -1;
+
+                                             switch (eDomain) {
+                                             case DofMap::DO_STRUCTURAL:
+                                                  iNodeDofMin = 0;
+                                                  iNodeDofMax = 2;
+                                                  break;
+                                             case DofMap::DO_THERMAL:
+                                             case DofMap::DO_ACOUSTICS:
+                                                  iNodeDofMin = iNodeDofMax = 0;
+                                                  break;
+                                             case DofMap::DO_FLUID_STRUCT:
+                                                  // FIXME: Not implemented yet!
+                                                  break;
+                                             default:
+                                                  throw std::runtime_error("fem_ass_dof_map: unknown value for dof_map.domain");
+                                             }
+
+                                             for (octave_idx_type k = 0; k < ov_elnodes_master.numel(); ++k) {
+                                                  const int32NDArray elnodes_master = ov_elnodes_master.xelem(k).int32_array_value();
+
+                                                  for (octave_idx_type i = 0; i < elnodes_master.numel(); ++i) {
+                                                       const octave_idx_type idxnode = elnodes_master.xelem(i);
+
+                                                       for (octave_idx_type l = iNodeDofMin; l <= iNodeDofMax; ++l) {
+                                                            dof_in_use.xelem(idxnode - 1, l) = true;
+                                                       }
+                                                  }
+                                             }
+                                        }
 #else
                                         error(SurfToNodeConstrBase::szErrCompileWithNlopt);
                                         return retval;
