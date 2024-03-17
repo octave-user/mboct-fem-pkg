@@ -18,7 +18,7 @@
 ## Assemble a sparse matrix containing the constraint equations of a single group of surface to node constraints
 ## @end deftypefn
 
-function [C1, C2, mesh_constr, dof_map_constr, mat_ass_constr, joints] = fem_ass_constraint_matrix(mesh, elem_type_master, grp_id_master, elem_type_slave, grp_id_slave, maxdist, constrtype)
+function [C1, C2, mesh_constr] = fem_ass_constraint_matrix(mesh, elem_type_master, grp_id_master, elem_type_slave, grp_id_slave, maxdist)
   grp_type_master = getfield(mesh.groups, elem_type_master);
   grp_type_slave = getfield(mesh.groups, elem_type_slave);
 
@@ -39,15 +39,13 @@ function [C1, C2, mesh_constr, dof_map_constr, mat_ass_constr, joints] = fem_ass
   node_idx_trans(node_idx_master) = 1:rows(node_idx_master);
   node_idx_trans(node_idx_slave) = rows(node_idx_master) + (1:rows(node_idx_slave));
 
-
-
   mesh_constr.nodes = mesh.nodes([node_idx_master; node_idx_slave], :);
   mesh_constr.elements = struct();
 
   sfncon.slave = node_idx_trans(node_idx_slave);
   sfncon.master = node_idx_trans(elem_master);
   sfncon.maxdist = maxdist;
-  sfncon.constraint = constrtype;
+  sfncon.constraint = FEM_CT_SLIDING;
   elem_type_map = {"tria6", "sfncon6";
                    "tria6h", "sfncon6h";
                    "iso4", "sfncon4";
@@ -76,67 +74,43 @@ function [C1, C2, mesh_constr, dof_map_constr, mat_ass_constr, joints] = fem_ass
 
   dof_map_constr = [];
   mat_ass_constr = [];
-  
-  ## dof_in_use = load_case_constr.locked_dof = false(rows(mesh_constr.nodes), 6);
-  ## dof_in_use(:, 1:3) = true;
-  ## dof_map_constr = fem_ass_dof_map(mesh_constr, load_case_constr, dof_in_use);
 
-  joints = fem_pre_mesh_constr_surf_to_node(mesh_constr.nodes, mesh_constr.elements, FEM_DO_STRUCTURAL);
+  mesh_constr.joints = fem_pre_mesh_constr_surf_to_node(mesh_constr.nodes, mesh_constr.elements, FEM_DO_STRUCTURAL);
 
-  ## [mat_ass_constr.K, ...
-  ##  mat_ass_constr.mat_info, ...
-  ##  mat_ass_constr.mesh_info] = fem_ass_matrix(mesh_constr, dof_map_constr, FEM_MAT_STIFFNESS, load_case_constr);
+  nnz_C2 = nnz_C1 = int32(0);
 
-  ## C1 = mat_ass_constr.K(dof_map_constr.edof.joints, dof_map_constr.ndof(1:rows(node_idx_master), 1:3)(:));
+  for i=1:numel(mesh_constr.joints)
+    nnz_C1 += (columns(mesh_constr.joints(i).C) - 6) / 2;
+    nnz_C2 += 3;
+  endfor
 
-  ## if (nargout > 1)
-  ##   C2 = mat_ass_constr.K(dof_map_constr.edof.joints, dof_map_constr.ndof((rows(node_idx_master) + 1):end, 1:3)(:));
-  ## endif
+  ridx_C1 = zeros(nnz_C1, 1, "int32");
+  ridx_C2 = zeros(nnz_C2, 1, "int32");
+  cidx_C1 = zeros(nnz_C1, 1, "int32");
+  cidx_C2 = zeros(nnz_C2, 1, "int32");
+  data_C1 = zeros(nnz_C1, 1);
+  data_C2 = zeros(nnz_C2, 1);
 
-  ## dof_map_inv = zeros(rows(mesh.nodes), 1, "int32");
+  idx_C2 = idx_C1 = int32(0);
 
-  ## for j=1:3
-  ##   dof_map_inv(dof_map_constr.ndof(:, j)) = 1:rows(dof_map_constr.ndof);
-  ## endfor
+  nnz_C2 = nnz_C1 = int32(0);
 
-  ## idx_node_dof = find(dof_map_inv);
-
-  ##  assert(dof_map_inv(dof_map_constr.ndof(:, 1:3)),repmat(int32(1:rows(dof_map_constr.ndof))(:),1,3));
-
-  ## eq_idx_slave = zeros(rows(node_idx_slave), 3, "int32");
-
-  ## [ridx, cidx] = find(C2);
-
-  ## idx_node_slave = dof_map_inv(cidx + dof_map_constr.ndof(rows(node_idx_master), 3)) - rows(node_idx_master);
-
-  C1 = zeros(rows(node_idx_slave), rows(node_idx_master) * 3);
-
-  for i=1:numel(joints)
-    for j=2:columns(joints(i).nodes)
-      C1(i, (joints(i).nodes(j) - 1) * 3 + (1:3)) = joints(i).C(1, (j - 1) * 6 + (1:3));
+  for i=1:numel(mesh_constr.joints)
+    for j=2:columns(mesh_constr.joints(i).nodes)
+      ridx_C1(nnz_C1 + (1:3)) = i;
+      cidx_C1(nnz_C1 + (1:3)) = (mesh_constr.joints(i).nodes(j) - 1) * 3 + (1:3);
+      data_C1(nnz_C1 + (1:3)) = mesh_constr.joints(i).C(1, (j - 1) * 6 + (1:3));
+      nnz_C1 += 3;
     endfor
+    ridx_C2(nnz_C2 + (1:3)) = i;
+    cidx_C2(nnz_C2 + (1:3)) = (mesh_constr.joints(i).nodes(1) - rows(node_idx_master) - 1) * 3 + (1:3);
+    data_C2(nnz_C2 + (1:3)) = mesh_constr.joints(i).C(1, 1:3);
+    nnz_C2 += 3;
   endfor
 
-  C2 = zeros(rows(node_idx_slave), rows(node_idx_slave) * 3);
+  C1 = sparse(ridx_C1, cidx_C1, data_C1, rows(node_idx_slave), rows(node_idx_master) * 3);
+  C2 = sparse(ridx_C2, cidx_C2, data_C2, rows(node_idx_slave), rows(node_idx_slave) * 3);
 
-  for i=1:numel(joints)
-    C2(i, (joints(i).nodes(1) - rows(node_idx_master) - 1) * 3 + (1:3)) = joints(i).C(1, 1:3);
-  endfor
-  ## [ridx, cidx] = find(C1);
-
-  ## idx_node_slave = dof_map_inv(cidx);
-
-  ## idx_dof_last_master_no = dof_map_constr.ndof(rows(node_idx_master), 3);
-
-  ## for i=1:rows(node_idx_slave)
-  ##   for j=1:3
-  ##     idx = find(cidx == dof_map_constr.ndof(i + rows(node_idx_master), j) - idx_dof_last_master_no);
-  ##     if (isempty(idx))
-  ##       continue;
-  ##     endif
-  ##     eq_idx_slave(i, j) = ridx(idx);
-  ##   endfor
-  ## endfor
   ## C1 * U1 + C2 * U2 = 0
   ## C2 * U2 = -C1 * U1
   ## U2n = -C1 * U1
@@ -156,9 +130,9 @@ endfunction
 %!       error("failed to open file \"%s.geo\"", filename);
 %!     endif
 %!     a = 10e-3;
-%!     b = 12e-3;
-%!     c = 14e-3;
-%!     h = 2e-3;
+%!     b = 10e-3;
+%!     c = 10e-3;
+%!     h = 10e-3;
 %!     F1 = 1e10;
 %!     fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!     fprintf(fd, "a=%g;\n", a);
@@ -207,16 +181,12 @@ endfunction
 %!   endfor
 %!   mesh = fem_post_mesh_merge(data);
 %!   maxdist = 1e-8 * max(abs([a, b, c]));
-%!   constrtype = FEM_CT_SLIDING;
 %!   [C1, ...
 %!    C2, ...
-%!    mesh_constr, ...
-%!    dof_map_constr, ...
-%!    mat_ass_constr, ...
-%!    joints] = fem_ass_constraint_matrix(mesh, ...
+%!    mesh_constr] = fem_ass_constraint_matrix(mesh, ...
 %!                                                "tria6", 2, ...
 %!                                                "tria6", 101, ...
-%!                                                maxdist, constrtype);
+%!                                                maxdist);
 %!   mesh.elements.sfncon6.slave = mesh.groups.tria6(3).nodes(:);
 %!   mesh.elements.sfncon6.master = mesh.elements.tria6(mesh.groups.tria6(2).elements, :);
 %!   mesh.elements.sfncon6.maxdist = maxdist;
@@ -245,7 +215,7 @@ endfunction
 %!                                    sol_stat);
 %!   U1 = U(dof_map.ndof(mesh.groups.tria6(2).nodes, 1:3).'(:));
 %!   U2 = U(dof_map.ndof(mesh.groups.tria6(3).nodes, 1:3).'(:));
-%!   f = norm(C1 * U1 + C2 * U2) / max(norm(C1 * U1), norm(C2 * U1));
+%!   f = norm(C1 * U1 + C2 * U2) / (norm(C1 * U1) + norm(C2 * U2));
 %!   tol = eps^0.9;
 %!   assert_simple(f < tol);
 %! unwind_protect_cleanup
