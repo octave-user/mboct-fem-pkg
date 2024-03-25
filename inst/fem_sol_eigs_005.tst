@@ -1,10 +1,10 @@
 ## fem_sol_eigs.m:05
 %!test
 %! state = rand("state");
-%! opts.refine_max_iter = int32(3);
-%! opts.epsilon_refinement = eps^0.5;
+%! opts.refine_max_iter = int32(100);
+%! opts.epsilon_refinement = eps^0.7;
 %! opts.pre_scaling = true;
-%! opts.rho = -1;
+%! gamma = 1e-2;
 %! solvers={"lu", "chol", "mldivide"};
 %! unwind_protect
 %!   rand("seed", 0);
@@ -17,6 +17,7 @@
 %!         K *= K.';
 %!         M = rand(N, N);
 %!         M *= M.';
+%!         opts.rho = -gamma * norm(K) / norm(M);
 %!         fprintf(stderr, "%s: %d: %d\n", opts.solver, N, i);
 %!         [U, lambda] = fem_sol_eigs(K, M, num_modes, opts);
 %!       endfor
