@@ -96,8 +96,8 @@
 %! for i=1:columns(mat_ass.R)
 %!   figure("visible", "off");
 %!   hold on;
-%!   semilogy(omega/(2*pi), abs(U2(i, :, i)), "-;abs(U2/F2);0");
-%!   semilogy(omega/(2*pi), abs(F1(i, :, i)), "-;abs(F1/F2);1");
+%!   semilogy(omega/(2*pi), abs(U2(i, :, i)), "-;abs(U2/F2);k");
+%!   semilogy(omega/(2*pi), abs(F1(i, :, i)), "-;abs(F1/F2);r");
 %!   xlabel("f [Hz]");
 %!   ylabel("abs(U1/U2) [1]");
 %!   title({"Fx","Fy","Fz","Mx","My","Mz"}{i});

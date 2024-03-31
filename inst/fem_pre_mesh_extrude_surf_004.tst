@@ -171,8 +171,8 @@
 %!     for j=1:columns(solR.p)
 %!       figure("visible", "off");
 %!       hold on;
-%!       plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
-%!       plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!       plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);r");
+%!       plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);k");
 %!       xlabel("x [m]");
 %!       ylabel("p [Pa]");
 %!       grid on;

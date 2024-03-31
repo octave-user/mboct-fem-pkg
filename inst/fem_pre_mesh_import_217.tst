@@ -168,8 +168,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, sol.p(idx, i), "-;p;1");
-%!     plot(x, real(pref(x, sol.t(i))), "-;pref;0");
+%!     plot(x, sol.p(idx, i), "-;p;r");
+%!     plot(x, real(pref(x, sol.t(i))), "-;pref;k");
 %!     ylim([min(min(sol.p)), max(max(sol.p))]);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
@@ -187,8 +187,8 @@
 %!       vx(mesh.elements.penta15(:)) += real(solC.particle_velocity.v.penta15(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
 %!     endfor
 %!     assert_simple(vx(idx), real(vxref(x, sol.t(i))), tol * abs(vx0));
-%!     plot(x, vx(idx), "-;vn;1");
-%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;0");
+%!     plot(x, vx(idx), "-;vn;r");
+%!     plot(x, real(vxref(x, sol.t(i))), "-;Phi;k");
 %!     ylim([-abs(vx0), abs(vx0)]);
 %!     xlabel("x [m]");
 %!     ylabel("vx [m/s]");

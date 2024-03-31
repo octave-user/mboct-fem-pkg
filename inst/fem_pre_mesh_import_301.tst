@@ -168,8 +168,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1), sol.p(idx, i), "-;p;1");
-%!     plot(mesh.nodes(idx, 1), pref(idx, i), "-;pref;0");
+%!     plot(mesh.nodes(idx, 1), sol.p(idx, i), "-;p;r");
+%!     plot(mesh.nodes(idx, 1), pref(idx, i), "-;pref;k");
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
@@ -182,9 +182,9 @@
 %!     vx = vxC = zeros(rows(mesh.nodes), numel(sol.t));
 %!     vx(mesh.elements.tet20(:)) = sol.particle_velocity.v.tet20(:, :, 1, i)(:);
 %!     vxC(mesh.elements.tet20(:)) = real(solC.particle_velocity.v.tet20(:, :, 1)(:) * exp(1j * Psi(i)));
-%!     plot(mesh.nodes(idx, 1), vx(idx), "-;p;1");
-%!     plot(mesh.nodes(idx, 1), vxC(idx), "-;pC;2");
-%!     plot(mesh.nodes(idx, 1), vnref(idx, i), "-;pref;0");
+%!     plot(mesh.nodes(idx, 1), vx(idx), "-;p;r");
+%!     plot(mesh.nodes(idx, 1), vxC(idx), "-;pC;g");
+%!     plot(mesh.nodes(idx, 1), vnref(idx, i), "-;pref;k");
 %!     xlabel("x [m]");
 %!     ylabel("vx [m/s]");
 %!     grid on;
@@ -195,8 +195,8 @@
 %!   hold on;
 %!   elem_id = mesh.groups.tria10(grp_idx_output).elements;
 %!   elem_no = mesh.elements.tria10(elem_id, 1);
-%!   plot(sol.t, sum(sol.acoustic_intensity.P.tria10(elem_id, :), 1)(:), "-;P;1");
-%!   plot(sol.t, mean(Pref(elem_no, :), 1).', "-;Pref;0");
+%!   plot(sol.t, sum(sol.acoustic_intensity.P.tria10(elem_id, :), 1)(:), "-;P;r");
+%!   plot(sol.t, mean(Pref(elem_no, :), 1).', "-;Pref;k");
 %!   xlabel("t [s]");
 %!   ylabel("P [W]");
 %!   grid on;

@@ -107,7 +107,7 @@
 %!   for i=1:20:numel(t)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, sol.p(idx, i), "-;p(x);1");
+%!     plot(x, sol.p(idx, i), "-;p(x);r");
 %!     ylim([min(min(sol.p)), max(max(sol.p))]);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");

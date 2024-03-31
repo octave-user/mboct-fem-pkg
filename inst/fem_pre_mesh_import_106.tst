@@ -137,8 +137,8 @@
 %!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(t_ref, theta_ref_center, "-;reference;0");
-%!     plot(sol.t, theta_center, "-;solution;1");
+%!     plot(t_ref, theta_ref_center, "-;reference;k");
+%!     plot(sol.t, theta_center, "-;solution;r");
 %!     xlabel("t [s]");
 %!     ylabel("theta [degC]");
 %!     grid on;
@@ -146,8 +146,8 @@
 %!     title("temperature in the center");
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(t_ref, theta_ref_surface, "-;reference;0");
-%!     plot(sol.t, theta_surface, "-;solution;1");
+%!     plot(t_ref, theta_ref_surface, "-;reference;k");
+%!     plot(sol.t, theta_surface, "-;solution;r");
 %!     xlabel("t [s]");
 %!     ylabel("theta [degC]");
 %!     grid on;

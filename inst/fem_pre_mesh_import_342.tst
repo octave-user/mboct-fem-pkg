@@ -125,10 +125,10 @@
 %!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold("on");
-%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);0");
-%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);1");
-%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);0");
-%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);1");
+%!     plot(sol.t, max(sol.theta_ref, [], 1), "-;max(ref);k");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(sol);r");
+%!     plot(sol.t, min(sol.theta_ref, [], 1), "--;min(ref);k");
+%!     plot(sol.t, min(sol.theta, [], 1), "--;min(sol);r");
 %!     xlabel("t [s]");
 %!     ylabel("theta [degC]");
 %!     grid on;
@@ -137,8 +137,8 @@
 %!     for i=[1,2:5,6:400:numel(sol.t)]
 %!       figure("visible", "off");
 %!       hold("on");
-%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;0");
-%!       plot(x, sol.theta(idx_theta, i), "-;sol;1");
+%!       plot(x, sol.theta_ref(idx_theta, i), "-;ref;k");
+%!       plot(x, sol.theta(idx_theta, i), "-;sol;r");
 %!       xlabel("t [s]");
 %!       ylabel("theta [degC]");
 %!       title(sprintf("temperature versus x at time = %.2fs", sol.t(i)));

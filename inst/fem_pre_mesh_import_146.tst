@@ -127,8 +127,8 @@
 %!   for i=1:20:numel(t)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, Phi(idx, i), "-;Phi(x);1");
-%!     plot(x, Phiref(:, i), "-;Phiref(x);0");
+%!     plot(x, Phi(idx, i), "-;Phi(x);r");
+%!     plot(x, Phiref(:, i), "-;Phiref(x);k");
 %!     ylim([min(min(Phi)), max(max(Phi))]);
 %!     xlabel("x [m]");
 %!     ylabel("Phi [m^2/s]");

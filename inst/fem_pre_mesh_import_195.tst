@@ -116,8 +116,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, sol.p(idx, i), "-;p;1");
-%!     plot(x, pref(idx, i), "-;pref;0");
+%!     plot(x, sol.p(idx, i), "-;p;r");
+%!     plot(x, pref(idx, i), "-;pref;k");
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;

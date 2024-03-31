@@ -151,8 +151,8 @@
 %!   if (do_plot)
 %!     figure("visible","off");
 %!     hold on;
-%!     plot(omegai/(2*pi), TL, "-;FEM solution;1");
-%!     plot(omegai/(2*pi), TLref, "-;reference solution;0");
+%!     plot(omegai/(2*pi), TL, "-;FEM solution;r");
+%!     plot(omegai/(2*pi), TLref, "-;reference solution;k");
 %!     xlabel("f [Hz]");
 %!     ylabel("TL [dB]");
 %!     grid on;

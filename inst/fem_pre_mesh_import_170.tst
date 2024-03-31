@@ -139,8 +139,8 @@
 %!   for j=1:columns(sol.p)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(rn, sol.p(idx, j), "-;p(r);1");
-%!     plot(rn, sol2.p(idx, j), "-;pref(r);0");
+%!     plot(rn, sol.p(idx, j), "-;p(r);r");
+%!     plot(rn, sol2.p(idx, j), "-;pref(r);k");
 %!     xlabel("r [m]");
 %!     ylabel("p [Pa]");
 %!     ylim([min(min(sol2.p)), max(max(sol2.p))]);

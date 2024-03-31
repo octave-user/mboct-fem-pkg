@@ -225,8 +225,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1) * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;1");
-%!     plot(mesh.nodes(idx, 1) * unit_meters, pref(:, i) * unit_pascal, "-;pref;0");
+%!     plot(mesh.nodes(idx, 1) * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;r");
+%!     plot(mesh.nodes(idx, 1) * unit_meters, pref(:, i) * unit_pascal, "-;pref;k");
 %!     ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
@@ -237,8 +237,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1) * unit_meters, vx(idx, i) * unit_meters / unit_second, "-;vx;1");
-%!     plot(mesh.nodes(idx, 1) * unit_meters, vxref(:, i) * unit_meters / unit_second, "-;vxref;0");
+%!     plot(mesh.nodes(idx, 1) * unit_meters, vx(idx, i) * unit_meters / unit_second, "-;vx;r");
+%!     plot(mesh.nodes(idx, 1) * unit_meters, vxref(:, i) * unit_meters / unit_second, "-;vxref;k");
 %!     ylim([min(min(vxref)), max(max(vxref))] * unit_meters / unit_second);
 %!     xlabel("x [m]");
 %!     ylabel("vx [m/s]");
@@ -248,8 +248,8 @@
 %!   endfor
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(sol.t * unit_second, reshape(mean(sol.def(node_idx, 1, :), 1), 1, numel(sol.t)) * unit_meters, "-;U;1");
-%!   plot(sol.t * unit_second, Uref * unit_meters, "-;Uref;0");
+%!   plot(sol.t * unit_second, reshape(mean(sol.def(node_idx, 1, :), 1), 1, numel(sol.t)) * unit_meters, "-;U;r");
+%!   plot(sol.t * unit_second, Uref * unit_meters, "-;Uref;k");
 %!   xlabel("t [s]");
 %!   ylabel("Ux [m]");
 %!   grid on;

@@ -155,9 +155,9 @@
 %!   pout = mean(sol.p(node_idx_outlet, :), 1);
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(sol.t * unit_second, pin * unit_pascal, "-;inlet;1");
-%!   plot((sol.t - l / a) * unit_second, pout * unit_pascal, "-;outlet;3");
-%!   plot(sol.t * unit_second, rho1 * a * vn * f * unit_pascal, "-;z * vn;0");
+%!   plot(sol.t * unit_second, pin * unit_pascal, "-;inlet;r");
+%!   plot((sol.t - l / a) * unit_second, pout * unit_pascal, "-;outlet;b");
+%!   plot(sol.t * unit_second, rho1 * a * vn * f * unit_pascal, "-;z * vn;k");
 %!   xlabel("t [s]");
 %!   ylabel("p [Pa]");
 %!   grid on;

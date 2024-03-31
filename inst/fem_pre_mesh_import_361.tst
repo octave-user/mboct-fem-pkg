@@ -200,8 +200,8 @@
 %!       for j=1:columns(solR.p)
 %!         figure("visible", "off");
 %!         hold on;
-%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);1");
-%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);0");
+%!         plot(rg * unit_meters, solR.p(idx, j) * unit_pascal, "-;p(r);r");
+%!         plot(rg * unit_meters, real(pref(rg, solR.t(j))) * unit_pascal, "-;pref(r);k");
 %!         xlabel("x [m]");
 %!         ylabel("p [Pa]");
 %!         grid on;
@@ -224,20 +224,20 @@
 %!   fprintf(stderr, "optimum alphaPML=%.2f based on reflections\n", alphaPML(find(T == min(T))));
 %!   fprintf(stderr, "optimum alphaPML=%.2f based on analytical solution\n", alphaPML(find(err == min(err))));
 %!   figure("visible", "off");
-%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;1");
+%!   plot(alphaPML, 10 * log10(P / P0), "-x;P;r");
 %!   grid minor on;
 %!   xlabel("alphaPML [1]");
 %!   ylabel("P [dB]");
 %!   title("sound power level");
 %!   figure("visible", "off");
-%!   plot(alphaPML, 10 * log10(T), "-x;TL;1");
+%!   plot(alphaPML, 10 * log10(T), "-x;TL;r");
 %!   grid minor on;
 %!   xlabel("alphaPML [1]");
 %!   ylabel("TL [dB]");
 %!   title("transmission loss");
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(alphaPML, 100 * err, "-;err(alphaPML);1");
+%!   plot(alphaPML, 100 * err, "-;err(alphaPML);r");
 %!   xlabel("alphaPML [1]");
 %!   ylabel("err [%]");
 %!   grid minor on;
