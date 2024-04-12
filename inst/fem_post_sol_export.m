@@ -42,7 +42,7 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
   if (~isfield(options, "elem_types"))
     ## Do not export surface elements by default
     ## because of issues related to the "Skin" plugin in Gmsh
-    options.elem_types = {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "tet10", "tet20", "beam2", "beam3", "penta15", "tet10h", "tet10upc", "iso20r", "iso20upcr", "penta15upc"};
+    options.elem_types = {"iso8", "iso8f", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "tet10", "tet20", "beam2", "beam3", "penta15", "tet10h", "tet10upc", "iso20r", "iso20upcr", "penta15upc"};
   endif
 
   elem_types = fieldnames(mesh.elements);
