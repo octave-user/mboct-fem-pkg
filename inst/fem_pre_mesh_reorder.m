@@ -37,7 +37,7 @@ function [mesh, PERM, IPERM] = fem_pre_mesh_reorder(mesh, options)
     options.algorithm = "ndmetis";
   endif
 
-  options.elem_type = {"tet10", "tria6", "tet10h", "tet10upc", "tria6h", "tet20", "tria10", "tet4", "penta6", "tria3", "iso8", "iso8f", "iso8upc", "iso4", "iso20", "iso20upc", "iso27", "iso27upc", "quad8", "quad9", "iso20r", "quad8r", "penta15", "penta15upc", "pyra5", "iso20upcr", "line2", "line3", "line4", "point1"};
+  options.elem_type = {fem_pre_mesh_elem_type().name};
 
   algorithm = {"ndmetis", "csymamd", "symamd", "amd", "symrcm"};
 
