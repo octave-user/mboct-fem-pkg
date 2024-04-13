@@ -1,9 +1,28 @@
-function eltype_out = fem_pre_mesh_elem_type()
+## Copyright (C) 2019(-2023) Reinhard <octave-user@a1.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
+## -*- texinfo -*-
+## @deftypefn {Function File} [@var{eltype}] = fem_pre_mesh_elem_type()
+## Return a list of supported elements
+## @end deftypefn
+
+function eltype_out = fem_pre_mesh_elem_type()
   persistent eltype = [];
 
   if (isempty(eltype))
-    empty_cell = cell(1, 31);
+    empty_cell = cell(1, 41);
 
     struct("dim", empty_cell, "id", empty_cell, "name", empty_cell, "norder", empty_cell, "nordernop", empty_cell, "promote", empty_cell);
 
@@ -293,4 +312,4 @@ endfunction
 
 %!test
 %! eltype = fem_pre_mesh_elem_type();
-%! assert_simple(numel(eltype), 31);
+%! assert_simple(numel(eltype), 41);
