@@ -1,4 +1,4 @@
-## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,16 +14,12 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{X}] = fem_sol_real_complex(@var{obj}, @var{func}, @var{B})
-## Allow the solution of a real system of equations with complex right hand sides.
-##
-## Effectively return @var{func}(@var{obj}, @var{B})
+## @deftypefn {Function File} @var{X} = mrdivide(@var{B}, @var{Afact})
+## Solve @var{X} * @var{Afact} = @var{B} by using the factor object @var{Afact}.
 ## @end deftypefn
 
-function X = fem_sol_real_complex(obj, func, B, varargin)
-  if (isreal(obj) && iscomplex(B))
-    X = complex(func(obj, real(B), varargin{:}), func(obj, imag(B), varargin{:}));
-  else
-    X = func(obj, B, varargin{:});
-  endif
+function X = mrdivide(B, fact)
+  narginchk(2, 2);
+
+  X = fem_sol_real_complex(fact.pasobj, @pastix, B.', 2).';
 endfunction

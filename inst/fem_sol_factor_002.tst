@@ -45,6 +45,11 @@
 %!         B = rand(rows(A), 30);
 %!         X = Afact \ B;
 %!         assert_simple(max(norm(A * X - B, "cols") ./ norm(A * X + B, "cols")) <= opts.epsilon_refinement);
+%!         switch (solvers{k})
+%!         case {"pastix", "pardiso", "umfpack", "mldivide"}
+%!           X = B.' / Afact;
+%!           assert_simple(max(norm(X * A - B.', "cols") ./ norm(X * A + B.', "cols")) <= opts.epsilon_refinement);
+%!         endswitch
 %!       endfor
 %!     endfor
 %!   endfor
