@@ -51,9 +51,7 @@ function fact = fem_fact_refine(A, opts)
   istri = false;
 
   if (opts.symmetric)
-    [r, c] = find(A);
-
-    istri = all(r >= c) || all(r <= c);
+    istri = istril(A) || istriu(A);
   endif
   
   if (istri)

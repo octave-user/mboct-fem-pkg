@@ -1,4 +1,4 @@
-## Copyright (C) 2021(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2021(-2024) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -21,12 +21,12 @@
 function X = mrdivide(B, fact)
   narginchk(2, 2);
 
-  i = int32(0);  
+  i = int32(0);
   X = zeros(rows(B), rows(fact.A));
   R = B;
 
   fconverged = false;
-  
+
   do
     X += R / fact.Afact;
     AX = X * fact.A;
@@ -36,7 +36,7 @@ function X = mrdivide(B, fact)
     if (fact.opts.verbose)
       fprintf(stderr, "iteration %d: %e\n", i, f);
     endif
-    
+
     if (f <= fact.opts.epsilon_refinement)
       fconverged = true;
       break;
