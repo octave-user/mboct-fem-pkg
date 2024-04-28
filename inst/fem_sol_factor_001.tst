@@ -20,6 +20,12 @@
 %!         x = Afact \ b;
 %!         f = max(norm(A * x - b, "cols") ./ norm(A * x + b, "cols"));
 %!         assert_simple(f < tol);
+%!         switch (solvers{i})
+%!         case {"pastix", "pardiso", "umfpack", "mldivide"}
+%!           x = b.' / Afact;
+%!           f = max(norm(x * A - b.', "cols") ./ norm(x * A + b.', "cols"));
+%!           assert_simple(f < tol);
+%!         endswitch
 %!       endfor
 %!     endfor
 %!   endfor
