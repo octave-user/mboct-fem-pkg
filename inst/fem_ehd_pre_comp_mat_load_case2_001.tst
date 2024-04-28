@@ -80,6 +80,7 @@
 %!          fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!          cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
 %!          cms_opt.solver = "mldivide";
+%!          cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!          switch (interfaces{j})
 %!            case "flexible"
 %!              cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 2;
@@ -166,7 +167,7 @@
 %!                                        FEM_MAT_MASS, ...
 %!                                        FEM_VEC_LOAD_CONSISTENT], ...
 %!                                       load_case_bearing);
-%!          sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
+%!          sol_stat = fem_sol_static(mesh, dof_map, mat_ass, cms_opt);
 %!          [mesh, ...
 %!           mat_ass, ...
 %!           dof_map, ...
