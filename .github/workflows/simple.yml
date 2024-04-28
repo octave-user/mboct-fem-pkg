@@ -154,7 +154,7 @@ jobs:
 
       - name: Install mboct-numerical-pkg
         run: |
-           git clone -b sp_sym_mtimes-complex https://github.com/octave-user/mboct-numerical-pkg.git && \
+           git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git && \
            pushd mboct-numerical-pkg && \
            make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
 
