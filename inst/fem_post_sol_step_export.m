@@ -83,7 +83,8 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
                    "van Mises stress", "discontinuous strain", "continuous strain", ...
                    "particle velocity vector", "particle velocity normal"};
     stress_field = {"tau", "taum", "vmis", "epsilon", "epsilonm", "v", "vn"};
-    elem_stress = {"iso4", "quad8", "quad9", "iso8", "iso8f", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "tet10", "penta15", "tet10h", "tet10upc", "tet20", "iso20r", "iso20fr", "quad8r", "iso20upcr", "penta15upc"};
+    eltypes = fem_pre_mesh_elem_type_dim([2, 3]);
+    elem_stress = {eltypes.name};
     stress_comp = int32([9, 9, 1, 9, 9, 3, 1]);
 
     for n=1:numel(field_type)
@@ -105,38 +106,7 @@ function fem_post_sol_step_export(filename, sol, idx_sol, idx_t, t, scale)
 
             for i=1:numel(elem_stress)
               if (isfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i}))
-                switch (elem_stress{i})
-                  case "iso3"
-                    idxnode = int32([1:3]);
-                  case "iso4"
-                    idxnode = int32([1:4]);
-                  case {"tria6", "tria6h"}
-                    idxnode = int32([1:6]);
-                  case "tria10"
-                    idxnode = int32([1:10]);
-                  case "quad8"
-                    idxnode = int32([1:8]);
-                  case "quad9"
-                    idxnode = int32([1:9]);                    
-                  case "quad8r"
-                    idxnode = int32([3,4,1,2,7,8,5,6]);
-                  case {"iso8", "iso8f", "iso8upc"}
-                    idxnode = int32([5:8, 1:4]);
-                  case {"iso20", "iso20upc"}
-                    idxnode = int32([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]);
-                  case {"iso27", "iso27upc"}
-                    idxnode = int32([1,2,3,4,5,6,7,8,9,12,14,10,11,13,15,16,17,19,20,18,21,22,24,25,23,26,27]);
-                  case {"iso20r", "iso20fr", "iso20upcr"}
-                    idxnode = int32([1,2,3,4,5,6,7,8,9,12,14,10,17,19,20,18,11,13,15,16]);
-                  case {"penta15", "penta15upc"}
-                    idxnode =  int32([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]);
-                  case {"tet10", "tet10h", "tet10upc"}
-                    idxnode = int32([1:8, 10, 9]);
-                  case "tet20"
-                    idxnode([1,5,6,2,7,8,3,9,10,17,16,20,14,19,12,18,15,13,11,4]) = int32(1:20);
-                  otherwise
-                    error("unknown element type \"%s\"", elem_stress{i});
-                endswitch
+                idxnode = eltypes(i).norder;
 
                 tau = getfield(getfield(getfield(sol, field_type{n}), stress_field{l}), elem_stress{i});
 

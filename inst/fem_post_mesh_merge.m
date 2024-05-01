@@ -46,54 +46,12 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   num_nodes = int32(0);
   num_mat = int32(0);
 
-  empty_cell = cell(1, 22);
+  eltype = fem_pre_mesh_elem_type();
 
-  elem_types = struct("name", empty_cell, "have_mat", empty_cell);
-
-  elem_types(1).name = "iso8";
-  elem_types(1).have_mat = true;
-  elem_types(2).name = "tet10";
-  elem_types(2).have_mat = true;
-  elem_types(3).name = "iso4";
-  elem_types(3).have_mat = false;
-  elem_types(4).name = "tria6";
-  elem_types(4).have_mat = false;
-  elem_types(5).name = "tria3";
-  elem_types(5).have_mat = false;
-  elem_types(6).name = "iso20";
-  elem_types(6).have_mat = true;
-  elem_types(7).name = "quad8";
-  elem_types(7).have_mat = false;
-  elem_types(8).name = "tria6h";
-  elem_types(8).have_mat = false;
-  elem_types(9).name = "tet10h";
-  elem_types(9).have_mat = true;
-  elem_types(10).name = "penta15";
-  elem_types(10).have_mat = true;
-  elem_types(11).name = "tet20";
-  elem_types(11).have_mat = true;
-  elem_types(12).name = "tria10";
-  elem_types(12).have_mat = false;
-  elem_types(13).name = "iso20r";
-  elem_types(13).have_mat = true;
-  elem_types(14).name = "quad8r";
-  elem_types(14).have_mat = false;
-  elem_types(15).name = "iso27";
-  elem_types(15).have_mat = true;
-  elem_types(16).name = "quad9";
-  elem_types(16).have_mat = false;
-  elem_types(17).name = "iso27upc";
-  elem_types(17).have_mat = true;
-  elem_types(18).name = "iso20upc";
-  elem_types(18).have_mat = true;
-  elem_types(19).name = "iso8upc";
-  elem_types(19).have_mat = true;
-  elem_types(20).name = "iso20upcr";
-  elem_types(20).have_mat = true;
-  elem_types(21).name = "penta15upc";
-  elem_types(21).have_mat = true;
-  elem_types(22).name = "tet10upc";
-  elem_types(22).have_mat = true;
+  elem_types = struct("name", {eltype.name}, ...
+                      "num_elem", mat2cell(zeros(1, numel(eltype), "int32"), 1, ones(1, numel(eltype), "int32")), ...
+                      "num_nodes", mat2cell(zeros(1, numel(eltype), "int32"), 1, ones(1, numel(eltype), "int32")), ...
+                      "have_mat", mat2cell([eltype.dim] == 3, 1, ones(1, numel(eltype), "int32")));
   
   for i=1:numel(mesh_data)
     if (nargout >= 2)
@@ -160,9 +118,6 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   dof_map.submesh.offset.elements = struct();
 
   for i=1:numel(elem_types)
-    elem_types(i).num_elem = int32(0);
-    elem_types(i).num_nodes = int32(0);
-
     for j=1:numel(mesh_data)
       if (isfield(mesh_data(j).mesh.elements, elem_types(i).name))
         elem_nodes = getfield(mesh_data(j).mesh.elements, elem_types(i).name);

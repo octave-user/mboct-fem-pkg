@@ -57,7 +57,8 @@ function [mesh, load_case] = fem_pre_mesh_import(filename, format, options)
   endif
 
   if (~isfield(options, "elem_type"))
-    options.elem_type = {"tet10", "tria6", "tet20", "tria10", "tet4", "penta6", "tria3", "iso8", "iso4", "iso20", "iso27", "quad8", "quad9", "penta15", "pyra5"};
+    eltype = fem_pre_mesh_elem_type();
+    options.elem_type = {eltype([find([eltype.default_import])]).name};
   endif
 
   switch (format)
