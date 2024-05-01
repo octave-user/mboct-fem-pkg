@@ -1,0 +1,25 @@
+## Copyright (C) 2019(-2024) Reinhard <octave-user@a1.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+## -*- texinfo -*-
+## @deftypefn {Function File} @var{X} = mrdivide(@var{B}, @var{Afact})
+## Solve @var{X} * @var{Afact} = @var{B} by using the factor object @var{Afact}.
+## @end deftypefn
+
+function x = mrdivide(b, fact)
+  narginchk(2, 2);
+
+  x = fem_sol_real_complex(fact.umfpackobj, @umfpack, b.', 2).';
+endfunction

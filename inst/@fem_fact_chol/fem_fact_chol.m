@@ -34,6 +34,6 @@ function Afact = fem_fact_chol(A, opts)
   if (P ~= 0)
     error("matrix A is not positive definite");
   endif
-        
+
   Afact = class(Afact, "fem_fact_chol");
 endfunction

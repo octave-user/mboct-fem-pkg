@@ -125,8 +125,8 @@
 %!     for i=1:numel(Psi)
 %!       figure("visible", "off");
 %!       hold on;
-%!       plot(x * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;1");
-%!       plot(x * unit_meters, pref(idx, i) * unit_pascal, "-;pref;0");
+%!       plot(x * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;r");
+%!       plot(x * unit_meters, pref(idx, i) * unit_pascal, "-;pref;k");
 %!       xlabel("x [m]");
 %!       ylabel("p [Pa]");
 %!       grid on;

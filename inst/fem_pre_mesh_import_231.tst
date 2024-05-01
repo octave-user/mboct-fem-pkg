@@ -185,8 +185,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x * unit_meter, sol.p(idx, i) * unit_pascal, "-;p;1");
-%!     plot(x * unit_meter, real(pref(x, sol.t(i))) * unit_pascal, "-;pref;0");
+%!     plot(x * unit_meter, sol.p(idx, i) * unit_pascal, "-;p;r");
+%!     plot(x * unit_meter, real(pref(x, sol.t(i))) * unit_pascal, "-;pref;k");
 %!     ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
@@ -205,8 +205,8 @@
 %!     for j=1:3
 %!       vx(mesh.elements.tet10h(:)) += real(solC.particle_velocity.v.tet10h(:, :, j)(:) * exp(1j * Psi(i))) * e1(j);
 %!     endfor
-%!     plot(x * unit_meter, vx(idx) * unit_meter / unit_second, "-;vn;1");
-%!     plot(x * unit_meter, real(vxref(x, sol.t(i))) * unit_meter / unit_second, "-;Phi;0");
+%!     plot(x * unit_meter, vx(idx) * unit_meter / unit_second, "-;vn;r");
+%!     plot(x * unit_meter, real(vxref(x, sol.t(i))) * unit_meter / unit_second, "-;Phi;k");
 %!     ylim([-abs(vx0), abs(vx0)] * unit_meter / unit_second);
 %!     xlabel("x [m]");
 %!     ylabel("vx [m/s]");

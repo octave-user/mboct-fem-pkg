@@ -163,8 +163,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1), sol.p(idx, i), "-;p;1");
-%!     plot(mesh.nodes(idx, 1), preft(idx, i), "-;pref;0");
+%!     plot(mesh.nodes(idx, 1), sol.p(idx, i), "-;p;r");
+%!     plot(mesh.nodes(idx, 1), preft(idx, i), "-;pref;k");
 %!     ylim([min(min(sol.p)), max(max(sol.p))]);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
@@ -178,9 +178,9 @@
 %!     vx = vxC = zeros(rows(mesh.nodes), 1);
 %!     vx(mesh.elements.iso8(:)) = sol.particle_velocity.v.iso8(:, :, 1, i)(:);
 %!     vxC(mesh.elements.iso8(:)) = real(solC.particle_velocity.v.iso8(:, :, 1)(:) * exp(1j * Psi(i)));
-%!     plot(mesh.nodes(idx, 1), vx(idx), "-;vn;1");
-%!     plot(mesh.nodes(idx, 1), vxC(idx), "-;vC;2");
-%!     plot(mesh.nodes(idx, 1), vxreft(idx, i), "-;vref;0");
+%!     plot(mesh.nodes(idx, 1), vx(idx), "-;vn;r");
+%!     plot(mesh.nodes(idx, 1), vxC(idx), "-;vC;g");
+%!     plot(mesh.nodes(idx, 1), vxreft(idx, i), "-;vref;k");
 %!     ylim([min(min(min(min(sol.particle_velocity.v.iso8)))), max(max(max(max(sol.particle_velocity.v.iso8))))]);
 %!     xlabel("x [m]");
 %!     ylabel("vx [m/s]");
@@ -200,7 +200,7 @@
 %!   hold on;
 %!   elem_id = mesh.groups.iso4(grp_idx_output).elements;
 %!   elem_no = mesh.elements.iso4(elem_id, 1);
-%!   plot(sol.t, sum(sol.acoustic_intensity.P.iso4(elem_id, :), 1)(:), "-;P;1");
+%!   plot(sol.t, sum(sol.acoustic_intensity.P.iso4(elem_id, :), 1)(:), "-;P;r");
 %!   xlabel("t [s]");
 %!   ylabel("P [W]");
 %!   grid on;

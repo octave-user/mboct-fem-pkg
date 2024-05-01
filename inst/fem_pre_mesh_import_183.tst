@@ -192,7 +192,7 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(mesh.nodes(idx, 1) * unit_second, sol.p(idx, i) * unit_pascal, "-;p;1");
+%!     plot(mesh.nodes(idx, 1) * unit_second, sol.p(idx, i) * unit_pascal, "-;p;r");
 %!     ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");

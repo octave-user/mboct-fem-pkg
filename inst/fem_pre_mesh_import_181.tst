@@ -147,8 +147,8 @@
 %!   TLref = 10 * log10(1 + 1/4 * (h - 1 / h)^2 * sin(omegai / c * l2).^2);
 %!   figure("visible","off");
 %!   hold on;
-%!   plot(omegai/(2*pi), TL, "-;FEM solution;1");
-%!   plot(omegai/(2*pi), TLref, "-;reference solution;0");
+%!   plot(omegai/(2*pi), TL, "-;FEM solution;r");
+%!   plot(omegai/(2*pi), TLref, "-;reference solution;k");
 %!   xlabel("f [Hz]");
 %!   ylabel("TL [dB]");
 %!   grid on;

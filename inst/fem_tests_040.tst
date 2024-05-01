@@ -70,8 +70,8 @@
 %! if (do_plot)
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(Delta * L, wdyn / wstat_a, "-;V(omega);1");
-%!   plot(Delta * L, V_a, "-;V_r_e_f(omega);0");
+%!   plot(Delta * L, wdyn / wstat_a, "-;V(omega);r");
+%!   plot(Delta * L, V_a, "-;V_r_e_f(omega);k");
 %!   xlabel("Delta * L [1]");
 %!   ylabel("wdyn/wstat [1]");
 %!   ylim([-1, 2]);

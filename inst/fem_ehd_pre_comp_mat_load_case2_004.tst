@@ -217,8 +217,8 @@
 %!              for i=1:numel(z1g)
 %!                figure("visible", "off");
 %!                hold("on");
-%!                plot(Phi1g * 180 / pi, 1e6 * w1red(i:numel(z1g):end, m), "-;modal;1");
-%!                plot(Phi1g * 180 / pi, 1e6 * w1postint(i:numel(z1g):end, m), "-;nodal;0");
+%!                plot(Phi1g * 180 / pi, 1e6 * w1red(i:numel(z1g):end, m), "-;modal;r");
+%!                plot(Phi1g * 180 / pi, 1e6 * w1postint(i:numel(z1g):end, m), "-;nodal;k");
 %!                ylim(1e6 * [min(min(w1postint(:, m))), max(max(w1postint(:, m)))]);
 %!                title(sprintf("%d modes: i=%d m=%d", num_modes(l), i, m));
 %!                xlabel("Phi [deg]");

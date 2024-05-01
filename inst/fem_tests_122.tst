@@ -56,8 +56,8 @@
 %! for i=1:2
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(N, 1e3 * wA(i, :), "-;wA;1");
-%!   plot(N([1,end]), 1e3 * wA_ref(i)([1,end]), "-;wA_r_e_f;0");
+%!   plot(N, 1e3 * wA(i, :), "-;wA;r");
+%!   plot(N([1,end]), 1e3 * wA_ref(i)([1,end]), "-;wA_r_e_f;k");
 %!   xlabel("N [1]");
 %!   ylabel("wA [mm]");
 %!   grid on;

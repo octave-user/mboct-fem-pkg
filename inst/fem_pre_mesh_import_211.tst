@@ -237,7 +237,7 @@
 %!     if (do_plot)
 %!       p0 = griddata3(mesh.nodes(:, 1), mesh.nodes(:, 2), mesh.nodes(:, 3), real(sol.p), x0, y0, z0);
 %!       figure("visible", "off");
-%!       plot(z0 * unit_meters, p0 * unit_pascal, "-;p(z);1");
+%!       plot(z0 * unit_meters, p0 * unit_pascal, "-;p(z);r");
 %!       grid on;
 %!       grid minor on;
 %!       xlabel("z [m]");
@@ -247,7 +247,7 @@
 %!   endfor
 %!   if (do_plot)
 %!   figure("visible", "off");
-%!   plot(omega / (2 * pi) * unit_second^-1, P * unit_watt, "-;P(f);1");
+%!   plot(omega / (2 * pi) * unit_second^-1, P * unit_watt, "-;P(f);r");
 %!   xlabel("f [Hz]");
 %!   ylabel("P [W]");
 %!   grid on;

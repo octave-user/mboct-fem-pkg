@@ -117,8 +117,8 @@
 %!     for i=[1:10,11:100:numel(sol.t)]
 %!       figure("visible", "off");
 %!       hold("on");
-%!       plot(x, theta_ref(:, i), "-;reference;0");
-%!       plot(x, sol.theta(idx_x, i), "-;solution;1");
+%!       plot(x, theta_ref(:, i), "-;reference;k");
+%!       plot(x, sol.theta(idx_x, i), "-;solution;r");
 %!       xlabel("x [m]");
 %!       ylabel("theta [degC]");
 %!       grid on;

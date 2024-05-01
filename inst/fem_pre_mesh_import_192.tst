@@ -302,8 +302,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(r * unit_meters, vr(idx, i) * unit_meters / unit_second, "-;vr;1");
-%!     plot(r * unit_meters, vref(:, i) * unit_meters / unit_second, "-;vref;0");
+%!     plot(r * unit_meters, vr(idx, i) * unit_meters / unit_second, "-;vr;r");
+%!     plot(r * unit_meters, vref(:, i) * unit_meters / unit_second, "-;vref;k");
 %!     xlabel("r [m]");
 %!     ylabel("v [m/s]");
 %!     grid on;
@@ -313,8 +313,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(r * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;1");
-%!     plot(r * unit_meters, pref(:, i) * unit_pascal, "-;pref;0");
+%!     plot(r * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;r");
+%!     plot(r * unit_meters, pref(:, i) * unit_pascal, "-;pref;k");
 %!     xlabel("r [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;

@@ -140,7 +140,7 @@
 %!   endfor
 %!   if (do_plot)
 %!     figure("visible", "off");
-%!     loglog([data.h], [data.W], "-x;W(h) [J];1");
+%!     loglog([data.h], [data.W], "-x;W(h) [J];r");
 %!     xlabel("h [m]");
 %!     ylabel("W [J]");
 %!     grid on;

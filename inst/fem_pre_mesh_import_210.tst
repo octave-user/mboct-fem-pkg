@@ -287,8 +287,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(r * unit_meters, vr(idx, i) * unit_meters / unit_second, "-;vr;1");
-%!     plot(r * unit_meters, vref(:, i) * unit_meters / unit_second, "-;vref;0");
+%!     plot(r * unit_meters, vr(idx, i) * unit_meters / unit_second, "-;vr;r");
+%!     plot(r * unit_meters, vref(:, i) * unit_meters / unit_second, "-;vref;k");
 %!     xlabel("r [m]");
 %!     ylabel("v [m/s]");
 %!     grid on;
@@ -298,8 +298,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(r * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;1");
-%!     plot(r * unit_meters, pref(:, i) * unit_pascal, "-;pref;0");
+%!     plot(r * unit_meters, sol.p(idx, i) * unit_pascal, "-;p;r");
+%!     plot(r * unit_meters, pref(:, i) * unit_pascal, "-;pref;k");
 %!     xlabel("r [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
@@ -308,10 +308,10 @@
 %!   endfor
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(sol.t * unit_second, sum(sol.acoustic_intensity.P.iso4(1:numel(mesh.groups.iso4(grp_idx_s1).elements), :), 1) * unit_watt, "-;P(r0);1");
-%!   plot(sol.t * unit_second, -P(r0, sol.t) * unit_watt, "-;-Pref(r0);0");
-%!   plot(sol.t * unit_second, sum(sol.acoustic_intensity.P.iso4(numel(mesh.groups.iso4(grp_idx_s1).elements)+1:end, :), 1) * unit_watt, "-;P(r3);3");
-%!   plot(sol.t * unit_second, P(r3, sol.t) * unit_watt, "-;Pref(r3);2");
+%!   plot(sol.t * unit_second, sum(sol.acoustic_intensity.P.iso4(1:numel(mesh.groups.iso4(grp_idx_s1).elements), :), 1) * unit_watt, "-;P(r0);r");
+%!   plot(sol.t * unit_second, -P(r0, sol.t) * unit_watt, "-;-Pref(r0);k");
+%!   plot(sol.t * unit_second, sum(sol.acoustic_intensity.P.iso4(numel(mesh.groups.iso4(grp_idx_s1).elements)+1:end, :), 1) * unit_watt, "-;P(r3);b");
+%!   plot(sol.t * unit_second, P(r3, sol.t) * unit_watt, "-;Pref(r3);g");
 %!   xlabel("t [s]");
 %!   ylabel("P [W]");
 %!   grid on;

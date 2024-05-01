@@ -182,10 +182,10 @@
 %!     if (do_plot)
 %!       figure("visible", "off");
 %!       hold on;
-%!       plot(x1 * unit_meters, p1ref(:, i) * unit_pascal, "-;p1;1");
-%!       plot(x2 * unit_meters, p2ref(:, i) * unit_pascal, "-;p2;2");
-%!       plot(x1 * unit_meters, p1n * unit_pascal, "-;p1n;4");
-%!       plot(x2 * unit_meters, p2n * unit_pascal, "-;p2n;5");
+%!       plot(x1 * unit_meters, p1ref(:, i) * unit_pascal, "-;p1;r");
+%!       plot(x2 * unit_meters, p2ref(:, i) * unit_pascal, "-;p2;g");
+%!       plot(x1 * unit_meters, p1n * unit_pascal, "-;p1n;m");
+%!       plot(x2 * unit_meters, p2n * unit_pascal, "-;p2n;c");
 %!       ylim([min(min(sol.p)), max(max(sol.p))] * unit_pascal);
 %!       xlabel("x [m]");
 %!       ylabel("p [Pa]");

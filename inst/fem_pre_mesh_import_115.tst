@@ -356,8 +356,8 @@
 %!   if (do_plot)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);1");
-%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);3");
+%!     plot(sol.t, min(sol.theta, [], 1), "-;min(theta);r");
+%!     plot(sol.t, max(sol.theta, [], 1), "-;max(theta);b");
 %!     xlabel("t [s]");
 %!     ylabel("theta [degC]");
 %!     grid on;

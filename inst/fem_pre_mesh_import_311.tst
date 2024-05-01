@@ -154,8 +154,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, sol.p(idx, i), "-;p;1");
-%!     plot(x, pref_(:, i), "-;pref;0");
+%!     plot(x, sol.p(idx, i), "-;p;r");
+%!     plot(x, pref_(:, i), "-;pref;k");
 %!     xlabel("x [m]");
 %!     ylabel("p [Pa]");
 %!     grid on;
@@ -165,8 +165,8 @@
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(x, vx(idx, i), "-;vx;1");
-%!     plot(x, vxref_(:, i), "-;vxref;0");
+%!     plot(x, vx(idx, i), "-;vx;r");
+%!     plot(x, vxref_(:, i), "-;vxref;k");
 %!     xlabel("x [m]");
 %!     ylabel("vx [m/s]");
 %!     grid on;

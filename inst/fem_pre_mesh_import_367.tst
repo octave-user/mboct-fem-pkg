@@ -164,8 +164,8 @@
 %!   for i=1:numel(solR.t)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(r * unit_meters, solR.p(idx, i) * unit_pascal, "-;p(r);1");
-%!     plot(r * unit_meters, real(pref(r, solR.t(i))) * unit_pascal, "-;pref;0");
+%!     plot(r * unit_meters, solR.p(idx, i) * unit_pascal, "-;p(r);r");
+%!     plot(r * unit_meters, real(pref(r, solR.t(i))) * unit_pascal, "-;pref;k");
 %!     ylim([min(min(solR.p)), max(max(solR.p))] * unit_pascal);
 %!     xlabel("r [m]");
 %!     ylabel("p [Pa]");

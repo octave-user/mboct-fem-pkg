@@ -288,7 +288,7 @@
 %!         endfor
 %!         for j=1:columns(pc)
 %!           figure("visible","off");hold on
-%!           plot(Zc * unit_meters, pc(:, j) * unit_pascal, "-;p(X=0,Y=0,Z);1");
+%!           plot(Zc * unit_meters, pc(:, j) * unit_pascal, "-;p(X=0,Y=0,Z);r");
 %!           xlabel("r [m]");
 %!           ylabel("p [Pa]");
 %!           grid on;
@@ -303,7 +303,7 @@
 %!   end_unwind_protect
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(f * unit_second^-1, 10 * log10(P / P0), "-;P(f);1");
+%!   plot(f * unit_second^-1, 10 * log10(P / P0), "-;P(f);r");
 %!   xlabel("f [Hz]");
 %!   ylabel("Lw [dB]");
 %!   grid on;
@@ -311,7 +311,7 @@
 %!   title("sound power level");
 %!   figure("visible", "off");
 %!   hold on;
-%!   plot(f * unit_second^-1, 10 * log10(T), "-;TL(f);1");
+%!   plot(f * unit_second^-1, 10 * log10(T), "-;TL(f);r");
 %!   xlabel("f [Hz]");
 %!   ylabel("TL [dB]");
 %!   title("transmission loss");

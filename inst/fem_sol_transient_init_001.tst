@@ -36,8 +36,8 @@
 %!   if (enable_plot)
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(t, U(1, :), "-x;U(t);1");
-%!     plot(t, Uref, "-;Uref(t);0");
+%!     plot(t, U(1, :), "-x;U(t);r");
+%!     plot(t, Uref, "-;Uref(t);k");
 %!     xlabel("t [s]");
 %!     ylabel("U [m]");
 %!     grid on;
@@ -45,8 +45,8 @@
 %!     title("displacement versus time");
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(t, dU_dt(1, :), "-x;dU(t)/dt;1");
-%!     plot(t, dUref_dt, "-;dUref(t)/dt;0");
+%!     plot(t, dU_dt(1, :), "-x;dU(t)/dt;r");
+%!     plot(t, dUref_dt, "-;dUref(t)/dt;k");
 %!     xlabel("t [s]");
 %!     ylabel("dU/dt [m/s]");
 %!     grid on;
@@ -54,8 +54,8 @@
 %!     title("velocity versus time");
 %!     figure("visible", "off");
 %!     hold on;
-%!     plot(t, dU_dt2(1, :), "-x;d^2U(t)/dt^2;1");
-%!     plot(t, dUref_dt2, "-;d^2Uref(t)/dt^2;0");
+%!     plot(t, dU_dt2(1, :), "-x;d^2U(t)/dt^2;r");
+%!     plot(t, dUref_dt2, "-;d^2Uref(t)/dt^2;k");
 %!     xlabel("t [s]");
 %!     ylabel("d^2U/dt^2 [m/s^2]");
 %!     grid on;

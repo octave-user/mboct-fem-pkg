@@ -37,8 +37,8 @@
 %!                "linear");
 %! figure("visible", "off");
 %! hold on;
-%! plot(geometry.l - z, y(3, :), "-;Euler Bernoulli beam;0");
-%! plot(geometry.l - z, uz, "-;FEM solution;1");
+%! plot(geometry.l - z, y(3, :), "-;Euler Bernoulli beam;k");
+%! plot(geometry.l - z, uz, "-;FEM solution;r");
 %! xlabel("x [m]");
 %! ylabel("uz [m]");
 %! grid on;
