@@ -285,8 +285,9 @@ function fem_export_apdl(fd, filename, mesh, options, load_case, dof_map)
 endfunction
 
 function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
-  persistent gmsh_elem_types = {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "iso20r", "iso4", "quad8", "quad9", "tet4", "tet10", ...
-                                "tria6", "tria3", "beam2", "beam3", "penta15", "penta15upc", "tet10h", "tet10upc", "tet20", "tria6h", "tria10", "quad8r", "iso20upcr"};
+  eltypes = fem_pre_mesh_elem_type();
+
+  gmsh_elem_types = {eltypes.name};
 
   if (~isfield(options, "elem_types"))
     options.elem_types = gmsh_elem_types;
@@ -301,7 +302,7 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     endswitch
   endfor
 
-  options.elem_types = {options.elem_types{find(valid_elem_type)}};
+  options.elem_types = {options.elem_types{valid_elem_type}};
 
   fputs(fd, "$MeshFormat\n2.2 0 8\n$EndMeshFormat\n");
 
@@ -339,24 +340,26 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
   fprintf(fd, "%d\n", inumgroups);
 
   for i=1:numel(group_types)
-    groups = getfield(mesh.groups, group_types{i});
-
     switch (group_types{i})
-      case {"iso8", "iso8upc", "iso20", "iso20upc", "iso27", "iso27upc", "iso20r", "tet10", "penta15", "penta15upc", "tet10h", "tet10upc", "tet20", "iso20upcr"}
-        group_dim = 3;
-      case {"iso4", "quad8", "quad9", "tria6", "tria3", "tria6h", "tria10", "quad8r"}
-        group_dim = 2;
-      case {"beam2", "beam3"}
-        group_dim = 1;
+      case options.elem_types
       otherwise
         continue;
     endswitch
 
+    groups = getfield(mesh.groups, group_types{i});
+
+    idx_elem_type = fem_pre_mesh_elem_type_index({eltypes.name}, group_types{i});
+
+    if (isempty(idx_elem_type))
+      continue;
+    endif
+
+    group_dim = eltypes(idx_elem_type).dim;
+
     for j=1:numel(groups)
-      if (any(isspace(groups(j).name)))
-        error("spaces in group names (%s) are not allowed for gmsh format", groups(j).name);
-      endif
-      fprintf(fd, "%d %d \"%s\"\n", group_dim, groups(j).id, groups(j).name);
+      grp_name = groups(j).name;
+      grp_name(isspace(grp_name)) = "_"; ## spaces in group names are not allowed for gmsh format
+      fprintf(fd, "%d %d \"%s\"\n", group_dim, groups(j).id, grp_name);
     endfor
   endfor
 
@@ -372,60 +375,27 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
 
   for i=1:numel(elem_types)
     switch (elem_types{i})
-      case {"iso8", "iso8upc"}
-        elem_type_id = 5;
-        elem_node_order([5:8, 1:4]) = 1:8;
-      case {"iso20", "iso20upc"}
-        elem_type_id = 17;
-        elem_node_order([5:8, 1:4, 17, 19, 20, 18, 9, 12, 14, 10, 11, 13, 15, 16]) = 1:20;
-      case {"iso27", "iso27upc"}
-        elem_type_id = 12;
-        elem_node_order([1,2,3,4,5,6,7,8,9,12,14,10,11,13,15,16,17,19,20,18,21,22,24,25,23,26,27]) = 1:27;
-      case {"iso20r", "iso20upcr"}
-        elem_type_id = 17;
-        elem_node_order([1,2,3,4,5,6,7,8,9,12,14,10,17,19,20,18,11,13,15,16]) = 1:20;
-      case {"penta15", "penta15upc"}
-        elem_type_id = 18;
-        elem_node_order([1, 2, 3, 4, 5, 6, 7, 10, 8, 13, 15, 14, 9, 11, 12]) = 1:15;
-      case "iso4"
-        elem_type_id = 3;
-        elem_node_order = 1:4;
-      case "quad8"
-        elem_type_id = 16;
-        elem_node_order = 1:8;
-      case "quad9"
-        elem_type_id = 10;
-        elem_node_order = 1:9;        
-      case "quad8r"
-        elem_type_id = 16;
-        elem_node_order = [3, 4, 1, 2, 7, 8, 5, 6];        
-      case {"tria6", "tria6h"}
-        elem_type_id = 9;
-        elem_node_order = 1:6;
-      case "tria3"
-        elem_type_id = 2;
-        elem_node_order = 1:3;
-      case "tria10"
-        elem_type_id = 21;
-        elem_node_order = 1:10;
-      case {"tet10", "tet10h", "tet10upc"}
-        elem_type_id = 11;
-        elem_node_order([1:8, 10, 9]) = 1:10;
-      case "tet20"
-        elem_type_id = 29;
-        elem_node_order([1,5,6,2,7,8,3,9,10,17,16,20,14,19,12,18,15,13,11,4]) = 1:20;
-      case "tet4"
-        elem_type_id = 4;
-        elem_node_order = 1:4;
       case "beam2"
-        elem_type_id = 1;
-        elem_node_order = 1:2;
+        elname = "line2";
       case "beam3"
-        elem_type_id = 8;
-        elem_node_order = 1:3;
+        elname = "line3";
       otherwise
-        continue
+        elname = elem_types{i};
     endswitch
+
+    idx_elem_type = fem_pre_mesh_elem_type_index({eltypes.name}, elname);
+
+    if (isempty(idx_elem_type))
+      continue;
+    endif
+
+    if (~isscalar(idx_elem_type))
+      error("element type \"%s\" is not unique", elem_types{i});
+    endif
+
+    elem_node_order = zeros(1, numel(eltypes(idx_elem_type).norder));
+    elem_node_order(eltypes(idx_elem_type).norder) = 1:numel(elem_node_order);
+    elem_type_id = eltypes(idx_elem_type).id;
 
     switch (elem_types{i})
       case {"beam2", "beam3"}
@@ -466,4 +436,3 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
 
   fputs(fd, "$EndElements\n");
 endfunction
-
