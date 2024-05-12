@@ -1,5 +1,6 @@
 ## fem_tests.m:51
 %!test
+%! try
 %! ## TEST 51
 %! ## The 1-D Heat Equation
 %! ## 18.303 Linear Partial Differential Equations
@@ -136,3 +137,8 @@
 %!   tol = 1e-2;
 %!   assert_simple(sol(j).theta(:, 10:end), sol(j).theta_ref(:, 10:end), tol * abs(u0 - ub));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

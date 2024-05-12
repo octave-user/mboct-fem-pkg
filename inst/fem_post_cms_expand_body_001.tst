@@ -1,5 +1,6 @@
 ## fem_post_cms_expand_body.m:01
 %!test
+%! try
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -55,3 +56,8 @@
 %!   q(i, :) = sin(2 * pi * f * t);
 %! endfor
 %! sol_dyn = fem_post_cms_expand_body(mesh_cms, dof_map_cms, mat_ass_cms, q);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

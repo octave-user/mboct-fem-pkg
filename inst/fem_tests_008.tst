@@ -1,5 +1,6 @@
 ## fem_tests.m:08
 %!test
+%! try
 %! ## TEST 8
 %! X = [ 1,  1,  1;
 %!       -1,  1,  1;
@@ -28,3 +29,8 @@
 %! assert_simple(isdefinite(K), true);
 %! assert_simple(isdefinite(M), true);
 %! assert_simple(dm, mesh.material_data.rho * 8, sqrt(eps) * mesh.material_data.rho * 8);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

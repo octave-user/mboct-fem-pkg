@@ -1,5 +1,6 @@
 ## fem_cms_constr_mat.m:07
 %!test
+%! try
 %! C = [7.00000000e+000 1.00000000e+000 1.00000000e+000
 %! 1.90000000e+001 1.00000000e+000 -1.00000000e+000
 %! 8.00000000e+000 2.00000000e+000 1.00000000e+000
@@ -6736,3 +6737,8 @@
 %! C = spconvert(C);
 %! [T,res] = fem_cms_constr_mat(C);
 %! assert_simple(res < eps^0.5);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

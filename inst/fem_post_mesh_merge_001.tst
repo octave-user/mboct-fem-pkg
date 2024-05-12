@@ -1,5 +1,6 @@
 ## fem_post_mesh_merge.m:01
 %!test
+%! try
 %! close all;
 %! c = 10e-3;
 %!
@@ -55,3 +56,8 @@
 %! title("merged mesh");
 %! view(30, 30);
 %! figure_list();
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

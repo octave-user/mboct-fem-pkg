@@ -1,5 +1,6 @@
 ## fem_post_cms_expand.m:01
 %!test
+%! try
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
 %! SI_unit_s = 1e-1;
@@ -75,3 +76,8 @@
 %!     sol_dyn.bodies.q = sol_dyn.bodies.q(cms_data.cms_opt.selected_modes, :);
 %!   endif
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

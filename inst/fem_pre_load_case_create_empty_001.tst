@@ -1,5 +1,6 @@
 ## fem_pre_load_case_create_empty.m:01
 %!test
+%! try
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -62,3 +63,8 @@
 %!   view(30, 30);
 %! endfor
 %! figure_list();
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

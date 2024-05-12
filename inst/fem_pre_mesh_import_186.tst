@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:186
 %!test
+%! try
 %! ### TEST 186
 %! ### 1D wave propagation with two fluid domains and a solid domain between them
 %! close all;
@@ -267,3 +268,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

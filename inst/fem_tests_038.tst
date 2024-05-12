@@ -1,5 +1,6 @@
 ## fem_tests.m:38
 %!test
+%! try
 %! ## TEST 38
 %! for L = 200e-3:1000e-3:5000e-3;
 %! w = 10e-3;
@@ -58,3 +59,8 @@
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, numel(n));
 %! assert_simple(max(abs(sol_eig.f(:) ./ f_ref(:) - 1)) < 5e-2);
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_pre_mesh_elem_split.m:02
 %!test
+%! try
 %! do_plot = false;
 %! if (do_plot)
 %! close all;
@@ -83,3 +84,8 @@
 %! if (do_plot)
 %! figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

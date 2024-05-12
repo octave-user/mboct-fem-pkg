@@ -1,5 +1,6 @@
 ## fem_tests.m:12
 %!test
+%! try
 %! ## TEST 12
 %! tol = eps^0.9;
 %! mesh.nodes = [2, 3, 4;
@@ -73,3 +74,8 @@
 %! assert_simple(full(K(iperm,iperm)), Kref, tol * norm(Kref));
 %! assert_simple(eig(K), eig(Kref), tol * max(eig(Kref)));
 %! assert_simple(sum(full(diag(Mlumped))) / 3, dm, tol * dm);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

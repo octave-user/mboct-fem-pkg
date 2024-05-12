@@ -1,5 +1,6 @@
 ## fem_pre_mesh_unstruct_create.m:10
 %!test
+%! try
 %! ## TEST10
 %! close all;
 %! SI_unit_meter = 1e-3;
@@ -434,3 +435,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

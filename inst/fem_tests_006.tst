@@ -1,5 +1,6 @@
 ## fem_tests.m:06
 %!test
+%! try
 %! #############################################################
 %! ## TEST 6: Test case for RBE3 element
 %! ## model of two brick elements connected to one rbe3 element
@@ -150,3 +151,8 @@
 %! assert_simple(B1, B2);
 %! assert_simple(B1, B3);
 %! assert_simple(B1, B4);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

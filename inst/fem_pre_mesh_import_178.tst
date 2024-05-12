@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:178
 %!test
+%! try
 %! ### TEST 178 - 1D wave equation with medium interface
 %! close all;
 %! filename = "";
@@ -216,3 +217,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_sol_modal.m:01
 %!test
+%! try
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -22,3 +23,8 @@
 %!                               FEM_MAT_STIFFNESS], ...
 %!                              load_case);
 %! [sol_eig] = fem_sol_modal(mesh, dof_map, mat_ass, number_of_modes);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

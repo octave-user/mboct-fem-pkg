@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:230
 %!test
+%! try
 %! ## TEST 230 - 1D dissipative wave equation with perfectly matched layers
 %! ## A parameter-free perfectly matched layer formulation
 %! ## for the finite-element-based solution of the Helmholtz
@@ -222,3 +223,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

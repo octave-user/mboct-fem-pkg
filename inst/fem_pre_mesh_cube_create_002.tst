@@ -1,5 +1,6 @@
 ## fem_pre_mesh_cube_create.m:02
 %!test
+%! try
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -47,3 +48,8 @@
 %! figure_list();
 %! tol = 1e-2;
 %! assert_simple(uz, y(3, :).', tol * max(abs(y(3, :))))
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

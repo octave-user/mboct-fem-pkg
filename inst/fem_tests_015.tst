@@ -1,5 +1,6 @@
 ## fem_tests.m:15
 %!test
+%! try
 %! ## TEST 15
 %! do_plot = false;
 %! close all;
@@ -147,3 +148,8 @@
 %!   assert_simple(data(i).mat_ass.M, data(1).mat_ass.M, 0);
 %!   assert_simple(data(i).mat_ass.K, data(1).mat_ass.K, 0);
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

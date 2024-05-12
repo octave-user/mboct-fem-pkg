@@ -1,5 +1,6 @@
 ## fem_tests.m:03
 %!test
+%! try
 %! ## TEST 3
 %! ##########################################################################################
 %! ## Test case for elimination of Lagrange multipliers
@@ -90,3 +91,8 @@
 %!   title("deformed mesh");
 %!   figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

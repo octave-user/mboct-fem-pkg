@@ -1,5 +1,6 @@
 ## fem_tests.m:31
 %!test
+%! try
 %! ## TEST 31
 %! close all;
 %! SI_unit_m = 1e-3;
@@ -69,3 +70,8 @@
 %! assert_simple(tau(1, 8, :)(:), tau_a_0(:, 3), tol);
 %! assert_simple(tau(1, 6, :)(:), tau_a_0(:, 4), tol);
 %! assert_simple(tau(1, 7, :)(:), tau_a_0(:, 4), tol);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

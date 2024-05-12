@@ -1,5 +1,6 @@
 ## fem_sol_eigs.m:05
 %!test
+%! try
 %! state = rand("state");
 %! opts.refine_max_iter = int32(100);
 %! opts.epsilon_refinement = eps^0.7;
@@ -26,3 +27,8 @@
 %! unwind_protect_cleanup
 %!   rand("state", state);
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

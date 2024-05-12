@@ -1,5 +1,6 @@
 ## fem_tests.m:34
 %!test
+%! try
 %! ## TEST 34
 %! ## Cantilever beam with rectangular cross section and lateral load
 %! ## W.Beitz, K.-H.Grothe, 1997, Dubbel, section 2.4.6, page C17, figure 23
@@ -47,3 +48,8 @@
 %! idx_x = find((xx(:) > 0.1 * geometry.l) & (xx(:) < 0.9 * geometry.l));
 %! assert_simple(tauxx(:)(idx_x), tauxx_a(:)(idx_x), 1e-2 * max(tauxx_a(:)(idx_x)));
 %! assert_simple(tauxz(:)(idx_x), tauxz_a(:)(idx_x), 7e-2 * max(abs(tauxz_a(:)(idx_x))));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

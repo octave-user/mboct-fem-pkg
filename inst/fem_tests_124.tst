@@ -1,5 +1,6 @@
 ## fem_tests.m:124
 %!test
+%! try
 %! ## TEST 124
 %! close all;
 %! N = 20;
@@ -105,3 +106,8 @@
 %!   grid minor on;
 %! endfor
 %! figure_list();
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

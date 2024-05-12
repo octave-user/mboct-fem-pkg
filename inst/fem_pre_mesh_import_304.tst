@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:304
 %!test
+%! try
 %! ### TEST 304 - 2D wave equation
 %! ##
 %! ## 1.138J/2.062J/18.376J, WAVE PROPAGATION
@@ -336,3 +337,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

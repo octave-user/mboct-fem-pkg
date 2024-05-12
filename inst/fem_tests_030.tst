@@ -1,5 +1,6 @@
 ## fem_tests.m:30
 %!test
+%! try
 %! close all;
 %! ## TEST 30
 %! ###############################################
@@ -108,3 +109,8 @@
 %!     endfor
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

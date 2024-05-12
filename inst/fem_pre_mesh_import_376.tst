@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:376
 %!test
+%! try
 %! ### TEST 376
 %! ## bi-metal bending penta15
 %! do_plot = false;
@@ -117,3 +118,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

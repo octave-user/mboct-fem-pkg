@@ -1,5 +1,6 @@
 ## fem_pre_mesh_reorder.m:01
 %!test
+%! try
 %! mesh.nodes = [0, 0, 0;
 %!               0, 1, 0;
 %!               0, 2, 0;
@@ -76,3 +77,8 @@
 %!    g2(i) += sum(x2(mesh2.groups.iso4(i).nodes));
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

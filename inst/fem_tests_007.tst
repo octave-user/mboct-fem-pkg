@@ -1,5 +1,6 @@
 ## fem_tests.m:07
 %!test
+%! try
 %! ## TEST 7
 %! a = 70e-3;
 %! b = 20e-3;
@@ -54,3 +55,8 @@
 %!   assert_simple(mat_ass(i).dm, mesh(i).material_data.rho * a * b * c, sqrt(eps) * mesh(i).material_data.rho * a * b * c);
 %! endfor
 %! assert_simple(sol_stat(2).def(1:8, :), sol_stat(1).def, tol * max(max(abs(sol_stat(1).def))));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

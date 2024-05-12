@@ -1,5 +1,6 @@
 ## fem_tests.m:121
 %!test
+%! try
 %! close all;
 %! ## DEMO 2
 %! E1 = 70000e6;
@@ -119,3 +120,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

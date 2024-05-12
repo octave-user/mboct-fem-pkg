@@ -1,5 +1,6 @@
 ## fem_tests.m:25
 %!test
+%! try
 %! ## TEST 25
 %! close all;
 %! a = 70e-3;
@@ -52,3 +53,8 @@
 %! tauzz_a = Fz / (a * b);
 %! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, 3) / tauzz_a - 1) < sqrt(eps)));
 %! assert_simple(all(abs(sol_stat.stress.tau.iso8(:, :, [1:2, 4:end]) / tauzz_a) < sqrt(eps)));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

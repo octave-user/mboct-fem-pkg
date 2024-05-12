@@ -1,5 +1,6 @@
 ## fem_tests.m:02
 %!test
+%! try
 %! ## TEST 2
 %! close all;
 %! for iorient=1:10
@@ -98,3 +99,8 @@
 %!     assert_simple(full(sum(mat_ass.R(:, i + 1), 1)), m, tol * m);
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

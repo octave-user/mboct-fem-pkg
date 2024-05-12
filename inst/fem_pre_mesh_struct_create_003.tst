@@ -1,5 +1,6 @@
 ## fem_pre_mesh_struct_create.m:03
 %!test
+%! try
 %! ## TEST3
 %! close all;
 %! scale_eig = 0.15;
@@ -82,3 +83,8 @@
 %! endif
 %! tol = 0.5e-2;
 %! assert_simple(sol_eig.f(1:numel(fref)), sort(fref), tol * max(fref));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

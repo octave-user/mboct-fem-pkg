@@ -1,5 +1,6 @@
 ## fem_tests.m:17
 %!test
+%! try
 %! ##########################################################################################
 %! ## TEST 17: Test case for elimination of Lagrange multipliers
 %! ##########################################################################################
@@ -101,3 +102,8 @@
 %!   assert_simple(Ksym_L, data(j).mat_ass.K);
 %!   assert_simple(Msym_L, data(j).mat_ass.M);
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_pre_mesh_struct_create.m:09
 %!test
+%! try
 %! ## TEST9
 %! ## VIBRATIONS OF COMPLETE SPHERICAL SHELLS WITH IMPERFECTIONS
 %! ## Thomas A. Duffey
@@ -98,3 +99,8 @@
 %!   figure_list();
 %!   endif
 %! assert_simple(sol_eig.f([7, 12, 19, 39]), fref, 5e-4 * max(fref));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_post_sol_plot.m:01
 %!test
+%! try
 %! ## TEST 1
 %! close all;
 %! material.E = 210000e6;
@@ -25,3 +26,8 @@
 %! grid minor on;
 %! title("undeformed cube mesh");
 %! figure_list();
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

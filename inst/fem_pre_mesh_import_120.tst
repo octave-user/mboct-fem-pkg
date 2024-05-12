@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:120
 %!test
+%! try
 %! ### TEST 120
 %! ## The 1-D Heat Equation
 %! ## 18.303 Linear Partial Differential Equations
@@ -153,3 +154,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

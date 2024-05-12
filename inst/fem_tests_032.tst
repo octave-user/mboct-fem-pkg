@@ -1,5 +1,6 @@
 ## fem_tests.m:32
 %!test
+%! try
 %! ## TEST 32
 %! close all;
 %! scale_stat = 1;
@@ -81,3 +82,8 @@
 %! endif
 %! assert_simple(sol_stat.def(:, 3), wz, tol * max(abs(wz)));
 %! assert_simple(sol_cms.def(1:rows(mesh.nodes), 3), wz, tol * max(abs(wz)));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

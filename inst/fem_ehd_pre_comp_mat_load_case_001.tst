@@ -1,5 +1,6 @@
 ## fem_ehd_pre_comp_mat_load_case.m:01
 %!test
+%! try
 %! close all;
 %! fd = -1;
 %! filename = "";
@@ -186,3 +187,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

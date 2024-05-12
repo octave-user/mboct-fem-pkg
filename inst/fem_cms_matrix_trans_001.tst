@@ -1,5 +1,6 @@
 ## fem_cms_matrix_trans.m:01
 %!test
+%! try
 %! N = 10;
 %! for t={"Upper", "Lower"}
 %! for i=1:100
@@ -11,3 +12,8 @@
 %! assert_simple(issymmetric(TAT));
 %! endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

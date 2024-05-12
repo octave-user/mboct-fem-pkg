@@ -1,5 +1,6 @@
 ## fem_pre_mesh_elem_angle.m:01
 %!test
+%! try
 %! a = 70e-3;
 %! b = 20e-3;
 %! c = 10e-3;
@@ -30,3 +31,8 @@
 %! for j=1:numel(angle_data)
 %!   assert_simple(all(all(all(abs(angle_data(j).iso8 - pi / 2) < 2 * pi * tol))));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

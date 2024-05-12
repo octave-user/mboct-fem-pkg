@@ -1,5 +1,6 @@
 ## fem_tests.m:52
 %!test
+%! try
 %! ## TEST 52
 %! m = 1.5;
 %! J = diag([1e-3, 2e-3, 3e-3]);
@@ -41,3 +42,8 @@
 %! assert_simple(full(MU + ML - diag(diag(MU))), Mref, tol * norm(Mref));
 %! assert_simple(full(ML - MU.'), zeros(6, 6), tol * norm(Mref));
 %! assert_simple(dm, m, tol * m);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_tests.m:50
 %!test
+%! try
 %! ## TEST 50
 %! do_plot = false;
 %! close all;
@@ -104,3 +105,8 @@
 %!   title("transient thermal problem of a bar");
 %! endif
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_tests.m:57
 %!test
+%! try
 %! ## TEST 57
 %! rndstate = rand("state");
 %! unwind_protect
@@ -85,3 +86,8 @@
 %! unwind_protect_cleanup
 %!   rand("state", rndstate);
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

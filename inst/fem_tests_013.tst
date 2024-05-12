@@ -1,5 +1,6 @@
 ## fem_tests.m:13
 %!test
+%! try
 %! ## TEST 13
 %! tol = eps^0.5;
 %! N = 10;
@@ -86,3 +87,8 @@
 %!   assert_simple(diagM(1:3:end), diagM(3:3:end));
 %!   assert_simple(sum(diagM) / 3, dm, tol * dm);
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

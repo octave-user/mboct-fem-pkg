@@ -1,5 +1,6 @@
 ## fem_sol_transient_init.m:01
 %!test
+%! try
 %! enable_plot = true;
 %! if (enable_plot)
 %!   close all;
@@ -67,3 +68,8 @@
 %!   assert_simple(dU_dt, dUref_dt, tol * max(abs(dUref_dt)));
 %!   assert_simple(dU_dt2, dUref_dt2, tol * max(abs(dUref_dt2)));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

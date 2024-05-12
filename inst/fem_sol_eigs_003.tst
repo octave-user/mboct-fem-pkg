@@ -1,5 +1,6 @@
 ## fem_sol_eigs.m:03
 %!test
+%! try
 %! rand("seed", 0);
 %! tol = eps^0.3;
 %! N = 10;
@@ -44,3 +45,8 @@
 %! endfor
 %! endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_pre_mesh_unstruct_create.m:06
 %!test
+%! try
 %! ## TEST6
 %! close all;
 %! E = 210000e6;
@@ -119,3 +120,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_tests.m:18
 %!test
+%! try
 %! ##########################################################################################
 %! ## TEST 18: Test case for pressure load
 %! ##########################################################################################
@@ -79,3 +80,8 @@
 %! if (do_plot)
 %!   figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch
