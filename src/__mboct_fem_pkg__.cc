@@ -1,4 +1,4 @@
-// Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
+// Copyright (C) 2018(-2024) Reinhard <octave-user@a1.net>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -455,7 +455,7 @@ public:
           MAT_TYPE_FLUID
      };
 
-     Material(MatType eMatType, const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c, double eta, double zeta)
+     Material(MatType eMatType, const Matrix& C, double rho, double alpha, double beta, double gamma, const Matrix& k, double cp, double c, double eta, double zeta, double tan_delta)
           :eMatType(eMatType),
            rho(rho),
            alpha(alpha),
@@ -465,6 +465,7 @@ public:
            c(c),
            eta(eta),
            zeta(zeta),
+           tan_delta(tan_delta),
            C(C),
            k(k) {
 
@@ -495,6 +496,7 @@ public:
           const auto iterc = material_data.seek("c");
           const auto itereta = material_data.seek("eta");
           const auto iterzeta = material_data.seek("zeta");
+          const auto itertan_delta = material_data.seek("tan_delta");
 
           const Cell emptyCell(material_data.dims());
           const Cell cellC = iterC != material_data.end() ? material_data.contents(iterC) : emptyCell;
@@ -509,6 +511,7 @@ public:
           const Cell cellc = iterc != material_data.end() ? material_data.contents(iterc) : emptyCell;
           const Cell celleta = itereta != material_data.end() ? material_data.contents(itereta) : emptyCell;
           const Cell cellzeta = iterzeta != material_data.end() ? material_data.contents(iterzeta) : emptyCell;
+          const Cell celltan_delta = itertan_delta != material_data.end() ? material_data.contents(itertan_delta) : emptyCell;
 
           vector<Material> rgMaterials;
 
@@ -530,6 +533,7 @@ public:
                const bool bHaveeta = !celleta.xelem(i).isempty();
                const bool bHavezeta = !cellzeta.xelem(i).isempty();
                const bool bHaveElasticity = bHaveC || (bHaveE && bHavenu);
+               const bool bHaveTanDelta = !celltan_delta.xelem(i).isempty();
 
                Material::MatType eMatType;
 
@@ -730,7 +734,13 @@ public:
                     throw std::runtime_error("material: mesh.material_data.zeta must be greater than or equal to zero");
                }
 
-               rgMaterials.emplace_back(eMatType, C, rho, alpha, beta, gamma, k, cp, c, eta, zeta);
+               const double tan_delta = bHaveTanDelta ? celltan_delta.xelem(i).scalar_value() : 0.;
+
+               if (tan_delta < 0.) {
+                    throw std::runtime_error("material: mesh.material_data.tan_delta must be greater than or equal to zero");
+               }
+
+               rgMaterials.emplace_back(eMatType, C, rho, alpha, beta, gamma, k, cp, c, eta, zeta, tan_delta);
           }
 
           return rgMaterials;
@@ -771,6 +781,7 @@ public:
      double Density() const { return rho; }
      double AlphaDamping() const { return alpha; }
      double BetaDamping() const { return beta; }
+     double TanDeltaDamping() const { return tan_delta; }
      double SpeedOfSound() const { return c; }
      double ShearViscosity() const { return eta; }
      double VolumeViscosity() const { return zeta; }
@@ -795,7 +806,7 @@ private:
      }
 
      MatType eMatType;
-     double E, nu, rho, alpha, beta, gamma, cp, c, eta, zeta;
+     double E, nu, rho, alpha, beta, gamma, cp, c, eta, zeta, tan_delta;
      Matrix C, k;
 };
 
@@ -1354,6 +1365,7 @@ public:
           MAT_STIFFNESS_OMEGA_DOT        = (41u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           MAT_DAMPING_OMEGA              = (42u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           VEC_SURFACE_AREA               = (43u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
+          MAT_STIFFNESS_IM               = (44u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           VEC_COLL_MASS                  = MAT_MASS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_STIFFNESS             = MAT_STIFFNESS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_HEAT_CAPACITY         = MAT_HEAT_CAPACITY | MAT_COLL_PNT_OUTPUT,
@@ -2442,6 +2454,11 @@ public:
                pfn = &ElemBeam2::GlobalStiffnessMatrix;
                break;
 
+          case MAT_STIFFNESS_IM:
+          case MAT_STIFFNESS_FLUID_STRUCT_IM:
+               pfn = &ElemBeam2::GlobalStiffnessMatrixTanDelta;
+               break;
+
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
@@ -2472,9 +2489,11 @@ public:
      virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override {
           switch (eMatType) {
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_IM:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_FLUID_STRUCT_IM:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
@@ -2619,6 +2638,14 @@ public:
           AssembleMatrix(mat, Ke, dof);
      }
 
+     void GlobalStiffnessMatrixTanDelta(MatrixAss& mat, const DofMap& dof) const {
+          Matrix Ke_im(12, 12, 0.);
+
+          LocalStiffnessMatrixTanDelta(Ke_im);
+          LocalMatToGlobalMat(Ke_im);
+          AssembleMatrix(mat, Ke_im, dof);
+     }
+
      void GlobalMassMatrix(MatrixAss& mat, const DofMap& dof) const {
           Matrix Me(12, 12, 0.);
 
@@ -2741,6 +2768,19 @@ public:
           for (octave_idx_type j = 0; j < Dcols; ++j) {
                for (octave_idx_type i = 0; i < Drows; ++i) {
                     De.xelem(i + Drows * j) = alpha * Me.xelem(i + Drows * j) + beta * De.xelem(i + Drows * j);
+               }
+          }
+     }
+
+     void LocalStiffnessMatrixTanDelta(Matrix& Ke_im) const {
+          const double tan_delta = material->TanDeltaDamping();
+          constexpr octave_idx_type Krows = 12, Kcols = 12;
+
+          LocalStiffnessMatrix(Ke_im);
+
+          for (octave_idx_type j = 0; j < Kcols; ++j) {
+               for (octave_idx_type i = 0; i < Krows; ++i) {
+                    Ke_im.xelem(i + Krows * j) *= tan_delta;
                }
           }
      }
@@ -3111,6 +3151,11 @@ public:
                iNumRows = iNumCols = iNumDof;
                break;
 
+          case MAT_STIFFNESS_IM:
+               pFunc = &Element3D::StiffnessMatrixTanDelta;
+               iNumRows = iNumCols = iNumDof;
+               break;
+
           case MAT_STIFFNESS_TAU0:
                pFunc = &Element3D::StiffnessMatrixNL;
                iNumRows = iNumCols = iNumDof;
@@ -3240,10 +3285,21 @@ public:
 
                iNumRows = iNumCols = iNumDof;
                break;
+
           case MAT_STIFFNESS_FLUID_STRUCT_IM:
-               if (eMaterial == Material::MAT_TYPE_FLUID && !f.isempty()) {
-                    pFunc = &Element3D::AcousticStiffnessMatrixPML;
+               switch (eMaterial) {
+               case Material::MAT_TYPE_FLUID:
+                    if (!f.isempty()) {
+                         pFunc = &Element3D::AcousticStiffnessMatrixPML;
+                         iNumRows = iNumCols = iNumDof;
+                    }
+                    break;
+               case Material::MAT_TYPE_SOLID:
+                    pFunc = &Element3D::StiffnessMatrixTanDelta;
                     iNumRows = iNumCols = iNumDof;
+                    break;
+               default:
+                    throw std::logic_error("element 3D: material not supported");
                }
                break;
 
@@ -3323,8 +3379,6 @@ public:
 
           (this->*pFunc)(Ae, info, eMatType);
 
-          //FEM_TRACE("\nid:" << id << "\n" << ((eMaterial == Material::MAT_TYPE_SOLID) ? "solid" : "fluid") << "\nAe:\n" << Ae << "\ndofidx:\n" << dofidx << "\n\n");
-
           switch (eMatType) {
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
@@ -3360,6 +3414,7 @@ public:
           case MAT_MASS_FLUID_STRUCT_RE:
           case MAT_MASS_FLUID_STRUCT_IM:
           case MAT_STIFFNESS:
+          case MAT_STIFFNESS_IM:
           case MAT_STIFFNESS_TAU0:
           case MAT_STIFFNESS_OMEGA:
           case MAT_STIFFNESS_OMEGA_DOT:
@@ -3818,6 +3873,25 @@ protected:
                for (octave_idx_type j = 0; j < iNumDof; ++j) {
                     for (octave_idx_type i = 0; i < iNumDof; ++i) {
                          De.xelem(i + iNumDof * j) += beta * Ke.xelem(i + iNumDof * j);
+                    }
+               }
+          }
+     }
+
+     void StiffnessMatrixTanDelta(Matrix& Ke_im, MeshInfo& info, FemMatrixType eMatType) const {
+          const octave_idx_type iNumDof = iGetNumDof(eMatType);
+
+          FEM_ASSERT(Ke_im.rows() == iNumDof);
+          FEM_ASSERT(Ke_im.columns() == iNumDof);
+
+          const double tan_delta = material->TanDeltaDamping();
+
+          if (tan_delta) {
+               StiffnessMatrix(Ke_im, info, static_cast<FemMatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
+
+               for (octave_idx_type j = 0; j < iNumDof; ++j) {
+                    for (octave_idx_type i = 0; i < iNumDof; ++i) {
+                         Ke_im.xelem(i + iNumDof * j) *= tan_delta;
                     }
                }
           }
@@ -16723,6 +16797,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_SYM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_SYM_L", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_MAT_STIFFNESS_IM", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_TAU0", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_OMEGA", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_MAT_STIFFNESS_OMEGA_DOT", "__mboct_fem_pkg__.oct");
@@ -18064,8 +18139,11 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_INERTIA_INV5:
                     case Element::MAT_INERTIA_INV8:
                     case Element::MAT_INERTIA_INV9:
-                         rgElemUse[ElementTypes::ELEM_BEAM2] = true;
                          rgElemUse[ElementTypes::ELEM_RIGID_BODY] = true;
+                         [[fallthrough]];
+
+                    case Element::MAT_STIFFNESS_IM:
+                         rgElemUse[ElementTypes::ELEM_BEAM2] = true;
                          [[fallthrough]];
 
                     case Element::VEC_STRESS_CAUCH:
@@ -19277,6 +19355,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case Element::MAT_STIFFNESS:
                case Element::MAT_STIFFNESS_SYM:
                case Element::MAT_STIFFNESS_SYM_L:
+               case Element::MAT_STIFFNESS_IM:
                case Element::MAT_STIFFNESS_TAU0:
                case Element::MAT_STIFFNESS_OMEGA:
                case Element::MAT_STIFFNESS_OMEGA_DOT:
@@ -19729,6 +19808,7 @@ DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_LUMPED, "diagonal lumped mass matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_SYM, "upper triangular part of the mass matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_MASS_SYM_L, "lower triangular part of the mass matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS, "complete stiffness matrix")
+DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_IM, "imaginary part of complete stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_SYM, "upper triangular part of the stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_SYM_L, "lower triangular part of the stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, MAT_STIFFNESS_TAU0, "stiffness matrix resulting from pre-stress")
