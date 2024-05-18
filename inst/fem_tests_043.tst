@@ -80,11 +80,9 @@
 %!       assert_simple(sol_stat.stress.vmis.penta15, vmis_stat, tol_stat * max(max(max(abs(vmis_stat)))));
 %!       assert_simple(sol_eig.stress.vmis.penta15, vmis_eig, tol_eig * max(max(max(abs(vmis_eig)))));
 %!       for i=1:size(sol_eig.def, 3)
-%!         try
-%!           assert_simple(sol_eig.def(:, :, i), U_ref_eig(:, :, i), tol_eig);
-%!         catch
-%!           assert_simple(sol_eig.def(:, :, i), -U_ref_eig(:, :, i), tol_eig);
-%!         end_try_catch
+%!         Phi1 = sol_eig.def(:, :, i)(:);
+%!         Phi2 = U_ref_eig(:, :, i)(:);
+%!         assert_simple(min([norm(Phi1 - Phi2), norm(Phi1 + Phi2)]) < tol_eig);
 %!       endfor
 %!     endif
 %!   endfor
