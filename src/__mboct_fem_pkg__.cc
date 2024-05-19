@@ -16927,6 +16927,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
           "@deftypefn {} @var{dof_map} = fem_ass_dof_map(@var{mesh}, @var{load_case})\n"
+          "@deftypefnx {} @var{dof_map} = fem_ass_dof_map(@dots{}, @var{dof_in_use})\n"
           "Build a data structure which assigns global degrees of freedom to each node and each element with Lagrange multipliers.\n\n"
           "@var{mesh} @dots{} Finite element mesh data structure\n\n"
           "@var{load_case} @dots{} Scalar struct for defining nodal constraints.\n\n"
@@ -16937,7 +16938,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      octave_value_list retval;
 
      try {
-          if (args.length() != 2) {
+          if (args.length() < 2 || args.length() > 3) {
                print_usage();
                return retval;
           }
@@ -17061,7 +17062,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const vector<Material> rgMaterials = Material::ExtractMaterialData(material_data, eDomain);
 
-          boolNDArray dof_in_use(dim_vector(iNumNodes, iNodeMaxDofIndex), false);
+          boolNDArray dof_in_use(args.length() > 2 ? args(2).bool_array_value() : boolNDArray(dim_vector(iNumNodes, iNodeMaxDofIndex), false));
+
+          if (dof_in_use.ndims() != 2 || dof_in_use.rows() != iNumNodes || dof_in_use.columns() != iNodeMaxDofIndex) {
+               throw std::runtime_error("fem_ass_dof_map: invalid size for dof_in_use");
+          }
 
           for (octave_idx_type i = 0; i < ElementTypes::iGetNumTypes(); ++i) {
                const auto& oElemType = ElementTypes::GetType(i);
