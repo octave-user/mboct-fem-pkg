@@ -1,5 +1,6 @@
 ## fem_sol_eigs.m:02
 %!test
+%! try
 %! rand("seed", 0);
 %! tol = sqrt(eps);
 %! N = 10;
@@ -24,3 +25,8 @@
 %!  b = lambda(i,i) * M * v(:, i);
 %!  assert_simple(a, b, tol * norm(abs(a)+abs(b)));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

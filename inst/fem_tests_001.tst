@@ -1,5 +1,6 @@
 ## fem_tests.m:01
 %!test
+%! try
 %! ## TEST 1
 %! close all;
 %! scale_stat = 1;
@@ -103,3 +104,8 @@
 %!   endfor
 %!   figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

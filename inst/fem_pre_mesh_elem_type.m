@@ -349,6 +349,7 @@ function eltype_out = fem_pre_mesh_elem_type()
 endfunction
 
 %!test
+%! try
 %! eltype = fem_pre_mesh_elem_type();
 %! assert_simple(numel(eltype), 38);
 %! for i=1:numel(eltype)
@@ -379,3 +380,8 @@ endfunction
 %!   assert(~isempty(eltype(i).dim));
 %!   assert(~isempty(eltype(i).norder));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

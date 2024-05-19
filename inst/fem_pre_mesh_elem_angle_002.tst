@@ -1,5 +1,6 @@
 ## fem_pre_mesh_elem_angle.m:02
 %!test
+%! try
 %! a = 70e-3;
 %! b = 20e-3;
 %! c = 10e-3;
@@ -36,3 +37,8 @@
 %!     endfor
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

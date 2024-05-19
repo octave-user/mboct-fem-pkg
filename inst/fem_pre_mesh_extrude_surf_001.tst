@@ -1,5 +1,6 @@
 ## fem_pre_mesh_extrude_surf.m:01
 %!test
+%! try
 %! ## TEST 1
 %! rndstate = rand("state");
 %! rand("seed", 0);
@@ -53,3 +54,8 @@
 %! unwind_protect_cleanup
 %!   rand("state", rndstate);
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

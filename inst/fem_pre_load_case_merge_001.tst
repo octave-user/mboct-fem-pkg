@@ -1,5 +1,6 @@
 ## fem_pre_load_case_merge.m:01
 %!test
+%! try
 %! load_case1.locked_dof = false(10, 6);
 %! load_case2.pressure.tria6 = zeros(5, 6, "int32");
 %! load_case3(1).joints.U = zeros(3, 1);
@@ -13,3 +14,8 @@
 %! assert_simple(all(all(load_case(2).pressure.tria6 == load_case2.pressure.tria6)));
 %! assert_simple(all(all(load_case(3).joints.U == load_case3(1).joints.U)));
 %! assert_simple(all(all(load_case(4).joints.U == load_case3(2).joints.U)));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

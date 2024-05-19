@@ -1,5 +1,6 @@
 ## fem_tests.m:53
 %!test
+%! try
 %! ## TEST 53
 %! ## Robert Gasch, Klaus Knothe
 %! ## Strukturdynamik Band 1
@@ -108,3 +109,8 @@
 %! tolm = eps;
 %! assert_simple(lambda, lambdaref, tolf * max(lambdaref));
 %! assert_simple(mat_ass.dm, m1 + m2, tolm * (m1 + m2));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

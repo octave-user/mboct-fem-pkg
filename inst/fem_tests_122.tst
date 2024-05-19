@@ -1,5 +1,6 @@
 ## fem_tests.m:122
 %!test
+%! try
 %! ## DEMO3
 %! close all;
 %! function [x, y, z, R, Phi] = cooks_membrane_geo(r, s, t, geometry, varargin)
@@ -73,3 +74,8 @@
 %! grid minor on;
 %! title("Cook's membrane deformed mesh");
 %! figure_list();
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

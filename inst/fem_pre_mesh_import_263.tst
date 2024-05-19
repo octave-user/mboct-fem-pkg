@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:263
 %!test
+%! try
 %! ### TEST263
 %! do_plot = false;
 %! if (do_plot)
@@ -185,3 +186,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

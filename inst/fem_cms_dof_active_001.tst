@@ -1,5 +1,6 @@
 ## fem_cms_dof_active.m:01
 %!test
+%! try
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -37,3 +38,8 @@
 %! assert_simple(all(all(dof_status(1:14, 1:3))));
 %! assert_simple(all(all(dof_status(13:14, 1:6))));
 %! assert_simple(~any(dof_status(15, :)));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

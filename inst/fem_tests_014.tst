@@ -1,5 +1,6 @@
 ## fem_tests.m:14
 %!test
+%! try
 %! ## TEST 14
 %! tol = eps^0.9;
 %! mesh.nodes = [                      0                     0                     0                     0                     0                     0
@@ -68,3 +69,8 @@
 %! assert_simple(sum(diagM) / 3, dm, tol * dm);
 %! assert_simple(diagM(1:3:end), diagM(2:3:end));
 %! assert_simple(diagM(1:3:end), diagM(3:3:end));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

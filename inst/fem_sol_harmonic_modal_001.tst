@@ -1,5 +1,6 @@
 ## fem_sol_harmonic_modal.m:01
 %!test
+%! try
 %! m1 = 0.5;
 %! m2 = 30;
 %! m3 = 0;
@@ -91,3 +92,8 @@
 %!   assert_simple(sol.lambda, lambdaref, tol * norm(lambdaref));
 %!   assert_simple(sol.D, Dref, tol * norm(Dref));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

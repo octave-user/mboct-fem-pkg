@@ -1,5 +1,6 @@
 ## fem_tests.m:10
 %!test
+%! try
 %! ## TEST 10
 %! tol = eps^0.8;
 %! N = 10;
@@ -71,3 +72,8 @@
 %!   assert_simple(lambda(:, i), lambda(:, 1), tol * max(max(abs(lambda(:, 1)))));
 %!   assert_simple(dm, mesh.material_data.rho * V, mesh.material_data.rho * V * tol);
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

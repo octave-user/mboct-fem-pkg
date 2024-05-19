@@ -1,5 +1,6 @@
 ## fem_sol_harmonic_modal2.m:01
 %!test
+%! try
 %! m1 = 0.5;
 %! m2 = 30;
 %! m3 = 0;
@@ -100,3 +101,8 @@
 %!   assert_simple(U, Uref, tol * norm(Uref));
 %!   assert_simple(imag(sol.lambda), imag(lambdaref), tol * norm(imag(lambdaref)));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

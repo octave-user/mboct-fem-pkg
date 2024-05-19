@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:318
 %!test
+%! try
 %! ### TEST 318
 %! ### rigid body motion of a solid domain between two fluid domains
 %! do_plot = false;
@@ -204,3 +205,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

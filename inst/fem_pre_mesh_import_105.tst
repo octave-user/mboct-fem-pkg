@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:105
 %!test
+%! try
 %! ### TEST 105
 %! ### Code_Aster TLV01 V4.25.001 01/02/2011
 %! do_plot = false;
@@ -166,3 +167,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

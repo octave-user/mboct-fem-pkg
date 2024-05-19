@@ -1,5 +1,6 @@
 ## fem_tests.m:56
 %!test
+%! try
 %! ## TEST 56
 %! l1 = 1000;
 %! l2 = 800;
@@ -49,3 +50,8 @@
 %! for i=1:2
 %!   assert_simple(sol.def(i, 5), Phiref(i), tol * norm(Phiref));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

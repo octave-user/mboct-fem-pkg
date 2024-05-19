@@ -1,5 +1,6 @@
 ## fem_sol_static.m:01
 %!test
+%! try
 %! close all;
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -22,3 +23,8 @@
 %!                               FEM_VEC_LOAD_CONSISTENT], ...
 %!                              load_case);
 %! sol = fem_sol_static(mesh, dof_map, mat_ass);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

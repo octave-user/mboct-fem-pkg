@@ -1,5 +1,6 @@
 ## fem_post_cms_expand.m:02
 %!test
+%! try
 %! close all;
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
@@ -66,3 +67,8 @@
 %! opt_exp.scale_type = "least square";
 %! opt_exp.output_stress = FEM_SCA_STRESS_VMIS;
 %! sol_tot = fem_post_cms_expand(sol_dyn, cms_data, 1:10:numel(sol_dyn.t), opt_exp);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

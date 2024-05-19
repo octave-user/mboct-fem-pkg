@@ -1,5 +1,6 @@
 ## fem_tests.m:33
 %!test
+%! try
 %! ##########################################################################################
 %! ## TEST 33: Test case for sfncon4 using joints
 %! ##########################################################################################
@@ -179,3 +180,8 @@
 %! if (do_plot || contour_plot)
 %!   figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

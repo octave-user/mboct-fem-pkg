@@ -1,5 +1,6 @@
 ## fem_post_sol_export.m:01
 %!test
+%! try
 %! close all;
 %! E1 = 70000e6;
 %! nu1 = 0.3;
@@ -123,3 +124,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

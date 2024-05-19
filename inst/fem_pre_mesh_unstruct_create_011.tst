@@ -1,5 +1,6 @@
 ## fem_pre_mesh_unstruct_create.m:11
 %!test
+%! try
 %! ## TEST11
 %! close all;
 %! SI_unit_meter = 1e-3;
@@ -291,3 +292,8 @@
 %!   title("frequency response phase");
 %! endfor
 %! opt_post.elem_types = {"beam2"};
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

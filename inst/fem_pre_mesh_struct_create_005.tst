@@ -1,5 +1,6 @@
 ## fem_pre_mesh_struct_create.m:05
 %!test
+%! try
 %! ## TEST 5
 %! ## Code_Aster SHLV100 V2.07.100
 %! close all;
@@ -151,3 +152,8 @@
 %!     endfor
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

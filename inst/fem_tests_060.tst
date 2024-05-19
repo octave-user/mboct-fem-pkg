@@ -1,5 +1,6 @@
 ## fem_tests.m:60
 %!test
+%! try
 %! ## TEST 60
 %! ## 24 TH INTERNATIONAL CONGRESS OF THE AERONAUTICAL SCIENCES
 %! ## NATURAL FREQUENCIES OF ROTATING
@@ -158,3 +159,8 @@
 %! omegax_rot = sqrt(rho * A * L^4 / (E * I)) * 2 * pi * sol_eig_rot.f(find(sol_eig_rot.f >= 0));
 %! assert_simple(omegax_rot(1), interp1(mu_ref, omegax_ref_chordwise, mu, "extrap"), 0.3);
 %! assert_simple(omegax_rot(2), interp1(mu_ref, omegax_ref_flapwise, mu, "extrap"), 0.3);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

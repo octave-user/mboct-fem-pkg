@@ -1,5 +1,6 @@
 ## fem_tests.m:16
 %!test
+%! try
 %! ## TEST 16
 %! material.E = 210000e6;
 %! material.nu = 0.3;
@@ -46,3 +47,8 @@
 %!                zeros(size(z)), ...
 %!                "linear");
 %! assert_simple(uz, y(3, :).', 1e-2 * max(abs(y(3, :))));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

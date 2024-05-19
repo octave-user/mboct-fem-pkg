@@ -1,5 +1,6 @@
 ## fem_tests.m:29
 %!test
+%! try
 %! ## TEST 29
 %! close all;
 %! a = 40e-3;
@@ -72,3 +73,8 @@
 %! for i=1:columns(tau_a)
 %!   assert_simple(tau_a(:, i), sol_stat.stress.tau.iso8(1, i, :)(:), sqrt(eps) * norm(tau_a(:, i)));
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_tests.m:36
 %!test
+%! try
 %! ## TEST 36
 %! for L=2000e-3:1000e-3:50000e-3;
 %! w = 10e-3;
@@ -66,3 +67,8 @@
 %! assert_simple(mat_ass.dm, rho * A * L, tolm * rho * A * L);
 %! assert_simple(mat_ass.D, mat_ass.M * alpha + mat_ass.K * beta, tolm);
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

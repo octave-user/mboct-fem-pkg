@@ -29,6 +29,7 @@ function X = fem_sol_real_complex(obj, func, B, varargin)
 endfunction
 
 %!test
+%! try
 %! s = rand("state");
 %! unwind_protect
 %!   rand("seed", 0);
@@ -78,3 +79,8 @@ endfunction
 %! unwind_protect_cleanup
 %!   rand("state", s);
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

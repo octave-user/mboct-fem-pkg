@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:303
 %!test
+%! try
 %! ### TEST 303 - 1D wave equation with medium interface
 %! do_plot = false;
 %! if (do_plot)
@@ -222,3 +223,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

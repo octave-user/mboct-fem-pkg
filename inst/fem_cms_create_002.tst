@@ -1,5 +1,6 @@
 ## fem_cms_create.m:02
 %!test
+%! try
 %! close all;
 %! f_run_post_proc = false;
 %! SI_unit_m = 1e-3;
@@ -82,3 +83,8 @@
 %!   endif
 %! end_unwind_protect
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

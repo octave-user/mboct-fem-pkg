@@ -1,5 +1,6 @@
 ## fem_pre_mesh_rbe3_from_surf.m:02
 %!test
+%! try
 %! ## TEST2
 %! close all;
 %! filename = "";
@@ -98,3 +99,8 @@
 %!   endfor
 %! endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

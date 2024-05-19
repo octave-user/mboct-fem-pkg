@@ -1,5 +1,6 @@
 ## fem_sol_eigs.m:01
 %!test
+%! try
 %! tol = 1e-4;
 %! N = 300;
 %! n = 10;
@@ -71,3 +72,8 @@
 %!     fprintf(stderr, "algorithm \"%s:%s\": %.2fs\n", alg{i}, solvers{j}, t(i, j));
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

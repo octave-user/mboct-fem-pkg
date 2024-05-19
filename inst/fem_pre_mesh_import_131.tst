@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:131
 %!test
+%! try
 %! ### TEST 131
 %! close all;
 %! filename = "";
@@ -123,3 +124,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

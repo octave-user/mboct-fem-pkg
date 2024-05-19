@@ -1,5 +1,6 @@
 ## fem_ehd_pre_comp_mat_load_case2.m:01
 %!test
+%! try
 %!  ## TEST 1
 %!  do_plot = false;
 %!  if (do_plot)
@@ -190,3 +191,8 @@
 %!      endfor
 %!    endif
 %!  end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

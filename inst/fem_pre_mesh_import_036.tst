@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:36
 %!test
+%! try
 %! ## TEST 36: thermal strain tet10h
 %! do_plot = false;
 %! if (do_plot)
@@ -113,3 +114,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

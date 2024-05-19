@@ -1,5 +1,6 @@
 ## fem_tests.m:19
 %!test
+%! try
 %! ##########################################################################################
 %! ## TEST 19: Test case for sfncon4
 %! ##########################################################################################
@@ -100,3 +101,8 @@
 %!   endfor
 %!   figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

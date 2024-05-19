@@ -1,5 +1,6 @@
 ## fem_tests.m:58
 %!test
+%! try
 %! ## TEST 58
 %! close all;
 %! number_of_modes = 5;
@@ -56,3 +57,8 @@
 %! sol_buck.def = fem_post_def_nodal(mesh, dof_map, U);
 %! tol = 1e-2;
 %! assert_simple(sol_buck.lambda(1), FK, tol * abs(FK));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

@@ -1,5 +1,6 @@
 ## fem_post_def_nodal.m:01
 %!test
+%! try
 %! close all;
 %! a = 70e-3;
 %! b = 20e-3;
@@ -73,3 +74,8 @@
 %! title("deformed mesh");
 %! figure_list();
 %! view(30, 5);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

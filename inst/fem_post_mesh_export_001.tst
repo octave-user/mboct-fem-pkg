@@ -1,5 +1,6 @@
 ## fem_post_mesh_export.m:01
 %!test
+%! try
 %! ## TEST 1
 %! ## K.J.Bathe 2002, page 328 4.20a
 %! close all;
@@ -92,3 +93,8 @@
 %!   endfor
 %! endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

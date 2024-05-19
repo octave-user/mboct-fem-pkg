@@ -1,5 +1,6 @@
 ## fem_cms_constr_elim.m:01
 %!test
+%! try
 %! ## Build a simple mesh made of a single hexahedron
 %! X = [ 1,  1,  1;
 %!      -1,  1,  1;
@@ -61,3 +62,8 @@
 %! assert_simple(sol_red.def, sol_ref.def, tol * norm(sol_ref.def));
 %! ## Check if constraint we imposed for the top nodes is satisfied
 %! assert_simple(sol_red.def(1:4, :), repmat(sol_red.def(1, :), 4, 1), tol * norm(sol_red.def(1, :)));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

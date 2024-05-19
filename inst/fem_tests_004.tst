@@ -1,5 +1,6 @@
 ## fem_tests.m:04
 %!test
+%! try
 %! ##########################################################################################
 %! ## TEST 4: Test case for elimination of Lagrange multipliers
 %! ##########################################################################################
@@ -110,3 +111,8 @@
 %!     assert_simple(max(max(max(abs(data(j).modal(k).def - data(1).modal(k).def)))) < tol2 * max(max(max(abs(data(1).modal(k).def)))) || max(max(max(abs(data(j).modal(k).def + data(1).modal(k).def)))) < tol2 * max(max(max(abs(data(1).modal(k).def)))));
 %!   endfor
 %! endfor
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

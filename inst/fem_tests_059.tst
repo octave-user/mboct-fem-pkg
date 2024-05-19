@@ -1,5 +1,6 @@
 ## fem_tests.m:59
 %!test
+%! try
 %! ## TEST 59
 %! close all;
 %! material.E = 210000e6;
@@ -73,3 +74,8 @@
 %! sigmaxx = griddata3(xi, yi, zi, reshape(TAU(1, 1, :, :), size(xi)), r, zeros(size(r)), zeros(size(r)));
 %! tol = 1e-3;
 %! assert_simple(sigmaxx(:), sigmaxx_ref(:), tol * max(abs(sigmaxx_ref)));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

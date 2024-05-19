@@ -1,5 +1,6 @@
 ## fem_pre_mesh_struct_create.m:07
 %!test
+%! try
 %! ## TEST7
 %! ## shaft with notch/shaft with step
 %! close all;
@@ -128,3 +129,8 @@
 %! if (f_run_post_proc)
 %! figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

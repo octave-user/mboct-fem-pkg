@@ -1,5 +1,6 @@
 ## fem_pre_mesh_import.m:305
 %!test
+%! try
 %! ### TEST 305
 %! ###
 %! ### Munjal, M.L. (1987). Acoustics of ducts and mufflers with application to exhaust and ventilation system design.
@@ -169,3 +170,8 @@
 %!     endfor
 %!   endif
 %! end_unwind_protect
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

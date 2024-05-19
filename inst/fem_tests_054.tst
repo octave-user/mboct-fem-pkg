@@ -1,5 +1,6 @@
 ## fem_tests.m:54
 %!test
+%! try
 %! ## TEST 54
 %! a = 0.2;
 %! b = 0.4;
@@ -53,3 +54,8 @@
 %! assert_simple(issymmetric(M, tol));
 %! assert_simple(isdefinite(M, tol));
 %! assert_simple(full(M), Mref, eps * norm(Mref));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

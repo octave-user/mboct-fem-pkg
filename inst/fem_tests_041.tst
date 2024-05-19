@@ -1,5 +1,6 @@
 ## fem_tests.m:41
 %!test
+%! try
 %! ## TEST 41
 %! ## Robert Gasch, Klaus Knothe 1989
 %! ## Strukturdynamik Band 2
@@ -83,3 +84,8 @@
 %! assert_simple(wstat, wstat_a, 1e-3 * wstat_a);
 %! idx = find(abs(V_a) < 2);
 %! assert_simple(mean(abs(wdyn(idx) / wstat_a - V_a(idx))) < 1e-2);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch

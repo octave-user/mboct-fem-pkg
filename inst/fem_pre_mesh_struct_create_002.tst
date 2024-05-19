@@ -1,5 +1,6 @@
 ## fem_pre_mesh_struct_create.m:02
 %!test
+%! try
 %! ## TEST2
 %! close all;
 %! scale_stat = 2e-3;
@@ -104,3 +105,8 @@
 %! end_unwind_protect
 %! figure_list();
 %! endif
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch
