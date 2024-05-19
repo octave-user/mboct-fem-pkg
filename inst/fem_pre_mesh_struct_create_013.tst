@@ -1,7 +1,7 @@
 ## fem_pre_mesh_struct_create.m:13
 %!test
 %! try
-%! ## TEST12
+%! ## TEST13
 %! close all;
 %! SI_unit_meter = 1e-3;
 %! SI_unit_second = 1;
@@ -93,7 +93,7 @@
 %! opt_factor.verbose = int32(0);
 %! for i=1:numel(omega)
 %!   fprintf(stderr, "%3d:%.2fHz\n", i, omega(i) / (2 * pi));
-%!   A = -omega(i)^2 * mat_ass.M + mat_ass.K;
+%!   A = -omega(i)^2 * mat_ass.M + 1j * omega(i) * mat_ass.D + mat_ass.K;
 %!   Uij = fem_sol_factor(A, opt_linsol) \ mat_ass.R;
 %!   for k=1:size(Freact, 3)
 %!     for j=1:size(Freact, 2)
