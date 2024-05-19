@@ -15,12 +15,12 @@
 %! d2 = 1e2;
 %! d3 = 0;
 %! d4 = 0;
-%! r1 = 1e6;
+%! r1 = 1e3;
 %! r2 = -0.5;
-%! r3 = 1e15;
-%! r4 = -1e10;
-%! r5 = 1e10;
-%! r6 = 1e7;
+%! r3 = 1e5;
+%! r4 = -1e4;
+%! r5 = 1e3;
+%! r6 = 1e2;
 %! c5 = c6 = norm([k1, k2, k3, k4]);
 %! omega = linspace(0, 2 * pi * 10, 100000);
 %! num_modes = 2;
@@ -48,6 +48,7 @@
 %!              r4;
 %!              r5;
 %!              r6];
+%! mat_ass.R = [mat_ass.R, diag(mat_ass.R)];
 %! mat_ass.M = sparse(mat_ass.M);
 %! mat_ass.D = sparse(mat_ass.D);
 %! mat_ass.K = sparse(mat_ass.K);
@@ -98,7 +99,9 @@
 %!   lambdaref = lambdaref(idx);
 %!   Dref = min(1, Dref(idx));
 %!   tol = eps^0.9;
-%!   assert_simple(U, Uref, tol * norm(Uref));
+%!   assert_simple(U(:, :, 1), Uref, tol * norm(Uref));
+%!   assert_simple(sum(U(:, :, 2:end), 3), Uref, tol * norm(Uref));
+%!   assert_simple(sum(mat_ass.R(:, 2:end), 2), mat_ass.R(:, 1), tol * norm(mat_ass.R(:,1)));
 %!   assert_simple(imag(sol.lambda), imag(lambdaref), tol * norm(imag(lambdaref)));
 %! endfor
 %! catch
