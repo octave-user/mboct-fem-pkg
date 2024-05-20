@@ -35,10 +35,7 @@ function U = fem_sol_harmonic_modal2(dgen, kgen, rgen, Phi, omega)
   U = zeros(rows(Phi), numel(omega), columns(rgen));
 
   for j=1:columns(rgen)
-    for i=1:columns(Phi)
-      qi = rgen(i, j) ./ (-omega.^2 + 1j * omega * dgen(i) + kgen(i)); ## assume mgen == 1
-      U(:, :, j) += Phi(:, i) * qi;
-    endfor
+    qj = rgen(:, j) ./ (-omega.^2 + 1j * omega .* dgen(:) + kgen(:)); ## assume mgen == 1
+    U(:, :, j) += Phi * qj;
   endfor
 endfunction
-

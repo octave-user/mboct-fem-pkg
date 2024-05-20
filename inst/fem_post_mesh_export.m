@@ -311,6 +311,15 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
 
   for i=1:numel(elem_types)
     switch (elem_types{i})
+      case "beam2"
+        elname = "line2";
+      case "beam3"
+        elname = "line3";
+      otherwise
+        elname = elem_types{i};
+    endswitch
+
+    switch (elname)
       case options.elem_types
         elem_i = getfield(mesh.elements, elem_types{i});
         if (isstruct(elem_i))
