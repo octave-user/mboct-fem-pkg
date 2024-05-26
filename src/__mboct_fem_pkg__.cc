@@ -5532,7 +5532,19 @@ protected:
 
           ScalarInterpMatrixDer(rv, Hd);
 
-          const Matrix H0d = Hd * invJ.transpose();
+          Matrix H0d(N, 3);
+
+          for (octave_idx_type i = 0; i < N; ++i) {
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    double H0dij = 0.;
+                    
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         H0dij += Hd.xelem(i, k) * invJ.xelem(j, k);
+                    }
+                    
+                    H0d.xelem(i, j) = H0dij;
+               }
+          }
 
           static constexpr octave_idx_type i1[] = {0, 1, 2, 3, 3, 4, 4, 5, 5};
           static constexpr octave_idx_type i2[] = {0, 1, 2, 0, 1, 1, 2, 0, 2};
