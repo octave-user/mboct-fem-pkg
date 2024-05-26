@@ -5540,11 +5540,11 @@ protected:
 
           static constexpr octave_idx_type M = sizeof(i1) / sizeof(i1[0]);
 
+          for (octave_idx_type i = 0; i < 6 * M; ++i) {
+               B.xelem(i) = 0.;
+          }
+          
           for (octave_idx_type k = 0; k < N; ++k) {
-               for (octave_idx_type i = 0; i < 6; ++i) {
-                    B.xelem(i, k) = 0.;
-               }
-
                for (octave_idx_type i = 0; i < M; ++i) {
                     B.xelem(i1[i], k * 3 + i2[i]) = H0d.xelem(k, i3[i]);
                }
