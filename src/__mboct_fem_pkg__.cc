@@ -5539,10 +5539,10 @@ protected:
                     double H0dij = 0.;
                     
                     for (octave_idx_type k = 0; k < 3; ++k) {
-                         H0dij += Hd.xelem(i, k) * invJ.xelem(j, k);
+                         H0dij += Hd.xelem(i + k * N) * invJ.xelem(j + k * 3);
                     }
                     
-                    H0d.xelem(i, j) = H0dij;
+                    H0d.xelem(i + j * N) = H0dij;
                }
           }
 
@@ -5558,7 +5558,7 @@ protected:
           
           for (octave_idx_type k = 0; k < N; ++k) {
                for (octave_idx_type i = 0; i < M; ++i) {
-                    B.xelem(i1[i], k * 3 + i2[i]) = H0d.xelem(k, i3[i]);
+                    B.xelem(i1[i] + 6 * (k * 3 + i2[i])) = H0d.xelem(k + N * i3[i]);
                }
           }
      }
