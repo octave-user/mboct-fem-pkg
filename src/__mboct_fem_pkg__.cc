@@ -1101,6 +1101,7 @@ public:
      enum TypeId {
           ELEM_ISO8 = 0,
           ELEM_ISO20,
+          ELEM_ISO20R,
           ELEM_ISO27,
           ELEM_PENTA15,
           ELEM_TET10H,
@@ -1187,6 +1188,7 @@ private:
      static constexpr TypeInfo rgElemTypes[ELEM_TYPE_COUNT] = {
           {ElementTypes::ELEM_ISO8,                 "iso8",            8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ISO20,                "iso20",          20, 20, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ISO20R,               "iso20r",         20, 20, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ISO27,                "iso27",          27, 27, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PENTA15,              "penta15",        15, 15, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET10H,               "tet10h",         10, 10, DofMap::ELEM_NODOF},
@@ -6100,20 +6102,22 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
-          constexpr octave_idx_type N = 3;
-          static constexpr double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
-          static constexpr double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
+          constexpr octave_idx_type NMAX = 3;
+          constexpr octave_idx_type NINTEG = 3;
+          static constexpr octave_idx_type N[NINTEG] = {2, 3, 3};
+          static constexpr double r[NINTEG][NMAX] = {{0.577350269189626, -0.577350269189626}, {0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
+          static constexpr double alpha[NINTEG][NMAX] = {{1., 1.}, {0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
 
           const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
-               rgIntegRule[iIntegRule].SetNumEvalPoints(N * N * N, 3);
+               rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule] * N[iIntegRule] * N[iIntegRule], 3);
 
                octave_idx_type l = 0;
 
-               for (octave_idx_type i = 0; i < N; ++i) {
-                    for (octave_idx_type j = 0; j < N; ++j) {
-                         for (octave_idx_type k = 0; k < N; ++k) {
+               for (octave_idx_type i = 0; i < N[iIntegRule]; ++i) {
+                    for (octave_idx_type j = 0; j < N[iIntegRule]; ++j) {
+                         for (octave_idx_type k = 0; k < N[iIntegRule]; ++k) {
                               rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
                               rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
                               rgIntegRule[iIntegRule].SetPosition(l, 2, r[iIntegRule][k]);
@@ -6276,14 +6280,38 @@ private:
      static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
           switch (eMatType) {
           case MAT_MASS_LUMPED:
-               return 1;
-          default:
+               return 2;
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_IM:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_TAU0:
+          case MAT_STIFFNESS_OMEGA:
+          case MAT_STIFFNESS_OMEGA_DOT:
+          case MAT_STIFFNESS_ACOUSTICS_RE:
+          case MAT_STIFFNESS_ACOUSTICS_IM:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_FLUID_STRUCT_IM:
+          case VEC_COLL_STIFFNESS:
+          case VEC_COLL_STIFF_ACOUSTICS:
+          case MAT_DAMPING:
+          case MAT_DAMPING_SYM:
+          case MAT_DAMPING_SYM_L:
+          case MAT_DAMPING_ACOUSTICS_RE:
+          case MAT_DAMPING_ACOUSTICS_IM:
+          case MAT_DAMPING_FLUID_STRUCT_RE:
+          case MAT_DAMPING_FLUID_STRUCT_IM:
+          case MAT_DAMPING_OMEGA:
                return 0;
+          default:
+               return 1;
           }
      }
 
-     static array<IntegrationRule, 2> rgIntegRule;
+     static array<IntegrationRule, 3> rgIntegRule;
 };
+
+array<IntegrationRule, 3> Iso20r::rgIntegRule;
 
 class Iso27: public Element3D
 {
@@ -13795,6 +13823,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
           switch (oElemType.type) {
           case ElementTypes::ELEM_ISO8:
           case ElementTypes::ELEM_ISO20:
+          case ElementTypes::ELEM_ISO20R:
           case ElementTypes::ELEM_ISO27:
           case ElementTypes::ELEM_PENTA15:
           case ElementTypes::ELEM_TET10H:
@@ -14258,6 +14287,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                switch (oElemType.type) {
                case ElementTypes::ELEM_ISO8:
                case ElementTypes::ELEM_ISO20:
+               case ElementTypes::ELEM_ISO20R:
                case ElementTypes::ELEM_ISO27:
                case ElementTypes::ELEM_PENTA15:
                case ElementTypes::ELEM_TET10H:
@@ -15336,6 +15366,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_COLL_STIFFNESS:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15363,6 +15394,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          // Needed for thermal stress only
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15398,6 +15430,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_COLL_THERMAL_COND:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15453,6 +15486,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_COLL_STIFF_ACOUSTICS:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15486,6 +15520,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_DAMPING_ACOUSTICS_RE:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15530,6 +15565,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_COLL_STIFF_FLUID_STRUCT:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15553,6 +15589,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          // Needed for thermal stress only
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15580,6 +15617,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_DAMPING_FLUID_STRUCT_RE:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15619,6 +15657,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::SCA_ACOUSTIC_INTENSITY_C:
                          rgElemUse[ElementTypes::ELEM_ISO8] = true;
                          rgElemUse[ElementTypes::ELEM_ISO20] = true;
+                         rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
@@ -15656,6 +15695,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                switch (oElemType.type) {
                case ElementTypes::ELEM_ISO8:
                case ElementTypes::ELEM_ISO20:
+               case ElementTypes::ELEM_ISO20R:
                case ElementTypes::ELEM_ISO27:
                case ElementTypes::ELEM_PENTA15:
                case ElementTypes::ELEM_TET10H:
@@ -15785,6 +15825,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     case ElementTypes::ELEM_ISO20:
                          rgElemBlocks.emplace_back(new ElementBlock<Iso20>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
+                         break;
+
+                    case ElementTypes::ELEM_ISO20R:
+                         rgElemBlocks.emplace_back(new ElementBlock<Iso20r>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
                          break;
 
                     case ElementTypes::ELEM_ISO27:
@@ -16768,6 +16812,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          switch (oElemType.type) {
                          case ElementTypes::ELEM_ISO8:
                          case ElementTypes::ELEM_ISO20:
+                         case ElementTypes::ELEM_ISO20R:
                          case ElementTypes::ELEM_ISO27:
                          case ElementTypes::ELEM_PENTA15:
                          case ElementTypes::ELEM_TET10H:
