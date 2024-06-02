@@ -62,11 +62,11 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   load_case.locked_dof(mesh.groups.quad8.nodes, 1:3) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r.nodes, 1:3) = true;
 %!   if (isfield(mesh.elements, "tria6"))
 %!     load_case.locked_dof(mesh.groups.tria6.nodes, 1:3) = true;
 %!   endif

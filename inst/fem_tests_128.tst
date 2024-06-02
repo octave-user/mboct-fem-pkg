@@ -71,7 +71,7 @@
 %!   end_unwind_protect
 %!   opt.mesh.element_size = param.h;
 %!   opt.mesh.jacobian_range = [0.5, 1.5];
-%!   opt.mesh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt.mesh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_unstruct_create(geo_file, param, opt);
 %!   mesh.material_data(1).rho = rho1;
 %!   mesh.material_data(1).C = fem_pre_mat_isotropic(E1, nu1);
@@ -81,13 +81,13 @@
 %!   mesh.materials.iso20r(mesh.groups.iso20r(1).elements) = 1;
 %!   mesh.materials.iso20r(mesh.groups.iso20r(2).elements) = 2;
 %!   mesh.nodes(end + 1, 1:3) = [param.o + param.a, 0.5 * param.b, 1.5 * param.c + param.g];
-%!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, mesh.groups.quad8(4).id, rows(mesh.nodes), "quad8");
+%!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, mesh.groups.quad8r(4).id, rows(mesh.nodes), "quad8r");
 %!   load_case.locked_dof = false(size(mesh.nodes));
-%!   load_case.locked_dof(mesh.groups.quad8(3).nodes, 1:3) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(3).nodes, 1:3) = true;
 %!   load_case.loaded_nodes = int32(rows(mesh.nodes));
 %!   load_case.loads = [0, 0, F1, 0, 0, 0];
-%!   elem.sfncon8.slave = mesh.groups.quad8(1).nodes(:);
-%!   elem.sfncon8.master = mesh.elements.quad8(mesh.groups.quad8(2).elements, :);
+%!   elem.sfncon8.slave = mesh.groups.quad8r(1).nodes(:);
+%!   elem.sfncon8.master = mesh.elements.quad8r(mesh.groups.quad8r(2).elements, :);
 %!   elem.sfncon8.maxdist = param.g * (1 + sqrt(eps));
 %!   mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);

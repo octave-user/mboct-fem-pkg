@@ -72,17 +72,17 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
-%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
-%!   grp_idx_s4 = find([mesh.groups.quad8.id] == 4);
-%!   elno_s1 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s1).elements, :);
-%!   elno_s2 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s2).elements, :);
-%!   elno_s3 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s3).elements, :);
-%!   elno_s4 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s4).elements, :);
+%!   grp_idx_s1 = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_s2 = find([mesh.groups.quad8r.id] == 2);
+%!   grp_idx_s3 = find([mesh.groups.quad8r.id] == 3);
+%!   grp_idx_s4 = find([mesh.groups.quad8r.id] == 4);
+%!   elno_s1 = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s1).elements, :);
+%!   elno_s2 = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s2).elements, :);
+%!   elno_s3 = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s3).elements, :);
+%!   elno_s4 = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s4).elements, :);
 %!   x1 = mesh.nodes(:, 1)(elno_s1);
 %!   y1 = mesh.nodes(:, 2)(elno_s1);
 %!   x2 = mesh.nodes(:, 1)(elno_s2);
@@ -108,11 +108,11 @@
 %!   if (isfield(mesh.elements, "penta15"))
 %!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!   endif
-%!   mesh.elements.particle_velocity.quad8.nodes = [elno_s1; elno_s2; elno_s3; elno_s4];
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8r.nodes = [elno_s1; elno_s2; elno_s3; elno_s4];
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
 %!   load_case = struct("particle_velocity", cell(1, 2));
-%!   load_case(1).particle_velocity.quad8.vn = real([nv1; nv2; nv3; nv4]);
-%!   load_case(2).particle_velocity.quad8.vn = imag([nv1; nv2; nv3; nv4]);
+%!   load_case(1).particle_velocity.quad8r.vn = real([nv1; nv2; nv3; nv4]);
+%!   load_case(2).particle_velocity.quad8r.vn = imag([nv1; nv2; nv3; nv4]);
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);

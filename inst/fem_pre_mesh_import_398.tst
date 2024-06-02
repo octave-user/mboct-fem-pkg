@@ -58,7 +58,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 1;
@@ -75,9 +75,9 @@
 %!   h = 100;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([mesh.groups.quad8.elements], :);
-%!   mesh.elements.convection.quad8.h = repmat(h, size(mesh.elements.convection.quad8.nodes));
-%!   load_case.convection.quad8.theta = repmat(thetae, size(mesh.elements.convection.quad8.nodes));
+%!   mesh.elements.convection.quad8r.nodes = mesh.elements.quad8r([mesh.groups.quad8r.elements], :);
+%!   mesh.elements.convection.quad8r.h = repmat(h, size(mesh.elements.convection.quad8r.nodes));
+%!   load_case.convection.quad8r.theta = repmat(thetae, size(mesh.elements.convection.quad8r.nodes));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.5; 0.3];
 %!   e2 = [0.1; 1; 0.2];

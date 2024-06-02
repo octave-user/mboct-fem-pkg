@@ -72,21 +72,21 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"quad8", "iso20r"};
+%!   opt_msh.elem_type = {"quad8r", "iso20r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp = find([[mesh.groups.quad8].id] == 1);
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp).nodes, :) = true;
-%!   grp_id_p1 = find([[mesh.groups.quad8].id] == 3);
-%!   grp_id_p2 = find([[mesh.groups.quad8].id] == 2);
-%!   grp_id_p3 = find([[mesh.groups.quad8].id] == 4);
-%!   elem_id_p1 = mesh.groups.quad8(grp_id_p1).elements;
-%!   elem_id_p2 = mesh.groups.quad8(grp_id_p2).elements;
-%!   elem_id_p3 = mesh.groups.quad8(grp_id_p3).elements;
-%!   elno_p1 = mesh.elements.quad8(elem_id_p1, :);
-%!   elno_p2 = mesh.elements.quad8(elem_id_p2, :);
-%!   elno_p3 = mesh.elements.quad8(elem_id_p3, :);
+%!   grp_id_clamp = find([[mesh.groups.quad8r].id] == 1);
+%!   load_case.locked_dof(mesh.groups.quad8r(grp_id_clamp).nodes, :) = true;
+%!   grp_id_p1 = find([[mesh.groups.quad8r].id] == 3);
+%!   grp_id_p2 = find([[mesh.groups.quad8r].id] == 2);
+%!   grp_id_p3 = find([[mesh.groups.quad8r].id] == 4);
+%!   elem_id_p1 = mesh.groups.quad8r(grp_id_p1).elements;
+%!   elem_id_p2 = mesh.groups.quad8r(grp_id_p2).elements;
+%!   elem_id_p3 = mesh.groups.quad8r(grp_id_p3).elements;
+%!   elno_p1 = mesh.elements.quad8r(elem_id_p1, :);
+%!   elno_p2 = mesh.elements.quad8r(elem_id_p2, :);
+%!   elno_p3 = mesh.elements.quad8r(elem_id_p3, :);
 %!   x1 = mesh.nodes(:, 1)(elno_p1);
 %!   y1 = mesh.nodes(:, 2)(elno_p1);
 %!   z1 = mesh.nodes(:, 3)(elno_p1);
@@ -95,13 +95,13 @@
 %!   y2 = mesh.nodes(:, 2)(elno_p2);
 %!   z2 = mesh.nodes(:, 3)(elno_p2);
 %!   Phi2 = atan2(y2, x2);
-%!   load_case.pressure.quad8.elements = [elno_p1; elno_p2; elno_p3];
-%!   load_case.pressure.quad8.p = [p1 * Phi1 / (pi / 2) .* z1 / h;
+%!   load_case.pressure.quad8r.elements = [elno_p1; elno_p2; elno_p3];
+%!   load_case.pressure.quad8r.p = [p1 * Phi1 / (pi / 2) .* z1 / h;
 %!                                 p2 * Phi2 / (pi / 2) .* z2 / h;
 %!                                 repmat(p3, rows(elno_p3), columns(elno_p3))];
 %!   if (enable_linear_dist)
-%!     p_mid = load_case.pressure.quad8.p(:, 1:3);
-%!     load_case.pressure.quad8.p(:, 4:6) = [0.5 * (p_mid(:, 1) + p_mid(:, 2)), 0.5 * (p_mid(:, 2) + p_mid(:, 3)), 0.5 * (p_mid(:, 1) + p_mid(:, 3))];
+%!     p_mid = load_case.pressure.quad8r.p(:, 1:3);
+%!     load_case.pressure.quad8r.p(:, 4:6) = [0.5 * (p_mid(:, 1) + p_mid(:, 2)), 0.5 * (p_mid(:, 2) + p_mid(:, 3)), 0.5 * (p_mid(:, 1) + p_mid(:, 3))];
 %!   endif
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
 %!   E = 210000e6;

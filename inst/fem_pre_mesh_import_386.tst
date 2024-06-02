@@ -63,7 +63,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   cms_opt.modes.number = int32(6);
 %!   cms_opt.nodes.modal.number = int32(rows(mesh.nodes) + 1);
@@ -82,7 +82,7 @@
 %!   mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, ...
 %!                                                    [1, 2], ...
 %!                                                    [cms_opt.nodes.modal.number, ...
-%!                                                     cms_opt.nodes.interfaces.number], "quad8");
+%!                                                     cms_opt.nodes.interfaces.number], "quad8r");
 %!   [mesh, mat_ass_cms, dof_map_cms, sol_eig_cms] = fem_cms_create(mesh, load_case, cms_opt);
 %!   mat_ass_cms.Dred = alpha * mat_ass_cms.Mred + beta * mat_ass_cms.Kred;
 %!   if (plot_modes)
@@ -97,7 +97,7 @@
 %!     grid minor on;
 %!     title('undeformed mesh');
 %!     for i=1:min(number_of_modes, numel(sol_eig_cms.f))
-%!       opt_plot.elem_types = {"quad8"};
+%!       opt_plot.elem_types = {"quad8r"};
 %!       figure("visible", "off");
 %!       hold on;
 %!       fem_post_sol_plot(mesh, sol_eig_cms, scale_eig / max(norm(sol_eig_cms.def(:, 1:3, i), "rows")), i, opt_plot);

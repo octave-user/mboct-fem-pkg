@@ -63,7 +63,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"tria6h", "quad8", "iso20r", "penta15"};
+%!   opt_mesh.elem_type = {"tria6h", "quad8r", "iso20r", "penta15"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   lambda = 48.822;
@@ -81,10 +81,10 @@
 %!   h = 232.5;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   grp_idx_conv = find([mesh.groups.quad8.id] == 2);
-%!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([mesh.groups.quad8(grp_idx_conv).elements], :);
-%!   mesh.elements.convection.quad8.h = repmat(h, size(mesh.elements.convection.quad8.nodes));
-%!   load_case.convection.quad8.theta = repmat(thetae, size(mesh.elements.convection.quad8.nodes));
+%!   grp_idx_conv = find([mesh.groups.quad8r.id] == 2);
+%!   mesh.elements.convection.quad8r.nodes = mesh.elements.quad8r([mesh.groups.quad8r(grp_idx_conv).elements], :);
+%!   mesh.elements.convection.quad8r.h = repmat(h, size(mesh.elements.convection.quad8r.nodes));
+%!   load_case.convection.quad8r.theta = repmat(thetae, size(mesh.elements.convection.quad8r.nodes));
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.5; 0.3];
 %!   e2 = [0.1; 1; 0.2];
@@ -119,7 +119,7 @@
 %!   endfor
 %!   node_idx_center = find(sqrt(mesh.nodes(:,1).^2 + mesh.nodes(:,2).^2 + mesh.nodes(:,3).^2) == r);
 %!   theta_center = mean(sol.theta(node_idx_center, :), 1);
-%!   node_idx_surface = mesh.groups.quad8(grp_idx_conv).nodes;
+%!   node_idx_surface = mesh.groups.quad8r(grp_idx_conv).nodes;
 %!   theta_surface = mean(sol.theta(node_idx_surface, :), 1);
 %!   t_ref = (400:200:2400).';
 %!   theta_ref_center = [334

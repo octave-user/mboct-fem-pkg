@@ -61,13 +61,13 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
-%!   node_idx_input = mesh.groups.quad8(grp_idx_input).nodes;
-%!   node_idx_output = mesh.groups.quad8(grp_idx_output).nodes;
+%!   grp_idx_input = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8r.id] == 2);
+%!   node_idx_input = mesh.groups.quad8r(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.quad8r(grp_idx_output).nodes;
 %!   p_constr = repmat(poutput, 1, numel(node_idx_output));
 %!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(node_idx_output)), 1, ones(1, numel(node_idx_output))), ...
 %!                                          "nodes", mat2cell(node_idx_output, 1, ones(1, numel(node_idx_output))), ...
@@ -75,9 +75,9 @@
 %!   load_case.acoustic_constr = struct("p", mat2cell(p_constr, 1, ones(1, numel(p_constr))));
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_ACOUSTICS;
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_input).elements, :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
-%!   load_case.particle_velocity.quad8.vn = repmat(vinput, numel(mesh.groups.quad8(grp_idx_input).elements), 8);
+%!   mesh.elements.particle_velocity.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
+%!   load_case.particle_velocity.quad8r.vn = repmat(vinput, numel(mesh.groups.quad8r(grp_idx_input).elements), 8);
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;

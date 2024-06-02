@@ -98,23 +98,23 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
+%!   grp_idx_input = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8r.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case_dof.domain = FEM_DO_ACOUSTICS;
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
-%!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_input, grp_idx_output])].elements], :);
-%!   mesh.materials.acoustic_boundary.quad8 = ones(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_input, grp_idx_output])].elements], :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.quad8r = mesh.elements.quad8r([[mesh.groups.quad8r([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.acoustic_boundary.quad8r = ones(rows(mesh.elements.acoustic_boundary.quad8r), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8r.nodes = mesh.elements.quad8r([[mesh.groups.quad8r([grp_idx_input, grp_idx_output])].elements], :);
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
 %!   load_case = struct("particle_velocity", cell(1, 2));
-%!   load_case(1).particle_velocity.quad8.vn = [repmat(-real(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
-%!                                               repmat(real(vxl), numel(mesh.groups.quad8(grp_idx_output).elements), 8)];
-%!   load_case(2).particle_velocity.quad8.vn = [repmat(-imag(vx0), numel(mesh.groups.quad8(grp_idx_input).elements), 8);
-%!                                               repmat(imag(vxl), numel(mesh.groups.quad8(grp_idx_output).elements), 8)];
+%!   load_case(1).particle_velocity.quad8r.vn = [repmat(-real(vx0), numel(mesh.groups.quad8r(grp_idx_input).elements), 8);
+%!                                               repmat(real(vxl), numel(mesh.groups.quad8r(grp_idx_output).elements), 8)];
+%!   load_case(2).particle_velocity.quad8r.vn = [repmat(-imag(vx0), numel(mesh.groups.quad8r(grp_idx_input).elements), 8);
+%!                                               repmat(imag(vxl), numel(mesh.groups.quad8r(grp_idx_output).elements), 8)];
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
@@ -192,9 +192,9 @@
 %!   endfor
 %!   figure("visible", "off");
 %!   hold on;
-%!   elem_id = mesh.groups.quad8(grp_idx_output).elements;
-%!   elem_no = mesh.elements.quad8(elem_id, 1);
-%!   plot(sol.t, sum(sol.acoustic_intensity.P.quad8(elem_id, :), 1)(:), "-;P;r");
+%!   elem_id = mesh.groups.quad8r(grp_idx_output).elements;
+%!   elem_no = mesh.elements.quad8r(elem_id, 1);
+%!   plot(sol.t, sum(sol.acoustic_intensity.P.quad8r(elem_id, :), 1)(:), "-;P;r");
 %!   plot(sol.t, mean(Pref(elem_no, :), 1).', "-;Pref;k");
 %!   xlabel("t [s]");
 %!   ylabel("P [W]");
@@ -204,33 +204,33 @@
 %!   tol = 1e-3;
 %!   assert_simple(sol.p, pref, tol * max(max(abs(pref))));
 %!   tol = 5e-3;
-%!   for i=1:numel(mesh.groups.quad8(grp_idx_input).elements)
-%!     elem_id = mesh.groups.quad8(grp_idx_input).elements(i);
-%!     for j=1:columns(sol.particle_velocity.vn.quad8)
-%!       elem_no = mesh.elements.quad8(elem_id, j);
-%!       assert_simple(sol.particle_velocity.vn.quad8(elem_id, j, :)(:), -vnref(elem_no, :).', tol * max(max(abs(vnref))));
-%!       assert_simple(sol.acoustic_intensity.I.quad8(elem_id, j, :)(:), -Iref(elem_no, :).', tol * max(max(abs(Iref))));
-%!       assert_simple(real(solC.particle_velocity.vn.quad8(elem_id, j) * exp(1j * omega * sol.t).'), -vnref(elem_no, :).', tol * max(max(abs(vnref))));
+%!   for i=1:numel(mesh.groups.quad8r(grp_idx_input).elements)
+%!     elem_id = mesh.groups.quad8r(grp_idx_input).elements(i);
+%!     for j=1:columns(sol.particle_velocity.vn.quad8r)
+%!       elem_no = mesh.elements.quad8r(elem_id, j);
+%!       assert_simple(sol.particle_velocity.vn.quad8r(elem_id, j, :)(:), -vnref(elem_no, :).', tol * max(max(abs(vnref))));
+%!       assert_simple(sol.acoustic_intensity.I.quad8r(elem_id, j, :)(:), -Iref(elem_no, :).', tol * max(max(abs(Iref))));
+%!       assert_simple(real(solC.particle_velocity.vn.quad8r(elem_id, j) * exp(1j * omega * sol.t).'), -vnref(elem_no, :).', tol * max(max(abs(vnref))));
 %!     endfor
 %!   endfor
-%!   elem_id = mesh.groups.quad8(grp_idx_input).elements;
-%!   elem_no = mesh.elements.quad8(elem_id, 1);
-%!   assert_simple(sum(sol.acoustic_intensity.P.quad8(elem_id, :), 1)(:), -mean(Pref(elem_no, :),1).', tol * max(max(abs(Pref))));
-%!   for i=1:numel(mesh.groups.quad8(grp_idx_output).elements)
-%!     elem_id = mesh.groups.quad8(grp_idx_output).elements(i);
-%!     for j=1:columns(sol.particle_velocity.vn.quad8)
-%!       elem_no = mesh.elements.quad8(elem_id, j);
-%!       assert_simple(sol.particle_velocity.vn.quad8(elem_id, j, :)(:), vnref(elem_no, :).', tol * max(max(abs(vnref))));
-%!       assert_simple(sol.acoustic_intensity.I.quad8(elem_id, j, :)(:), Iref(elem_no, :).', tol * max(max(abs(Iref))));
-%!       assert_simple(real(solC.particle_velocity.vn.quad8(elem_id, j) * exp(1j * omega * sol.t).'), vnref(elem_no, :).', tol * max(max(abs(vnref))));
+%!   elem_id = mesh.groups.quad8r(grp_idx_input).elements;
+%!   elem_no = mesh.elements.quad8r(elem_id, 1);
+%!   assert_simple(sum(sol.acoustic_intensity.P.quad8r(elem_id, :), 1)(:), -mean(Pref(elem_no, :),1).', tol * max(max(abs(Pref))));
+%!   for i=1:numel(mesh.groups.quad8r(grp_idx_output).elements)
+%!     elem_id = mesh.groups.quad8r(grp_idx_output).elements(i);
+%!     for j=1:columns(sol.particle_velocity.vn.quad8r)
+%!       elem_no = mesh.elements.quad8r(elem_id, j);
+%!       assert_simple(sol.particle_velocity.vn.quad8r(elem_id, j, :)(:), vnref(elem_no, :).', tol * max(max(abs(vnref))));
+%!       assert_simple(sol.acoustic_intensity.I.quad8r(elem_id, j, :)(:), Iref(elem_no, :).', tol * max(max(abs(Iref))));
+%!       assert_simple(real(solC.particle_velocity.vn.quad8r(elem_id, j) * exp(1j * omega * sol.t).'), vnref(elem_no, :).', tol * max(max(abs(vnref))));
 %!     endfor
 %!   endfor
-%!   elem_id = mesh.groups.quad8(grp_idx_output).elements;
-%!   elem_no = mesh.elements.quad8(elem_id, 1);
-%!   assert_simple(sum(sol.acoustic_intensity.P.quad8(elem_id, :), 1)(:), mean(Pref(elem_no, :), 1).', tol * max(max(abs(Pref))));
-%!   assert_simple(max(max(abs(solC.acoustic_intensity.I.quad8 - Iavg))) < tol * abs(Iavg));
-%!   for i=1:numel(mesh.groups.quad8)
-%!     assert_simple(sum(solC.acoustic_intensity.P.quad8(mesh.groups.quad8(i).elements)), Iavg * w * h, tol * abs(Iavg * w * h));
+%!   elem_id = mesh.groups.quad8r(grp_idx_output).elements;
+%!   elem_no = mesh.elements.quad8r(elem_id, 1);
+%!   assert_simple(sum(sol.acoustic_intensity.P.quad8r(elem_id, :), 1)(:), mean(Pref(elem_no, :), 1).', tol * max(max(abs(Pref))));
+%!   assert_simple(max(max(abs(solC.acoustic_intensity.I.quad8r - Iavg))) < tol * abs(Iavg));
+%!   for i=1:numel(mesh.groups.quad8r)
+%!     assert_simple(sum(solC.acoustic_intensity.P.quad8r(mesh.groups.quad8r(i).elements)), Iavg * w * h, tol * abs(Iavg * w * h));
 %!   endfor
 %! unwind_protect_cleanup
 %!   if (numel(filename))

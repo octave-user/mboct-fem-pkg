@@ -77,7 +77,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1_iso20r = find([mesh.groups.iso20r.id] == 1);

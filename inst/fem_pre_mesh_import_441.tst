@@ -103,27 +103,27 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
-%!   grp_idx_fsi1 = find([mesh.groups.quad8.id] == 3);
-%!   grp_idx_fsi2 = find([mesh.groups.quad8.id] == 4);
+%!   grp_idx_input = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8r.id] == 2);
+%!   grp_idx_fsi1 = find([mesh.groups.quad8r.id] == 3);
+%!   grp_idx_fsi2 = find([mesh.groups.quad8r.id] == 4);
 %!   grp_idx_volume1 = find([mesh.groups.iso20r.id] == 5);
 %!   grp_idx_volume2 = find([mesh.groups.iso20r.id] == 6);
 %!   grp_idx_volume3 = find([mesh.groups.iso20r.id] == 7);
-%!   grp_idx_slider1 = find([mesh.groups.quad8.id] == 8);
-%!   grp_idx_slider2 = find([mesh.groups.quad8.id] == 9);
+%!   grp_idx_slider1 = find([mesh.groups.quad8r.id] == 8);
+%!   grp_idx_slider2 = find([mesh.groups.quad8r.id] == 9);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_slider1).nodes, 3) = true;
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_slider2).nodes, 2) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8r(grp_idx_slider1).nodes, 3) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8r(grp_idx_slider2).nodes, 2) = true;
 %!   load_case_dof.domain = FEM_DO_FLUID_STRUCT;
 %!   mesh.materials.iso20r = zeros(rows(mesh.elements.iso20r), 1, "int32");
 %!   mesh.materials.iso20r(mesh.groups.iso20r(grp_idx_volume1).elements) = 1;
 %!   mesh.materials.iso20r(mesh.groups.iso20r(grp_idx_volume2).elements) = 2;
 %!   mesh.materials.iso20r(mesh.groups.iso20r(grp_idx_volume3).elements) = 3;
-%!   mesh.elements.fluid_struct_interface.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_fsi1, grp_idx_fsi2])].elements], :);
+%!   mesh.elements.fluid_struct_interface.quad8r = mesh.elements.quad8r([[mesh.groups.quad8r([grp_idx_fsi1, grp_idx_fsi2])].elements], :);
 %!   mesh.material_data = struct("E", {[], E, []}, ...
 %!                               "rho", {rhof, rhos, rhof}, ...
 %!                               "nu", {[], nu, []}, ...

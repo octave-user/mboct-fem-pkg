@@ -70,11 +70,11 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
+%!   grp_idx_input = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8r.id] == 2);
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case_dof.domain = FEM_DO_ACOUSTICS;
 %!   e1 = [0.5; -0.3; 0.7];
@@ -91,15 +91,15 @@
 %!   mesh.material_data.c = c;
 %!   mesh.material_data.eta = eta;
 %!   mesh.material_data.zeta = zeta;
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_input).elements, :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
-%!   mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_output).elements, :);
-%!   mesh.elements.acoustic_impedance.quad8.z = repmat(z, size(mesh.elements.acoustic_impedance.quad8.nodes));
-%!   mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
-%!   v_input = repmat(vxref(0, 0), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   mesh.elements.particle_velocity.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_input).elements, :);
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_output).elements, :);
+%!   mesh.elements.acoustic_impedance.quad8r.z = repmat(z, size(mesh.elements.acoustic_impedance.quad8r.nodes));
+%!   mesh.materials.acoustic_impedance.quad8r = ones(rows(mesh.elements.acoustic_impedance.quad8r.nodes), 1, "int32");
+%!   v_input = repmat(vxref(0, 0), size(mesh.elements.particle_velocity.quad8r.nodes));
 %!   load_case = struct("particle_velocity", cell(1, 2));
-%!   load_case(1).particle_velocity.quad8.vn = real(-v_input);
-%!   load_case(2).particle_velocity.quad8.vn = imag(-v_input);
+%!   load_case(1).particle_velocity.quad8r.vn = real(-v_input);
+%!   load_case(2).particle_velocity.quad8r.vn = imag(-v_input);
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...

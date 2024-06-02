@@ -88,7 +88,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8r"};
 %!   mesh_data = struct("mesh", cell(1, 4));
 %!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
@@ -143,7 +143,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8r"};
 %!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -191,7 +191,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8r"};
 %!   mesh_data(3).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   unwind_protect
@@ -239,7 +239,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"penta15", "iso20r", "quad8r"};
 %!   mesh_data(4).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh_data(1).mesh.materials.iso20r = ones(rows(mesh_data(1).mesh.elements.iso20r), 1, "int32");
@@ -286,41 +286,41 @@
 %!   mesh = fem_post_mesh_merge(mesh_data, opt_merge);
 %!   dof_stat.locked_dof = false(rows(mesh.nodes), 1);
 %!   dof_stat.domain = FEM_DO_THERMAL;
-%!   grp_idx_convection_tria6 = find(mod([mesh.groups.quad8.id], 100) == 1);
-%!   grp_idx_convection_quad8 = find(mod([mesh.groups.quad8.id], 100) == 1);
-%!   grp_idx_heat_source = find(mod([mesh.groups.quad8.id], 100) == 2 | ...
-%!                              mod([mesh.groups.quad8.id], 100) == 5);
-%!   grp_idx_weldseam2_master = find([mesh.groups.quad8.id] == 102);
-%!   grp_idx_weldseam2_slave = find([mesh.groups.quad8.id] == 402);
-%!   grp_idx_weldseam3_master = find([mesh.groups.quad8.id] == 103);
-%!   grp_idx_weldseam3_slave = find([mesh.groups.quad8.id] == 303);
-%!   grp_idx_weldseam4_master = find([mesh.groups.quad8.id] == 204);
-%!   grp_idx_weldseam4_slave = find([mesh.groups.quad8.id] == 304);
-%!   grp_idx_weldseam5_master = find([mesh.groups.quad8.id] == 205);
-%!   grp_idx_weldseam5_slave = find([mesh.groups.quad8.id] == 405);
-%!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_convection_tria6)].elements], :);
-%!   mesh.elements.convection.quad8.h = repmat(he, size(mesh.elements.convection.quad8.nodes));
-%!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_convection_tria6)].elements], :);
-%!   mesh.elements.convection.quad8.h = repmat(he, size(mesh.elements.convection.quad8.nodes));
-%!   mesh.elements.sfncon8(1).master = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_weldseam2_master)].elements], :);
-%!   mesh.elements.sfncon8(1).slave = [[mesh.groups.quad8(grp_idx_weldseam2_slave)].nodes](:);
+%!   grp_idx_convection_tria6 = find(mod([mesh.groups.quad8r.id], 100) == 1);
+%!   grp_idx_convection_quad8r = find(mod([mesh.groups.quad8r.id], 100) == 1);
+%!   grp_idx_heat_source = find(mod([mesh.groups.quad8r.id], 100) == 2 | ...
+%!                              mod([mesh.groups.quad8r.id], 100) == 5);
+%!   grp_idx_weldseam2_master = find([mesh.groups.quad8r.id] == 102);
+%!   grp_idx_weldseam2_slave = find([mesh.groups.quad8r.id] == 402);
+%!   grp_idx_weldseam3_master = find([mesh.groups.quad8r.id] == 103);
+%!   grp_idx_weldseam3_slave = find([mesh.groups.quad8r.id] == 303);
+%!   grp_idx_weldseam4_master = find([mesh.groups.quad8r.id] == 204);
+%!   grp_idx_weldseam4_slave = find([mesh.groups.quad8r.id] == 304);
+%!   grp_idx_weldseam5_master = find([mesh.groups.quad8r.id] == 205);
+%!   grp_idx_weldseam5_slave = find([mesh.groups.quad8r.id] == 405);
+%!   mesh.elements.convection.quad8r.nodes = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_convection_tria6)].elements], :);
+%!   mesh.elements.convection.quad8r.h = repmat(he, size(mesh.elements.convection.quad8r.nodes));
+%!   mesh.elements.convection.quad8r.nodes = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_convection_tria6)].elements], :);
+%!   mesh.elements.convection.quad8r.h = repmat(he, size(mesh.elements.convection.quad8r.nodes));
+%!   mesh.elements.sfncon8(1).master = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_weldseam2_master)].elements], :);
+%!   mesh.elements.sfncon8(1).slave = [[mesh.groups.quad8r(grp_idx_weldseam2_slave)].nodes](:);
 %!   mesh.elements.sfncon8(1).maxdist = 1e-6;
-%!   mesh.elements.sfncon8(2).master = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_weldseam3_master)].elements], :);
-%!   mesh.elements.sfncon8(2).slave = [[mesh.groups.quad8(grp_idx_weldseam3_slave)].nodes](:);
+%!   mesh.elements.sfncon8(2).master = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_weldseam3_master)].elements], :);
+%!   mesh.elements.sfncon8(2).slave = [[mesh.groups.quad8r(grp_idx_weldseam3_slave)].nodes](:);
 %!   mesh.elements.sfncon8(2).maxdist = 1e-6;
-%!   mesh.elements.sfncon8(3).master = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_weldseam4_master)].elements], :);
-%!   mesh.elements.sfncon8(3).slave = [[mesh.groups.quad8(grp_idx_weldseam4_slave)].nodes](:);
+%!   mesh.elements.sfncon8(3).master = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_weldseam4_master)].elements], :);
+%!   mesh.elements.sfncon8(3).slave = [[mesh.groups.quad8r(grp_idx_weldseam4_slave)].nodes](:);
 %!   mesh.elements.sfncon8(3).maxdist = 1e-6;
-%!   mesh.elements.sfncon8(4).master = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_weldseam5_master)].elements], :);
-%!   mesh.elements.sfncon8(4).slave = [[mesh.groups.quad8(grp_idx_weldseam5_slave)].nodes](:);
+%!   mesh.elements.sfncon8(4).master = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_weldseam5_master)].elements], :);
+%!   mesh.elements.sfncon8(4).slave = [[mesh.groups.quad8r(grp_idx_weldseam5_slave)].nodes](:);
 %!   mesh.elements.sfncon8(4).maxdist = 1e-6;
 %!   load_case = struct("heat_source", cell(1, 2), "convection", cell(1, 2));
-%!   load_case(1).heat_source.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_heat_source)].elements], :);
-%!   load_case(1).heat_source.quad8.q = repmat(qs, size(load_case(1).heat_source.quad8.nodes));
+%!   load_case(1).heat_source.quad8r.nodes = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_heat_source)].elements], :);
+%!   load_case(1).heat_source.quad8r.q = repmat(qs, size(load_case(1).heat_source.quad8r.nodes));
 %!   load_case(2).heat_source = struct();
 %!   for i=1:numel(load_case)
-%!     load_case(i).convection.quad8.theta = repmat(thetae, size(mesh.elements.convection.quad8.nodes));
-%!     load_case(i).convection.quad8.theta = repmat(thetae, size(mesh.elements.convection.quad8.nodes));
+%!     load_case(i).convection.quad8r.theta = repmat(thetae, size(mesh.elements.convection.quad8r.nodes));
+%!     load_case(i).convection.quad8r.theta = repmat(thetae, size(mesh.elements.convection.quad8r.nodes));
 %!   endfor
 %!   dof_map = fem_ass_dof_map(mesh, dof_stat);
 %!   [mat_ass.C, ...
@@ -352,7 +352,7 @@
 %!     U(:, i) = Afact \ (mat_ass.C * (U(:, i - 1)) / dt - mat_ass.Kk * (U(:, i - 1) * (1 - alpha)) + Qci);
 %!   endfor
 %!   sol.theta = U(dof_map.idx_node, :);
-%!   opt_post.elem_types = {"iso20r", "quad8", "quad8"};
+%!   opt_post.elem_types = {"iso20r", "quad8r", "quad8r"};
 %!   opt_post.skin_only = false;
 %!   if (do_plot)
 %!     figure("visible", "off");

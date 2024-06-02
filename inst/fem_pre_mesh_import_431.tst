@@ -88,31 +88,31 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
-%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
-%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
+%!   grp_idx_s1 = find([mesh.groups.quad8r.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.quad8r.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.quad8r.id] == 6);
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.c = c;
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s1).elements, :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
-%!   mesh.elements.acoustic_boundary.quad8 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s2).elements, :);
-%!   mesh.materials.acoustic_boundary.quad8 = ones(rows(mesh.elements.acoustic_boundary.quad8), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s1).elements, :);
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
+%!   mesh.elements.acoustic_boundary.quad8r = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s2).elements, :);
+%!   mesh.materials.acoustic_boundary.quad8r = ones(rows(mesh.elements.acoustic_boundary.quad8r), 1, "int32");
 %!   if (f_use_impedance)
-%!     mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s3).elements, :);
-%!     mesh.elements.acoustic_impedance.quad8.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.quad8.nodes));
-%!     mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
+%!     mesh.elements.acoustic_impedance.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s3).elements, :);
+%!     mesh.elements.acoustic_impedance.quad8r.z = repmat(zref(r2), size(mesh.elements.acoustic_impedance.quad8r.nodes));
+%!     mesh.materials.acoustic_impedance.quad8r = ones(rows(mesh.elements.acoustic_impedance.quad8r.nodes), 1, "int32");
 %!   endif
 %!   load_case = struct("particle_velocity", cell(1, 2));
-%!   load_case(1).particle_velocity.quad8.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8.nodes));
-%!   load_case(2).particle_velocity.quad8.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   load_case(1).particle_velocity.quad8r.vn = repmat(-real(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8r.nodes));
+%!   load_case(2).particle_velocity.quad8r.vn = repmat(-imag(vnref(r0,0)), size(mesh.elements.particle_velocity.quad8r.nodes));
 %!   load_case_dof.domain = FEM_DO_ACOUSTICS;
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
 %!   if (f_use_PML)
-%!     load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_s3).nodes, :) = true;
+%!     load_case_dof.locked_dof(mesh.groups.quad8r(grp_idx_s3).nodes, :) = true;
 %!   endif
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   if (f_use_PML)
@@ -176,11 +176,11 @@
 %!                                                load_case, ...
 %!                                                solC);
 %!
-%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.quad8);
-%!     vx = solC.particle_velocity.vn.quad8;
+%!     p = -solC.PhiP(mesh.elements.acoustic_boundary.quad8r);
+%!     vx = solC.particle_velocity.vn.quad8r;
 %!     R = abs(mean(mean((p - zref(r1) * vx) ./ (p + zref(r1) * vx))));
 %!     T(i) = 1 / (1 - R^2);
-%!     P(i) = sum(solC.acoustic_intensity.P.quad8);
+%!     P(i) = sum(solC.acoustic_intensity.P.quad8r);
 %!     P0 = 1e-12 / unit_watt;
 %!     fprintf(stderr, "alphaPML=%.2f LW=%.2fdB TL=%.2fdB\n", alphaPML(i), 10 * log10(P(i)/P0), 10 * log10(T(i)));
 %!     solR.t = Psi / omega;

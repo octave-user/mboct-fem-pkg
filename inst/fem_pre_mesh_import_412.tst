@@ -71,17 +71,17 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
-%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
-%!   grp_idx_s4 = find([mesh.groups.quad8.id] == 4);
-%!   no_s1 = mesh.groups.quad8(grp_idx_s1).nodes;
-%!   no_s2 = mesh.groups.quad8(grp_idx_s2).nodes;
-%!   no_s3 = mesh.groups.quad8(grp_idx_s3).nodes;
-%!   no_s4 = mesh.groups.quad8(grp_idx_s4).nodes;
+%!   grp_idx_s1 = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_s2 = find([mesh.groups.quad8r.id] == 2);
+%!   grp_idx_s3 = find([mesh.groups.quad8r.id] == 3);
+%!   grp_idx_s4 = find([mesh.groups.quad8r.id] == 4);
+%!   no_s1 = mesh.groups.quad8r(grp_idx_s1).nodes;
+%!   no_s2 = mesh.groups.quad8r(grp_idx_s2).nodes;
+%!   no_s3 = mesh.groups.quad8r(grp_idx_s3).nodes;
+%!   no_s4 = mesh.groups.quad8r(grp_idx_s4).nodes;
 %!   x1 = mesh.nodes(no_s1, 1);
 %!   y1 = mesh.nodes(no_s1, 2);
 %!   x2 = mesh.nodes(no_s2, 1);

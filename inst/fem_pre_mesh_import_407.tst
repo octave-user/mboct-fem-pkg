@@ -65,13 +65,13 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_input = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_output = find([mesh.groups.quad8.id] == 2);
-%!   node_idx_input = mesh.groups.quad8(grp_idx_input).nodes;
-%!   node_idx_output = mesh.groups.quad8(grp_idx_output).nodes;
+%!   grp_idx_input = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_output = find([mesh.groups.quad8r.id] == 2);
+%!   node_idx_input = mesh.groups.quad8r(grp_idx_input).nodes;
+%!   node_idx_output = mesh.groups.quad8r(grp_idx_output).nodes;
 %!   node_idx_constr = [node_idx_input, node_idx_output];
 %!   p_constr = [repmat(pinput, 1, numel(node_idx_input)), ...
 %!               repmat(poutput, 1, numel(node_idx_output))];

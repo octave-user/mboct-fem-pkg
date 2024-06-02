@@ -80,22 +80,22 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20r.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20r.id] == 2);
 %!   elem_idx_v1 = mesh.groups.iso20r(grp_idx_v1).elements;
 %!   elem_idx_v2 = mesh.groups.iso20r(grp_idx_v2).elements;
-%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
-%!   elem_idx_s1 = mesh.groups.quad8(grp_idx_s1).elements;
-%!   node_idx_s2 = mesh.groups.quad8(grp_idx_s2).nodes;
+%!   grp_idx_s1 = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_s2 = find([mesh.groups.quad8r.id] == 2);
+%!   elem_idx_s1 = mesh.groups.quad8r(grp_idx_s1).elements;
+%!   node_idx_s2 = mesh.groups.quad8r(grp_idx_s2).nodes;
 %!   mesh.material_data.c = c;
 %!   mesh.material_data.rho = rho;
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(elem_idx_s1, :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
+%!   mesh.elements.particle_velocity.quad8r.nodes = mesh.elements.quad8r(elem_idx_s1, :);
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
 %!   mesh.elements.perfectly_matched_layers.iso20r.f = zeros(3, columns(mesh.elements.iso20r), rows(mesh.elements.iso20r));
 %!   mesh.elements.perfectly_matched_layers.iso20r.e1 = zeros(3, columns(mesh.elements.iso20r), rows(mesh.elements.iso20r));
 %!   mesh.elements.perfectly_matched_layers.iso20r.e2 = zeros(3, columns(mesh.elements.iso20r), rows(mesh.elements.iso20r));
@@ -119,8 +119,8 @@
 %!   ## Equation (2.32), page 51
 %!   mesh.elements.perfectly_matched_layers.iso20r.f(1, :, elem_idx_v2) = 1j * k * (deltaPML - dr);
 %!   load_case = struct("particle_velocity", cell(1, 2));
-%!   load_case(1).particle_velocity.quad8.vn = repmat(real(-vn), size(mesh.elements.particle_velocity.quad8.nodes));
-%!   load_case(2).particle_velocity.quad8.vn = repmat(imag(-vn), size(mesh.elements.particle_velocity.quad8.nodes));
+%!   load_case(1).particle_velocity.quad8r.vn = repmat(real(-vn), size(mesh.elements.particle_velocity.quad8r.nodes));
+%!   load_case(2).particle_velocity.quad8r.vn = repmat(imag(-vn), size(mesh.elements.particle_velocity.quad8r.nodes));
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case_dof.locked_dof(node_idx_s2, :) = true;
 %!   load_case_dof.domain = FEM_DO_ACOUSTICS;

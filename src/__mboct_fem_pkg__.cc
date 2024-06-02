@@ -1115,10 +1115,12 @@ public:
           ELEM_SFNCON6,
           ELEM_SFNCON6H,
           ELEM_SFNCON8,
+          ELEM_SFNCON8R,
           ELEM_SFNCON9,
           ELEM_SFNCON10,
           ELEM_PRESSURE_ISO4,
           ELEM_PRESSURE_QUAD8,
+          ELEM_PRESSURE_QUAD8R,
           ELEM_PRESSURE_QUAD9,
           ELEM_PRESSURE_TRIA6,
           ELEM_PRESSURE_TRIA6H,
@@ -1126,6 +1128,7 @@ public:
           ELEM_STRUCT_FORCE,
           ELEM_THERM_CONV_ISO4,
           ELEM_THERM_CONV_QUAD8,
+          ELEM_THERM_CONV_QUAD8R,
           ELEM_THERM_CONV_QUAD9,
           ELEM_THERM_CONV_TRIA6,
           ELEM_THERM_CONV_TRIA6H,
@@ -1133,18 +1136,21 @@ public:
           ELEM_THERM_CONSTR,
           ELEM_HEAT_SOURCE_ISO4,
           ELEM_HEAT_SOURCE_QUAD8,
+          ELEM_HEAT_SOURCE_QUAD8R,
           ELEM_HEAT_SOURCE_QUAD9,
           ELEM_HEAT_SOURCE_TRIA6,
           ELEM_HEAT_SOURCE_TRIA6H,
           ELEM_HEAT_SOURCE_TRIA10,
           ELEM_PARTICLE_VEL_ISO4,
           ELEM_PARTICLE_VEL_QUAD8,
+          ELEM_PARTICLE_VEL_QUAD8R,
           ELEM_PARTICLE_VEL_QUAD9,
           ELEM_PARTICLE_VEL_TRIA6,
           ELEM_PARTICLE_VEL_TRIA6H,
           ELEM_PARTICLE_VEL_TRIA10,
           ELEM_ACOUSTIC_IMPE_ISO4,
           ELEM_ACOUSTIC_IMPE_QUAD8,
+          ELEM_ACOUSTIC_IMPE_QUAD8R,
           ELEM_ACOUSTIC_IMPE_QUAD9,
           ELEM_ACOUSTIC_IMPE_TRIA6,
           ELEM_ACOUSTIC_IMPE_TRIA6H,
@@ -1152,12 +1158,14 @@ public:
           ELEM_ACOUSTIC_CONSTR,
           ELEM_ACOUSTIC_BND_ISO4,
           ELEM_ACOUSTIC_BND_QUAD8,
+          ELEM_ACOUSTIC_BND_QUAD8R,
           ELEM_ACOUSTIC_BND_QUAD9,
           ELEM_ACOUSTIC_BND_TRIA6,
           ELEM_ACOUSTIC_BND_TRIA6H,
           ELEM_ACOUSTIC_BND_TRIA10,
           ELEM_FLUID_STRUCT_ISO4,
           ELEM_FLUID_STRUCT_QUAD8,
+          ELEM_FLUID_STRUCT_QUAD8R,
           ELEM_FLUID_STRUCT_QUAD9,
           ELEM_FLUID_STRUCT_TRIA6,
           ELEM_FLUID_STRUCT_TRIA6H,
@@ -1202,10 +1210,12 @@ private:
           {ElementTypes::ELEM_SFNCON6,              "sfncon6",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON6H,             "sfncon6h",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON8,              "sfncon8",         1, -1, DofMap::ELEM_JOINT},
+          {ElementTypes::ELEM_SFNCON8R,             "sfncon8r",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON9,              "sfncon9",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON10,             "sfncon10",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_PRESSURE_ISO4,        "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_QUAD8,       "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PRESSURE_QUAD8R,      "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_QUAD9,       "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_TRIA6,       "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_TRIA6H,      "tria6h",          6,  6, DofMap::ELEM_NODOF},
@@ -1213,6 +1223,7 @@ private:
           {ElementTypes::ELEM_STRUCT_FORCE,         "force",           1, -1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_ISO4,      "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_QUAD8,     "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_THERM_CONV_QUAD8R,    "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_QUAD9,     "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_TRIA6,     "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_THERM_CONV_TRIA6H,    "tria6h",          6,  6, DofMap::ELEM_NODOF},
@@ -1220,18 +1231,21 @@ private:
           {ElementTypes::ELEM_THERM_CONSTR,         "thermal_constr",  1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_HEAT_SOURCE_ISO4,     "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_QUAD8,    "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_HEAT_SOURCE_QUAD8R,   "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_QUAD9,    "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA6,    "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA6H,   "tria6h",          6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_HEAT_SOURCE_TRIA10,   "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PARTICLE_VEL_QUAD8R,  "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_QUAD9,   "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PARTICLE_VEL_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4,   "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8,  "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8R, "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD9,  "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6,  "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H, "tria6h",          6,  6, DofMap::ELEM_NODOF},
@@ -1239,12 +1253,14 @@ private:
           {ElementTypes::ELEM_ACOUSTIC_CONSTR,      "acoustic_constr", 1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_ACOUSTIC_BND_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_ACOUSTIC_BND_QUAD8R,  "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_QUAD9,   "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_FLUID_STRUCT_QUAD8R,  "quad8r",          8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_QUAD9,   "quad9",           9,  9, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
@@ -9218,6 +9234,359 @@ private:
 
 array<IntegrationRule, 2> ShapeQuad8::rgIntegRule;
 
+class ShapeQuad8r {
+public:
+     static constexpr octave_idx_type iGetNumNodes() {
+          return 8;
+     }
+
+     static constexpr octave_idx_type iGetNumDirections() {
+          return 2;
+     }
+
+     static constexpr octave_idx_type iGetNumDofNode() {
+          return 3;
+     }
+
+     static constexpr octave_idx_type iGetNumEqualityConstr() {
+          return 0;
+     }
+
+     static constexpr octave_idx_type iGetNumInequalityConstr() {
+          return 0;
+     }
+
+     static constexpr double EqualityConstr(const ColumnVector&) {
+          return 0;
+     }
+
+     static double InequalityConstr(const ColumnVector& rv) {
+          return 0.;
+     }
+
+     static void GetElemLimits(ColumnVector& rmin, ColumnVector& rmax) {
+          FEM_ASSERT(rmin.rows() == iGetNumDirections());
+          FEM_ASSERT(rmax.rows() == rmin.rows());
+
+          for (octave_idx_type i = 0; i < rmin.rows(); ++i) {
+               rmin.xelem(i) = -1.;
+          }
+
+          for (octave_idx_type i = 0; i < rmax.rows(); ++i) {
+               rmax.xelem(i) = 1.;
+          }
+     }
+
+     static void ScalarInterpMatrix(const ColumnVector& rv, Matrix& HA, octave_idx_type irow) {
+          FEM_ASSERT(rv.rows() == 2);
+          FEM_ASSERT(HA.rows() > irow);
+          FEM_ASSERT(HA.columns() == 8);
+
+          const double r1 = rv.xelem(0);
+          const double r2 = rv.xelem(1);
+          const octave_idx_type nrows = HA.rows();
+
+          HA.xelem(irow + nrows * 0) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)*(r2+r1+1.0E+0);
+          HA.xelem(irow + nrows * 1) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)*(r2-r1+1.0E+0);
+          HA.xelem(irow + nrows * 2) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)*(r2+1.0E+0);
+          HA.xelem(irow + nrows * 3) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)*(r2+1.0E+0);
+          HA.xelem(irow + nrows * 4) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(1.0E+0-r2);
+          HA.xelem(irow + nrows * 5) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)*(r2+1.0E+0);
+          HA.xelem(irow + nrows * 6) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(r2+1.0E+0);
+          HA.xelem(irow + nrows * 7) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)*(r2+1.0E+0);
+     }
+
+     static void VectorInterpMatrix(const ColumnVector& rv, Matrix& Hf) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double r1 = rv.xelem(0);
+          const double r2 = rv.xelem(1);
+
+          Hf.xelem(0) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)*(r2+r1+1.0E+0);
+          Hf.xelem(1) = 0;
+          Hf.xelem(2) = 0;
+          Hf.xelem(3) = 0;
+          Hf.xelem(4) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)*(r2+r1+1.0E+0);
+          Hf.xelem(5) = 0;
+          Hf.xelem(6) = 0;
+          Hf.xelem(7) = 0;
+          Hf.xelem(8) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)*(r2+r1+1.0E+0);
+          Hf.xelem(9) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)*(r2-r1+1.0E+0);
+          Hf.xelem(10) = 0;
+          Hf.xelem(11) = 0;
+          Hf.xelem(12) = 0;
+          Hf.xelem(13) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)*(r2-r1+1.0E+0);
+          Hf.xelem(14) = 0;
+          Hf.xelem(15) = 0;
+          Hf.xelem(16) = 0;
+          Hf.xelem(17) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)*(r2-r1+1.0E+0);
+          Hf.xelem(18) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(19) = 0;
+          Hf.xelem(20) = 0;
+          Hf.xelem(21) = 0;
+          Hf.xelem(22) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(23) = 0;
+          Hf.xelem(24) = 0;
+          Hf.xelem(25) = 0;
+          Hf.xelem(26) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(27) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(28) = 0;
+          Hf.xelem(29) = 0;
+          Hf.xelem(30) = 0;
+          Hf.xelem(31) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(32) = 0;
+          Hf.xelem(33) = 0;
+          Hf.xelem(34) = 0;
+          Hf.xelem(35) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(36) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(1.0E+0-r2);
+          Hf.xelem(37) = 0;
+          Hf.xelem(38) = 0;
+          Hf.xelem(39) = 0;
+          Hf.xelem(40) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(1.0E+0-r2);
+          Hf.xelem(41) = 0;
+          Hf.xelem(42) = 0;
+          Hf.xelem(43) = 0;
+          Hf.xelem(44) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(1.0E+0-r2);
+          Hf.xelem(45) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)*(r2+1.0E+0);
+          Hf.xelem(46) = 0;
+          Hf.xelem(47) = 0;
+          Hf.xelem(48) = 0;
+          Hf.xelem(49) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)*(r2+1.0E+0);
+          Hf.xelem(50) = 0;
+          Hf.xelem(51) = 0;
+          Hf.xelem(52) = 0;
+          Hf.xelem(53) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)*(r2+1.0E+0);
+          Hf.xelem(54) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(55) = 0;
+          Hf.xelem(56) = 0;
+          Hf.xelem(57) = 0;
+          Hf.xelem(58) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(59) = 0;
+          Hf.xelem(60) = 0;
+          Hf.xelem(61) = 0;
+          Hf.xelem(62) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0)*(r2+1.0E+0);
+          Hf.xelem(63) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)*(r2+1.0E+0);
+          Hf.xelem(64) = 0;
+          Hf.xelem(65) = 0;
+          Hf.xelem(66) = 0;
+          Hf.xelem(67) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)*(r2+1.0E+0);
+          Hf.xelem(68) = 0;
+          Hf.xelem(69) = 0;
+          Hf.xelem(70) = 0;
+          Hf.xelem(71) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)*(r2+1.0E+0);
+
+
+
+     }
+
+     static void VectorInterpMatrixDerR(const ColumnVector& rv, Matrix& dHf_dr) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double r1 = rv.xelem(0);
+          const double r2 = rv.xelem(1);
+
+          dHf_dr.xelem(0) = 2.5E-1*(1.0E+0-r2)*(r2+r1+1.0E+0)+2.5E-1*(r1-1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(1) = 0;
+          dHf_dr.xelem(2) = 0;
+          dHf_dr.xelem(3) = 0;
+          dHf_dr.xelem(4) = 2.5E-1*(1.0E+0-r2)*(r2+r1+1.0E+0)+2.5E-1*(r1-1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(5) = 0;
+          dHf_dr.xelem(6) = 0;
+          dHf_dr.xelem(7) = 0;
+          dHf_dr.xelem(8) = 2.5E-1*(1.0E+0-r2)*(r2+r1+1.0E+0)+2.5E-1*(r1-1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(9) = (-2.5E-1*(1.0E+0-r2)*(r2-r1+1.0E+0))-2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(10) = 0;
+          dHf_dr.xelem(11) = 0;
+          dHf_dr.xelem(12) = 0;
+          dHf_dr.xelem(13) = (-2.5E-1*(1.0E+0-r2)*(r2-r1+1.0E+0))-2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(14) = 0;
+          dHf_dr.xelem(15) = 0;
+          dHf_dr.xelem(16) = 0;
+          dHf_dr.xelem(17) = (-2.5E-1*(1.0E+0-r2)*(r2-r1+1.0E+0))-2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(18) = (-2.5E-1*((-r2)-r1+1.0E+0)*(r2+1.0E+0))-2.5E-1*((-r1)-1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(19) = 0;
+          dHf_dr.xelem(20) = 0;
+          dHf_dr.xelem(21) = 0;
+          dHf_dr.xelem(22) = (-2.5E-1*((-r2)-r1+1.0E+0)*(r2+1.0E+0))-2.5E-1*((-r1)-1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(23) = 0;
+          dHf_dr.xelem(24) = 0;
+          dHf_dr.xelem(25) = 0;
+          dHf_dr.xelem(26) = (-2.5E-1*((-r2)-r1+1.0E+0)*(r2+1.0E+0))-2.5E-1*((-r1)-1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(27) = 2.5E-1*((-r2)+r1+1.0E+0)*(r2+1.0E+0)+2.5E-1*(r1-1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(28) = 0;
+          dHf_dr.xelem(29) = 0;
+          dHf_dr.xelem(30) = 0;
+          dHf_dr.xelem(31) = 2.5E-1*((-r2)+r1+1.0E+0)*(r2+1.0E+0)+2.5E-1*(r1-1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(32) = 0;
+          dHf_dr.xelem(33) = 0;
+          dHf_dr.xelem(34) = 0;
+          dHf_dr.xelem(35) = 2.5E-1*((-r2)+r1+1.0E+0)*(r2+1.0E+0)+2.5E-1*(r1-1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(36) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)-5.0E-1*(r1+1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(37) = 0;
+          dHf_dr.xelem(38) = 0;
+          dHf_dr.xelem(39) = 0;
+          dHf_dr.xelem(40) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)-5.0E-1*(r1+1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(41) = 0;
+          dHf_dr.xelem(42) = 0;
+          dHf_dr.xelem(43) = 0;
+          dHf_dr.xelem(44) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)-5.0E-1*(r1+1.0E+0)*(1.0E+0-r2);
+          dHf_dr.xelem(45) = 5.0E-1*(1.0E+0-r2)*(r2+1.0E+0);
+          dHf_dr.xelem(46) = 0;
+          dHf_dr.xelem(47) = 0;
+          dHf_dr.xelem(48) = 0;
+          dHf_dr.xelem(49) = 5.0E-1*(1.0E+0-r2)*(r2+1.0E+0);
+          dHf_dr.xelem(50) = 0;
+          dHf_dr.xelem(51) = 0;
+          dHf_dr.xelem(52) = 0;
+          dHf_dr.xelem(53) = 5.0E-1*(1.0E+0-r2)*(r2+1.0E+0);
+          dHf_dr.xelem(54) = 5.0E-1*(1.0E+0-r1)*(r2+1.0E+0)-5.0E-1*(r1+1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(55) = 0;
+          dHf_dr.xelem(56) = 0;
+          dHf_dr.xelem(57) = 0;
+          dHf_dr.xelem(58) = 5.0E-1*(1.0E+0-r1)*(r2+1.0E+0)-5.0E-1*(r1+1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(59) = 0;
+          dHf_dr.xelem(60) = 0;
+          dHf_dr.xelem(61) = 0;
+          dHf_dr.xelem(62) = 5.0E-1*(1.0E+0-r1)*(r2+1.0E+0)-5.0E-1*(r1+1.0E+0)*(r2+1.0E+0);
+          dHf_dr.xelem(63) = -5.0E-1*(1.0E+0-r2)*(r2+1.0E+0);
+          dHf_dr.xelem(64) = 0;
+          dHf_dr.xelem(65) = 0;
+          dHf_dr.xelem(66) = 0;
+          dHf_dr.xelem(67) = -5.0E-1*(1.0E+0-r2)*(r2+1.0E+0);
+          dHf_dr.xelem(68) = 0;
+          dHf_dr.xelem(69) = 0;
+          dHf_dr.xelem(70) = 0;
+          dHf_dr.xelem(71) = -5.0E-1*(1.0E+0-r2)*(r2+1.0E+0);
+     }
+
+     static void VectorInterpMatrixDerS(const ColumnVector& rv, Matrix& dHf_ds) {
+          FEM_ASSERT(rv.rows() == 2);
+
+          const double r1 = rv.xelem(0);
+          const double r2 = rv.xelem(1);
+
+          dHf_ds.xelem(0) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)-2.5E-1*(r1-1.0E+0)*(r2+r1+1.0E+0);
+          dHf_ds.xelem(1) = 0;
+          dHf_ds.xelem(2) = 0;
+          dHf_ds.xelem(3) = 0;
+          dHf_ds.xelem(4) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)-2.5E-1*(r1-1.0E+0)*(r2+r1+1.0E+0);
+          dHf_ds.xelem(5) = 0;
+          dHf_ds.xelem(6) = 0;
+          dHf_ds.xelem(7) = 0;
+          dHf_ds.xelem(8) = 2.5E-1*(r1-1.0E+0)*(1.0E+0-r2)-2.5E-1*(r1-1.0E+0)*(r2+r1+1.0E+0);
+          dHf_ds.xelem(9) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)-2.5E-1*((-r1)-1.0E+0)*(r2-r1+1.0E+0);
+          dHf_ds.xelem(10) = 0;
+          dHf_ds.xelem(11) = 0;
+          dHf_ds.xelem(12) = 0;
+          dHf_ds.xelem(13) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)-2.5E-1*((-r1)-1.0E+0)*(r2-r1+1.0E+0);
+          dHf_ds.xelem(14) = 0;
+          dHf_ds.xelem(15) = 0;
+          dHf_ds.xelem(16) = 0;
+          dHf_ds.xelem(17) = 2.5E-1*((-r1)-1.0E+0)*(1.0E+0-r2)-2.5E-1*((-r1)-1.0E+0)*(r2-r1+1.0E+0);
+          dHf_ds.xelem(18) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)-2.5E-1*((-r1)-1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(19) = 0;
+          dHf_ds.xelem(20) = 0;
+          dHf_ds.xelem(21) = 0;
+          dHf_ds.xelem(22) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)-2.5E-1*((-r1)-1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(23) = 0;
+          dHf_ds.xelem(24) = 0;
+          dHf_ds.xelem(25) = 0;
+          dHf_ds.xelem(26) = 2.5E-1*((-r1)-1.0E+0)*((-r2)-r1+1.0E+0)-2.5E-1*((-r1)-1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(27) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)-2.5E-1*(r1-1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(28) = 0;
+          dHf_ds.xelem(29) = 0;
+          dHf_ds.xelem(30) = 0;
+          dHf_ds.xelem(31) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)-2.5E-1*(r1-1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(32) = 0;
+          dHf_ds.xelem(33) = 0;
+          dHf_ds.xelem(34) = 0;
+          dHf_ds.xelem(35) = 2.5E-1*(r1-1.0E+0)*((-r2)+r1+1.0E+0)-2.5E-1*(r1-1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(36) = -5.0E-1*(1.0E+0-r1)*(r1+1.0E+0);
+          dHf_ds.xelem(37) = 0;
+          dHf_ds.xelem(38) = 0;
+          dHf_ds.xelem(39) = 0;
+          dHf_ds.xelem(40) = -5.0E-1*(1.0E+0-r1)*(r1+1.0E+0);
+          dHf_ds.xelem(41) = 0;
+          dHf_ds.xelem(42) = 0;
+          dHf_ds.xelem(43) = 0;
+          dHf_ds.xelem(44) = -5.0E-1*(1.0E+0-r1)*(r1+1.0E+0);
+          dHf_ds.xelem(45) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)-5.0E-1*(r1+1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(46) = 0;
+          dHf_ds.xelem(47) = 0;
+          dHf_ds.xelem(48) = 0;
+          dHf_ds.xelem(49) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)-5.0E-1*(r1+1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(50) = 0;
+          dHf_ds.xelem(51) = 0;
+          dHf_ds.xelem(52) = 0;
+          dHf_ds.xelem(53) = 5.0E-1*(r1+1.0E+0)*(1.0E+0-r2)-5.0E-1*(r1+1.0E+0)*(r2+1.0E+0);
+          dHf_ds.xelem(54) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0);
+          dHf_ds.xelem(55) = 0;
+          dHf_ds.xelem(56) = 0;
+          dHf_ds.xelem(57) = 0;
+          dHf_ds.xelem(58) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0);
+          dHf_ds.xelem(59) = 0;
+          dHf_ds.xelem(60) = 0;
+          dHf_ds.xelem(61) = 0;
+          dHf_ds.xelem(62) = 5.0E-1*(1.0E+0-r1)*(r1+1.0E+0);
+          dHf_ds.xelem(63) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)-5.0E-1*(1.0E+0-r1)*(r2+1.0E+0);
+          dHf_ds.xelem(64) = 0;
+          dHf_ds.xelem(65) = 0;
+          dHf_ds.xelem(66) = 0;
+          dHf_ds.xelem(67) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)-5.0E-1*(1.0E+0-r1)*(r2+1.0E+0);
+          dHf_ds.xelem(68) = 0;
+          dHf_ds.xelem(69) = 0;
+          dHf_ds.xelem(70) = 0;
+          dHf_ds.xelem(71) = 5.0E-1*(1.0E+0-r1)*(1.0E+0-r2)-5.0E-1*(1.0E+0-r1)*(r2+1.0E+0);
+     }
+
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+          static constexpr octave_idx_type N = 3;
+          static constexpr double r[2][N] = {{0.774596669241483, 0., -0.774596669241483}, {1., 0., -1.}};
+          static constexpr double alpha[2][N] = {{0.555555555555556, 0.888888888888889, 0.555555555555556}, {2./3., 2./3., 2./3.}};
+
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+               rgIntegRule[iIntegRule].SetNumEvalPoints(N * N, 2);
+
+               octave_idx_type l = 0;
+
+               for (octave_idx_type i = 0; i < N; ++i) {
+                    for (octave_idx_type j = 0; j < N; ++j) {
+                         rgIntegRule[iIntegRule].SetPosition(l, 0, r[iIntegRule][i]);
+                         rgIntegRule[iIntegRule].SetPosition(l, 1, r[iIntegRule][j]);
+                         rgIntegRule[iIntegRule].SetWeight(l, alpha[iIntegRule][i] * alpha[iIntegRule][j]);
+                         ++l;
+                    }
+               }
+          }
+     }
+
+     static const IntegrationRule& GetIntegrationRule(Element::FemMatrixType eMatType) {
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
+
+          return rgIntegRule[iIntegRule];
+     }
+
+private:
+     static octave_idx_type SelectIntegrationRule(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case Element::VEC_LOAD_LUMPED:
+               return 1;
+          default:
+               return 0;
+          }
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
+};
+
+array<IntegrationRule, 2> ShapeQuad8r::rgIntegRule;
+
 class ShapeQuad9 {
 public:
      static constexpr octave_idx_type iGetNumNodes() {
@@ -11392,6 +11761,7 @@ protected:
 
 typedef SurfaceElementImpl<ShapeIso4, PressureLoad> PressureLoadIso4;
 typedef SurfaceElementImpl<ShapeQuad8, PressureLoad> PressureLoadQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, PressureLoad> PressureLoadQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, PressureLoad> PressureLoadQuad9;
 typedef SurfaceElementImpl<ShapeTria6, PressureLoad> PressureLoadTria6;
 typedef SurfaceElementImpl<ShapeTria6H, PressureLoad> PressureLoadTria6H;
@@ -11399,6 +11769,7 @@ typedef SurfaceElementImpl<ShapeTria10, PressureLoad> PressureLoadTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, ThermalConvectionBC> ThermalConvectionBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ThermalConvectionBC> ThermalConvectionBCQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, ThermalConvectionBC> ThermalConvectionBCQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, ThermalConvectionBC> ThermalConvectionBCQuad9;
 typedef SurfaceElementImpl<ShapeTria6, ThermalConvectionBC> ThermalConvectionBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ThermalConvectionBC> ThermalConvectionBCTria6H;
@@ -11406,6 +11777,7 @@ typedef SurfaceElementImpl<ShapeTria10, ThermalConvectionBC> ThermalConvectionBC
 
 typedef SurfaceElementImpl<ShapeIso4, HeatSource> HeatSourceIso4;
 typedef SurfaceElementImpl<ShapeQuad8, HeatSource> HeatSourceQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, HeatSource> HeatSourceQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, HeatSource> HeatSourceQuad9;
 typedef SurfaceElementImpl<ShapeTria6, HeatSource> HeatSourceTria6;
 typedef SurfaceElementImpl<ShapeTria6H, HeatSource> HeatSourceTria6H;
@@ -11413,6 +11785,7 @@ typedef SurfaceElementImpl<ShapeTria10, HeatSource> HeatSourceTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, ParticleVelocityBC> ParticleVelocityBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, ParticleVelocityBC> ParticleVelocityBCQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, ParticleVelocityBC> ParticleVelocityBCQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, ParticleVelocityBC> ParticleVelocityBCQuad9;
 typedef SurfaceElementImpl<ShapeTria6, ParticleVelocityBC> ParticleVelocityBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, ParticleVelocityBC> ParticleVelocityBCTria6H;
@@ -11420,6 +11793,7 @@ typedef SurfaceElementImpl<ShapeTria10, ParticleVelocityBC> ParticleVelocityBCTr
 
 typedef SurfaceElementImpl<ShapeIso4, AcousticImpedanceBC> AcousticImpedanceBCIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticImpedanceBC> AcousticImpedanceBCQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, AcousticImpedanceBC> AcousticImpedanceBCQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, AcousticImpedanceBC> AcousticImpedanceBCQuad9;
 typedef SurfaceElementImpl<ShapeTria6, AcousticImpedanceBC> AcousticImpedanceBCTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticImpedanceBC> AcousticImpedanceBCTria6H;
@@ -11427,6 +11801,7 @@ typedef SurfaceElementImpl<ShapeTria10, AcousticImpedanceBC> AcousticImpedanceBC
 
 typedef SurfaceElementImpl<ShapeIso4, AcousticBoundary> AcousticBoundaryIso4;
 typedef SurfaceElementImpl<ShapeQuad8, AcousticBoundary> AcousticBoundaryQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, AcousticBoundary> AcousticBoundaryQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, AcousticBoundary> AcousticBoundaryQuad9;
 typedef SurfaceElementImpl<ShapeTria6, AcousticBoundary> AcousticBoundaryTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticBoundary> AcousticBoundaryTria6H;
@@ -11434,6 +11809,7 @@ typedef SurfaceElementImpl<ShapeTria10, AcousticBoundary> AcousticBoundaryTria10
 
 typedef SurfaceElementImpl<ShapeIso4, FluidStructInteract> FluidStructInteractIso4;
 typedef SurfaceElementImpl<ShapeQuad8, FluidStructInteract> FluidStructInteractQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, FluidStructInteract> FluidStructInteractQuad8r;
 typedef SurfaceElementImpl<ShapeQuad9, FluidStructInteract> FluidStructInteractQuad9;
 typedef SurfaceElementImpl<ShapeTria6, FluidStructInteract> FluidStructInteractTria6;
 typedef SurfaceElementImpl<ShapeTria6H, FluidStructInteract> FluidStructInteractTria6H;
@@ -12679,6 +13055,11 @@ namespace shape_func_util {
      };
 
      template <>
+     struct SelectElemPerSlaveNode<ShapeQuad8r> {
+          static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
+     };
+
+     template <>
      struct SelectElemPerSlaveNode<ShapeQuad9> {
           static constexpr octave_idx_type iNumElemPerSlaveNode = 9;
      };
@@ -13524,6 +13905,9 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           case ElementTypes::ELEM_SFNCON8:
                iNumNodesElem = ShapeQuad8::iGetNumNodes();
                break;
+          case ElementTypes::ELEM_SFNCON8R:
+               iNumNodesElem = ShapeQuad8r::iGetNumNodes();
+               break;
           case ElementTypes::ELEM_SFNCON9:
                iNumNodesElem = ShapeQuad9::iGetNumNodes();
                break;
@@ -13623,6 +14007,18 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
                                                          rgElemBlocks,
                                                          dScale);
                break;
+          case ElementTypes::ELEM_SFNCON8R:
+               SurfToNodeConstr<ShapeQuad8r>::BuildJoints(dofelemid[oElemType.dof_type],
+                                                          nodes,
+                                                          nidxmaster,
+                                                          nidxslave,
+                                                          maxdist,
+                                                          eConstrType,
+                                                          uConstraintFlags,
+                                                          eDomain,
+                                                          rgElemBlocks,
+                                                          dScale);
+               break;
           case ElementTypes::ELEM_SFNCON9:
                SurfToNodeConstr<ShapeQuad9>::BuildJoints(dofelemid[oElemType.dof_type],
                                                          nodes,
@@ -13692,6 +14088,7 @@ SurfaceNormalVectorPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgE
           switch (oElemType.type) {
           case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
           case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+          case ElementTypes::ELEM_PARTICLE_VEL_QUAD8R:
           case ElementTypes::ELEM_PARTICLE_VEL_QUAD9:
           case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
           case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
@@ -13764,6 +14161,7 @@ SurfaceAreaPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
           switch (eltype) {
           case ElementTypes::ELEM_PRESSURE_ISO4:
           case ElementTypes::ELEM_PRESSURE_QUAD8:
+          case ElementTypes::ELEM_PRESSURE_QUAD8R:
           case ElementTypes::ELEM_PRESSURE_QUAD9:
           case ElementTypes::ELEM_PRESSURE_TRIA6:
           case ElementTypes::ELEM_PRESSURE_TRIA6H:
@@ -13900,6 +14298,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
                switch (oElemType.type) {
                case ElementTypes::ELEM_ACOUSTIC_BND_ISO4:
                case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8:
+               case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8R:
                case ElementTypes::ELEM_ACOUSTIC_BND_QUAD9:
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6:
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H:
@@ -14377,24 +14776,28 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                } break;
                case ElementTypes::ELEM_THERM_CONV_ISO4:
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
+               case ElementTypes::ELEM_THERM_CONV_QUAD8R:
                case ElementTypes::ELEM_THERM_CONV_QUAD9:
                case ElementTypes::ELEM_THERM_CONV_TRIA6:
                case ElementTypes::ELEM_THERM_CONV_TRIA6H:
                case ElementTypes::ELEM_THERM_CONV_TRIA10:
                case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+               case ElementTypes::ELEM_PARTICLE_VEL_QUAD8R:
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD9:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
                case ElementTypes::ELEM_PARTICLE_VEL_TRIA10:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8R:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD9:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
                case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA10:
                case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
                case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
+               case ElementTypes::ELEM_FLUID_STRUCT_QUAD8R:
                case ElementTypes::ELEM_FLUID_STRUCT_QUAD9:
                case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
                case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
@@ -14412,6 +14815,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          switch (oElemType.type) {
                          case ElementTypes::ELEM_THERM_CONV_ISO4:
                          case ElementTypes::ELEM_THERM_CONV_QUAD8:
+                         case ElementTypes::ELEM_THERM_CONV_QUAD8R:
                          case ElementTypes::ELEM_THERM_CONV_QUAD9:
                          case ElementTypes::ELEM_THERM_CONV_TRIA6:
                          case ElementTypes::ELEM_THERM_CONV_TRIA6H:
@@ -14421,6 +14825,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          case ElementTypes::ELEM_PARTICLE_VEL_ISO4:
                          case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
+                         case ElementTypes::ELEM_PARTICLE_VEL_QUAD8R:
                          case ElementTypes::ELEM_PARTICLE_VEL_QUAD9:
                          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6:
                          case ElementTypes::ELEM_PARTICLE_VEL_TRIA6H:
@@ -14430,6 +14835,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
+                         case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8R:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD9:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6:
                          case ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H:
@@ -14438,6 +14844,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                               break;
                          case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
                          case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
+                         case ElementTypes::ELEM_FLUID_STRUCT_QUAD8R:
                          case ElementTypes::ELEM_FLUID_STRUCT_QUAD9:
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
@@ -14476,6 +14883,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          switch (oElemType.type) {
                          case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
                          case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
+                         case ElementTypes::ELEM_FLUID_STRUCT_QUAD8R:
                          case ElementTypes::ELEM_FLUID_STRUCT_QUAD9:
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
                          case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
@@ -14540,6 +14948,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                         switch (oElemType.type) {
                                         case ElementTypes::ELEM_FLUID_STRUCT_ISO4:
                                         case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
+                                        case ElementTypes::ELEM_FLUID_STRUCT_QUAD8R:
                                         case ElementTypes::ELEM_FLUID_STRUCT_QUAD9:
                                         case ElementTypes::ELEM_FLUID_STRUCT_TRIA6:
                                         case ElementTypes::ELEM_FLUID_STRUCT_TRIA6H:
@@ -14732,6 +15141,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_SFNCON8R:
                     case ElementTypes::ELEM_SFNCON10:
                     case ElementTypes::ELEM_THERM_CONSTR:
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR:
@@ -14765,6 +15175,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     case ElementTypes::ELEM_SFNCON6:
                     case ElementTypes::ELEM_SFNCON6H:
                     case ElementTypes::ELEM_SFNCON8:
+                    case ElementTypes::ELEM_SFNCON8R:
                     case ElementTypes::ELEM_SFNCON10:
                     case ElementTypes::ELEM_THERM_CONSTR:
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
@@ -14790,6 +15201,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          case ElementTypes::ELEM_SFNCON6:
                          case ElementTypes::ELEM_SFNCON6H:
                          case ElementTypes::ELEM_SFNCON8:
+                         case ElementTypes::ELEM_SFNCON8R:
                          case ElementTypes::ELEM_SFNCON10: {
                               const auto iter_constr = m_etype.seek("constraint");
 
@@ -14817,6 +15229,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    case ElementTypes::ELEM_SFNCON6:
                                    case ElementTypes::ELEM_SFNCON6H:
                                    case ElementTypes::ELEM_SFNCON8:
+                                   case ElementTypes::ELEM_SFNCON8R:
                                    case ElementTypes::ELEM_SFNCON10:
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
@@ -14855,6 +15268,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    case ElementTypes::ELEM_SFNCON6:
                                    case ElementTypes::ELEM_SFNCON6H:
                                    case ElementTypes::ELEM_SFNCON8:
+                                   case ElementTypes::ELEM_SFNCON8R:
                                    case ElementTypes::ELEM_SFNCON10:
 #if HAVE_NLOPT == 1
                                         icurrconstr = SurfToNodeConstrBase::iGetNumDof(ov_constr, j, eDomain);
@@ -15334,6 +15748,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8R] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
@@ -15386,6 +15801,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
@@ -15406,6 +15822,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          break;
@@ -15422,6 +15839,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8R] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
@@ -15446,6 +15864,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_THERM_CONSTR] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_THERM_CONV_TRIA6H] = true;
@@ -15453,6 +15872,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_HEAT_SOURCE_TRIA6H] = true;
@@ -15472,6 +15892,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::SCA_ACOUSTIC_INTENSITY_C:
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
@@ -15497,6 +15918,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_SURFACE_NORMAL_VECTOR:
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
@@ -15510,6 +15932,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
@@ -15531,12 +15954,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8R] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
                          [[fallthrough]];
 
                     case Element::MAT_DAMPING_ACOUSTICS_IM:
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
@@ -15583,6 +16008,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_STRUCT_FORCE] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
@@ -15598,6 +16024,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
@@ -15610,6 +16037,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PRESSURE_TRIA10] = true;
                          break;
@@ -15625,6 +16053,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
@@ -15636,6 +16065,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_DAMPING_FLUID_STRUCT_IM:
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_IMPE_TRIA6H] = true;
@@ -15645,6 +16075,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::VEC_SURFACE_NORMAL_VECTOR:
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_PARTICLE_VEL_TRIA6H] = true;
@@ -15665,6 +16096,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_ISO4] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD8R] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_QUAD9] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H] = true;
@@ -16342,6 +16774,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON6:
                case ElementTypes::ELEM_SFNCON6H:
                case ElementTypes::ELEM_SFNCON8:
+               case ElementTypes::ELEM_SFNCON8R:
                case ElementTypes::ELEM_SFNCON10: {
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
@@ -16355,6 +16788,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_PRESSURE_QUAD8:
                     InsertPressureElem<PressureLoadQuad8>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_PRESSURE_QUAD8R:
+                    InsertPressureElem<PressureLoadQuad8r>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_PRESSURE_QUAD9:
                     InsertPressureElem<PressureLoadQuad9>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
@@ -16373,6 +16809,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_FLUID_STRUCT_QUAD8:
                     InsertFluidStructElem<FluidStructInteractQuad8>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_FLUID_STRUCT_QUAD8R:
+                    InsertFluidStructElem<FluidStructInteractQuad8r>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_FLUID_STRUCT_QUAD9:
                     InsertFluidStructElem<FluidStructInteractQuad9>(oElemType.type, nodes, elements, oElemType.name, oElemType.max_nodes, rgElemBlocks);
@@ -16461,6 +16900,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_THERM_CONV_QUAD8:
                     InsertThermalConvElem<ThermalConvectionBCQuad8>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_THERM_CONV_QUAD8R:
+                    InsertThermalConvElem<ThermalConvectionBCQuad8r>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
                case ElementTypes::ELEM_THERM_CONV_QUAD9:
                     InsertThermalConvElem<ThermalConvectionBCQuad9>(oElemType.type, nodes, elements, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
@@ -16478,6 +16920,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_HEAT_SOURCE_QUAD8:
                     InsertHeatSourceElem<HeatSourceQuad8>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_HEAT_SOURCE_QUAD8R:
+                    InsertHeatSourceElem<HeatSourceQuad8r>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_HEAT_SOURCE_QUAD9:
                     InsertHeatSourceElem<HeatSourceQuad9>(oElemType.type, nodes, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks);
@@ -16497,6 +16942,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD8:
                     InsertParticleVelocityBC<ParticleVelocityBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
+               case ElementTypes::ELEM_PARTICLE_VEL_QUAD8R:
+                    InsertParticleVelocityBC<ParticleVelocityBCQuad8r>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
+                    break;
                case ElementTypes::ELEM_PARTICLE_VEL_QUAD9:
                     InsertParticleVelocityBC<ParticleVelocityBCQuad9>(oElemType.type, nodes, elements, rgMaterials, materials, load_case, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
@@ -16515,6 +16963,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
+               case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD8R:
+                    InsertAcousticImpedanceBC<AcousticImpedanceBCQuad8r>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
+                    break;
                case ElementTypes::ELEM_ACOUSTIC_IMPE_QUAD9:
                     InsertAcousticImpedanceBC<AcousticImpedanceBCQuad9>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks, oDof.GetDomain());
                     break;
@@ -16532,6 +16983,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     break;
                case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8:
                     InsertAcousticBoundary<AcousticBoundaryQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_ACOUSTIC_BND_QUAD8R:
+                    InsertAcousticBoundary<AcousticBoundaryQuad8r>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
                case ElementTypes::ELEM_ACOUSTIC_BND_QUAD9:
                     InsertAcousticBoundary<AcousticBoundaryQuad9>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);

@@ -66,7 +66,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -86,7 +86,7 @@
 %!                                [FEM_MAT_THERMAL_COND, ...
 %!                                 FEM_MAT_HEAT_CAPACITY], ...
 %!                                load_case);
-%!   idx_b = [mesh.groups.quad8.nodes];
+%!   idx_b = [mesh.groups.quad8r.nodes];
 %!   idx_i = true(rows(mesh.nodes), 1);
 %!   idx_i(idx_b) = false;
 %!   idx_i = find(idx_i);

@@ -73,7 +73,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt_mesh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_fluid_h = find([mesh.groups.iso20r.id] == 1);
@@ -82,14 +82,14 @@
 %!     grp_idx_fluid_p = find([mesh.groups.penta15.id] == 1);
 %!     grp_idx_solid_p = find([mesh.groups.penta15.id] == 2);
 %!   endif
-%!   grp_idx_fsi = find([mesh.groups.quad8.id] == 3);
-%!   grp_idx_solid_sym_xz = find([mesh.groups.quad8.id] == 4);
-%!   grp_idx_solid_sym_xy = find([mesh.groups.quad8.id] == 5);
-%!   grp_idx_solid_clamp_yz = find([mesh.groups.quad8.id] == 6);
-%!   grp_idx_fluid_sym_xz = find([mesh.groups.quad8.id] == 7);
-%!   grp_idx_fluid_sym_xy = find([mesh.groups.quad8.id] == 8);
-%!   grp_idx_fluid_inlet_q = find([mesh.groups.quad8.id] == 9);
-%!   grp_idx_fluid_outlet_q = find([mesh.groups.quad8.id] == 10);
+%!   grp_idx_fsi = find([mesh.groups.quad8r.id] == 3);
+%!   grp_idx_solid_sym_xz = find([mesh.groups.quad8r.id] == 4);
+%!   grp_idx_solid_sym_xy = find([mesh.groups.quad8r.id] == 5);
+%!   grp_idx_solid_clamp_yz = find([mesh.groups.quad8r.id] == 6);
+%!   grp_idx_fluid_sym_xz = find([mesh.groups.quad8r.id] == 7);
+%!   grp_idx_fluid_sym_xy = find([mesh.groups.quad8r.id] == 8);
+%!   grp_idx_fluid_inlet_q = find([mesh.groups.quad8r.id] == 9);
+%!   grp_idx_fluid_outlet_q = find([mesh.groups.quad8r.id] == 10);
 %!   if (isfield(mesh.groups, "tria6h"))
 %!     grp_idx_fluid_inlet_t = find([mesh.groups.tria6h.id] == 9);
 %!     grp_idx_fluid_outlet_t = find([mesh.groups.tria6h.id] == 10);
@@ -114,26 +114,26 @@
 %!     endif
 %!   endif
 %!   if (isfield(mesh.groups, "tria6h"))
-%!     node_idx_inlet = [mesh.groups.quad8(grp_idx_fluid_inlet_q).nodes, ...
+%!     node_idx_inlet = [mesh.groups.quad8r(grp_idx_fluid_inlet_q).nodes, ...
 %!                       mesh.groups.tria6h(grp_idx_fluid_inlet_t).nodes];
-%!     node_idx_outlet = [mesh.groups.quad8(grp_idx_fluid_outlet_q).nodes, ...
+%!     node_idx_outlet = [mesh.groups.quad8r(grp_idx_fluid_outlet_q).nodes, ...
 %!                        mesh.groups.tria6h(grp_idx_fluid_outlet_t).nodes];
 %!   else
-%!     node_idx_inlet = mesh.groups.quad8(grp_idx_fluid_inlet_q).nodes;
-%!     node_idx_outlet = mesh.groups.quad8(grp_idx_fluid_outlet_q).nodes;
+%!     node_idx_inlet = mesh.groups.quad8r(grp_idx_fluid_inlet_q).nodes;
+%!     node_idx_outlet = mesh.groups.quad8r(grp_idx_fluid_outlet_q).nodes;
 %!   endif
-%!   mesh.elements.fluid_struct_interface.quad8 = mesh.elements.quad8(mesh.groups.quad8(grp_idx_fsi).elements, :);
-%!   mesh.elements.particle_velocity.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_fluid_inlet_q).elements, :);
-%!   mesh.materials.particle_velocity.quad8 = ones(rows(mesh.elements.particle_velocity.quad8.nodes), 1, "int32");
-%!   load_case.particle_velocity.quad8.vn = repmat(-vn, size(mesh.elements.particle_velocity.quad8.nodes));
+%!   mesh.elements.fluid_struct_interface.quad8r = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_fsi).elements, :);
+%!   mesh.elements.particle_velocity.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_fluid_inlet_q).elements, :);
+%!   mesh.materials.particle_velocity.quad8r = ones(rows(mesh.elements.particle_velocity.quad8r.nodes), 1, "int32");
+%!   load_case.particle_velocity.quad8r.vn = repmat(-vn, size(mesh.elements.particle_velocity.quad8r.nodes));
 %!   if (isfield(mesh.groups, "tria6h"))
 %!     mesh.elements.particle_velocity.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_fluid_inlet_t).elements, :);
 %!     mesh.materials.particle_velocity.tria6h = ones(rows(mesh.elements.particle_velocity.tria6h.nodes), 1, "int32");
 %!     load_case.particle_velocity.tria6h.vn = repmat(-vn, size(mesh.elements.particle_velocity.tria6h.nodes));
 %!   endif
-%!   mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_fluid_outlet_q).elements, :);
-%!   mesh.elements.acoustic_impedance.quad8.z = repmat(rho1 * a, size(mesh.elements.acoustic_impedance.quad8.nodes));
-%!   mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_fluid_outlet_q).elements, :);
+%!   mesh.elements.acoustic_impedance.quad8r.z = repmat(rho1 * a, size(mesh.elements.acoustic_impedance.quad8r.nodes));
+%!   mesh.materials.acoustic_impedance.quad8r = ones(rows(mesh.elements.acoustic_impedance.quad8r.nodes), 1, "int32");
 %!   if (isfield(mesh.groups, "tria6h"))
 %!     mesh.elements.acoustic_impedance.tria6h.nodes = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_fluid_outlet_t).elements, :);
 %!     mesh.elements.acoustic_impedance.tria6h.z = repmat(rho1 * a, size(mesh.elements.acoustic_impedance.tria6h.nodes));
@@ -141,9 +141,9 @@
 %!   endif
 %!   load_case_dof.domain = FEM_DO_FLUID_STRUCT;
 %!   load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_solid_sym_xz).nodes, 2) = true;
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_solid_sym_xy).nodes, 3) = true;
-%!   load_case_dof.locked_dof(mesh.groups.quad8(grp_idx_solid_clamp_yz).nodes, 1) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8r(grp_idx_solid_sym_xz).nodes, 2) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8r(grp_idx_solid_sym_xy).nodes, 3) = true;
+%!   load_case_dof.locked_dof(mesh.groups.quad8r(grp_idx_solid_clamp_yz).nodes, 1) = true;
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Mfs_re, ...
 %!    mat_ass.Dfs_re, ...

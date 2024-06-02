@@ -67,16 +67,16 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 1);
-%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 2);
-%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 3);
+%!   grp_idx_s1 = find([mesh.groups.quad8r.id] == 1);
+%!   grp_idx_s2 = find([mesh.groups.quad8r.id] == 2);
+%!   grp_idx_s3 = find([mesh.groups.quad8r.id] == 3);
 %!   grp_idx_output = grp_idx_s3;
-%!   no_s1 = mesh.groups.quad8(grp_idx_s1).nodes;
-%!   no_s2 = mesh.groups.quad8(grp_idx_s2).nodes;
-%!   no_s3 = mesh.groups.quad8(grp_idx_s3).nodes;
+%!   no_s1 = mesh.groups.quad8r(grp_idx_s1).nodes;
+%!   no_s2 = mesh.groups.quad8r(grp_idx_s2).nodes;
+%!   no_s3 = mesh.groups.quad8r(grp_idx_s3).nodes;
 %!   x1 = mesh.nodes(no_s1, 1);
 %!   y1 = mesh.nodes(no_s1, 2);
 %!   x2 = mesh.nodes(no_s2, 1);
@@ -107,9 +107,9 @@
 %!   load_case = struct("acoustic_constr", cell(1, 2));
 %!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
 %!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
-%!   mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8([[mesh.groups.quad8(grp_idx_output)].elements], :);
-%!   mesh.elements.acoustic_impedance.quad8.z = repmat(rho * c, size(mesh.elements.acoustic_impedance.quad8.nodes));
-%!   mesh.materials.acoustic_impedance.quad8 = ones(rows(mesh.elements.acoustic_impedance.quad8.nodes), 1, "int32");
+%!   mesh.elements.acoustic_impedance.quad8r.nodes = mesh.elements.quad8r([[mesh.groups.quad8r(grp_idx_output)].elements], :);
+%!   mesh.elements.acoustic_impedance.quad8r.z = repmat(rho * c, size(mesh.elements.acoustic_impedance.quad8r.nodes));
+%!   mesh.materials.acoustic_impedance.quad8r = ones(rows(mesh.elements.acoustic_impedance.quad8r.nodes), 1, "int32");
 %!   dof_map = fem_ass_dof_map(mesh, load_case_dof);
 %!   [mat_ass.Ka, ...
 %!    mat_ass.Ma, ...

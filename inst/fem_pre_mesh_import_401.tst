@@ -71,7 +71,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
@@ -88,13 +88,13 @@
 %!   mesh.material_data.E = 210000e6;
 %!   mesh.material_data.nu = 0.3;
 %!   mesh.material_data.k = eye(3) * lambda;
-%!   grp_idx_inside = find([mesh.groups.quad8.id] == 2);
-%!   grp_idx_outside = find([mesh.groups.quad8.id] == 3);
-%!   load_case.heat_source.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_inside).elements, :);
-%!   load_case.heat_source.quad8.q = repmat(q1, numel(mesh.groups.quad8(grp_idx_inside).elements), 8);
-%!   mesh.elements.convection.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_outside).elements, :);
-%!   mesh.elements.convection.quad8.h = repmat(alpha2, numel(mesh.groups.quad8(grp_idx_outside).elements), 8);
-%!   load_case.convection.quad8.theta = repmat(Theta2, numel(mesh.groups.quad8(grp_idx_outside).elements), 8);
+%!   grp_idx_inside = find([mesh.groups.quad8r.id] == 2);
+%!   grp_idx_outside = find([mesh.groups.quad8r.id] == 3);
+%!   load_case.heat_source.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_inside).elements, :);
+%!   load_case.heat_source.quad8r.q = repmat(q1, numel(mesh.groups.quad8r(grp_idx_inside).elements), 8);
+%!   mesh.elements.convection.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_outside).elements, :);
+%!   mesh.elements.convection.quad8r.h = repmat(alpha2, numel(mesh.groups.quad8r(grp_idx_outside).elements), 8);
+%!   load_case.convection.quad8r.theta = repmat(Theta2, numel(mesh.groups.quad8r(grp_idx_outside).elements), 8);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.Kk, ...
 %!    mat_ass.Q] = fem_ass_matrix(mesh, ...
@@ -103,8 +103,8 @@
 %!                                 FEM_VEC_LOAD_THERMAL], ...
 %!                                load_case);
 %!   sol.theta = fem_sol_factor(mat_ass.Kk) \ mat_ass.Q;
-%!   idx_inside = mesh.groups.quad8(grp_idx_inside).nodes;
-%!   idx_outside = mesh.groups.quad8(grp_idx_outside).nodes;
+%!   idx_inside = mesh.groups.quad8r(grp_idx_inside).nodes;
+%!   idx_outside = mesh.groups.quad8r(grp_idx_outside).nodes;
 %!   Theta1s = sol.theta(idx_inside, :);
 %!   Theta2s = sol.theta(idx_outside, :);
 %!   Theta1a = Theta1s + q1 / alpha1;

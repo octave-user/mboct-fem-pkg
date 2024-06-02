@@ -260,8 +260,10 @@
 %!   switch (param.elem_type)
 %!   case {"iso8"}
 %!     param.elem_type_surf = {"iso4"};
-%!   case {"iso20", "iso20r"}
+%!   case "iso20"
 %!     param.elem_type_surf = {"quad8"};
+%!   case "iso20r"
+%!     param.elem_type_surf = {"quad8r"};
 %!   case {"iso27"}
 %!     param.elem_type_surf = {"quad9"};
 %!   case {"penta15"}

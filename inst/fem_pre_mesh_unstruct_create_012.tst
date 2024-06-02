@@ -70,17 +70,17 @@
 %!     endif
 %!   end_unwind_protect
 %!   opt.mesh.order = 2;
-%!   opt.mesh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
+%!   opt.mesh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_unstruct_create(geo_file, geo, opt);
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
 %!   load_case.locked_dof = false(size(mesh.nodes));
-%!   load_case.locked_dof(mesh.groups.quad8(1).nodes, 3) = true;
-%!   load_case.locked_dof(mesh.groups.quad8(2).nodes, 2) = true;
-%!   load_case.locked_dof(mesh.groups.quad8(3).nodes, 1) = true;
-%!   load_case.pressure.quad8.elements = mesh.elements.quad8(mesh.groups.quad8(4).elements, :);
-%!   load_case.pressure.quad8.p = repmat(p, rows(load_case.pressure.quad8.elements), 8);
+%!   load_case.locked_dof(mesh.groups.quad8r(1).nodes, 3) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(2).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(3).nodes, 1) = true;
+%!   load_case.pressure.quad8r.elements = mesh.elements.quad8r(mesh.groups.quad8r(4).elements, :);
+%!   load_case.pressure.quad8r.p = repmat(p, rows(load_case.pressure.quad8r.elements), 8);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
 %!    mat_ass.R, ...

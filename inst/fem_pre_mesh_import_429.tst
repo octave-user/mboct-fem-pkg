@@ -151,7 +151,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_mesh.elem_type = {"iso20r", "penta15", "tet10", "tria6h", "quad8"};
+%!   opt_mesh.elem_type = {"iso20r", "penta15", "tet10", "tria6h", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
@@ -165,7 +165,7 @@
 %!   grp_idx_s_fsi = find([mesh.groups.tria6h.id] == 1);
 %!   grp_idx_s_clamp = find([mesh.groups.tria6h.id] == 2);
 %!   grp_idx_s_boundary = find([mesh.groups.tria6h.id] == 3);
-%!   grp_idx_s_q_boundaryPML = find([mesh.groups.quad8.id] == 4);
+%!   grp_idx_s_q_boundaryPML = find([mesh.groups.quad8r.id] == 4);
 %!   grp_idx_s_t_boundaryPML = find([mesh.groups.tria6h.id] == 4);
 %!   elem_idx_p_PML_x = mesh.groups.penta15(grp_idx_v_p_PML_x).elements;
 %!   elem_idx_p_PML_y = mesh.groups.penta15(grp_idx_v_p_PML_y).elements;
@@ -173,7 +173,7 @@
 %!   elem_idx_h_PML_x = mesh.groups.iso20r(grp_idx_v_h_PML_x).elements;
 %!   elem_idx_h_PML_y = mesh.groups.iso20r(grp_idx_v_h_PML_y).elements;
 %!   elem_idx_h_PML_z = mesh.groups.iso20r(grp_idx_v_h_PML_z).elements;
-%!   node_idx_constr = [mesh.groups.quad8(grp_idx_s_q_boundaryPML).nodes, ...
+%!   node_idx_constr = [mesh.groups.quad8r(grp_idx_s_q_boundaryPML).nodes, ...
 %!                      mesh.groups.tria6h(grp_idx_s_t_boundaryPML).nodes];
 %!   empty_cell = cell(1, 2);
 %!   mesh.material_data = struct("E", empty_cell, ...

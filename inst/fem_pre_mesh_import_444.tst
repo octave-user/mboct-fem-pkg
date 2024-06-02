@@ -65,7 +65,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   mesh.materials.iso20r = zeros(rows(mesh.elements.iso20r), 1, "int32");
@@ -93,7 +93,7 @@
 %!   mesh.material_data(2).rho = 8900;
 %!   mesh.material_data(2).gamma = CTEi;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   load_case.locked_dof(mesh.groups.quad8(find([[mesh.groups.quad8].id] == 3)).nodes, :) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(find([[mesh.groups.quad8r].id] == 3)).nodes, :) = true;
 %!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
@@ -109,8 +109,8 @@
 %!                                    [FEM_VEC_STRESS_CAUCH], ...
 %!                                    load_case, ...
 %!                                    sol_stat);
-%!   grp_id_load = find([mesh.groups.quad8.id] == 4);
-%!   Uz = mean(sol_stat.def(mesh.groups.quad8(grp_id_load).nodes, 3));
+%!   grp_id_load = find([mesh.groups.quad8r.id] == 4);
+%!   Uz = mean(sol_stat.def(mesh.groups.quad8r(grp_id_load).nodes, 3));
 %!   tol = 1e-2;
 %!   assert_simple(Uz, Uz_ref, tol * abs(Uz_ref));
 %! unwind_protect_cleanup

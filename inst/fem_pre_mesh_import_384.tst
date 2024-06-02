@@ -66,7 +66,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"quad8", "iso20r"};
+%!   opt_msh.elem_type = {"quad8r", "iso20r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   if (~do_rotate)
@@ -81,7 +81,7 @@
 %!     group_defs(1).geometry.ymax = b;
 %!     group_defs(1).geometry.zmin = 0;
 %!     group_defs(1).geometry.zmax = c;
-%!     group_defs(1).elem_type = "quad8";
+%!     group_defs(1).elem_type = "quad8r";
 %!     group_defs(2).id = 2;
 %!     group_defs(2).name = "cylinder1";
 %!     group_defs(2).R = [-1, 0, 0;
@@ -93,7 +93,7 @@
 %!     group_defs(2).geometry.rmax = 0.5 * c;
 %!     group_defs(2).geometry.zmin = -0.5 * b;
 %!     group_defs(2).geometry.zmax = 0.5 * b;
-%!     group_defs(2).elem_type = "quad8";
+%!     group_defs(2).elem_type = "quad8r";
 %!     group_defs(3).id = 3;
 %!     group_defs(3).name = "cylinder2";
 %!     group_defs(3).R = [-1, 0, 0;
@@ -105,7 +105,7 @@
 %!     group_defs(3).geometry.rmax = 0.5 * c;
 %!     group_defs(3).geometry.zmin = -0.5 * b;
 %!     group_defs(3).geometry.zmax = 0.5 * b;
-%!     group_defs(3).elem_type = "quad8";
+%!     group_defs(3).elem_type = "quad8r";
 %!     group_defs(4).id = 4;
 %!     group_defs(4).name = "box2";
 %!     group_defs(4).R = eye(3);
@@ -117,27 +117,27 @@
 %!     group_defs(4).geometry.ymax = 0.5 * b;
 %!     group_defs(4).geometry.zmin = -0.5 * c;
 %!     group_defs(4).geometry.zmax = 0.5 * c;
-%!     group_defs(4).elem_type = "quad8";
+%!     group_defs(4).elem_type = "quad8r";
 %!     groups = fem_pre_mesh_groups_create(mesh, group_defs, sqrt(eps));
-%!     assert_simple(numel(groups.quad8), 4);
-%!     assert_simple([groups.quad8.id], [group_defs.id]);
-%!     assert_simple(sort(groups.quad8(1).nodes), sort(mesh.groups.quad8(1).nodes));
-%!     assert_simple(sort(groups.quad8(2).nodes), sort(mesh.groups.quad8(1).nodes));
-%!     assert_simple(sort(groups.quad8(3).nodes), sort(mesh.groups.quad8(2).nodes));
-%!     assert_simple(sort(groups.quad8(4).nodes), sort(mesh.groups.quad8(2).nodes));
-%!     assert_simple(groups.quad8(1).elements, mesh.groups.quad8(1).elements);
-%!     assert_simple(groups.quad8(2).elements, mesh.groups.quad8(1).elements);
-%!     assert_simple(groups.quad8(3).elements, mesh.groups.quad8(2).elements);
-%!     assert_simple(groups.quad8(4).elements, mesh.groups.quad8(2).elements);
+%!     assert_simple(numel(groups.quad8r), 4);
+%!     assert_simple([groups.quad8r.id], [group_defs.id]);
+%!     assert_simple(sort(groups.quad8r(1).nodes), sort(mesh.groups.quad8r(1).nodes));
+%!     assert_simple(sort(groups.quad8r(2).nodes), sort(mesh.groups.quad8r(1).nodes));
+%!     assert_simple(sort(groups.quad8r(3).nodes), sort(mesh.groups.quad8r(2).nodes));
+%!     assert_simple(sort(groups.quad8r(4).nodes), sort(mesh.groups.quad8r(2).nodes));
+%!     assert_simple(groups.quad8r(1).elements, mesh.groups.quad8r(1).elements);
+%!     assert_simple(groups.quad8r(2).elements, mesh.groups.quad8r(1).elements);
+%!     assert_simple(groups.quad8r(3).elements, mesh.groups.quad8r(2).elements);
+%!     assert_simple(groups.quad8r(4).elements, mesh.groups.quad8r(2).elements);
 %!   endif
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   load_case.locked_dof(mesh.groups.quad8(find([[mesh.groups.quad8].id] == 1)).nodes, :) = true;
-%!   load_case.pressure.quad8.elements = mesh.elements.quad8(mesh.groups.quad8(find([mesh.groups.quad8.id] == 2)).elements, :);
-%!   Xp = mesh.nodes(load_case.pressure.quad8.elements, 1:3);
-%!   xp = reshape(Xp(:, 1), rows(load_case.pressure.quad8.elements), columns(load_case.pressure.quad8.elements));
-%!   yp = reshape(Xp(:, 2), rows(load_case.pressure.quad8.elements), columns(load_case.pressure.quad8.elements));
-%!   zp = reshape(Xp(:, 3), rows(load_case.pressure.quad8.elements), columns(load_case.pressure.quad8.elements));
-%!   load_case.pressure.quad8.p = p / 2 * (yp / b + zp / c); #repmat(p, rows(load_case.pressure.quad8.elements), columns(load_case.pressure.quad8.elements));
+%!   load_case.locked_dof(mesh.groups.quad8r(find([[mesh.groups.quad8r].id] == 1)).nodes, :) = true;
+%!   load_case.pressure.quad8r.elements = mesh.elements.quad8r(mesh.groups.quad8r(find([mesh.groups.quad8r.id] == 2)).elements, :);
+%!   Xp = mesh.nodes(load_case.pressure.quad8r.elements, 1:3);
+%!   xp = reshape(Xp(:, 1), rows(load_case.pressure.quad8r.elements), columns(load_case.pressure.quad8r.elements));
+%!   yp = reshape(Xp(:, 2), rows(load_case.pressure.quad8r.elements), columns(load_case.pressure.quad8r.elements));
+%!   zp = reshape(Xp(:, 3), rows(load_case.pressure.quad8r.elements), columns(load_case.pressure.quad8r.elements));
+%!   load_case.pressure.quad8r.p = p / 2 * (yp / b + zp / c); #repmat(p, rows(load_case.pressure.quad8r.elements), columns(load_case.pressure.quad8r.elements));
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
 %!   E = 210000e6;
 %!   nu = 0.3;
@@ -167,8 +167,8 @@
 %!                                    load_case, ...
 %!                                    sol_stat);
 %!   sol_stat_lumped = fem_sol_static(mesh, dof_map, setfield(mat_ass, "R", mat_ass.Rlumped));
-%!   X = mesh.nodes(unique(load_case.pressure.quad8.elements), 1:3).';
-%!   dof_idx = dof_map.ndof(unique(load_case.pressure.quad8.elements), 1:3);
+%!   X = mesh.nodes(unique(load_case.pressure.quad8r.elements), 1:3).';
+%!   dof_idx = dof_map.ndof(unique(load_case.pressure.quad8r.elements), 1:3);
 %!   F_con = full(mat_ass.R(dof_idx)).';
 %!   F_lumped = full(mat_ass.Rlumped(dof_idx)).';
 %!   M_con = cross(X, F_con);
@@ -214,8 +214,8 @@
 %!     grid on;
 %!     grid minor on;
 %!     title('undeformed mesh');
-%!     opts_plot.elem_types = {"quad8", "iso20r"};
-%!     opts_plot.elem_groups.quad8 = [mesh.groups.quad8.id];
+%!     opts_plot.elem_types = {"quad8r", "iso20r"};
+%!     opts_plot.elem_groups.quad8r = [mesh.groups.quad8r.id];
 %!     opts_plot.elem_groups.iso20r = [mesh.groups.iso20r.id];
 %!     for i=1:min(number_of_modes, length(sol_eig.f))
 %!       figure("visible", "off");

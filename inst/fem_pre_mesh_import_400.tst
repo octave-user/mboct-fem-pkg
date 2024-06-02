@@ -61,16 +61,16 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp_x = find([[mesh.groups.quad8].id] == 4);
-%!   grp_id_clamp_y = find([[mesh.groups.quad8].id] == 1);
-%!   grp_id_clamp_z = find([[mesh.groups.quad8].id] == 5);
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_x).nodes, 1) = true;
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_y).nodes, 2) = true;
-%!   load_case.locked_dof(mesh.groups.quad8(grp_id_clamp_z).nodes, 3) = true;
+%!   grp_id_clamp_x = find([[mesh.groups.quad8r].id] == 4);
+%!   grp_id_clamp_y = find([[mesh.groups.quad8r].id] == 1);
+%!   grp_id_clamp_z = find([[mesh.groups.quad8r].id] == 5);
+%!   load_case.locked_dof(mesh.groups.quad8r(grp_id_clamp_x).nodes, 1) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(grp_id_clamp_y).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(grp_id_clamp_z).nodes, 3) = true;
 %!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
 %!   E = 210000e6;
 %!   nu = 0.3;

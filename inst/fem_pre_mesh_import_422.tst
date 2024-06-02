@@ -147,20 +147,20 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v1 = find([mesh.groups.iso20r.id] == 1);
 %!   grp_idx_v2 = find([mesh.groups.iso20r.id] == 2);
 %!   grp_idx_v3 = find([mesh.groups.iso20r.id] == 3);
-%!   grp_idx_s1 = find([mesh.groups.quad8.id] == 4);
-%!   grp_idx_s2 = find([mesh.groups.quad8.id] == 5);
-%!   grp_idx_s3 = find([mesh.groups.quad8.id] == 6);
-%!   grp_idx_s4 = find([mesh.groups.quad8.id] == 7);
-%!   grp_idx_s5 = find([mesh.groups.quad8.id] == 8);
-%!   grp_idx_s6 = find([mesh.groups.quad8.id] == 9);
-%!   grp_idx_s7 = find([mesh.groups.quad8.id] == 10);
-%!   grp_idx_s8 = find([mesh.groups.quad8.id] == 11);
+%!   grp_idx_s1 = find([mesh.groups.quad8r.id] == 4);
+%!   grp_idx_s2 = find([mesh.groups.quad8r.id] == 5);
+%!   grp_idx_s3 = find([mesh.groups.quad8r.id] == 6);
+%!   grp_idx_s4 = find([mesh.groups.quad8r.id] == 7);
+%!   grp_idx_s5 = find([mesh.groups.quad8r.id] == 8);
+%!   grp_idx_s6 = find([mesh.groups.quad8r.id] == 9);
+%!   grp_idx_s7 = find([mesh.groups.quad8r.id] == 10);
+%!   grp_idx_s8 = find([mesh.groups.quad8r.id] == 11);
 %!   mesh.materials.iso20r = zeros(rows(mesh.elements.iso20r), 1, "int32");
 %!   mesh.materials.iso20r(mesh.groups.iso20r(grp_idx_v1).elements) = 1;
 %!   mesh.materials.iso20r(mesh.groups.iso20r(grp_idx_v2).elements) = 2;
@@ -177,8 +177,8 @@
 %!   mesh.material_data(2).rho = rho2;
 %!   mesh.material_data(3).c = c3;
 %!   mesh.material_data(3).rho = rho3;
-%!   mesh.elements.fluid_struct_interface.quad8 = mesh.elements.quad8([[mesh.groups.quad8([grp_idx_s2, grp_idx_s3])].elements], :);
-%!   constr_nodes = mesh.groups.quad8(grp_idx_s1).nodes;
+%!   mesh.elements.fluid_struct_interface.quad8r = mesh.elements.quad8r([[mesh.groups.quad8r([grp_idx_s2, grp_idx_s3])].elements], :);
+%!   constr_nodes = mesh.groups.quad8r(grp_idx_s1).nodes;
 %!   mesh.elements.acoustic_constr = struct("C", mat2cell(ones(1, numel(constr_nodes)), 1, ones(numel(constr_nodes), 1)), ...
 %!                                          "nodes", mat2cell(constr_nodes, 1, ones(numel(constr_nodes), 1)), ...
 %!                                          "scale", mat2cell(repmat(1/omega,1,numel(constr_nodes)), 1, ones(numel(constr_nodes), 1)));
@@ -186,11 +186,11 @@
 %!   p_constr = repmat(p(r0, 0), 1, numel(constr_nodes));
 %!   load_case(1).acoustic_constr = struct("p", mat2cell(real(p_constr), 1, ones(1, numel(p_constr))));
 %!   load_case(2).acoustic_constr = struct("p", mat2cell(imag(p_constr), 1, ones(1, numel(p_constr))));
-%!   mesh.elements.acoustic_impedance.quad8.nodes = mesh.elements.quad8(mesh.groups.quad8(grp_idx_s4).elements, :);
-%!   mesh.elements.acoustic_impedance.quad8.z = repmat(z3, size(mesh.elements.acoustic_impedance.quad8.nodes));
-%!   mesh.materials.acoustic_impedance.quad8 = repmat(int32(3), rows(mesh.elements.acoustic_impedance.quad8.nodes), 1);
-%!   elemid = [[mesh.groups.quad8([grp_idx_s5,grp_idx_s6,grp_idx_s7,grp_idx_s8])].elements];
-%!   nodeid = mesh.elements.quad8(elemid, :);
+%!   mesh.elements.acoustic_impedance.quad8r.nodes = mesh.elements.quad8r(mesh.groups.quad8r(grp_idx_s4).elements, :);
+%!   mesh.elements.acoustic_impedance.quad8r.z = repmat(z3, size(mesh.elements.acoustic_impedance.quad8r.nodes));
+%!   mesh.materials.acoustic_impedance.quad8r = repmat(int32(3), rows(mesh.elements.acoustic_impedance.quad8r.nodes), 1);
+%!   elemid = [[mesh.groups.quad8r([grp_idx_s5,grp_idx_s6,grp_idx_s7,grp_idx_s8])].elements];
+%!   nodeid = mesh.elements.quad8r(elemid, :);
 %!   C = zeros(numel(nodeid), 6);
 %!   nodes = zeros(numel(nodeid), 1, "int32");
 %!   idxn1 = int32([2, 3, 4, 1, 2, 3, 4, 1]);

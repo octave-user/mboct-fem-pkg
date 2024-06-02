@@ -59,7 +59,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt_msh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
 %!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
 %!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
@@ -131,12 +131,12 @@
 %!   thetae = [100, 200];
 %!   x = mesh.nodes(:, 1);
 %!   theta_s = thetae(1) + (thetae(2) - thetae(1)) / (2 * (a + b)) * (x + a + b);
-%!   group_idx_theta = find([[mesh.groups.quad8].id] == 1);
-%!   group_idx_master = find([[mesh.groups.quad8].id] == 2);
-%!   group_idx_slave = find([[mesh.groups.quad8].id] == 3);
-%!   nodes_constr = unique([[mesh.groups.quad8(group_idx_theta)].nodes]);
-%!   elem_constr.sfncon8.master = mesh.elements.quad8(mesh.groups.quad8(group_idx_master).elements, :);
-%!   elem_constr.sfncon8.slave = mesh.groups.quad8(group_idx_slave).nodes(:);
+%!   group_idx_theta = find([[mesh.groups.quad8r].id] == 1);
+%!   group_idx_master = find([[mesh.groups.quad8r].id] == 2);
+%!   group_idx_slave = find([[mesh.groups.quad8r].id] == 3);
+%!   nodes_constr = unique([[mesh.groups.quad8r(group_idx_theta)].nodes]);
+%!   elem_constr.sfncon8.master = mesh.elements.quad8r(mesh.groups.quad8r(group_idx_master).elements, :);
+%!   elem_constr.sfncon8.slave = mesh.groups.quad8r(group_idx_slave).nodes(:);
 %!   elem_constr.sfncon8.maxdist = 1e-4 * a;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
