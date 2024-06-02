@@ -71,7 +71,7 @@
 %!   end_unwind_protect
 %!   opt.mesh.element_size = param.h;
 %!   opt.mesh.jacobian_range = [0.5, 1.5];
-%!   opt.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
+%!   opt.mesh.elem_type = {"iso20r", "quad8", "penta15", "tria6h"};
 %!   mesh = fem_pre_mesh_unstruct_create(geo_file, param, opt);
 %!   mesh.material_data(1).rho = rho1;
 %!   mesh.material_data(1).C = fem_pre_mat_isotropic(E1, nu1);

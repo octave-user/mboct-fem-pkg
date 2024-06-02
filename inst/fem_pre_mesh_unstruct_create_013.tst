@@ -70,6 +70,7 @@
 %!     endif
 %!   end_unwind_protect
 %!   opt.mesh.order = 2;
+%!   opt.mesh.elem_type = {"iso20r", "penta15", "quad8", "tria6h"};
 %!   mesh = fem_pre_mesh_unstruct_create(geo_file, geo, opt);
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
