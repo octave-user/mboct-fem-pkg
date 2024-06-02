@@ -33,7 +33,7 @@
 %!     endif
 %!     F = alpha * load.p * A * [cos(Phi); sin(Phi); 0];
 %!   endif
-%!   if ((t == 1 || t == 0) && r == 1)
+%!   if (t == 0)
 %!     locked = true(3, 1);
 %!   endif
 %! endfunction
@@ -46,15 +46,16 @@
 %!   endif
 %! endfunction
 %!
-%! geometry.mesh_size.r = linspace(0, 1, 5);
-%! geometry.mesh_size.s = linspace(0, 1, 16);
-%! geometry.mesh_size.t = linspace(0, 1, 10);
+%! h = 1e-3;
 %! geometry.user_data.cylinder.r1 = 2e-3;
 %! geometry.user_data.cylinder.r2 = 7e-3;
 %! geometry.user_data.cylinder.z1 = -8e-3;
 %! geometry.user_data.cylinder.z2 = 8e-3;
 %! geometry.user_data.cylinder.Phi1 = 0;
-%! geometry.user_data.cylinder.Phi2 = 2*pi;
+%! geometry.user_data.cylinder.Phi2 = pi/2;
+%! geometry.mesh_size.r = linspace(0, 1, ceil(abs(geometry.user_data.cylinder.r2 - geometry.user_data.cylinder.r1) / h));
+%! geometry.mesh_size.s = linspace(0, 1, ceil(abs(geometry.user_data.cylinder.Phi2 - geometry.user_data.cylinder.Phi1) * geometry.user_data.cylinder.r2 / h));
+%! geometry.mesh_size.t = linspace(0, 1, ceil(abs(geometry.user_data.cylinder.z2 - geometry.user_data.cylinder.z1) / h));
 %! geometry.sewing.tolerance = sqrt(eps) * geometry.user_data.cylinder.r2;
 %! geometry.spatial_coordinates = @(r, s, t, varargin) feval("cylinder_geo", geometry.user_data.cylinder, r, s, t, varargin);
 %! geometry.material_selector = @(r, s, t, varargin) int32(1);

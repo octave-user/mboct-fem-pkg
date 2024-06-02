@@ -11,8 +11,8 @@
 %! param.number_of_modes = 10;
 %! param.Udyn = eye(3) / SI_unit_meter;
 %! param.fmin = 0 / (SI_unit_second^-1);
-%! param.fmax = 15000 / (SI_unit_second^-1);
-%! param.num_freq = 1000;
+%! param.fmax = 1500 / (SI_unit_second^-1);
+%! param.num_freq = 100;
 %! geometry(1).user_data.helspr.L = 25.8e-3 / SI_unit_meter;
 %! geometry(1).user_data.helspr.Di = 12.12e-3 / SI_unit_meter;
 %! geometry(1).user_data.helspr.d = 1.3e-3 / SI_unit_meter;
