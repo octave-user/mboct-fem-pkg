@@ -3602,11 +3602,11 @@ protected:
           for (octave_idx_type j = 0; j < iNumNodes; ++j) {
                for (octave_idx_type i = 0; i < iNumDir; ++i) {
                     double Bt_ij = 0.;
-                    // Bt:invJ.Bt$
-                    // Bt:invJ.transpose(Hd)$
+
                     for (octave_idx_type k = 0; k < iNumDir; ++k) {
                          Bt_ij += invJ.xelem(i, k) * Hd.xelem(j, k);
                     }
+
                     Bt.xelem(i, j) = Bt_ij;
                }
           }
@@ -5719,48 +5719,6 @@ protected:
           Hd.xelem(23) = -((r+1)*(1-s))/8.0E+0;
      }
 
-     // virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
-     //      FEM_ASSERT(rv.numel() == 3);
-     //      FEM_ASSERT(J.rows() == 3);
-     //      FEM_ASSERT(J.columns() == 3);
-     //      FEM_ASSERT(invJ.rows() == 3);
-     //      FEM_ASSERT(invJ.columns() == 3);
-     //      FEM_ASSERT(Bt.rows() == 3);
-     //      FEM_ASSERT(Bt.columns() == 8);
-
-     //      const double r = rv.xelem(0);
-     //      const double s = rv.xelem(1);
-     //      const double t = rv.xelem(2);
-
-     //      Inverse3x3(J, detJ, invJ);
-
-     //      // temperature gradient matrix Bt
-     //      Bt.xelem(0) = (invJ.xelem(0)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(3)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(6)*(r+1)*(s+1))/8.0E+0;
-     //      Bt.xelem(1) = (invJ.xelem(1)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(4)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(7)*(r+1)*(s+1))/8.0E+0;
-     //      Bt.xelem(2) = (invJ.xelem(2)*(s+1)*(t+1))/8.0E+0+(invJ.xelem(5)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(8)*(r+1)*(s+1))/8.0E+0;
-     //      Bt.xelem(3) = (-(invJ.xelem(0)*(s+1)*(t+1))/8.0E+0)+(invJ.xelem(3)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(6)*(1-r)*(s+1))/8.0E+0;
-     //      Bt.xelem(4) = (-(invJ.xelem(1)*(s+1)*(t+1))/8.0E+0)+(invJ.xelem(4)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(7)*(1-r)*(s+1))/8.0E+0;
-     //      Bt.xelem(5) = (-(invJ.xelem(2)*(s+1)*(t+1))/8.0E+0)+(invJ.xelem(5)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(8)*(1-r)*(s+1))/8.0E+0;
-     //      Bt.xelem(6) = (-(invJ.xelem(0)*(1-s)*(t+1))/8.0E+0)-(invJ.xelem(3)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(6)*(1-r)*(1-s))/8.0E+0;
-     //      Bt.xelem(7) = (-(invJ.xelem(1)*(1-s)*(t+1))/8.0E+0)-(invJ.xelem(4)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(7)*(1-r)*(1-s))/8.0E+0;
-     //      Bt.xelem(8) = (-(invJ.xelem(2)*(1-s)*(t+1))/8.0E+0)-(invJ.xelem(5)*(1-r)*(t+1))/8.0E+0+(invJ.xelem(8)*(1-r)*(1-s))/8.0E+0;
-     //      Bt.xelem(9) = (invJ.xelem(0)*(1-s)*(t+1))/8.0E+0-(invJ.xelem(3)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(6)*(r+1)*(1-s))/8.0E+0;
-     //      Bt.xelem(10) = (invJ.xelem(1)*(1-s)*(t+1))/8.0E+0-(invJ.xelem(4)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(7)*(r+1)*(1-s))/8.0E+0;
-     //      Bt.xelem(11) = (invJ.xelem(2)*(1-s)*(t+1))/8.0E+0-(invJ.xelem(5)*(r+1)*(t+1))/8.0E+0+(invJ.xelem(8)*(r+1)*(1-s))/8.0E+0;
-     //      Bt.xelem(12) = (invJ.xelem(0)*(s+1)*(1-t))/8.0E+0+(invJ.xelem(3)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(6)*(r+1)*(s+1))/8.0E+0;
-     //      Bt.xelem(13) = (invJ.xelem(1)*(s+1)*(1-t))/8.0E+0+(invJ.xelem(4)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(7)*(r+1)*(s+1))/8.0E+0;
-     //      Bt.xelem(14) = (invJ.xelem(2)*(s+1)*(1-t))/8.0E+0+(invJ.xelem(5)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(8)*(r+1)*(s+1))/8.0E+0;
-     //      Bt.xelem(15) = (-(invJ.xelem(0)*(s+1)*(1-t))/8.0E+0)+(invJ.xelem(3)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(6)*(1-r)*(s+1))/8.0E+0;
-     //      Bt.xelem(16) = (-(invJ.xelem(1)*(s+1)*(1-t))/8.0E+0)+(invJ.xelem(4)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(7)*(1-r)*(s+1))/8.0E+0;
-     //      Bt.xelem(17) = (-(invJ.xelem(2)*(s+1)*(1-t))/8.0E+0)+(invJ.xelem(5)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(8)*(1-r)*(s+1))/8.0E+0;
-     //      Bt.xelem(18) = (-(invJ.xelem(0)*(1-s)*(1-t))/8.0E+0)-(invJ.xelem(3)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(6)*(1-r)*(1-s))/8.0E+0;
-     //      Bt.xelem(19) = (-(invJ.xelem(1)*(1-s)*(1-t))/8.0E+0)-(invJ.xelem(4)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(7)*(1-r)*(1-s))/8.0E+0;
-     //      Bt.xelem(20) = (-(invJ.xelem(2)*(1-s)*(1-t))/8.0E+0)-(invJ.xelem(5)*(1-r)*(1-t))/8.0E+0-(invJ.xelem(8)*(1-r)*(1-s))/8.0E+0;
-     //      Bt.xelem(21) = (invJ.xelem(0)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(3)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(6)*(r+1)*(1-s))/8.0E+0;
-     //      Bt.xelem(22) = (invJ.xelem(1)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(4)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(7)*(r+1)*(1-s))/8.0E+0;
-     //      Bt.xelem(23) = (invJ.xelem(2)*(1-s)*(1-t))/8.0E+0-(invJ.xelem(5)*(r+1)*(1-t))/8.0E+0-(invJ.xelem(8)*(r+1)*(1-s))/8.0E+0;
-     // }
-
      virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const override final {
           return InterpGaussToNodalTpl<double>(eMatType, taug);
      }
@@ -6015,85 +5973,6 @@ private:
           Hs.xelem(irow + nrows * 18) = ((1-r)*(1-s)*(1-t2))/4.0E+0;
           Hs.xelem(irow + nrows * 19) = ((r+1)*(1-s)*(1-t2))/4.0E+0;
      }
-
-     // virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
-     //      FEM_ASSERT(Bt.rows() == 3);
-     //      FEM_ASSERT(Bt.columns() == 20);
-     //      FEM_ASSERT(J.rows() == 3);
-     //      FEM_ASSERT(J.columns() == 3);
-     //      FEM_ASSERT(invJ.rows() == 3);
-     //      FEM_ASSERT(invJ.columns() == 3);
-
-     //      const double r = rv.xelem(0);
-     //      const double s = rv.xelem(1);
-     //      const double t = rv.xelem(2);
-     //      const double r2 = r * r;
-     //      const double s2 = s * s;
-     //      const double t2 = t * t;
-
-     //      Inverse3x3(J, detJ, invJ);
-
-     //      Bt.xelem(0) = invJ.xelem(0)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(3)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(6)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(1) = invJ.xelem(1)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(4)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(7)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(2) = invJ.xelem(2)*(((s+1)*(t+1))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(5)*(((r+1)*(t+1))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(8)*(((r+1)*(s+1))/8.0E+0-((-((r+1)*(s+1)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(3) = invJ.xelem(0)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)-((s+1)*(t+1))/8.0E+0)+invJ.xelem(3)*(((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(6)*(((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(4) = invJ.xelem(1)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)-((s+1)*(t+1))/8.0E+0)+invJ.xelem(4)*(((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(7)*(((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(5) = invJ.xelem(2)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(s+1)*(t+1))/2.0E+0)/2.0E+0)-((s+1)*(t+1))/8.0E+0)+invJ.xelem(5)*(((1-r)*(t+1))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(t+1))/2.0E+0+((1-r2)*(t+1))/4.0E+0)/2.0E+0)+invJ.xelem(8)*(((1-r)*(s+1))/8.0E+0-((-((1-r)*(s+1)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(s+1))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(6) = invJ.xelem(0)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)-((1-s)*(t+1))/8.0E+0)+invJ.xelem(3)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0)+invJ.xelem(6)*(((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(7) = invJ.xelem(1)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)-((1-s)*(t+1))/8.0E+0)+invJ.xelem(4)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0)+invJ.xelem(7)*(((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(8) = invJ.xelem(2)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)-((1-s)*(t+1))/8.0E+0)+invJ.xelem(5)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((1-r)*(t+1))/8.0E+0)+invJ.xelem(8)*(((1-r)*(1-s))/8.0E+0-((-((1-r)*(1-s)*t)/2.0E+0)+((1-r)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(9) = invJ.xelem(0)*(((1-s)*(t+1))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(3)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0)+invJ.xelem(6)*(((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(10) = invJ.xelem(1)*(((1-s)*(t+1))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(4)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0)+invJ.xelem(7)*(((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(11) = invJ.xelem(2)*(((1-s)*(t+1))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(t+1))/4.0E+0-(r*(1-s)*(t+1))/2.0E+0)/2.0E+0)+invJ.xelem(5)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(t+1))/2.0E+0-((1-r2)*(t+1))/4.0E+0)/2.0E+0)-((r+1)*(t+1))/8.0E+0)+invJ.xelem(8)*(((r+1)*(1-s))/8.0E+0-((-((r+1)*(1-s)*t)/2.0E+0)+((r+1)*(1-s2))/4.0E+0+((1-r2)*(1-s))/4.0E+0)/2.0E+0);
-     //      Bt.xelem(12) = invJ.xelem(0)*(((s+1)*(1-t))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)+invJ.xelem(3)*(((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+invJ.xelem(6)*((-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0);
-     //      Bt.xelem(13) = invJ.xelem(1)*(((s+1)*(1-t))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)+invJ.xelem(4)*(((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+invJ.xelem(7)*((-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0);
-     //      Bt.xelem(14) = invJ.xelem(2)*(((s+1)*(1-t))/8.0E+0-(((s+1)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)+invJ.xelem(5)*(((r+1)*(1-t))/8.0E+0-(((r+1)*(1-t2))/4.0E+0-((r+1)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+invJ.xelem(8)*((-((-((r+1)*(s+1)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((r+1)*(s+1))/8.0E+0);
-     //      Bt.xelem(15) = invJ.xelem(0)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)-((s+1)*(1-t))/8.0E+0)+invJ.xelem(3)*(((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+invJ.xelem(6)*((-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0);
-     //      Bt.xelem(16) = invJ.xelem(1)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)-((s+1)*(1-t))/8.0E+0)+invJ.xelem(4)*(((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+invJ.xelem(7)*((-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0);
-     //      Bt.xelem(17) = invJ.xelem(2)*((-((-((s+1)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(s+1)*(1-t))/2.0E+0)/2.0E+0)-((s+1)*(1-t))/8.0E+0)+invJ.xelem(5)*(((1-r)*(1-t))/8.0E+0-(((1-r)*(1-t2))/4.0E+0-((1-r)*s*(1-t))/2.0E+0+((1-r2)*(1-t))/4.0E+0)/2.0E+0)+invJ.xelem(8)*((-((-((1-r)*(s+1)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(s+1))/4.0E+0)/2.0E+0)-((1-r)*(s+1))/8.0E+0);
-     //      Bt.xelem(18) = invJ.xelem(0)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)-((1-s)*(1-t))/8.0E+0)+invJ.xelem(3)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0)+invJ.xelem(6)*((-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0);
-     //      Bt.xelem(19) = invJ.xelem(1)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)-((1-s)*(1-t))/8.0E+0)+invJ.xelem(4)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0)+invJ.xelem(7)*((-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0);
-     //      Bt.xelem(20) = invJ.xelem(2)*((-((-((1-s)*(1-t2))/4.0E+0)-((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)-((1-s)*(1-t))/8.0E+0)+invJ.xelem(5)*((-((-((1-r)*(1-t2))/4.0E+0)-((1-r)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((1-r)*(1-t))/8.0E+0)+invJ.xelem(8)*((-((-((1-r)*(1-s)*t)/2.0E+0)-((1-r)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((1-r)*(1-s))/8.0E+0);
-     //      Bt.xelem(21) = invJ.xelem(0)*(((1-s)*(1-t))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)+invJ.xelem(3)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0)+invJ.xelem(6)*((-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0);
-     //      Bt.xelem(22) = invJ.xelem(1)*(((1-s)*(1-t))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)+invJ.xelem(4)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0)+invJ.xelem(7)*((-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0);
-     //      Bt.xelem(23) = invJ.xelem(2)*(((1-s)*(1-t))/8.0E+0-(((1-s)*(1-t2))/4.0E+0+((1-s2)*(1-t))/4.0E+0-(r*(1-s)*(1-t))/2.0E+0)/2.0E+0)+invJ.xelem(5)*((-((-((r+1)*(1-t2))/4.0E+0)-((r+1)*s*(1-t))/2.0E+0-((1-r2)*(1-t))/4.0E+0)/2.0E+0)-((r+1)*(1-t))/8.0E+0)+invJ.xelem(8)*((-((-((r+1)*(1-s)*t)/2.0E+0)-((r+1)*(1-s2))/4.0E+0-((1-r2)*(1-s))/4.0E+0)/2.0E+0)-((r+1)*(1-s))/8.0E+0);
-     //      Bt.xelem(24) = (-(invJ.xelem(0)*r*(s+1)*(t+1))/2.0E+0)+(invJ.xelem(3)*(1-r2)*(t+1))/4.0E+0+(invJ.xelem(6)*(1-r2)*(s+1))/4.0E+0;
-     //      Bt.xelem(25) = (-(invJ.xelem(1)*r*(s+1)*(t+1))/2.0E+0)+(invJ.xelem(4)*(1-r2)*(t+1))/4.0E+0+(invJ.xelem(7)*(1-r2)*(s+1))/4.0E+0;
-     //      Bt.xelem(26) = (-(invJ.xelem(2)*r*(s+1)*(t+1))/2.0E+0)+(invJ.xelem(5)*(1-r2)*(t+1))/4.0E+0+(invJ.xelem(8)*(1-r2)*(s+1))/4.0E+0;
-     //      Bt.xelem(27) = (-(invJ.xelem(0)*(1-s2)*(t+1))/4.0E+0)-(invJ.xelem(3)*(1-r)*s*(t+1))/2.0E+0+(invJ.xelem(6)*(1-r)*(1-s2))/4.0E+0;
-     //      Bt.xelem(28) = (-(invJ.xelem(1)*(1-s2)*(t+1))/4.0E+0)-(invJ.xelem(4)*(1-r)*s*(t+1))/2.0E+0+(invJ.xelem(7)*(1-r)*(1-s2))/4.0E+0;
-     //      Bt.xelem(29) = (-(invJ.xelem(2)*(1-s2)*(t+1))/4.0E+0)-(invJ.xelem(5)*(1-r)*s*(t+1))/2.0E+0+(invJ.xelem(8)*(1-r)*(1-s2))/4.0E+0;
-     //      Bt.xelem(30) = (-(invJ.xelem(0)*r*(1-s)*(t+1))/2.0E+0)-(invJ.xelem(3)*(1-r2)*(t+1))/4.0E+0+(invJ.xelem(6)*(1-r2)*(1-s))/4.0E+0;
-     //      Bt.xelem(31) = (-(invJ.xelem(1)*r*(1-s)*(t+1))/2.0E+0)-(invJ.xelem(4)*(1-r2)*(t+1))/4.0E+0+(invJ.xelem(7)*(1-r2)*(1-s))/4.0E+0;
-     //      Bt.xelem(32) = (-(invJ.xelem(2)*r*(1-s)*(t+1))/2.0E+0)-(invJ.xelem(5)*(1-r2)*(t+1))/4.0E+0+(invJ.xelem(8)*(1-r2)*(1-s))/4.0E+0;
-     //      Bt.xelem(33) = (invJ.xelem(0)*(1-s2)*(t+1))/4.0E+0-(invJ.xelem(3)*(r+1)*s*(t+1))/2.0E+0+(invJ.xelem(6)*(r+1)*(1-s2))/4.0E+0;
-     //      Bt.xelem(34) = (invJ.xelem(1)*(1-s2)*(t+1))/4.0E+0-(invJ.xelem(4)*(r+1)*s*(t+1))/2.0E+0+(invJ.xelem(7)*(r+1)*(1-s2))/4.0E+0;
-     //      Bt.xelem(35) = (invJ.xelem(2)*(1-s2)*(t+1))/4.0E+0-(invJ.xelem(5)*(r+1)*s*(t+1))/2.0E+0+(invJ.xelem(8)*(r+1)*(1-s2))/4.0E+0;
-     //      Bt.xelem(36) = (-(invJ.xelem(0)*r*(s+1)*(1-t))/2.0E+0)+(invJ.xelem(3)*(1-r2)*(1-t))/4.0E+0-(invJ.xelem(6)*(1-r2)*(s+1))/4.0E+0;
-     //      Bt.xelem(37) = (-(invJ.xelem(1)*r*(s+1)*(1-t))/2.0E+0)+(invJ.xelem(4)*(1-r2)*(1-t))/4.0E+0-(invJ.xelem(7)*(1-r2)*(s+1))/4.0E+0;
-     //      Bt.xelem(38) = (-(invJ.xelem(2)*r*(s+1)*(1-t))/2.0E+0)+(invJ.xelem(5)*(1-r2)*(1-t))/4.0E+0-(invJ.xelem(8)*(1-r2)*(s+1))/4.0E+0;
-     //      Bt.xelem(39) = (-(invJ.xelem(0)*(1-s2)*(1-t))/4.0E+0)-(invJ.xelem(3)*(1-r)*s*(1-t))/2.0E+0-(invJ.xelem(6)*(1-r)*(1-s2))/4.0E+0;
-     //      Bt.xelem(40) = (-(invJ.xelem(1)*(1-s2)*(1-t))/4.0E+0)-(invJ.xelem(4)*(1-r)*s*(1-t))/2.0E+0-(invJ.xelem(7)*(1-r)*(1-s2))/4.0E+0;
-     //      Bt.xelem(41) = (-(invJ.xelem(2)*(1-s2)*(1-t))/4.0E+0)-(invJ.xelem(5)*(1-r)*s*(1-t))/2.0E+0-(invJ.xelem(8)*(1-r)*(1-s2))/4.0E+0;
-     //      Bt.xelem(42) = (-(invJ.xelem(0)*r*(1-s)*(1-t))/2.0E+0)-(invJ.xelem(3)*(1-r2)*(1-t))/4.0E+0-(invJ.xelem(6)*(1-r2)*(1-s))/4.0E+0;
-     //      Bt.xelem(43) = (-(invJ.xelem(1)*r*(1-s)*(1-t))/2.0E+0)-(invJ.xelem(4)*(1-r2)*(1-t))/4.0E+0-(invJ.xelem(7)*(1-r2)*(1-s))/4.0E+0;
-     //      Bt.xelem(44) = (-(invJ.xelem(2)*r*(1-s)*(1-t))/2.0E+0)-(invJ.xelem(5)*(1-r2)*(1-t))/4.0E+0-(invJ.xelem(8)*(1-r2)*(1-s))/4.0E+0;
-     //      Bt.xelem(45) = (invJ.xelem(0)*(1-s2)*(1-t))/4.0E+0-(invJ.xelem(3)*(r+1)*s*(1-t))/2.0E+0-(invJ.xelem(6)*(r+1)*(1-s2))/4.0E+0;
-     //      Bt.xelem(46) = (invJ.xelem(1)*(1-s2)*(1-t))/4.0E+0-(invJ.xelem(4)*(r+1)*s*(1-t))/2.0E+0-(invJ.xelem(7)*(r+1)*(1-s2))/4.0E+0;
-     //      Bt.xelem(47) = (invJ.xelem(2)*(1-s2)*(1-t))/4.0E+0-(invJ.xelem(5)*(r+1)*s*(1-t))/2.0E+0-(invJ.xelem(8)*(r+1)*(1-s2))/4.0E+0;
-     //      Bt.xelem(48) = (invJ.xelem(0)*(s+1)*(1-t2))/4.0E+0+(invJ.xelem(3)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(6)*(r+1)*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(49) = (invJ.xelem(1)*(s+1)*(1-t2))/4.0E+0+(invJ.xelem(4)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(7)*(r+1)*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(50) = (invJ.xelem(2)*(s+1)*(1-t2))/4.0E+0+(invJ.xelem(5)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(8)*(r+1)*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(51) = (-(invJ.xelem(0)*(s+1)*(1-t2))/4.0E+0)+(invJ.xelem(3)*(1-r)*(1-t2))/4.0E+0-(invJ.xelem(6)*(1-r)*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(52) = (-(invJ.xelem(1)*(s+1)*(1-t2))/4.0E+0)+(invJ.xelem(4)*(1-r)*(1-t2))/4.0E+0-(invJ.xelem(7)*(1-r)*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(53) = (-(invJ.xelem(2)*(s+1)*(1-t2))/4.0E+0)+(invJ.xelem(5)*(1-r)*(1-t2))/4.0E+0-(invJ.xelem(8)*(1-r)*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(54) = (-(invJ.xelem(0)*(1-s)*(1-t2))/4.0E+0)-(invJ.xelem(3)*(1-r)*(1-t2))/4.0E+0-(invJ.xelem(6)*(1-r)*(1-s)*t)/2.0E+0;
-     //      Bt.xelem(55) = (-(invJ.xelem(1)*(1-s)*(1-t2))/4.0E+0)-(invJ.xelem(4)*(1-r)*(1-t2))/4.0E+0-(invJ.xelem(7)*(1-r)*(1-s)*t)/2.0E+0;
-     //      Bt.xelem(56) = (-(invJ.xelem(2)*(1-s)*(1-t2))/4.0E+0)-(invJ.xelem(5)*(1-r)*(1-t2))/4.0E+0-(invJ.xelem(8)*(1-r)*(1-s)*t)/2.0E+0;
-     //      Bt.xelem(57) = (invJ.xelem(0)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(3)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(6)*(r+1)*(1-s)*t)/2.0E+0;
-     //      Bt.xelem(58) = (invJ.xelem(1)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(4)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(7)*(r+1)*(1-s)*t)/2.0E+0;
-     //      Bt.xelem(59) = (invJ.xelem(2)*(1-s)*(1-t2))/4.0E+0-(invJ.xelem(5)*(r+1)*(1-t2))/4.0E+0-(invJ.xelem(8)*(r+1)*(1-s)*t)/2.0E+0;
-     // }
 
      static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
           switch (eMatType) {
@@ -6544,106 +6423,6 @@ private:
           Hs.xelem(26*nrows+irow) = (1-r2)*(1-s2)*(1-t2);
      }
 
-     // virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
-     //      FEM_ASSERT(Bt.rows() == 3);
-     //      FEM_ASSERT(Bt.columns() == 27);
-     //      FEM_ASSERT(J.rows() == 3);
-     //      FEM_ASSERT(J.columns() == 3);
-     //      FEM_ASSERT(invJ.rows() == 3);
-     //      FEM_ASSERT(invJ.columns() == 3);
-
-     //      const double r = rv.xelem(0);
-     //      const double s = rv.xelem(1);
-     //      const double t = rv.xelem(2);
-     //      const double r2 = r * r;
-     //      const double s2 = s * s;
-     //      const double t2 = t * t;
-
-     //      Inverse3x3(J, detJ, invJ);
-
-     //      Bt.xelem(0) = invJ.xelem(0)*((r*(s-1)*s*(t-1)*t)/8.0E+0+((r-1)*(s-1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(3)*(((r-1)*r*s*(t-1)*t)/8.0E+0+((r-1)*r*(s-1)*(t-1)*t)/8.0E+0)+invJ.xelem(6)*(((r-1)*r*(s-1)*s*t)/8.0E+0+((r-1)*r*(s-1)*s*(t-1))/8.0E+0);
-     //      Bt.xelem(1) = invJ.xelem(1)*((r*(s-1)*s*(t-1)*t)/8.0E+0+((r-1)*(s-1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(4)*(((r-1)*r*s*(t-1)*t)/8.0E+0+((r-1)*r*(s-1)*(t-1)*t)/8.0E+0)+invJ.xelem(7)*(((r-1)*r*(s-1)*s*t)/8.0E+0+((r-1)*r*(s-1)*s*(t-1))/8.0E+0);
-     //      Bt.xelem(2) = invJ.xelem(2)*((r*(s-1)*s*(t-1)*t)/8.0E+0+((r-1)*(s-1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(5)*(((r-1)*r*s*(t-1)*t)/8.0E+0+((r-1)*r*(s-1)*(t-1)*t)/8.0E+0)+invJ.xelem(8)*(((r-1)*r*(s-1)*s*t)/8.0E+0+((r-1)*r*(s-1)*s*(t-1))/8.0E+0);
-     //      Bt.xelem(3) = invJ.xelem(0)*(((r+1)*(s-1)*s*(t-1)*t)/8.0E+0+(r*(s-1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(3)*((r*(r+1)*s*(t-1)*t)/8.0E+0+(r*(r+1)*(s-1)*(t-1)*t)/8.0E+0)+invJ.xelem(6)*((r*(r+1)*(s-1)*s*t)/8.0E+0+(r*(r+1)*(s-1)*s*(t-1))/8.0E+0);
-     //      Bt.xelem(4) = invJ.xelem(1)*(((r+1)*(s-1)*s*(t-1)*t)/8.0E+0+(r*(s-1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(4)*((r*(r+1)*s*(t-1)*t)/8.0E+0+(r*(r+1)*(s-1)*(t-1)*t)/8.0E+0)+invJ.xelem(7)*((r*(r+1)*(s-1)*s*t)/8.0E+0+(r*(r+1)*(s-1)*s*(t-1))/8.0E+0);
-     //      Bt.xelem(5) = invJ.xelem(2)*(((r+1)*(s-1)*s*(t-1)*t)/8.0E+0+(r*(s-1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(5)*((r*(r+1)*s*(t-1)*t)/8.0E+0+(r*(r+1)*(s-1)*(t-1)*t)/8.0E+0)+invJ.xelem(8)*((r*(r+1)*(s-1)*s*t)/8.0E+0+(r*(r+1)*(s-1)*s*(t-1))/8.0E+0);
-     //      Bt.xelem(6) = invJ.xelem(0)*(((r+1)*s*(s+1)*(t-1)*t)/8.0E+0+(r*s*(s+1)*(t-1)*t)/8.0E+0)+invJ.xelem(3)*((r*(r+1)*(s+1)*(t-1)*t)/8.0E+0+(r*(r+1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(6)*((r*(r+1)*s*(s+1)*t)/8.0E+0+(r*(r+1)*s*(s+1)*(t-1))/8.0E+0);
-     //      Bt.xelem(7) = invJ.xelem(1)*(((r+1)*s*(s+1)*(t-1)*t)/8.0E+0+(r*s*(s+1)*(t-1)*t)/8.0E+0)+invJ.xelem(4)*((r*(r+1)*(s+1)*(t-1)*t)/8.0E+0+(r*(r+1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(7)*((r*(r+1)*s*(s+1)*t)/8.0E+0+(r*(r+1)*s*(s+1)*(t-1))/8.0E+0);
-     //      Bt.xelem(8) = invJ.xelem(2)*(((r+1)*s*(s+1)*(t-1)*t)/8.0E+0+(r*s*(s+1)*(t-1)*t)/8.0E+0)+invJ.xelem(5)*((r*(r+1)*(s+1)*(t-1)*t)/8.0E+0+(r*(r+1)*s*(t-1)*t)/8.0E+0)+invJ.xelem(8)*((r*(r+1)*s*(s+1)*t)/8.0E+0+(r*(r+1)*s*(s+1)*(t-1))/8.0E+0);
-     //      Bt.xelem(9) = invJ.xelem(0)*((r*s*(s+1)*(t-1)*t)/8.0E+0+((r-1)*s*(s+1)*(t-1)*t)/8.0E+0)+invJ.xelem(3)*(((r-1)*r*(s+1)*(t-1)*t)/8.0E+0+((r-1)*r*s*(t-1)*t)/8.0E+0)+invJ.xelem(6)*(((r-1)*r*s*(s+1)*t)/8.0E+0+((r-1)*r*s*(s+1)*(t-1))/8.0E+0);
-     //      Bt.xelem(10) = invJ.xelem(1)*((r*s*(s+1)*(t-1)*t)/8.0E+0+((r-1)*s*(s+1)*(t-1)*t)/8.0E+0)+invJ.xelem(4)*(((r-1)*r*(s+1)*(t-1)*t)/8.0E+0+((r-1)*r*s*(t-1)*t)/8.0E+0)+invJ.xelem(7)*(((r-1)*r*s*(s+1)*t)/8.0E+0+((r-1)*r*s*(s+1)*(t-1))/8.0E+0);
-     //      Bt.xelem(11) = invJ.xelem(2)*((r*s*(s+1)*(t-1)*t)/8.0E+0+((r-1)*s*(s+1)*(t-1)*t)/8.0E+0)+invJ.xelem(5)*(((r-1)*r*(s+1)*(t-1)*t)/8.0E+0+((r-1)*r*s*(t-1)*t)/8.0E+0)+invJ.xelem(8)*(((r-1)*r*s*(s+1)*t)/8.0E+0+((r-1)*r*s*(s+1)*(t-1))/8.0E+0);
-     //      Bt.xelem(12) = invJ.xelem(0)*((r*(s-1)*s*t*(t+1))/8.0E+0+((r-1)*(s-1)*s*t*(t+1))/8.0E+0)+invJ.xelem(3)*(((r-1)*r*s*t*(t+1))/8.0E+0+((r-1)*r*(s-1)*t*(t+1))/8.0E+0)+invJ.xelem(6)*(((r-1)*r*(s-1)*s*(t+1))/8.0E+0+((r-1)*r*(s-1)*s*t)/8.0E+0);
-     //      Bt.xelem(13) = invJ.xelem(1)*((r*(s-1)*s*t*(t+1))/8.0E+0+((r-1)*(s-1)*s*t*(t+1))/8.0E+0)+invJ.xelem(4)*(((r-1)*r*s*t*(t+1))/8.0E+0+((r-1)*r*(s-1)*t*(t+1))/8.0E+0)+invJ.xelem(7)*(((r-1)*r*(s-1)*s*(t+1))/8.0E+0+((r-1)*r*(s-1)*s*t)/8.0E+0);
-     //      Bt.xelem(14) = invJ.xelem(2)*((r*(s-1)*s*t*(t+1))/8.0E+0+((r-1)*(s-1)*s*t*(t+1))/8.0E+0)+invJ.xelem(5)*(((r-1)*r*s*t*(t+1))/8.0E+0+((r-1)*r*(s-1)*t*(t+1))/8.0E+0)+invJ.xelem(8)*(((r-1)*r*(s-1)*s*(t+1))/8.0E+0+((r-1)*r*(s-1)*s*t)/8.0E+0);
-     //      Bt.xelem(15) = invJ.xelem(0)*(((r+1)*(s-1)*s*t*(t+1))/8.0E+0+(r*(s-1)*s*t*(t+1))/8.0E+0)+invJ.xelem(3)*((r*(r+1)*s*t*(t+1))/8.0E+0+(r*(r+1)*(s-1)*t*(t+1))/8.0E+0)+invJ.xelem(6)*((r*(r+1)*(s-1)*s*(t+1))/8.0E+0+(r*(r+1)*(s-1)*s*t)/8.0E+0);
-     //      Bt.xelem(16) = invJ.xelem(1)*(((r+1)*(s-1)*s*t*(t+1))/8.0E+0+(r*(s-1)*s*t*(t+1))/8.0E+0)+invJ.xelem(4)*((r*(r+1)*s*t*(t+1))/8.0E+0+(r*(r+1)*(s-1)*t*(t+1))/8.0E+0)+invJ.xelem(7)*((r*(r+1)*(s-1)*s*(t+1))/8.0E+0+(r*(r+1)*(s-1)*s*t)/8.0E+0);
-     //      Bt.xelem(17) = invJ.xelem(2)*(((r+1)*(s-1)*s*t*(t+1))/8.0E+0+(r*(s-1)*s*t*(t+1))/8.0E+0)+invJ.xelem(5)*((r*(r+1)*s*t*(t+1))/8.0E+0+(r*(r+1)*(s-1)*t*(t+1))/8.0E+0)+invJ.xelem(8)*((r*(r+1)*(s-1)*s*(t+1))/8.0E+0+(r*(r+1)*(s-1)*s*t)/8.0E+0);
-     //      Bt.xelem(18) = invJ.xelem(0)*(((r+1)*s*(s+1)*t*(t+1))/8.0E+0+(r*s*(s+1)*t*(t+1))/8.0E+0)+invJ.xelem(3)*((r*(r+1)*(s+1)*t*(t+1))/8.0E+0+(r*(r+1)*s*t*(t+1))/8.0E+0)+invJ.xelem(6)*((r*(r+1)*s*(s+1)*(t+1))/8.0E+0+(r*(r+1)*s*(s+1)*t)/8.0E+0);
-     //      Bt.xelem(19) = invJ.xelem(1)*(((r+1)*s*(s+1)*t*(t+1))/8.0E+0+(r*s*(s+1)*t*(t+1))/8.0E+0)+invJ.xelem(4)*((r*(r+1)*(s+1)*t*(t+1))/8.0E+0+(r*(r+1)*s*t*(t+1))/8.0E+0)+invJ.xelem(7)*((r*(r+1)*s*(s+1)*(t+1))/8.0E+0+(r*(r+1)*s*(s+1)*t)/8.0E+0);
-     //      Bt.xelem(20) = invJ.xelem(2)*(((r+1)*s*(s+1)*t*(t+1))/8.0E+0+(r*s*(s+1)*t*(t+1))/8.0E+0)+invJ.xelem(5)*((r*(r+1)*(s+1)*t*(t+1))/8.0E+0+(r*(r+1)*s*t*(t+1))/8.0E+0)+invJ.xelem(8)*((r*(r+1)*s*(s+1)*(t+1))/8.0E+0+(r*(r+1)*s*(s+1)*t)/8.0E+0);
-     //      Bt.xelem(21) = invJ.xelem(0)*((r*s*(s+1)*t*(t+1))/8.0E+0+((r-1)*s*(s+1)*t*(t+1))/8.0E+0)+invJ.xelem(3)*(((r-1)*r*(s+1)*t*(t+1))/8.0E+0+((r-1)*r*s*t*(t+1))/8.0E+0)+invJ.xelem(6)*(((r-1)*r*s*(s+1)*(t+1))/8.0E+0+((r-1)*r*s*(s+1)*t)/8.0E+0);
-     //      Bt.xelem(22) = invJ.xelem(1)*((r*s*(s+1)*t*(t+1))/8.0E+0+((r-1)*s*(s+1)*t*(t+1))/8.0E+0)+invJ.xelem(4)*(((r-1)*r*(s+1)*t*(t+1))/8.0E+0+((r-1)*r*s*t*(t+1))/8.0E+0)+invJ.xelem(7)*(((r-1)*r*s*(s+1)*(t+1))/8.0E+0+((r-1)*r*s*(s+1)*t)/8.0E+0);
-     //      Bt.xelem(23) = invJ.xelem(2)*((r*s*(s+1)*t*(t+1))/8.0E+0+((r-1)*s*(s+1)*t*(t+1))/8.0E+0)+invJ.xelem(5)*(((r-1)*r*(s+1)*t*(t+1))/8.0E+0+((r-1)*r*s*t*(t+1))/8.0E+0)+invJ.xelem(8)*(((r-1)*r*s*(s+1)*(t+1))/8.0E+0+((r-1)*r*s*(s+1)*t)/8.0E+0);
-     //      Bt.xelem(24) = invJ.xelem(3)*(((1-r2)*s*(t-1)*t)/4.0E+0+((1-r2)*(s-1)*(t-1)*t)/4.0E+0)+invJ.xelem(6)*(((1-r2)*(s-1)*s*t)/4.0E+0+((1-r2)*(s-1)*s*(t-1))/4.0E+0)-(invJ.xelem(0)*r*(s-1)*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(25) = invJ.xelem(4)*(((1-r2)*s*(t-1)*t)/4.0E+0+((1-r2)*(s-1)*(t-1)*t)/4.0E+0)+invJ.xelem(7)*(((1-r2)*(s-1)*s*t)/4.0E+0+((1-r2)*(s-1)*s*(t-1))/4.0E+0)-(invJ.xelem(1)*r*(s-1)*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(26) = invJ.xelem(5)*(((1-r2)*s*(t-1)*t)/4.0E+0+((1-r2)*(s-1)*(t-1)*t)/4.0E+0)+invJ.xelem(8)*(((1-r2)*(s-1)*s*t)/4.0E+0+((1-r2)*(s-1)*s*(t-1))/4.0E+0)-(invJ.xelem(2)*r*(s-1)*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(27) = invJ.xelem(0)*(((r+1)*(1-s2)*(t-1)*t)/4.0E+0+(r*(1-s2)*(t-1)*t)/4.0E+0)+invJ.xelem(6)*((r*(r+1)*(1-s2)*t)/4.0E+0+(r*(r+1)*(1-s2)*(t-1))/4.0E+0)-(invJ.xelem(3)*r*(r+1)*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(28) = invJ.xelem(1)*(((r+1)*(1-s2)*(t-1)*t)/4.0E+0+(r*(1-s2)*(t-1)*t)/4.0E+0)+invJ.xelem(7)*((r*(r+1)*(1-s2)*t)/4.0E+0+(r*(r+1)*(1-s2)*(t-1))/4.0E+0)-(invJ.xelem(4)*r*(r+1)*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(29) = invJ.xelem(2)*(((r+1)*(1-s2)*(t-1)*t)/4.0E+0+(r*(1-s2)*(t-1)*t)/4.0E+0)+invJ.xelem(8)*((r*(r+1)*(1-s2)*t)/4.0E+0+(r*(r+1)*(1-s2)*(t-1))/4.0E+0)-(invJ.xelem(5)*r*(r+1)*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(30) = invJ.xelem(3)*(((1-r2)*(s+1)*(t-1)*t)/4.0E+0+((1-r2)*s*(t-1)*t)/4.0E+0)+invJ.xelem(6)*(((1-r2)*s*(s+1)*t)/4.0E+0+((1-r2)*s*(s+1)*(t-1))/4.0E+0)-(invJ.xelem(0)*r*s*(s+1)*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(31) = invJ.xelem(4)*(((1-r2)*(s+1)*(t-1)*t)/4.0E+0+((1-r2)*s*(t-1)*t)/4.0E+0)+invJ.xelem(7)*(((1-r2)*s*(s+1)*t)/4.0E+0+((1-r2)*s*(s+1)*(t-1))/4.0E+0)-(invJ.xelem(1)*r*s*(s+1)*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(32) = invJ.xelem(5)*(((1-r2)*(s+1)*(t-1)*t)/4.0E+0+((1-r2)*s*(t-1)*t)/4.0E+0)+invJ.xelem(8)*(((1-r2)*s*(s+1)*t)/4.0E+0+((1-r2)*s*(s+1)*(t-1))/4.0E+0)-(invJ.xelem(2)*r*s*(s+1)*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(33) = invJ.xelem(0)*((r*(1-s2)*(t-1)*t)/4.0E+0+((r-1)*(1-s2)*(t-1)*t)/4.0E+0)+invJ.xelem(6)*(((r-1)*r*(1-s2)*t)/4.0E+0+((r-1)*r*(1-s2)*(t-1))/4.0E+0)-(invJ.xelem(3)*(r-1)*r*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(34) = invJ.xelem(1)*((r*(1-s2)*(t-1)*t)/4.0E+0+((r-1)*(1-s2)*(t-1)*t)/4.0E+0)+invJ.xelem(7)*(((r-1)*r*(1-s2)*t)/4.0E+0+((r-1)*r*(1-s2)*(t-1))/4.0E+0)-(invJ.xelem(4)*(r-1)*r*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(35) = invJ.xelem(2)*((r*(1-s2)*(t-1)*t)/4.0E+0+((r-1)*(1-s2)*(t-1)*t)/4.0E+0)+invJ.xelem(8)*(((r-1)*r*(1-s2)*t)/4.0E+0+((r-1)*r*(1-s2)*(t-1))/4.0E+0)-(invJ.xelem(5)*(r-1)*r*s*(t-1)*t)/2.0E+0;
-     //      Bt.xelem(36) = invJ.xelem(0)*((r*(s-1)*s*(1-t2))/4.0E+0+((r-1)*(s-1)*s*(1-t2))/4.0E+0)+invJ.xelem(3)*(((r-1)*r*s*(1-t2))/4.0E+0+((r-1)*r*(s-1)*(1-t2))/4.0E+0)-(invJ.xelem(6)*(r-1)*r*(s-1)*s*t)/2.0E+0;
-     //      Bt.xelem(37) = invJ.xelem(1)*((r*(s-1)*s*(1-t2))/4.0E+0+((r-1)*(s-1)*s*(1-t2))/4.0E+0)+invJ.xelem(4)*(((r-1)*r*s*(1-t2))/4.0E+0+((r-1)*r*(s-1)*(1-t2))/4.0E+0)-(invJ.xelem(7)*(r-1)*r*(s-1)*s*t)/2.0E+0;
-     //      Bt.xelem(38) = invJ.xelem(2)*((r*(s-1)*s*(1-t2))/4.0E+0+((r-1)*(s-1)*s*(1-t2))/4.0E+0)+invJ.xelem(5)*(((r-1)*r*s*(1-t2))/4.0E+0+((r-1)*r*(s-1)*(1-t2))/4.0E+0)-(invJ.xelem(8)*(r-1)*r*(s-1)*s*t)/2.0E+0;
-     //      Bt.xelem(39) = invJ.xelem(0)*(((r+1)*(s-1)*s*(1-t2))/4.0E+0+(r*(s-1)*s*(1-t2))/4.0E+0)+invJ.xelem(3)*((r*(r+1)*s*(1-t2))/4.0E+0+(r*(r+1)*(s-1)*(1-t2))/4.0E+0)-(invJ.xelem(6)*r*(r+1)*(s-1)*s*t)/2.0E+0;
-     //      Bt.xelem(40) = invJ.xelem(1)*(((r+1)*(s-1)*s*(1-t2))/4.0E+0+(r*(s-1)*s*(1-t2))/4.0E+0)+invJ.xelem(4)*((r*(r+1)*s*(1-t2))/4.0E+0+(r*(r+1)*(s-1)*(1-t2))/4.0E+0)-(invJ.xelem(7)*r*(r+1)*(s-1)*s*t)/2.0E+0;
-     //      Bt.xelem(41) = invJ.xelem(2)*(((r+1)*(s-1)*s*(1-t2))/4.0E+0+(r*(s-1)*s*(1-t2))/4.0E+0)+invJ.xelem(5)*((r*(r+1)*s*(1-t2))/4.0E+0+(r*(r+1)*(s-1)*(1-t2))/4.0E+0)-(invJ.xelem(8)*r*(r+1)*(s-1)*s*t)/2.0E+0;
-     //      Bt.xelem(42) = invJ.xelem(0)*(((r+1)*s*(s+1)*(1-t2))/4.0E+0+(r*s*(s+1)*(1-t2))/4.0E+0)+invJ.xelem(3)*((r*(r+1)*(s+1)*(1-t2))/4.0E+0+(r*(r+1)*s*(1-t2))/4.0E+0)-(invJ.xelem(6)*r*(r+1)*s*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(43) = invJ.xelem(1)*(((r+1)*s*(s+1)*(1-t2))/4.0E+0+(r*s*(s+1)*(1-t2))/4.0E+0)+invJ.xelem(4)*((r*(r+1)*(s+1)*(1-t2))/4.0E+0+(r*(r+1)*s*(1-t2))/4.0E+0)-(invJ.xelem(7)*r*(r+1)*s*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(44) = invJ.xelem(2)*(((r+1)*s*(s+1)*(1-t2))/4.0E+0+(r*s*(s+1)*(1-t2))/4.0E+0)+invJ.xelem(5)*((r*(r+1)*(s+1)*(1-t2))/4.0E+0+(r*(r+1)*s*(1-t2))/4.0E+0)-(invJ.xelem(8)*r*(r+1)*s*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(45) = invJ.xelem(0)*((r*s*(s+1)*(1-t2))/4.0E+0+((r-1)*s*(s+1)*(1-t2))/4.0E+0)+invJ.xelem(3)*(((r-1)*r*(s+1)*(1-t2))/4.0E+0+((r-1)*r*s*(1-t2))/4.0E+0)-(invJ.xelem(6)*(r-1)*r*s*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(46) = invJ.xelem(1)*((r*s*(s+1)*(1-t2))/4.0E+0+((r-1)*s*(s+1)*(1-t2))/4.0E+0)+invJ.xelem(4)*(((r-1)*r*(s+1)*(1-t2))/4.0E+0+((r-1)*r*s*(1-t2))/4.0E+0)-(invJ.xelem(7)*(r-1)*r*s*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(47) = invJ.xelem(2)*((r*s*(s+1)*(1-t2))/4.0E+0+((r-1)*s*(s+1)*(1-t2))/4.0E+0)+invJ.xelem(5)*(((r-1)*r*(s+1)*(1-t2))/4.0E+0+((r-1)*r*s*(1-t2))/4.0E+0)-(invJ.xelem(8)*(r-1)*r*s*(s+1)*t)/2.0E+0;
-     //      Bt.xelem(48) = invJ.xelem(3)*(((1-r2)*s*t*(t+1))/4.0E+0+((1-r2)*(s-1)*t*(t+1))/4.0E+0)+invJ.xelem(6)*(((1-r2)*(s-1)*s*(t+1))/4.0E+0+((1-r2)*(s-1)*s*t)/4.0E+0)-(invJ.xelem(0)*r*(s-1)*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(49) = invJ.xelem(4)*(((1-r2)*s*t*(t+1))/4.0E+0+((1-r2)*(s-1)*t*(t+1))/4.0E+0)+invJ.xelem(7)*(((1-r2)*(s-1)*s*(t+1))/4.0E+0+((1-r2)*(s-1)*s*t)/4.0E+0)-(invJ.xelem(1)*r*(s-1)*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(50) = invJ.xelem(5)*(((1-r2)*s*t*(t+1))/4.0E+0+((1-r2)*(s-1)*t*(t+1))/4.0E+0)+invJ.xelem(8)*(((1-r2)*(s-1)*s*(t+1))/4.0E+0+((1-r2)*(s-1)*s*t)/4.0E+0)-(invJ.xelem(2)*r*(s-1)*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(51) = invJ.xelem(0)*(((r+1)*(1-s2)*t*(t+1))/4.0E+0+(r*(1-s2)*t*(t+1))/4.0E+0)+invJ.xelem(6)*((r*(r+1)*(1-s2)*(t+1))/4.0E+0+(r*(r+1)*(1-s2)*t)/4.0E+0)-(invJ.xelem(3)*r*(r+1)*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(52) = invJ.xelem(1)*(((r+1)*(1-s2)*t*(t+1))/4.0E+0+(r*(1-s2)*t*(t+1))/4.0E+0)+invJ.xelem(7)*((r*(r+1)*(1-s2)*(t+1))/4.0E+0+(r*(r+1)*(1-s2)*t)/4.0E+0)-(invJ.xelem(4)*r*(r+1)*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(53) = invJ.xelem(2)*(((r+1)*(1-s2)*t*(t+1))/4.0E+0+(r*(1-s2)*t*(t+1))/4.0E+0)+invJ.xelem(8)*((r*(r+1)*(1-s2)*(t+1))/4.0E+0+(r*(r+1)*(1-s2)*t)/4.0E+0)-(invJ.xelem(5)*r*(r+1)*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(54) = invJ.xelem(3)*(((1-r2)*(s+1)*t*(t+1))/4.0E+0+((1-r2)*s*t*(t+1))/4.0E+0)+invJ.xelem(6)*(((1-r2)*s*(s+1)*(t+1))/4.0E+0+((1-r2)*s*(s+1)*t)/4.0E+0)-(invJ.xelem(0)*r*s*(s+1)*t*(t+1))/2.0E+0;
-     //      Bt.xelem(55) = invJ.xelem(4)*(((1-r2)*(s+1)*t*(t+1))/4.0E+0+((1-r2)*s*t*(t+1))/4.0E+0)+invJ.xelem(7)*(((1-r2)*s*(s+1)*(t+1))/4.0E+0+((1-r2)*s*(s+1)*t)/4.0E+0)-(invJ.xelem(1)*r*s*(s+1)*t*(t+1))/2.0E+0;
-     //      Bt.xelem(56) = invJ.xelem(5)*(((1-r2)*(s+1)*t*(t+1))/4.0E+0+((1-r2)*s*t*(t+1))/4.0E+0)+invJ.xelem(8)*(((1-r2)*s*(s+1)*(t+1))/4.0E+0+((1-r2)*s*(s+1)*t)/4.0E+0)-(invJ.xelem(2)*r*s*(s+1)*t*(t+1))/2.0E+0;
-     //      Bt.xelem(57) = invJ.xelem(0)*((r*(1-s2)*t*(t+1))/4.0E+0+((r-1)*(1-s2)*t*(t+1))/4.0E+0)+invJ.xelem(6)*(((r-1)*r*(1-s2)*(t+1))/4.0E+0+((r-1)*r*(1-s2)*t)/4.0E+0)-(invJ.xelem(3)*(r-1)*r*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(58) = invJ.xelem(1)*((r*(1-s2)*t*(t+1))/4.0E+0+((r-1)*(1-s2)*t*(t+1))/4.0E+0)+invJ.xelem(7)*(((r-1)*r*(1-s2)*(t+1))/4.0E+0+((r-1)*r*(1-s2)*t)/4.0E+0)-(invJ.xelem(4)*(r-1)*r*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(59) = invJ.xelem(2)*((r*(1-s2)*t*(t+1))/4.0E+0+((r-1)*(1-s2)*t*(t+1))/4.0E+0)+invJ.xelem(8)*(((r-1)*r*(1-s2)*(t+1))/4.0E+0+((r-1)*r*(1-s2)*t)/4.0E+0)-(invJ.xelem(5)*(r-1)*r*s*t*(t+1))/2.0E+0;
-     //      Bt.xelem(60) = invJ.xelem(6)*(((1-r2)*(1-s2)*t)/2.0E+0+((1-r2)*(1-s2)*(t-1))/2.0E+0)-invJ.xelem(0)*r*(1-s2)*(t-1)*t-invJ.xelem(3)*(1-r2)*s*(t-1)*t;
-     //      Bt.xelem(61) = invJ.xelem(7)*(((1-r2)*(1-s2)*t)/2.0E+0+((1-r2)*(1-s2)*(t-1))/2.0E+0)-invJ.xelem(1)*r*(1-s2)*(t-1)*t-invJ.xelem(4)*(1-r2)*s*(t-1)*t;
-     //      Bt.xelem(62) = invJ.xelem(8)*(((1-r2)*(1-s2)*t)/2.0E+0+((1-r2)*(1-s2)*(t-1))/2.0E+0)-invJ.xelem(2)*r*(1-s2)*(t-1)*t-invJ.xelem(5)*(1-r2)*s*(t-1)*t;
-     //      Bt.xelem(63) = (-invJ.xelem(0)*r*(s-1)*s*(1-t2))+invJ.xelem(3)*(((1-r2)*s*(1-t2))/2.0E+0+((1-r2)*(s-1)*(1-t2))/2.0E+0)-invJ.xelem(6)*(1-r2)*(s-1)*s*t;
-     //      Bt.xelem(64) = (-invJ.xelem(1)*r*(s-1)*s*(1-t2))+invJ.xelem(4)*(((1-r2)*s*(1-t2))/2.0E+0+((1-r2)*(s-1)*(1-t2))/2.0E+0)-invJ.xelem(7)*(1-r2)*(s-1)*s*t;
-     //      Bt.xelem(65) = (-invJ.xelem(2)*r*(s-1)*s*(1-t2))+invJ.xelem(5)*(((1-r2)*s*(1-t2))/2.0E+0+((1-r2)*(s-1)*(1-t2))/2.0E+0)-invJ.xelem(8)*(1-r2)*(s-1)*s*t;
-     //      Bt.xelem(66) = (-invJ.xelem(3)*r*(r+1)*s*(1-t2))+invJ.xelem(0)*(((r+1)*(1-s2)*(1-t2))/2.0E+0+(r*(1-s2)*(1-t2))/2.0E+0)-invJ.xelem(6)*r*(r+1)*(1-s2)*t;
-     //      Bt.xelem(67) = (-invJ.xelem(4)*r*(r+1)*s*(1-t2))+invJ.xelem(1)*(((r+1)*(1-s2)*(1-t2))/2.0E+0+(r*(1-s2)*(1-t2))/2.0E+0)-invJ.xelem(7)*r*(r+1)*(1-s2)*t;
-     //      Bt.xelem(68) = (-invJ.xelem(5)*r*(r+1)*s*(1-t2))+invJ.xelem(2)*(((r+1)*(1-s2)*(1-t2))/2.0E+0+(r*(1-s2)*(1-t2))/2.0E+0)-invJ.xelem(8)*r*(r+1)*(1-s2)*t;
-     //      Bt.xelem(69) = (-invJ.xelem(0)*r*s*(s+1)*(1-t2))+invJ.xelem(3)*(((1-r2)*(s+1)*(1-t2))/2.0E+0+((1-r2)*s*(1-t2))/2.0E+0)-invJ.xelem(6)*(1-r2)*s*(s+1)*t;
-     //      Bt.xelem(70) = (-invJ.xelem(1)*r*s*(s+1)*(1-t2))+invJ.xelem(4)*(((1-r2)*(s+1)*(1-t2))/2.0E+0+((1-r2)*s*(1-t2))/2.0E+0)-invJ.xelem(7)*(1-r2)*s*(s+1)*t;
-     //      Bt.xelem(71) = (-invJ.xelem(2)*r*s*(s+1)*(1-t2))+invJ.xelem(5)*(((1-r2)*(s+1)*(1-t2))/2.0E+0+((1-r2)*s*(1-t2))/2.0E+0)-invJ.xelem(8)*(1-r2)*s*(s+1)*t;
-     //      Bt.xelem(72) = (-invJ.xelem(3)*(r-1)*r*s*(1-t2))+invJ.xelem(0)*((r*(1-s2)*(1-t2))/2.0E+0+((r-1)*(1-s2)*(1-t2))/2.0E+0)-invJ.xelem(6)*(r-1)*r*(1-s2)*t;
-     //      Bt.xelem(73) = (-invJ.xelem(4)*(r-1)*r*s*(1-t2))+invJ.xelem(1)*((r*(1-s2)*(1-t2))/2.0E+0+((r-1)*(1-s2)*(1-t2))/2.0E+0)-invJ.xelem(7)*(r-1)*r*(1-s2)*t;
-     //      Bt.xelem(74) = (-invJ.xelem(5)*(r-1)*r*s*(1-t2))+invJ.xelem(2)*((r*(1-s2)*(1-t2))/2.0E+0+((r-1)*(1-s2)*(1-t2))/2.0E+0)-invJ.xelem(8)*(r-1)*r*(1-s2)*t;
-     //      Bt.xelem(75) = invJ.xelem(6)*(((1-r2)*(1-s2)*(t+1))/2.0E+0+((1-r2)*(1-s2)*t)/2.0E+0)-invJ.xelem(0)*r*(1-s2)*t*(t+1)-invJ.xelem(3)*(1-r2)*s*t*(t+1);
-     //      Bt.xelem(76) = invJ.xelem(7)*(((1-r2)*(1-s2)*(t+1))/2.0E+0+((1-r2)*(1-s2)*t)/2.0E+0)-invJ.xelem(1)*r*(1-s2)*t*(t+1)-invJ.xelem(4)*(1-r2)*s*t*(t+1);
-     //      Bt.xelem(77) = invJ.xelem(8)*(((1-r2)*(1-s2)*(t+1))/2.0E+0+((1-r2)*(1-s2)*t)/2.0E+0)-invJ.xelem(2)*r*(1-s2)*t*(t+1)-invJ.xelem(5)*(1-r2)*s*t*(t+1);
-     //      Bt.xelem(78) = (-2*invJ.xelem(0)*r*(1-s2)*(1-t2))-2*invJ.xelem(3)*(1-r2)*s*(1-t2)-2*invJ.xelem(6)*(1-r2)*(1-s2)*t;
-     //      Bt.xelem(79) = (-2*invJ.xelem(1)*r*(1-s2)*(1-t2))-2*invJ.xelem(4)*(1-r2)*s*(1-t2)-2*invJ.xelem(7)*(1-r2)*(1-s2)*t;
-     //      Bt.xelem(80) = (-2*invJ.xelem(2)*r*(1-s2)*(1-t2))-2*invJ.xelem(5)*(1-r2)*s*(1-t2)-2*invJ.xelem(8)*(1-r2)*(1-s2)*t;
-     // }
-
      static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
           switch (eMatType) {
           case MAT_MASS_LUMPED:
@@ -6728,68 +6507,6 @@ public:
      }
 
 protected:
-     // virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
-     //      FEM_ASSERT(Bt.rows() == 3);
-     //      FEM_ASSERT(Bt.columns() == 15);
-     //      FEM_ASSERT(J.rows() == 3);
-     //      FEM_ASSERT(J.columns() == 3);
-     //      FEM_ASSERT(invJ.rows() == 3);
-     //      FEM_ASSERT(invJ.columns() == 3);
-
-     //      const double r = rv.xelem(0);
-     //      const double s = rv.xelem(1);
-     //      const double t = rv.xelem(2);
-     //      const double t2 = t * t;
-
-     //      Inverse3x3(J, detJ, invJ);
-
-     //      Bt.xelem(0) = invJ.xelem(3)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(0)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(6)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
-     //      Bt.xelem(1) = invJ.xelem(4)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(1)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(7)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
-     //      Bt.xelem(2) = invJ.xelem(5)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(2)*((-((1-t)*((-t)-2*s-2*r))/2.0E+0)-((-s)-r+1)*(1-t))+invJ.xelem(8)*((-(((-s)-r+1)*((-t)-2*s-2*r))/2.0E+0)-(((-s)-r+1)*(1-t))/2.0E+0);
-     //      Bt.xelem(3) = invJ.xelem(0)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ.xelem(6)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
-     //      Bt.xelem(4) = invJ.xelem(1)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ.xelem(7)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
-     //      Bt.xelem(5) = invJ.xelem(2)*(((1-t)*((-t)+2*r-2))/2.0E+0+r*(1-t))+invJ.xelem(8)*((-(r*((-t)+2*r-2))/2.0E+0)-(r*(1-t))/2.0E+0);
-     //      Bt.xelem(6) = invJ.xelem(3)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ.xelem(6)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
-     //      Bt.xelem(7) = invJ.xelem(4)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ.xelem(7)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
-     //      Bt.xelem(8) = invJ.xelem(5)*(((1-t)*((-t)+2*s-2))/2.0E+0+s*(1-t))+invJ.xelem(8)*((-(s*((-t)+2*s-2))/2.0E+0)-(s*(1-t))/2.0E+0);
-     //      Bt.xelem(9) = invJ.xelem(3)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ.xelem(0)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ.xelem(6)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
-     //      Bt.xelem(10) = invJ.xelem(4)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ.xelem(1)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ.xelem(7)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
-     //      Bt.xelem(11) = invJ.xelem(5)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ.xelem(2)*((-((t+1)*(t-2*s-2*r))/2.0E+0)-((-s)-r+1)*(t+1))+invJ.xelem(8)*((((-s)-r+1)*(t-2*s-2*r))/2.0E+0+(((-s)-r+1)*(t+1))/2.0E+0);
-     //      Bt.xelem(12) = invJ.xelem(0)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ.xelem(6)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
-     //      Bt.xelem(13) = invJ.xelem(1)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ.xelem(7)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
-     //      Bt.xelem(14) = invJ.xelem(2)*(((t+1)*(t+2*r-2))/2.0E+0+r*(t+1))+invJ.xelem(8)*((r*(t+2*r-2))/2.0E+0+(r*(t+1))/2.0E+0);
-     //      Bt.xelem(15) = invJ.xelem(3)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ.xelem(6)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
-     //      Bt.xelem(16) = invJ.xelem(4)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ.xelem(7)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
-     //      Bt.xelem(17) = invJ.xelem(5)*(((t+1)*(t+2*s-2))/2.0E+0+s*(t+1))+invJ.xelem(8)*((s*(t+2*s-2))/2.0E+0+(s*(t+1))/2.0E+0);
-     //      Bt.xelem(18) = (-2*invJ.xelem(3)*r*(1-t))+invJ.xelem(0)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ.xelem(6)*r*((-s)-r+1);
-     //      Bt.xelem(19) = (-2*invJ.xelem(4)*r*(1-t))+invJ.xelem(1)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ.xelem(7)*r*((-s)-r+1);
-     //      Bt.xelem(20) = (-2*invJ.xelem(5)*r*(1-t))+invJ.xelem(2)*(2*((-s)-r+1)*(1-t)-2*r*(1-t))-2*invJ.xelem(8)*r*((-s)-r+1);
-     //      Bt.xelem(21) = 2*invJ.xelem(0)*s*(1-t)+2*invJ.xelem(3)*r*(1-t)-2*invJ.xelem(6)*r*s;
-     //      Bt.xelem(22) = 2*invJ.xelem(1)*s*(1-t)+2*invJ.xelem(4)*r*(1-t)-2*invJ.xelem(7)*r*s;
-     //      Bt.xelem(23) = 2*invJ.xelem(2)*s*(1-t)+2*invJ.xelem(5)*r*(1-t)-2*invJ.xelem(8)*r*s;
-     //      Bt.xelem(24) = (-2*invJ.xelem(0)*s*(1-t))+invJ.xelem(3)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ.xelem(6)*((-s)-r+1)*s;
-     //      Bt.xelem(25) = (-2*invJ.xelem(1)*s*(1-t))+invJ.xelem(4)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ.xelem(7)*((-s)-r+1)*s;
-     //      Bt.xelem(26) = (-2*invJ.xelem(2)*s*(1-t))+invJ.xelem(5)*(2*((-s)-r+1)*(1-t)-2*s*(1-t))-2*invJ.xelem(8)*((-s)-r+1)*s;
-     //      Bt.xelem(27) = invJ.xelem(0)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ.xelem(3)*r*(t+1)+2*invJ.xelem(6)*r*((-s)-r+1);
-     //      Bt.xelem(28) = invJ.xelem(1)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ.xelem(4)*r*(t+1)+2*invJ.xelem(7)*r*((-s)-r+1);
-     //      Bt.xelem(29) = invJ.xelem(2)*(2*((-s)-r+1)*(t+1)-2*r*(t+1))-2*invJ.xelem(5)*r*(t+1)+2*invJ.xelem(8)*r*((-s)-r+1);
-     //      Bt.xelem(30) = 2*invJ.xelem(0)*s*(t+1)+2*invJ.xelem(3)*r*(t+1)+2*invJ.xelem(6)*r*s;
-     //      Bt.xelem(31) = 2*invJ.xelem(1)*s*(t+1)+2*invJ.xelem(4)*r*(t+1)+2*invJ.xelem(7)*r*s;
-     //      Bt.xelem(32) = 2*invJ.xelem(2)*s*(t+1)+2*invJ.xelem(5)*r*(t+1)+2*invJ.xelem(8)*r*s;
-     //      Bt.xelem(33) = invJ.xelem(3)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ.xelem(0)*s*(t+1)+2*invJ.xelem(6)*((-s)-r+1)*s;
-     //      Bt.xelem(34) = invJ.xelem(4)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ.xelem(1)*s*(t+1)+2*invJ.xelem(7)*((-s)-r+1)*s;
-     //      Bt.xelem(35) = invJ.xelem(5)*(2*((-s)-r+1)*(t+1)-2*s*(t+1))-2*invJ.xelem(2)*s*(t+1)+2*invJ.xelem(8)*((-s)-r+1)*s;
-     //      Bt.xelem(36) = invJ.xelem(3)*(t2-1)+invJ.xelem(0)*(t2-1)-2*invJ.xelem(6)*((-s)-r+1)*t;
-     //      Bt.xelem(37) = invJ.xelem(4)*(t2-1)+invJ.xelem(1)*(t2-1)-2*invJ.xelem(7)*((-s)-r+1)*t;
-     //      Bt.xelem(38) = invJ.xelem(5)*(t2-1)+invJ.xelem(2)*(t2-1)-2*invJ.xelem(8)*((-s)-r+1)*t;
-     //      Bt.xelem(39) = invJ.xelem(0)*(1-t2)-2*invJ.xelem(6)*r*t;
-     //      Bt.xelem(40) = invJ.xelem(1)*(1-t2)-2*invJ.xelem(7)*r*t;
-     //      Bt.xelem(41) = invJ.xelem(2)*(1-t2)-2*invJ.xelem(8)*r*t;
-     //      Bt.xelem(42) = invJ.xelem(3)*(1-t2)-2*invJ.xelem(6)*s*t;
-     //      Bt.xelem(43) = invJ.xelem(4)*(1-t2)-2*invJ.xelem(7)*s*t;
-     //      Bt.xelem(44) = invJ.xelem(5)*(1-t2)-2*invJ.xelem(8)*s*t;
-     // }
-
      virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
           const double r = rv.xelem(0);
           const double s = rv.xelem(1);
@@ -7063,54 +6780,6 @@ protected:
           Hs.xelem(irow + nrows * 8) = 4*r*t;
           Hs.xelem(irow + nrows * 9) = 4*r*((-t)-s-r+1);
      }
-
-     // virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
-     //      FEM_ASSERT(Bt.rows() == 3);
-     //      FEM_ASSERT(Bt.columns() == 10);
-     //      FEM_ASSERT(J.rows() == 3);
-     //      FEM_ASSERT(J.columns() == 3);
-     //      FEM_ASSERT(invJ.rows() == 3);
-     //      FEM_ASSERT(invJ.columns() == 3);
-
-     //      FEM_ASSERT(rv.numel() == 3);
-
-     //      const double r = rv.xelem(0);
-     //      const double s = rv.xelem(1);
-     //      const double t = rv.xelem(2);
-
-     //      Inverse3x3(J, detJ, invJ);
-
-     //      Bt.xelem(0) = invJ.xelem(3)*(4*s-1);
-     //      Bt.xelem(1) = invJ.xelem(4)*(4*s-1);
-     //      Bt.xelem(2) = invJ.xelem(5)*(4*s-1);
-     //      Bt.xelem(3) = invJ.xelem(6)*(4*t-1);
-     //      Bt.xelem(4) = invJ.xelem(7)*(4*t-1);
-     //      Bt.xelem(5) = invJ.xelem(8)*(4*t-1);
-     //      Bt.xelem(6) = invJ.xelem(6)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(3)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(0)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
-     //      Bt.xelem(7) = invJ.xelem(7)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(4)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(1)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
-     //      Bt.xelem(8) = invJ.xelem(8)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(5)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1)+invJ.xelem(2)*(2*t-2*((-t)-s-r+1)+2*s+2*r-1);
-     //      Bt.xelem(9) = invJ.xelem(0)*(4*r-1);
-     //      Bt.xelem(10) = invJ.xelem(1)*(4*r-1);
-     //      Bt.xelem(11) = invJ.xelem(2)*(4*r-1);
-     //      Bt.xelem(12) = 4*invJ.xelem(3)*t+4*invJ.xelem(6)*s;
-     //      Bt.xelem(13) = 4*invJ.xelem(4)*t+4*invJ.xelem(7)*s;
-     //      Bt.xelem(14) = 4*invJ.xelem(5)*t+4*invJ.xelem(8)*s;
-     //      Bt.xelem(15) = (-4*invJ.xelem(3)*t)-4*invJ.xelem(0)*t+invJ.xelem(6)*(4*((-t)-s-r+1)-4*t);
-     //      Bt.xelem(16) = (-4*invJ.xelem(4)*t)-4*invJ.xelem(1)*t+invJ.xelem(7)*(4*((-t)-s-r+1)-4*t);
-     //      Bt.xelem(17) = (-4*invJ.xelem(5)*t)-4*invJ.xelem(2)*t+invJ.xelem(8)*(4*((-t)-s-r+1)-4*t);
-     //      Bt.xelem(18) = invJ.xelem(3)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(6)*s-4*invJ.xelem(0)*s;
-     //      Bt.xelem(19) = invJ.xelem(4)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(7)*s-4*invJ.xelem(1)*s;
-     //      Bt.xelem(20) = invJ.xelem(5)*(4*((-t)-s-r+1)-4*s)-4*invJ.xelem(8)*s-4*invJ.xelem(2)*s;
-     //      Bt.xelem(21) = 4*invJ.xelem(0)*s+4*invJ.xelem(3)*r;
-     //      Bt.xelem(22) = 4*invJ.xelem(1)*s+4*invJ.xelem(4)*r;
-     //      Bt.xelem(23) = 4*invJ.xelem(2)*s+4*invJ.xelem(5)*r;
-     //      Bt.xelem(24) = 4*invJ.xelem(0)*t+4*invJ.xelem(6)*r;
-     //      Bt.xelem(25) = 4*invJ.xelem(1)*t+4*invJ.xelem(7)*r;
-     //      Bt.xelem(26) = 4*invJ.xelem(2)*t+4*invJ.xelem(8)*r;
-     //      Bt.xelem(27) = invJ.xelem(0)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(6)*r-4*invJ.xelem(3)*r;
-     //      Bt.xelem(28) = invJ.xelem(1)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(7)*r-4*invJ.xelem(4)*r;
-     //      Bt.xelem(29) = invJ.xelem(2)*(4*((-t)-s-r+1)-4*r)-4*invJ.xelem(8)*r-4*invJ.xelem(5)*r;
-     // }
 
      virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
           const double r = rv.xelem(0);
@@ -8015,85 +7684,6 @@ protected:
           Hs.xelem(18*nrows+irow) = (9.0E+0*((-t)-s-r+1)*t*(3*t-1))/2.0E+0;
           Hs.xelem(19*nrows+irow) = (t*(3*t-2)*(3*t-1))/2.0E+0;
      }
-
-     // virtual void ScalarGradientMatrix(const ColumnVector& rv, const Matrix& J, const double detJ, Matrix& invJ, Matrix& Bt) const final {
-     //      FEM_ASSERT(Bt.rows() == 3);
-     //      FEM_ASSERT(Bt.columns() == 20);
-     //      FEM_ASSERT(J.rows() == 3);
-     //      FEM_ASSERT(J.columns() == 3);
-     //      FEM_ASSERT(invJ.rows() == 3);
-     //      FEM_ASSERT(invJ.columns() == 3);
-
-     //      FEM_ASSERT(rv.numel() == 3);
-
-     //      const double r = rv.xelem(0);
-     //      const double s = rv.xelem(1);
-     //      const double t = rv.xelem(2);
-
-     //      Inverse3x3(J, detJ, invJ);
-
-     //      Bt.xelem(0) = invJ.xelem(6)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(1) = invJ.xelem(7)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(2) = invJ.xelem(8)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-3.0E+0)*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-3.0E+0)*(3*((-t)-s-r+1)-2)*((-t)-s-r+1))/2.0E+0-((3*((-t)-s-r+1)-2)*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(3) = invJ.xelem(0)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(4) = invJ.xelem(1)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(5) = invJ.xelem(2)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(6) = invJ.xelem(0)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(7) = invJ.xelem(1)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(8) = invJ.xelem(2)*((9.0E+0*(3*r-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*r*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*r*(3*r-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*r*(3*r-1))/2.0E+0+((-9.0E+0)*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(9) = invJ.xelem(0)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
-     //      Bt.xelem(10) = invJ.xelem(1)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
-     //      Bt.xelem(11) = invJ.xelem(2)*(((3*r-2)*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-1))/2.0E+0+(3.0E+0*r*(3*r-2))/2.0E+0);
-     //      Bt.xelem(12) = invJ.xelem(0)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(3)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(13) = invJ.xelem(1)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(4)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(14) = invJ.xelem(2)*((9.0E+0*(3*r-1)*s)/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(5)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(15) = invJ.xelem(3)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(16) = invJ.xelem(4)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(17) = invJ.xelem(5)*((9.0E+0*r*(3*s-1))/2.0E+0+(2.7E+1*r*s)/2.0E+0)+(9.0E+0*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(18) = invJ.xelem(3)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
-     //      Bt.xelem(19) = invJ.xelem(4)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
-     //      Bt.xelem(20) = invJ.xelem(5)*(((3*s-2)*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-1))/2.0E+0+(3.0E+0*s*(3*s-2))/2.0E+0);
-     //      Bt.xelem(21) = invJ.xelem(3)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(6)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(22) = invJ.xelem(4)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(7)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(23) = invJ.xelem(5)*((9.0E+0*(3*s-1)*((-t)-s-r+1))/2.0E+0+(2.7E+1*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*s-1))/2.0E+0)+((-9.0E+0)*invJ.xelem(8)*s*(3*s-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(24) = invJ.xelem(3)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(6)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(25) = invJ.xelem(4)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(7)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(26) = invJ.xelem(5)*((9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0+((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(8)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*s*((-t)-s-r+1))/2.0E+0+((-9.0E+0)*s*(3*((-t)-s-r+1)-1))/2.0E+0);
-     //      Bt.xelem(27) = invJ.xelem(0)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(3)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(6)*r*s;
-     //      Bt.xelem(28) = invJ.xelem(1)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(4)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(7)*r*s;
-     //      Bt.xelem(29) = invJ.xelem(2)*(27*s*((-t)-s-r+1)-27*r*s)+invJ.xelem(5)*(27*r*((-t)-s-r+1)-27*r*s)-27*invJ.xelem(8)*r*s;
-     //      Bt.xelem(30) = invJ.xelem(0)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(31) = invJ.xelem(1)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(32) = invJ.xelem(2)*((9.0E+0*(3*r-1)*t)/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*r*(3*r-1))/2.0E+0;
-     //      Bt.xelem(33) = 27*invJ.xelem(0)*s*t+27*invJ.xelem(3)*r*t+27*invJ.xelem(6)*r*s;
-     //      Bt.xelem(34) = 27*invJ.xelem(1)*s*t+27*invJ.xelem(4)*r*t+27*invJ.xelem(7)*r*s;
-     //      Bt.xelem(35) = 27*invJ.xelem(2)*s*t+27*invJ.xelem(5)*r*t+27*invJ.xelem(8)*r*s;
-     //      Bt.xelem(36) = invJ.xelem(3)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(6)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(37) = invJ.xelem(4)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(7)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(38) = invJ.xelem(5)*((9.0E+0*(3*s-1)*t)/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(8)*s*(3*s-1))/2.0E+0;
-     //      Bt.xelem(39) = invJ.xelem(3)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(6)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(0)*s*t;
-     //      Bt.xelem(40) = invJ.xelem(4)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(7)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(1)*s*t;
-     //      Bt.xelem(41) = invJ.xelem(5)*(27*((-t)-s-r+1)*t-27*s*t)+invJ.xelem(8)*(27*s*((-t)-s-r+1)-27*s*t)-27*invJ.xelem(2)*s*t;
-     //      Bt.xelem(42) = invJ.xelem(6)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(3)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(0)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
-     //      Bt.xelem(43) = invJ.xelem(7)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(4)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(1)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
-     //      Bt.xelem(44) = invJ.xelem(8)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0+(9.0E+0*(3*((-t)-s-r+1)-1)*((-t)-s-r+1))/2.0E+0)+invJ.xelem(5)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0)+invJ.xelem(2)*(((-2.7E+1)*((-t)-s-r+1)*t)/2.0E+0+((-9.0E+0)*(3*((-t)-s-r+1)-1)*t)/2.0E+0);
-     //      Bt.xelem(45) = invJ.xelem(0)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(6)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(3)*r*t;
-     //      Bt.xelem(46) = invJ.xelem(1)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(7)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(4)*r*t;
-     //      Bt.xelem(47) = invJ.xelem(2)*(27*((-t)-s-r+1)*t-27*r*t)+invJ.xelem(8)*(27*r*((-t)-s-r+1)-27*r*t)-27*invJ.xelem(5)*r*t;
-     //      Bt.xelem(48) = invJ.xelem(6)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(49) = invJ.xelem(7)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(50) = invJ.xelem(8)*((9.0E+0*r*(3*t-1))/2.0E+0+(2.7E+1*r*t)/2.0E+0)+(9.0E+0*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(51) = invJ.xelem(6)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(3)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(52) = invJ.xelem(7)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(4)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(53) = invJ.xelem(8)*((9.0E+0*s*(3*t-1))/2.0E+0+(2.7E+1*s*t)/2.0E+0)+(9.0E+0*invJ.xelem(5)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(54) = invJ.xelem(6)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(3)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(0)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(55) = invJ.xelem(7)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(4)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(1)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(56) = invJ.xelem(8)*(((-9.0E+0)*t*(3*t-1))/2.0E+0+(9.0E+0*((-t)-s-r+1)*(3*t-1))/2.0E+0+(2.7E+1*((-t)-s-r+1)*t)/2.0E+0)+((-9.0E+0)*invJ.xelem(5)*t*(3*t-1))/2.0E+0+((-9.0E+0)*invJ.xelem(2)*t*(3*t-1))/2.0E+0;
-     //      Bt.xelem(57) = invJ.xelem(6)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
-     //      Bt.xelem(58) = invJ.xelem(7)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
-     //      Bt.xelem(59) = invJ.xelem(8)*(((3*t-2)*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-1))/2.0E+0+(3.0E+0*t*(3*t-2))/2.0E+0);
-
-     // }
 
      virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
           const double r = rv.xelem(0);
