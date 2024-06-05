@@ -1,7 +1,7 @@
-## fem_pre_mesh_import.m:87
+## fem_pre_mesh_import.m:76
 %!test
 %! try
-%! ### TEST 87
+%! ### TEST 76
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -41,7 +41,6 @@
 %!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
 %!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
 %!     fputs(fd, "};\n");
-%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
 %!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
 %!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[4]};\n");
 %!     fputs(fd, "Physical Surface(\"master\",2) = {tmp[3]};\n");
@@ -59,14 +58,9 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"iso20r", "quad8r", "penta15", "tria6h"};
+%!   opt_msh.elem_type = {"penta15", "quad8r", "iso20r"};
 %!   mesh_data(1).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
-%!   if (isfield(mesh_data(1).mesh.elements, "penta15"))
-%!     mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
-%!   endif
-%!   if (isfield(mesh_data(1).mesh.elements, "iso20r"))
-%!     mesh_data(1).mesh.materials.iso20r = ones(rows(mesh_data(1).mesh.elements.iso20r), 1, "int32");
-%!   endif
+%!   mesh_data(1).mesh.materials.penta15 = ones(rows(mesh_data(1).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(1).mesh.material_data.E = 210000e6;
 %!   mesh_data(1).mesh.material_data.nu = 0.3;
 %!   mesh_data(1).mesh.material_data.rho = 7850;
@@ -95,7 +89,6 @@
 %!     fputs(fd, "tmp[] = Extrude {0,0,d} {\n");
 %!     fputs(fd, "  Surface{5}; Layers{Ceil(d/dx)}; Recombine;\n");
 %!     fputs(fd, "};\n");
-%!     fputs(fd, "Recombine Surface{5, tmp[0]};\n");
 %!     fputs(fd, "Physical Volume(\"volume\",5) = {tmp[1]};\n");
 %!     fputs(fd, "Physical Surface(\"theta\",1) = {tmp[3]};\n");
 %!     fputs(fd, "Physical Surface(\"slave\",3) = {tmp[4]};\n");
@@ -114,12 +107,7 @@
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
 %!   mesh_data(2).mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
-%!   if (isfield(mesh_data(2).mesh.elements, "penta15"))
-%!     mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
-%!   endif
-%!   if (isfield(mesh_data(2).mesh.elements, "iso20r"))
-%!     mesh_data(2).mesh.materials.iso20r = ones(rows(mesh_data(2).mesh.elements.iso20r), 1, "int32");
-%!   endif
+%!   mesh_data(2).mesh.materials.penta15 = ones(rows(mesh_data(2).mesh.elements.penta15), 1, "int32");
 %!   mesh_data(2).mesh.material_data.E = 210000e6;
 %!   mesh_data(2).mesh.material_data.nu = 0.3;
 %!   mesh_data(2).mesh.material_data.rho = 7850;
@@ -135,22 +123,19 @@
 %!   group_idx_master = find([[mesh.groups.quad8r].id] == 2);
 %!   group_idx_slave = find([[mesh.groups.quad8r].id] == 3);
 %!   nodes_constr = unique([[mesh.groups.quad8r(group_idx_theta)].nodes]);
-%!   elem_constr.sfncon8r.master = mesh.elements.quad8r(mesh.groups.quad8r(group_idx_master).elements, :);
-%!   elem_constr.sfncon8r.slave = mesh.groups.quad8r(group_idx_slave).nodes(:);
-%!   elem_constr.sfncon8r.maxdist = 1e-4 * a;
-%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
-%!   load_case.domain = FEM_DO_THERMAL;
-%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
-%!   for i=1:numel(elem_constr.sfncon8r.slave)
-%!     idx = find(nodes_constr == elem_constr.sfncon8r.slave(i));
+%!   mesh.elements.sfncon8r.master = mesh.elements.quad8r(mesh.groups.quad8r(group_idx_master).elements, :);
+%!   mesh.elements.sfncon8r.slave = mesh.groups.quad8r(group_idx_slave).nodes(:);
+%!   mesh.elements.sfncon8r.maxdist = 1e-4 * a;
+%!   for i=1:numel(mesh.elements.sfncon8r.slave)
+%!     idx = find(nodes_constr == mesh.elements.sfncon8r.slave(i));
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);
 %!   mesh.elements.thermal_constr = struct("C", mat2cell(ones(1, numel(nodes_constr)), 1, ones(1, numel(nodes_constr))), ...
 %!                                   "nodes", mat2cell(nodes_constr, 1, ones(1, numel(nodes_constr))));
 %!   load_case.thermal_constr = struct("theta", mat2cell(theta_s(nodes_constr).', 1, ones(1, numel(nodes_constr))));
-%!   mesh.elements.thermal_constr(end + (1:numel(thermal_constr_surf))) = thermal_constr_surf;
-%!   load_case.thermal_constr(end + (1:numel(thermal_constr_surf))) = struct("theta", mat2cell(zeros(1, numel(thermal_constr_surf)), 1, ones(1, numel(thermal_constr_surf))));
+%!   load_case.locked_dof = false(rows(mesh.nodes), 1);
+%!   load_case.domain = FEM_DO_THERMAL;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   e1 = [1; 0.6; -0.3];
 %!   e2 = [-0.5; -0.3; 0.8];

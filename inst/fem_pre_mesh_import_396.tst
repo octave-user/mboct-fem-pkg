@@ -135,11 +135,11 @@
 %!   group_idx_master = find([[mesh.groups.quad8r].id] == 2);
 %!   group_idx_slave = find([[mesh.groups.quad8r].id] == 3);
 %!   nodes_constr = unique([[mesh.groups.quad8r(group_idx_theta)].nodes]);
-%!   mesh.elements.sfncon8.master = mesh.elements.quad8r(mesh.groups.quad8r(group_idx_master).elements, :);
-%!   mesh.elements.sfncon8.slave = mesh.groups.quad8r(group_idx_slave).nodes(:);
-%!   mesh.elements.sfncon8.maxdist = 1e-4 * a;
-%!   for i=1:numel(mesh.elements.sfncon8.slave)
-%!     idx = find(nodes_constr == mesh.elements.sfncon8.slave(i));
+%!   mesh.elements.sfncon8r.master = mesh.elements.quad8r(mesh.groups.quad8r(group_idx_master).elements, :);
+%!   mesh.elements.sfncon8r.slave = mesh.groups.quad8r(group_idx_slave).nodes(:);
+%!   mesh.elements.sfncon8r.maxdist = 1e-4 * a;
+%!   for i=1:numel(mesh.elements.sfncon8r.slave)
+%!     idx = find(nodes_constr == mesh.elements.sfncon8r.slave(i));
 %!     nodes_constr(idx) = -1;
 %!   endfor
 %!   nodes_constr = nodes_constr(nodes_constr > 0);

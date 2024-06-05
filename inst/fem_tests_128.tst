@@ -86,9 +86,9 @@
 %!   load_case.locked_dof(mesh.groups.quad8r(3).nodes, 1:3) = true;
 %!   load_case.loaded_nodes = int32(rows(mesh.nodes));
 %!   load_case.loads = [0, 0, F1, 0, 0, 0];
-%!   elem.sfncon8.slave = mesh.groups.quad8r(1).nodes(:);
-%!   elem.sfncon8.master = mesh.elements.quad8r(mesh.groups.quad8r(2).elements, :);
-%!   elem.sfncon8.maxdist = param.g * (1 + sqrt(eps));
+%!   elem.sfncon8r.slave = mesh.groups.quad8r(1).nodes(:);
+%!   elem.sfncon8r.master = mesh.elements.quad8r(mesh.groups.quad8r(2).elements, :);
+%!   elem.sfncon8r.maxdist = param.g * (1 + sqrt(eps));
 %!   mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
