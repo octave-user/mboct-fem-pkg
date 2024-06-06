@@ -7,13 +7,13 @@
 %! nu = 0.3;
 %! rho = 7850;
 %! F1 = 120;
-%! geo.h0 = 0.2e-3;
+%! geo.h0 = 0.5e-3;
 %! geo.h1 = 2e-3;
 %! geo.D = 15e-3;
 %! geo.d = 13e-3;
 %! geo.di = 0.01e-3; ## FIXME: di=0 not supported
 %! geo.r = 0.5 * (geo.D - geo.d);
-%! geo.L = 2 * geo.D;
+%! geo.L = 0.5 * geo.D;
 %! geo.t = 0.5 * (geo.D - geo.d);
 %! geo.w = 2 * sqrt(geo.r^2 - (geo.r - geo.t)^2);
 %! A = 0.22;
