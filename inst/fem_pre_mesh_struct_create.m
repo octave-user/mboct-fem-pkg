@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2024) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   endif
 
   switch (options.elem_type)
-    case {"iso8", "iso20"}
+    case {"iso8", "iso20", "iso20r"}
     otherwise
       error("unknown option elem_type=\"%s\"", options.elem_type);
   endswitch
@@ -89,7 +89,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
       endfor
 
       n = numel(r) * numel(s) * numel(t);
-    case "iso20"
+    case {"iso20", "iso20r"}
       x = y = z = nan(2 * numel(r) - 1, 2 * numel(s) - 1, 2 * numel(t) - 1);
       n = 0;
 
@@ -147,6 +147,8 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   endif
 
   mesh.nodes = zeros(n, 6);
+  mesh.elements = struct();
+  mesh.materials = struct();
   inode_idx = zeros(size(x), "int32");
 
   inode = int32(0);
@@ -171,7 +173,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
           endfor
         endfor
       endfor
-    case "iso20"
+    case {"iso20", "iso20r"}
       for i=1:2:2 * numel(r) - 1
         for j=1:2:2 * numel(s) - 1
           for k=1:2:2 * numel(t) - 1
@@ -215,20 +217,16 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
 
   switch (options.elem_type)
     case "iso8"
-      mesh.elements.iso8 = zeros((numel(r) - 1) * (numel(s) - 1) * (numel(t) - 1), 8, "int32");
-    case "iso20"
-      mesh.elements.iso20 = zeros((numel(r) - 1) * (numel(s) - 1) * (numel(t) - 1), 20, "int32");
+      num_elem_nodes = int32(8);
+    case {"iso20", "iso20r"}
+      num_elem_nodes = int32(20);
   endswitch
 
   mesh.elements.rbe3 = struct("nodes", [], "weight", [])([]);
   mesh.material_data = material;
 
-  switch (options.elem_type)
-    case "iso8"
-      mesh.materials.iso8 = zeros(rows(mesh.elements.iso8), 1, "int32");
-    case "iso20"
-      mesh.materials.iso20 = zeros(rows(mesh.elements.iso20), 1, "int32");
-  endswitch
+  elem_nodes = zeros((numel(r) - 1) * (numel(s) - 1) * (numel(t) - 1), num_elem_nodes, "int32");
+  elem_mat = zeros(rows(elem_nodes), 1, "int32");
 
   ielement = int32(0);
 
@@ -244,51 +242,46 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
 
           switch (options.elem_type)
             case "iso8"
-              mesh.materials.iso8(++ielement) = imat_id;
-              mesh.elements.iso8(ielement, :) = [inode_idx(i,     j,     k), ...
-                                                 inode_idx(i - 1, j,     k), ...
-                                                 inode_idx(i - 1, j - 1, k), ...
-                                                 inode_idx(i,     j - 1, k), ...
-                                                 inode_idx(i,     j,     k - 1), ...
-                                                 inode_idx(i - 1, j,     k - 1), ...
-                                                 inode_idx(i - 1, j - 1, k - 1), ...
-                                                 inode_idx(i,     j - 1, k - 1)];
-            case "iso20"
-              mesh.materials.iso20(++ielement) = imat_id;
-              mesh.elements.iso20(ielement, :) = [inode_idx(2 * i - 1, 2 * j - 1, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 1, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 3, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 3, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 1, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 1, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 3, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 3, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 2, 2 * j - 1, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 2, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 2, 2 * j - 3, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 2, 2 * k - 1), ...
-                                                  inode_idx(2 * i - 2, 2 * j - 1, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 2, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 2, 2 * j - 3, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 2, 2 * k - 3), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 1, 2 * k - 2), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 1, 2 * k - 2), ...
-                                                  inode_idx(2 * i - 3, 2 * j - 3, 2 * k - 2), ...
-                                                  inode_idx(2 * i - 1, 2 * j - 3, 2 * k - 2)];
+              elem_nodes_ijk = [inode_idx(i,     j,     k), ...
+                                inode_idx(i - 1, j,     k), ...
+                                inode_idx(i - 1, j - 1, k), ...
+                                inode_idx(i,     j - 1, k), ...
+                                inode_idx(i,     j,     k - 1), ...
+                                inode_idx(i - 1, j,     k - 1), ...
+                                inode_idx(i - 1, j - 1, k - 1), ...
+                                inode_idx(i,     j - 1, k - 1)];
+            case {"iso20", "iso20r"}
+              elem_nodes_ijk = [inode_idx(2 * i - 1, 2 * j - 1, 2 * k - 1), ...
+                                inode_idx(2 * i - 3, 2 * j - 1, 2 * k - 1), ...
+                                inode_idx(2 * i - 3, 2 * j - 3, 2 * k - 1), ...
+                                inode_idx(2 * i - 1, 2 * j - 3, 2 * k - 1), ...
+                                inode_idx(2 * i - 1, 2 * j - 1, 2 * k - 3), ...
+                                inode_idx(2 * i - 3, 2 * j - 1, 2 * k - 3), ...
+                                inode_idx(2 * i - 3, 2 * j - 3, 2 * k - 3), ...
+                                inode_idx(2 * i - 1, 2 * j - 3, 2 * k - 3), ...
+                                inode_idx(2 * i - 2, 2 * j - 1, 2 * k - 1), ...
+                                inode_idx(2 * i - 3, 2 * j - 2, 2 * k - 1), ...
+                                inode_idx(2 * i - 2, 2 * j - 3, 2 * k - 1), ...
+                                inode_idx(2 * i - 1, 2 * j - 2, 2 * k - 1), ...
+                                inode_idx(2 * i - 2, 2 * j - 1, 2 * k - 3), ...
+                                inode_idx(2 * i - 3, 2 * j - 2, 2 * k - 3), ...
+                                inode_idx(2 * i - 2, 2 * j - 3, 2 * k - 3), ...
+                                inode_idx(2 * i - 1, 2 * j - 2, 2 * k - 3), ...
+                                inode_idx(2 * i - 1, 2 * j - 1, 2 * k - 2), ...
+                                inode_idx(2 * i - 3, 2 * j - 1, 2 * k - 2), ...
+                                inode_idx(2 * i - 3, 2 * j - 3, 2 * k - 2), ...
+                                inode_idx(2 * i - 1, 2 * j - 3, 2 * k - 2)];
           endswitch
+
+          elem_mat(++ielement) = imat_id;
+          elem_nodes(ielement, :) = elem_nodes_ijk;
         endif
       endfor
     endfor
   endfor
 
-  switch (options.elem_type)
-    case "iso8"
-      mesh.elements.iso8 = mesh.elements.iso8(1:ielement, :);
-      mesh.materials.iso8 = mesh.materials.iso8(1:ielement);
-    case "iso20"
-      mesh.elements.iso20 = mesh.elements.iso20(1:ielement, :);
-      mesh.materials.iso20 = mesh.materials.iso20(1:ielement);
-  endswitch
+  mesh.elements = setfield(mesh.elements, options.elem_type, elem_nodes(1:ielement, :));
+  mesh.materials = setfield(mesh.materials, options.elem_type, elem_mat(1:ielement));
 
   nodes_in_use = false(rows(mesh.nodes), 1);
 
@@ -309,7 +302,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
     load_case = fem_pre_load_case_merge(load_case, repmat(setfield(load_case, "locked_dof", []), 1, numel(loads) - 1));
   else
     empty_cell = cell(1, numel(loads));
-    load_case = struct("locked_dof", empty_cell, "loaded_nodes", empty_cell, "loads", empty_cell);
+    load_case = struct("locked_dof", empty_cell, "loaded_nodes", empty_cell, "loads", empty_cell, "pressure", empty_cell);
     for l=1:numel(loads)
       load_case(l) = create_load_case(mesh, geometry, inode_idx, r, s, t, loads(l), nodes_in_use, options);
     endfor
@@ -325,7 +318,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
     case "iso8"
       pressure_perm_idx = int32([3, 4;
                                  2, 1]);
-    case "iso20"
+    case {"iso20", "iso20r"}
       pressure_perm_idx = int32([3, 7, 4;
                                  6, 9, 8;
                                  2, 5, 1]);
@@ -337,12 +330,16 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
 
       switch (options.elem_type)
         case "iso8"
-          load_case(l).pressure.iso4.elements = zeros(numel(r) * (numel(s) - 1) * (numel(t) - 1), 4, "int32");
-          load_case(l).pressure.iso4.p = zeros(rows(load_case(l).pressure.iso4.elements), 4);
-        case "iso20"
-          load_case(l).pressure.quad8.elements = zeros(numel(r) * (numel(s) - 1) * (numel(t) - 1), 8, "int32");
-          load_case(l).pressure.quad8.p = zeros(rows(load_case(l).pressure.quad8.elements), 8);
+          num_elem_nodes = int32(4);
+          elem_type_press = "iso4";
+        case {"iso20", "iso20r"}
+          elem_type_press = "quad8";
+          num_elem_nodes = int32(8);
       endswitch
+
+      elem_press.elements = zeros(numel(r) * (numel(s) - 1) * (numel(t) - 1), num_elem_nodes, "int32");
+      elem_press.p = zeros(rows(elem_press.elements), num_elem_nodes);
+      load_case(l).pressure = setfield(load_case(l).pressure, elem_type_press, elem_press);
 
       if (isfield(loads(l), "idx_r") && numel(loads(l).idx_r) > 0)
         idx_r = loads(l).idx_r;
@@ -391,7 +388,7 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
           endfor
           load_case(l).pressure.iso4.elements = load_case(l).pressure.iso4.elements(1:ielement_press, :);
           load_case(l).pressure.iso4.p = load_case(l).pressure.iso4.p(1:ielement_press, :);
-        case "iso20"
+        case {"iso20", "iso20r"}
           for i=1:numel(idx_r)
             for j=1:numel(idx_s)
               for k=1:numel(idx_t)
@@ -437,8 +434,22 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
   mesh.structured.inode_idx = inode_idx;
 
   switch (options.elem_type)
-    case "iso20"
-      mesh = replace_degenerated(mesh);
+    case {"iso20", "iso20r"}
+      mesh = replace_degenerated(mesh, options);
+  endswitch
+
+  switch (options.elem_type)
+    case "iso20r"
+      idx_solid = [5:8,1:4,13:16,9:12,17:20];
+      idx_surf = [3,4,1,2,7,8,5,6];
+      mesh.elements.iso20r = mesh.elements.iso20r(:, idx_solid);
+      for i=1:numel(load_case)
+        if (isfield(load_case(i).pressure, "quad8"))
+          load_case(i).pressure.quad8r.elements = load_case(i).pressure.quad8.elements(:, idx_surf);
+          load_case(i).pressure.quad8r.p = load_case(i).pressure.quad8.p(:, idx_surf);
+          load_case(i).pressure = rmfield(load_case(i).pressure, "quad8");
+        endif
+      endfor
   endswitch
 endfunction
 
@@ -458,6 +469,7 @@ function load_case = create_load_case(mesh, geometry, inode_idx, r, s, t, load, 
   load_case.locked_dof = false(rows(mesh.nodes), columns(mesh.nodes));
   load_case.loads = zeros(rows(mesh.nodes), columns(mesh.nodes));
   load_case.loaded_nodes = zeros(rows(mesh.nodes), 1, "int32");
+  load_case.pressure = struct();
 
   iload = int32(0);
 
@@ -501,7 +513,7 @@ function load_case = create_load_case(mesh, geometry, inode_idx, r, s, t, load, 
           endfor
         endfor
       endfor
-    case "iso20"
+    case {"iso20", "iso20r"}
       idx = [zeros(1, 3);
              eye(3)];
 
@@ -564,25 +576,27 @@ function load_case = create_load_case(mesh, geometry, inode_idx, r, s, t, load, 
   load_case.loaded_nodes = load_case.loaded_nodes(1:iload);
 endfunction
 
-function mesh_rep = replace_degenerated(mesh)
-  mesh_rep = mesh;
-  mesh_rep.elements.iso20 = zeros(size(mesh.elements.iso20), "int32");
-  mesh_rep.elements.penta15 = zeros(rows(mesh.elements.iso20), 15, "int32");
-  mesh_rep.materials.iso20 = zeros(size(mesh.materials.iso20), "int32");
-  mesh_rep.materials.penta15 = zeros(size(mesh.materials.iso20), "int32");
+function mesh = replace_degenerated(mesh, options)
+  iso20orig = getfield(mesh.elements, options.elem_type);
+  iso20matorig = getfield(mesh.materials, options.elem_type);
+
+  iso20repl = zeros(size(iso20orig), "int32");
+  penta15repl = zeros(rows(iso20orig), 15, "int32");
+  iso20matrepl = zeros(size(iso20matorig), "int32");
+  penta15matrepl = zeros(size(iso20matorig), "int32");
 
   inum_iso20 = int32(0);
   inum_penta15 = int32(0);
-  idxn = 1:columns(mesh.elements.iso20);
+  idxn = 1:columns(iso20orig);
 
-  for i=1:rows(mesh.elements.iso20)
-    elnodes = unique(mesh.elements.iso20(i, :));
+  for i=1:rows(iso20orig)
+    elnodes = unique(iso20orig(i, :));
     idxn = [];
 
-    if (numel(elnodes) < columns(mesh.elements.iso20))
-      idx = zeros(1, columns(mesh.elements.iso20));
-      for j=1:columns(mesh.elements.iso20)
-        neq = (mesh.elements.iso20(i, :) == mesh.elements.iso20(i, j));
+    if (numel(elnodes) < columns(iso20orig))
+      idx = zeros(1, columns(iso20orig));
+      for j=1:columns(iso20orig)
+        neq = (iso20orig(i, :) == iso20orig(i, j));
         neq(j) = false;
         idxtmp = find(neq);
         if (numel(idxtmp))
@@ -605,17 +619,19 @@ function mesh_rep = replace_degenerated(mesh)
     endif
 
     if (numel(idxn))
-      mesh_rep.elements.penta15(++inum_penta15, :) = mesh.elements.iso20(i, idxn);
-      mesh_rep.materials.penta15(inum_penta15) = mesh.materials.iso20(i);
+      penta15repl(++inum_penta15, :) = iso20orig(i, idxn);
+      penta15matrepl(inum_penta15) = iso20matorig(i);
     else
-      mesh_rep.elements.iso20(++inum_iso20, :) = mesh.elements.iso20(i, :);
-      mesh_rep.materials.iso20(inum_iso20) = mesh.materials.iso20(i);
+      iso20repl(++inum_iso20, :) = iso20orig(i, :);
+      iso20matrepl(inum_iso20) = iso20matorig(i);
     endif
   endfor
 
-  mesh_rep.elements.iso20 = mesh_rep.elements.iso20(1:inum_iso20, :);
-  mesh_rep.materials.iso20 = mesh_rep.materials.iso20(1:inum_iso20);
-  mesh_rep.elements.penta15 = mesh_rep.elements.penta15(1:inum_penta15, :);
-  mesh_rep.materials.penta15 = mesh_rep.materials.penta15(1:inum_penta15);
-endfunction
+  mesh.elements = rmfield(mesh.elements, options.elem_type);
+  mesh.materials = rmfield(mesh.materials, options.elem_type);
 
+  mesh.elements = setfield(mesh.elements, options.elem_type, iso20repl(1:inum_iso20, :));
+  mesh.materials = setfield(mesh.materials, options.elem_type, iso20matrepl(1:inum_iso20));
+  mesh.elements.penta15 = penta15repl(1:inum_penta15, :);
+  mesh.materials.penta15 = penta15matrepl(1:inum_penta15);
+endfunction

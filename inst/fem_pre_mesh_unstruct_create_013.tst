@@ -1,19 +1,19 @@
-## fem_pre_mesh_unstruct_create.m:07
+## fem_pre_mesh_unstruct_create.m:05
 %!test
 %! try
-%! ## TEST7
+%! ## TEST5
 %! close all;
 %! E = 210000e6;
 %! nu = 0.3;
 %! rho = 7850;
 %! F1 = 120;
-%! geo.h0 = 0.5e-3;
+%! geo.h0 = 0.2e-3;
 %! geo.h1 = 2e-3;
 %! geo.D = 15e-3;
 %! geo.d = 13e-3;
-%! geo.di = 0.01e-3; ## FIXME: di=0 not supported
+%! geo.di = 0.01e-3; ## FIXME: di=0 not supported by Gmsh 4.6.0 (degenerated hexahedrons are created)
 %! geo.r = 0.5 * (geo.D - geo.d);
-%! geo.L = 0.5 * geo.D;
+%! geo.L = 2 * geo.D;
 %! geo.t = 0.5 * (geo.D - geo.d);
 %! geo.w = 2 * sqrt(geo.r^2 - (geo.r - geo.t)^2);
 %! A = 0.22;
@@ -58,40 +58,29 @@
 %!     fputs(fd, "v[] = Extrude {{1.0,0.0,0.0},{0.0,0.0,0.0},-Pi/2} {\n");
 %!     fputs(fd, "  Surface{11}; Layers{Ceil(d * Pi / 4 / h0)}; Recombine;\n");
 %!     fputs(fd, "};\n");
-%!     fputs(fd, "Physical Volume(\"volume\",0) = {v[1]};\n");
-%!     fputs(fd, "Physical Surface(\"bottom\",1) = {v[0]};\n");
-%!     fputs(fd, "Physical Surface(\"front\",2) = {11};\n");
-%!     fputs(fd, "Physical Surface(\"clamp\",3) = {v[2]};\n");
-%!     fputs(fd, "Physical Surface(\"load\",4) = {v[7]};\n");
+%!     fputs(fd, "Recombine Surface{11,v[0]};\n");
+%!     fputs(fd, "Physical Volume(\"volume\") = {v[1]};\n");
+%!     fputs(fd, "Physical Surface(\"bottom\") = {v[0]};\n");
+%!     fputs(fd, "Physical Surface(\"front\") = {11};\n");
+%!     fputs(fd, "Physical Surface(\"clamp\") = {v[2]};\n");
+%!     fputs(fd, "Physical Surface(\"load\") = {v[7]};\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
 %!   opt.mesh.order = 2;
+%!   opt.mesh.elem_type = {"iso20r", "penta15", "quad8r", "tria6h"};
 %!   mesh = fem_pre_mesh_unstruct_create(geo_file, geo, opt);
 %!   mesh.material_data.rho = rho;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
-%!   elem_types = fieldnames(mesh.elements);
-%!   mesh.materials = struct();
-%!   for i=1:numel(elem_types)
-%!     mesh.materials = setfield(mesh.materials, elem_types{i}, ones(rows(getfield(mesh.elements, elem_types{i})), 1, "int32"));
-%!   endfor
+%!   mesh.materials.iso20r = ones(rows(mesh.elements.iso20r), 1, "int32");
 %!   load_case.locked_dof = false(size(mesh.nodes));
-%!   load_case.locked_dof(mesh.groups.tria6(find([mesh.groups.tria6.id]==1)).nodes, 3) = true;
-%!   load_case.locked_dof(mesh.groups.tria6(find([mesh.groups.tria6.id]==2)).nodes, 2) = true;
-%!   load_case.locked_dof(mesh.groups.quad8(find([mesh.groups.quad8.id]==3)).nodes, 1) = true;
-%!   load_case.locked_dof(mesh.groups.tria6(find([mesh.groups.tria6.id]==3)).nodes, 1) = true;
-%!   idx = find([mesh.groups.quad8.id]==4);
-%!   if (numel(idx))
-%!     load_case.pressure.quad8.elements = mesh.elements.quad8(mesh.groups.quad8(idx).elements, :);
-%!     load_case.pressure.quad8.p = repmat(p, rows(load_case.pressure.quad8.elements), 8);
-%!   endif
-%!   idx = find([mesh.groups.tria6.id]==4);
-%!   if (numel(idx))
-%!     load_case.pressure.tria6.elements = mesh.elements.tria6(mesh.groups.tria6(idx).elements, :);
-%!     load_case.pressure.tria6.p = repmat(p, rows(load_case.pressure.tria6.elements), 6);
-%!   endif
+%!   load_case.locked_dof(mesh.groups.quad8r(1).nodes, 3) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(2).nodes, 2) = true;
+%!   load_case.locked_dof(mesh.groups.quad8r(3).nodes, 1) = true;
+%!   load_case.pressure.quad8r.elements = mesh.elements.quad8r(mesh.groups.quad8r(4).elements, :);
+%!   load_case.pressure.quad8r.p = repmat(p, rows(load_case.pressure.quad8r.elements), 8);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
 %!    mat_ass.R, ...
@@ -111,7 +100,7 @@
 %!   if (mesh_info.detJ.min <= 0)
 %!     error("Jacobian is singular");
 %!   endif
-%!   Kt = max(max(sol_stat.stress.vmis.penta15)) / tauxx_n;
+%!   Kt = max(max(sol_stat.stress.vmis.iso20r)) / tauxx_n;
 %!   fprintf(stdout, "Kt_a=%.2f\n", Kt_a);
 %!   fprintf(stdout, "Kt=%.2f\n", Kt);
 %!   opt_post.scale_def = 3000;

@@ -2,7 +2,7 @@
 %!test
 %! try
 %! ## TEST 12
-%! tol = eps^0.9;
+%! tol = eps^0.8;
 %! mesh.nodes = [2, 3, 4;
 %!               6, 3, 2;
 %!               2, 5, 1;

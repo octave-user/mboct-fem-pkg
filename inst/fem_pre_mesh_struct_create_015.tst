@@ -66,7 +66,7 @@
 %! material.rho = 7850;
 %! load.p = 1e6;
 %! load.flags.use_pressure_boundary_cond = true;
-%! options.elem_type = "iso20";
+%! options.elem_type = "iso20r";
 %! [mesh, load_case] = fem_pre_mesh_struct_create(geometry, load, material, options);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.M, ...

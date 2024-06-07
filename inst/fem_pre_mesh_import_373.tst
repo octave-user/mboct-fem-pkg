@@ -16,12 +16,12 @@
 %! param.bound_cond = "edge";
 %! param.analysis = "plain strain";
 %! options.verbose = false;
-%! elem_types = {"tet20", "tet10", "tet10h", "iso8", "penta15", "iso20", "iso27"};
+%! elem_types = {"tet20", "tet10", "tet10h", "iso8", "penta15", "iso20", "iso20r", "iso27"};
 %! nu_val = [0.3];
 %! for idx_elem_type=1:numel(elem_types)
 %! param.elem_type = elem_types{idx_elem_type};
 %! switch (param.elem_type)
-%! case {"iso8", "penta15", "iso20", "iso27"}
+%! case {"iso8", "penta15", "iso20", "iso20r", "iso27"}
 %!   param.transfinite = true;
 %! otherwise
 %!   param.transfinite = false;
@@ -182,7 +182,7 @@
 %!     fprintf(fd, "Transfinite Surface(12) = {PointsOf{Surface{12};}};\n");
 %!     endif
 %!     switch (param.elem_type)
-%!     case {"iso8", "iso20", "iso27", "penta15"}
+%!     case {"iso8", "iso20", "iso20r", "iso27", "penta15"}
 %!       extrude_opt = "Layers{1}; Recombine;";
 %!     otherwise
 %!       extrude_opt = "";
@@ -200,7 +200,7 @@
 %!     fprintf(fd, "v11[] = Extrude {0, h, 0}{ Surface{11}; %s };\n", extrude_opt);
 %!     fprintf(fd, "v12[] = Extrude {0, h, 0}{ Surface{12}; %s };\n", extrude_opt);
 %!     switch (param.elem_type)
-%!     case {"iso8", "iso20", "iso27"}
+%!     case {"iso8", "iso20", "iso20r", "iso27"}
 %!       fprintf(fd, "Recombine Surface{1, v1[0]};\n");
 %!       fprintf(fd, "Recombine Surface{2, v2[0]};\n");
 %!       fprintf(fd, "Recombine Surface{3, v3[0]};\n");
@@ -226,7 +226,7 @@
 %!     fputs(fd, "MeshSize{PointsOf{Volume{1,2,3,4,5,6,7,8,9,10,11,12};}} = h;\n");
 %!     endif
 %!     switch (param.elem_type)
-%!     case {"penta15", "iso20"}
+%!     case {"penta15", "iso20", "iso20r"}
 %!       fprintf(fd, "Mesh.SecondOrderIncomplete = 1;\n");
 %!     endswitch
 %!     if (~param.transfinite)
@@ -260,8 +260,10 @@
 %!   switch (param.elem_type)
 %!   case {"iso8"}
 %!     param.elem_type_surf = {"iso4"};
-%!   case {"iso20"}
+%!   case "iso20"
 %!     param.elem_type_surf = {"quad8"};
+%!   case "iso20r"
+%!     param.elem_type_surf = {"quad8r"};
 %!   case {"iso27"}
 %!     param.elem_type_surf = {"quad9"};
 %!   case {"penta15"}
