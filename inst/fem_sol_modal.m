@@ -14,7 +14,7 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{sol}, @var{err}, @var{U}] = fem_sol_modal(@var{mesh}, @var{dof_map}, @var{mat_ass}, @var{N}, @var{varargin})
+## @deftypefn {Function File} [@var{sol}, @var{U}, @var{err}] = fem_sol_modal(@var{mesh}, @var{dof_map}, @var{mat_ass}, @var{N}, @var{varargin})
 ## Compute undamped natural frequencies and mode shapes.
 ##
 ## @var{mesh} @dots{} Finite element mesh data structure
