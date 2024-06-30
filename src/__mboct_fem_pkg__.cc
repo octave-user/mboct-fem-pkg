@@ -2431,7 +2431,7 @@ public:
                     ScalarType aij{};
 
                     for (octave_idx_type k = 0; k < 3; ++k) {
-                         aij += Hf.xelem(k, j) * Khtau_Hf.xelem(i, k);
+                         aij += Hf.xelem(k, i) * Khtau_Hf.xelem(k, j);
                     }
 
                     KHtau.xelem(i + 3, j + 3) = aij;
