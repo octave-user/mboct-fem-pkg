@@ -2332,6 +2332,88 @@ private:
      const MatType D;
 };
 
+template <typename ScalarType, typename MatType>
+class ElemContact: public ElemSpring<ScalarType, MatType>
+{
+     typedef ElemSpring<ScalarType, MatType> BaseType;
+public:
+     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& R, const Matrix& Hf, const ScalarType& sigma0, const ScalarType& k, const double sigma_delta, const double h0, const double dA)
+          :BaseType(eltype, id, X, material, nodes, StiffnessMatrix(R, Hf, sigma0, k, sigma_delta, h0, dA)) {
+     }
+
+     static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const ScalarType& sigma0, const ScalarType& k, const double sigma_delta, const double h0, const double dA) {
+          constexpr double c1 = 4.4086e-5;
+          constexpr double c2 = 6.804;
+          constexpr double Hmax = 4.;
+
+          const double H0 = h0 / sigma_delta;
+          const double F5_2 = H0 <= Hmax ? c1 * pow(Hmax - H0, c2) : 0.;
+          const double dF5_2_dH0 = -pow(Hmax - H0, c2 - 1.) * c1 * c2;
+          const double p = BaseType::RealPart(k) * F5_2;
+          const ScalarType kh = k / sigma_delta * dF5_2_dH0;
+          MatType Khtau(3, 3);
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    Khtau.xelem(i + 3 * j) = ((R.xelem(i, 0) * R.xelem(j, 0)
+                                             + R.xelem(i, 1) * R.xelem(j, 1)) * p * sigma0
+                                             + R.xelem(i, 2) * R.xelem(j, 2) * kh) * dA;
+               }
+          }
+
+          const octave_idx_type M = Hf.columns();
+          FEM_ASSERT(Hf.rows() == 3);
+
+          MatType Khtau_Hf(3, M);
+
+          for (octave_idx_type j = 0; j < M; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += Khtau.xelem(i, k) * Hf.xelem(k, j);
+                    }
+
+                    Khtau_Hf.xelem(i, j) = aij;
+               }
+          }
+
+          MatType KHtau(3 + M, 3 + M);
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    KHtau.xelem(i, j) = Khtau.xelem(i, j);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < M; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    KHtau.xelem(i, j + 3) = KHtau.xelem(j + 3, i) = -Khtau_Hf.xelem(i, j);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < M; ++j) {
+               for (octave_idx_type i = 0; i < M; ++i) {
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += Hf.xelem(k, j) * Khtau_Hf.xelem(i, k);
+                    }
+
+                    KHtau.xelem(i + 3, j + 3) = aij;
+               }
+          }
+
+          return KHtau;
+     }
+};
+
+template
+class ElemContact<double, Matrix>;
+
+template
+class ElemContact<std::complex<double>, ComplexMatrix>;
+
 class ElemRBE3: public Element
 {
 public:
@@ -12849,8 +12931,12 @@ public:
           CF_ELEM_DOF_PRE_ALLOCATED = 0x2u
      };
 
-     typedef std::unique_ptr<ElementBlock<ElemJoint>> ElemBlockPtr;
-
+     typedef ElemContact<std::complex<double>, ComplexMatrix> ElemContactType;
+     typedef ElementBlock<ElemContactType> ElemBlockContactType;
+     typedef ElementBlock<ElemJoint> ElemBlockJointType;
+     typedef std::unique_ptr<ElemBlockJointType> ElemBlockJointPtr;
+     typedef std::unique_ptr<ElemBlockContactType> ElemBlockContactPtr;
+     
      static ConstraintType GetConstraintType(int constr) {
           switch (constr) {
           case CT_FIXED:
@@ -12945,9 +13031,122 @@ public:
           }
 
           const octave_idx_type iNumNodesSlave = nidxslave.numel();
+          ElemBlockJointPtr pElemBlockPtr{new ElemBlockJointType{eElemType, iNumNodesSlave}};
+
+          auto pfnInsertElemHook = [dScale, eType, eElemType, eDomain, &pElemBlockPtr]
+               (const octave_idx_type id,
+                const Matrix& X,
+                const int32NDArray& nidxmaster,
+                const int32NDArray& nidxslave,
+                const unsigned uConstraintFlags,
+                const octave_idx_type iSlaveNode,
+                const octave_idx_type eidxmaster,
+                const ColumnVector& rvopt,
+                const ColumnVector& Xi) {
+                                        InsertConstraint(id,
+                                                         X,
+                                                         nidxmaster,
+                                                         nidxslave,
+                                                         eType,
+                                                         uConstraintFlags,
+                                                         eDomain,
+                                                         iSlaveNode,
+                                                         pElemBlockPtr,
+                                                         eElemType,
+                                                         eidxmaster,
+                                                         rvopt,
+                                                         dScale);
+                                   };
+
+          FindSmallestDistance(id,
+                               X,
+                               nidxmaster,
+                               nidxslave,
+                               maxdist,
+                               uConstraintFlags,
+                               pfnInsertElemHook);
+
+          rgElemBlocks.emplace_back(std::move(pElemBlockPtr));
+     }
+
+     static void
+     BuildContacts(octave_idx_type& id,
+                   const Matrix& X,
+                   const int32NDArray& nidxmaster,
+                   const int32NDArray& nidxslave,
+                   const ColumnVector& maxdist,
+                   const ConstraintType eType,
+                   const unsigned uConstraintFlags,
+                   const DofMap::DomainType eDomain,
+                   vector<ElemBlockContactPtr>& rgElemBlocks,
+                   const std::complex<double>& sigma0,
+                   const std::complex<double>& k,
+                   const double sigma_delta) {
+
+          const octave_idx_type iNumNodesSlave = nidxslave.numel();
+          ElemBlockContactPtr pElemBlockPtr{new ElemBlockContactType{ElementTypes::ELEM_SPRING, iNumNodesSlave}};
+
+          auto pfnInsertElemHook = [eType, eDomain, sigma0, k, sigma_delta, &pElemBlockPtr]
+               (const octave_idx_type id,
+                const Matrix& X,
+                const int32NDArray& nidxmaster,
+                const int32NDArray& nidxslave,
+                const unsigned uConstraintFlags,
+                const octave_idx_type iSlaveNode,
+                const octave_idx_type eidxmaster,
+                const ColumnVector& rvopt,
+                const ColumnVector& Xi) {
+                                        InsertContact(id,
+                                                      X,
+                                                      nidxmaster,
+                                                      nidxslave,
+                                                      eType,
+                                                      uConstraintFlags,
+                                                      eDomain,
+                                                      iSlaveNode,
+                                                      pElemBlockPtr,
+                                                      ElementTypes::ELEM_SPRING,
+                                                      eidxmaster,
+                                                      rvopt,
+                                                      Xi,
+                                                      sigma0,
+                                                      k,
+                                                      sigma_delta);
+                                   };
+
+          FindSmallestDistance(id,
+                               X,
+                               nidxmaster,
+                               nidxslave,
+                               maxdist,
+                               uConstraintFlags,
+                               pfnInsertElemHook);
+
+          rgElemBlocks.emplace_back(std::move(pElemBlockPtr));
+     }
+
+private:
+     typedef void InsertElemHook(const octave_idx_type id,
+                                 const Matrix& X,
+                                 const int32NDArray& nidxmaster,
+                                 const int32NDArray& nidxslave,
+                                 const unsigned uConstraintFlags,
+                                 const octave_idx_type iSlaveNode,
+                                 const octave_idx_type eidxmaster,
+                                 const ColumnVector& rvopt,
+                                 const ColumnVector& Xi);
+     static void
+     FindSmallestDistance(octave_idx_type& id,
+                          const Matrix& X,
+                          const int32NDArray& nidxmaster,
+                          const int32NDArray& nidxslave,
+                          const ColumnVector& maxdist,
+                          const unsigned uConstraintFlags,
+                          const std::function<InsertElemHook>& pfnInsertElemHook) {
+
+          const octave_idx_type iNumNodesSlave = nidxslave.numel();
           const octave_idx_type iNumNodes = X.rows();
           const octave_idx_type iNumElem = nidxmaster.rows();
-          ElemBlockPtr pElemBlock{new ElementBlock<ElemJoint>{eElemType, iNumNodesSlave}};
 
           FEM_ASSERT(X.columns() >= iNumDimNode);
           FEM_ASSERT(X.columns() == 6);
@@ -13080,25 +13279,18 @@ public:
 
                FEM_TRACE("nlopt: i=" << i << " l=" << lopt << " rc=" << rcopt << " f=" << fopt << " maxdist=" << maxdist(i) << std::endl);
 
-               InsertConstraint(++id,
-                                X,
-                                nidxmaster,
-                                nidxslave,
-                                eType,
-                                uConstraintFlags,
-                                eDomain,
-                                i,
-                                pElemBlock,
-                                eElemType,
-                                eidxmaster[i][lopt].eidx,
-                                rvopt,
-                                dScale);
+               pfnInsertElemHook(++id,
+                                 X,
+                                 nidxmaster,
+                                 nidxslave,
+                                 uConstraintFlags,
+                                 i,
+                                 eidxmaster[i][lopt].eidx,
+                                 rvopt,
+                                 Xi);
           }
-
-          rgElemBlocks.emplace_back(std::move(pElemBlock));
      }
 
-private:
      static void InsertConstraint(const octave_idx_type id,
                                   const Matrix& X,
                                   const int32NDArray& nidxmaster,
@@ -13107,7 +13299,7 @@ private:
                                   const unsigned uConstraintFlags,
                                   const DofMap::DomainType eDomain,
                                   const octave_idx_type iSlaveNode,
-                                  const ElemBlockPtr& pElemBlock,
+                                  const ElemBlockJointPtr& pElemBlock,
                                   const ElementTypes::TypeId eElemType,
                                   const octave_idx_type eidxmaster,
                                   const ColumnVector& rvopt,
@@ -13209,6 +13401,98 @@ private:
           } else {
                pElemBlock->Insert(id, Xe, nullptr, enodes, C, Matrix{iNumDofNodeConstr, 0}, eDomain, dScale);
           }
+     }
+
+     static void InsertContact(const octave_idx_type id,
+                               const Matrix& X,
+                               const int32NDArray& nidxmaster,
+                               const int32NDArray& nidxslave,
+                               const ConstraintType eType,
+                               const unsigned uConstraintFlags,
+                               const DofMap::DomainType eDomain,
+                               const octave_idx_type iSlaveNode,
+                               const ElemBlockContactPtr& pElemBlock,
+                               const ElementTypes::TypeId eElemType,
+                               const octave_idx_type eidxmaster,
+                               const ColumnVector& rvopt,
+                               const ColumnVector& Xi,
+                               const std::complex<double>& sigma0,
+                               const std::complex<double>& k,
+                               const double sigma_delta) {
+          constexpr octave_idx_type iNumDofNodeMax = 6;
+          constexpr octave_idx_type iNumDofNodeConstr = 3;
+          const octave_idx_type iNumNodes = X.rows();
+
+          Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
+
+          SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
+
+          int32NDArray enodes(dim_vector(iNumNodesElem + 1, 1));
+
+          enodes.xelem(0) = nidxslave.xelem(iSlaveNode).value();
+
+          for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
+               enodes.xelem(j + 1) = nidxmaster.xelem(eidxmaster, j).value();
+          }
+
+          const octave_idx_type iNumCoord = X.columns();
+
+          FEM_ASSERT(iNumCoord == 6);
+
+          Matrix Xe(iNumCoord, iNumNodesElem + 1);
+
+          for (octave_idx_type j = 0; j < iNumCoord; ++j) {
+               Xe.xelem(j) = X.xelem(nidxslave.xelem(iSlaveNode).value() - 1, j);
+          }
+
+          for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
+               for (octave_idx_type k = 0; k < iNumCoord; ++k) {
+                    Xe.xelem(k + iNumCoord * (j + 1)) = X.xelem(nidxmaster.xelem(eidxmaster, j).value() - 1 + iNumNodes * k);
+               }
+          }
+
+          Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+          Matrix dHf_ds(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+          ColumnVector n1(iNumDimNode), n2(iNumDimNode);
+          ColumnVector n3(iNumDimNode);
+
+          SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
+          SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
+
+          SurfaceTangentVector(Xe, dHf_dr, n1);
+          SurfaceTangentVector(Xe, dHf_ds, n2);
+          SurfaceElement::SurfaceNormalVector(n1, n2, n3);
+          const double dA = SurfaceElement::JacobianDet(n3);
+
+          Matrix R(iNumDimNode, iNumDimNode);
+
+          for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+               R.xelem(i, 0) = n1.xelem(i);
+               R.xelem(i, 1) = n2.xelem(i);
+               R.xelem(i, 2) = n3.xelem(i);
+          }
+
+          for (octave_idx_type j = 0; j < iNumDimNode; ++j) {
+               double n = 0.;
+
+               for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+                    n += std::pow(R.xelem(i, j), 2);
+               }
+
+               n = sqrt(n);
+
+               for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+                    R.xelem(i, j) /= n;
+               }
+          }
+
+          double h0 = 0.;
+
+          for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+               h0 += R.xelem(i, 2) * (Xe.xelem(i) - Xi.xelem(i));
+          }
+
+          pElemBlock->Insert(id, Xe, nullptr, enodes, R, Hf, sigma0, k, sigma_delta, h0, dA);
      }
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
