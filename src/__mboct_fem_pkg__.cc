@@ -2191,8 +2191,6 @@ class ElemSpringDashpotBase: public Element
 public:
      ElemSpringDashpotBase(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
           :Element(eltype, id, X, material, nodes) {
-          FEM_ASSERT(A.columns() == nodes.numel() * 6);
-          FEM_ASSERT(A.rows() == A.columns());
           FEM_ASSERT(X.rows() == 6);
      }
 
@@ -16810,7 +16808,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                          ov_A = s_elem.contents(iter_D);
 
-                         FEM_ASSERT(ov_D.numel() == s_elem.numel());
+                         FEM_ASSERT(ov_A.numel() == s_elem.numel());
                     }
 
                     Cell ov_weight;
