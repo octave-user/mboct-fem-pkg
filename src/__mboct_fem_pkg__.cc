@@ -2376,22 +2376,24 @@ public:
      }
 
      static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const ScalarType& sigma0, const ScalarType& k, const double sigma_delta, const double h0, const double dA) {
-          constexpr double c1 = 4.4086e-5;
-          constexpr double c2 = 6.804;
-          constexpr double Hmax = 4.;
+          // constexpr double c1 = 4.4086e-5;
+          // constexpr double c2 = 6.804;
+          // constexpr double Hmax = 4.;
 
-          const double H0 = h0 / sigma_delta;
-          const double F5_2 = H0 <= Hmax ? c1 * pow(Hmax - H0, c2) : 0.;
-          const double dF5_2_dH0 = -pow(Hmax - H0, c2 - 1.) * c1 * c2;
-          const double p = BaseType::RealPart(k) * F5_2;
-          const ScalarType kh = -k / sigma_delta * dF5_2_dH0;
+          // const double H0 = h0 / sigma_delta;
+          // const double F5_2 = H0 <= Hmax ? c1 * pow(Hmax - H0, c2) : 0.;
+          // const double dF5_2_dH0 = -pow(Hmax - H0, c2 - 1.) * c1 * c2;
+          // const double p = BaseType::RealPart(k) * F5_2;
+          // const ScalarType kh = -k / sigma_delta * dF5_2_dH0;
+          const double p = 1;
+          const auto kh = k;
           MatType Khtau(3, 3);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
-                    Khtau.xelem(i + 3 * j) = ((R.xelem(i, 0) * R.xelem(j, 0)
-                                             + R.xelem(i, 1) * R.xelem(j, 1)) * p * sigma0
-                                             + R.xelem(i, 2) * R.xelem(j, 2) * kh) * dA;
+                    Khtau.xelem(i, j) = ((R.xelem(i, 0) * R.xelem(j, 0)
+                                          + R.xelem(i, 1) * R.xelem(j, 1)) * p * sigma0
+                                         + R.xelem(i, 2) * R.xelem(j, 2) * kh) * dA;
                }
           }
 
