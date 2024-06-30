@@ -2384,7 +2384,7 @@ public:
           const double F5_2 = H0 <= Hmax ? c1 * pow(Hmax - H0, c2) : 0.;
           const double dF5_2_dH0 = -pow(Hmax - H0, c2 - 1.) * c1 * c2;
           const double p = BaseType::RealPart(k) * F5_2;
-          const ScalarType kh = k / sigma_delta * dF5_2_dH0;
+          const ScalarType kh = -k / sigma_delta * dF5_2_dH0;
           MatType Khtau(3, 3);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
