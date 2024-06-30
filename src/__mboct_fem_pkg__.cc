@@ -13025,8 +13025,6 @@ public:
 
      static void BuildContacts(const Matrix& nodes,
                                const octave_scalar_map& elements,
-                               const array<int32NDArray, DofMap::ELEM_TYPE_COUNT>& edof,
-                               array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
                                const ElementTypes::TypeInfo& oElemType,
                                const unsigned uConstraintFlags,
                                vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
@@ -14136,8 +14134,6 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
 
 void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                          const octave_scalar_map& elements,
-                                         const array<int32NDArray, DofMap::ELEM_TYPE_COUNT>& edof,
-                                         array<octave_idx_type, DofMap::ELEM_TYPE_COUNT>& dofelemid,
                                          const ElementTypes::TypeInfo& oElemType,
                                          const unsigned uConstraintFlags,
                                          vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
@@ -14209,6 +14205,8 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
      FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
      FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
      FEM_ASSERT(ov_maxdist.numel() == s_elem.numel());
+
+     octave_idx_type id = 0;
 
      for (octave_idx_type l = 0; l < s_elem.numel(); ++l) {
           const int32NDArray nidxmaster = ov_nidxmaster(l).int32_array_value();
@@ -14300,7 +14298,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
 
           switch (oElemType.type) {
           case ElementTypes::ELEM_SFNCON4S:
-               SurfToNodeConstr<ShapeIso4>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeIso4>::BuildContacts(id,
                                                           nodes,
                                                           nidxmaster,
                                                           nidxslave,
@@ -14314,7 +14312,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                           sigma_delta);
                break;
           case ElementTypes::ELEM_SFNCON6S:
-               SurfToNodeConstr<ShapeTria6>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeTria6>::BuildContacts(id,
                                                            nodes,
                                                            nidxmaster,
                                                            nidxslave,
@@ -14328,7 +14326,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            sigma_delta);
                break;
           case ElementTypes::ELEM_SFNCON6HS:
-               SurfToNodeConstr<ShapeTria6H>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeTria6H>::BuildContacts(id,
                                                             nodes,
                                                             nidxmaster,
                                                             nidxslave,
@@ -14342,7 +14340,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             sigma_delta);
                break;
           case ElementTypes::ELEM_SFNCON8S:
-               SurfToNodeConstr<ShapeQuad8>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeQuad8>::BuildContacts(id,
                                                            nodes,
                                                            nidxmaster,
                                                            nidxslave,
@@ -14356,7 +14354,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            sigma_delta);
                break;
           case ElementTypes::ELEM_SFNCON8RS:
-               SurfToNodeConstr<ShapeQuad8r>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeQuad8r>::BuildContacts(id,
                                                             nodes,
                                                             nidxmaster,
                                                             nidxslave,
@@ -14370,7 +14368,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             sigma_delta);
                break;
           case ElementTypes::ELEM_SFNCON9S:
-               SurfToNodeConstr<ShapeQuad9>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeQuad9>::BuildContacts(id,
                                                            nodes,
                                                            nidxmaster,
                                                            nidxslave,
@@ -14384,7 +14382,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            sigma_delta);
                break;
           case ElementTypes::ELEM_SFNCON10S:
-               SurfToNodeConstr<ShapeTria10>::BuildContacts(dofelemid[oElemType.dof_type],
+               SurfToNodeConstr<ShapeTria10>::BuildContacts(id,
                                                             nodes,
                                                             nidxmaster,
                                                             nidxslave,
@@ -17250,7 +17248,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON10S: {
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
-                    SurfToNodeConstrBase::BuildContacts(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
+                    SurfToNodeConstrBase::BuildContacts(nodes, elements, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
 #else
                     throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
 #endif
