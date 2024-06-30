@@ -110,7 +110,7 @@ function Y = mat_product(M, D, K, D1, D2, ASfact, omega, Z)
 endfunction
 
 %!test
-%!try
+%! try
 %! function varargout = callback(stage, opt_sol, idx, omega, Ui, status, Mi, Di, Ki, Ri)
 %!   switch (stage)
 %!   case "init"
