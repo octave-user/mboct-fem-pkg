@@ -2440,6 +2440,11 @@ public:
                }
           }
 
+          std::cerr << "Hf=\n" << Hf << std::endl;
+          
+          std::cerr << "Khtau=\n" << Khtau << std::endl;
+          std::cerr << "Khtau_Hf=\n" << Khtau_Hf << std::endl;
+          std::cerr << "KHtau=\n" << KHtau << std::endl;
           return KHtau;
      }
 };
