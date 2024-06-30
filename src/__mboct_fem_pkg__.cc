@@ -14301,7 +14301,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
           const double sigma_delta = ov_sigma_delta.xelem(l).scalar_value();
 
           switch (oElemType.type) {
-          case ElementTypes::ELEM_SFNCON4:
+          case ElementTypes::ELEM_SFNCON4S:
                SurfToNodeConstr<ShapeIso4>::BuildContacts(dofelemid[oElemType.dof_type],
                                                           nodes,
                                                           nidxmaster,
@@ -14315,7 +14315,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                           k,
                                                           sigma_delta);
                break;
-          case ElementTypes::ELEM_SFNCON6:
+          case ElementTypes::ELEM_SFNCON6S:
                SurfToNodeConstr<ShapeTria6>::BuildContacts(dofelemid[oElemType.dof_type],
                                                            nodes,
                                                            nidxmaster,
@@ -14329,7 +14329,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            k,
                                                            sigma_delta);
                break;
-          case ElementTypes::ELEM_SFNCON6H:
+          case ElementTypes::ELEM_SFNCON6HS:
                SurfToNodeConstr<ShapeTria6H>::BuildContacts(dofelemid[oElemType.dof_type],
                                                             nodes,
                                                             nidxmaster,
@@ -14343,7 +14343,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             k,
                                                             sigma_delta);
                break;
-          case ElementTypes::ELEM_SFNCON8:
+          case ElementTypes::ELEM_SFNCON8S:
                SurfToNodeConstr<ShapeQuad8>::BuildContacts(dofelemid[oElemType.dof_type],
                                                            nodes,
                                                            nidxmaster,
@@ -14357,7 +14357,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            k,
                                                            sigma_delta);
                break;
-          case ElementTypes::ELEM_SFNCON8R:
+          case ElementTypes::ELEM_SFNCON8RS:
                SurfToNodeConstr<ShapeQuad8r>::BuildContacts(dofelemid[oElemType.dof_type],
                                                             nodes,
                                                             nidxmaster,
@@ -14371,7 +14371,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             k,
                                                             sigma_delta);
                break;
-          case ElementTypes::ELEM_SFNCON9:
+          case ElementTypes::ELEM_SFNCON9S:
                SurfToNodeConstr<ShapeQuad9>::BuildContacts(dofelemid[oElemType.dof_type],
                                                            nodes,
                                                            nidxmaster,
@@ -14385,7 +14385,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            k,
                                                            sigma_delta);
                break;
-          case ElementTypes::ELEM_SFNCON10:
+          case ElementTypes::ELEM_SFNCON10S:
                SurfToNodeConstr<ShapeTria10>::BuildContacts(dofelemid[oElemType.dof_type],
                                                             nodes,
                                                             nidxmaster,
