@@ -1110,6 +1110,8 @@ public:
           ELEM_BEAM2,
           ELEM_RBE3,
           ELEM_JOINT,
+          ELEM_SPRING,
+          ELEM_DASHPOT,
           ELEM_RIGID_BODY,
           ELEM_SFNCON4,
           ELEM_SFNCON6,
@@ -1205,6 +1207,8 @@ private:
           {ElementTypes::ELEM_BEAM2,                "beam2",           2,  2, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_RBE3,                 "rbe3",            2, -1, DofMap::ELEM_RBE3},
           {ElementTypes::ELEM_JOINT,                "joints",          1, -1, DofMap::ELEM_JOINT},
+          {ElementTypes::ELEM_SPRING,               "springs",         1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_DASHPOT,              "dashpots",        1, -1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_RIGID_BODY,           "bodies",          1,  1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_SFNCON4,              "sfncon4",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON6,              "sfncon6",         1, -1, DofMap::ELEM_JOINT},
@@ -2165,6 +2169,167 @@ private:
      const octave_idx_type iNumNodeDof;
      const DofMap::NodalDofType eNodalDofType;
      const double dScale;
+};
+
+template <typename ScalarType, typename MatType>
+class ElemSpringDashpotBase: public Element
+{
+public:
+     ElemSpringDashpotBase(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :Element(eltype, id, X, material, nodes) {
+          FEM_ASSERT(A.columns() == nodes.numel() * 6);
+          FEM_ASSERT(A.rows() == A.columns());
+          FEM_ASSERT(X.rows() == 6);
+     }
+
+     static constexpr bool bNeedMatrixInfo(Element::FemMatrixType eMatType) {
+          return false;
+     }
+
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+     }
+
+protected:
+     void AssembleMatrixReal(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          AssembleMatrix<RealPart>(mat, dof, A);
+     }
+
+     void AssembleMatrixImag(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          AssembleMatrix<ImagPart>(mat, dof, A);
+     }
+
+     template <double ScalarFunctionRealImag(const ScalarType&)>
+     void AssembleMatrix(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          constexpr octave_idx_type iNumNodeDof = 6;
+          const octave_idx_type Arows = A.rows();
+          const octave_idx_type Acols = A.columns();
+
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
+
+          for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+               for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
+                    ndofidx.xelem(inode * iNumNodeDof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < Acols; ++j) {
+               for (octave_idx_type i = 0; i < Arows; ++i) {
+                    const double Aij = ScalarFunctionRealImag(A.xelem(i + Arows * j));
+                    mat.Insert(Aij, ndofidx.xelem(j), ndofidx.xelem(i));
+               }
+          }
+     }
+
+     static double RealPart(const ScalarType& z) {
+          if constexpr(std::is_same<ScalarType, double>::value) {
+               return z;
+          } else {
+               return std::real(z);
+          }
+     }
+
+     static double ImagPart(const ScalarType& z) {
+          return std::imag(z);
+     }
+};
+
+template <typename ScalarType, typename MatType>
+class ElemSpring: public ElemSpringDashpotBase<ScalarType, MatType>
+{
+     typedef ElemSpringDashpotBase<ScalarType, MatType> BaseType;
+     using BaseType::AssembleMatrixReal;
+     using BaseType::AssembleMatrixImag;
+public:
+     ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& K)
+          :BaseType(eltype, id, X, material, nodes), K(K) {
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_STIFFNESS:
+          case Element::MAT_STIFFNESS_SYM:
+          case Element::MAT_STIFFNESS_SYM_L:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
+               AssembleMatrixReal(mat, dof, K);
+               break;
+
+          case Element::MAT_STIFFNESS_IM:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_IM:
+               if constexpr(std::is_same<ScalarType, std::complex<double>>::value) {
+                   AssembleMatrixImag(mat, dof, K);
+               }
+               break;
+
+          default:
+               break;
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_STIFFNESS:
+          case Element::MAT_STIFFNESS_IM:
+          case Element::MAT_STIFFNESS_SYM:
+          case Element::MAT_STIFFNESS_SYM_L:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_IM:
+               return K.rows() * K.columns();
+          default:
+               return 0;
+          }
+     }
+private:
+     const MatType K;
+};
+
+template <typename ScalarType, typename MatType>
+class ElemDashpot: public ElemSpringDashpotBase<ScalarType, MatType>
+{
+     typedef ElemSpringDashpotBase<ScalarType, MatType> BaseType;
+     using BaseType::AssembleMatrixReal;
+     using BaseType::AssembleMatrixImag;
+public:
+     ElemDashpot(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& D)
+          :BaseType(eltype, id, X, material, nodes), D(D) {
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_DAMPING:
+          case Element::MAT_DAMPING_SYM:
+          case Element::MAT_DAMPING_SYM_L:
+          case Element::MAT_DAMPING_FLUID_STRUCT_RE:
+               AssembleMatrixReal(mat, dof, D);
+               break;
+
+               //case MAT_DAMPING_IM:
+          case Element::MAT_DAMPING_FLUID_STRUCT_IM:
+               if constexpr(std::is_same<ScalarType, std::complex<double>>::value) {
+                   AssembleMatrixImag(mat, dof, D);
+               }
+               break;
+
+          default:
+               break;
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_DAMPING:
+               //case MAT_DAMPING_IM:
+          case Element::MAT_DAMPING_SYM:
+          case Element::MAT_DAMPING_SYM_L:
+          case Element::MAT_DAMPING_FLUID_STRUCT_RE:
+          case Element::MAT_DAMPING_FLUID_STRUCT_IM:
+               return D.rows() * D.columns();
+          default:
+               return 0;
+          }
+     }
+
+private:
+     const MatType D;
 };
 
 class ElemRBE3: public Element
@@ -15337,6 +15502,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_DAMPING_OMEGA:
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
@@ -15349,9 +15515,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_MASS_SYM:
                     case Element::MAT_MASS_SYM_L:
                     case Element::MAT_MASS_LUMPED:
-                    case Element::MAT_DAMPING:
-                    case Element::MAT_DAMPING_SYM:
-                    case Element::MAT_DAMPING_SYM_L:
                     case Element::SCA_TOT_MASS:
                     case Element::VEC_INERTIA_M1:
                     case Element::MAT_INERTIA_J:
@@ -15363,8 +15526,15 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_RIGID_BODY] = true;
                          [[fallthrough]];
 
+                    case Element::MAT_DAMPING:
+                    case Element::MAT_DAMPING_SYM:
+                    case Element::MAT_DAMPING_SYM_L:
+                         rgElemUse[ElementTypes::ELEM_DASHPOT] = true;
+                         [[fallthrough]];
+
                     case Element::MAT_STIFFNESS_IM:
                          rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          [[fallthrough]];
 
                     case Element::VEC_STRESS_CAUCH:
@@ -15571,6 +15741,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
                     case Element::MAT_MASS_FLUID_STRUCT_RE:
@@ -15589,6 +15760,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          break;
 
                     case Element::VEC_LOAD_FLUID_STRUCT:
@@ -15652,6 +15824,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
+                         rgElemUse[ElementTypes::ELEM_DASHPOT] = true;
                          // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
 
@@ -15884,6 +16057,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_RIGID_BODY:
                case ElementTypes::ELEM_RBE3:
                case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_SPRING:
+               case ElementTypes::ELEM_DASHPOT:
                case ElementTypes::ELEM_THERM_CONSTR:
                case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                     const auto iter_elem = elements.seek(oElemType.name);
@@ -15899,7 +16074,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("fem_ass_matrix: mesh.elements."s + oElemType.name + " must be an struct array in argument mesh");
                     }
 #endif
-
                     const auto iter_nodes = s_elem.seek("nodes");
 
                     if (iter_nodes == s_elem.end()) {
@@ -15981,7 +16155,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          cell_lcg = s_elem.contents(iter_lcg);
                     }
 
-                    Cell ov_C, ov_Scale;
+                    Cell ov_A, ov_Scale;
 
                     if (oElemType.type == ElementTypes::ELEM_JOINT ||
                         oElemType.type == ElementTypes::ELEM_THERM_CONSTR ||
@@ -15992,15 +16166,41 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".C in argument mesh");
                          }
 
-                         ov_C = s_elem.contents(iter_C);
+                         ov_A = s_elem.contents(iter_C);
 
-                         FEM_ASSERT(ov_C.numel() == s_elem.numel());
+                         FEM_ASSERT(ov_A.numel() == s_elem.numel());
 
                          const auto iter_Scale = s_elem.seek("scale");
 
                          if (iter_Scale != s_elem.end()) {
                               ov_Scale = s_elem.contents(iter_Scale);
                          }
+                    }
+
+                    bool bRealA = true;
+
+                    if (oElemType.type == ElementTypes::ELEM_SPRING) {
+                         const auto iter_K = s_elem.seek("K");
+
+                         if (iter_K == s_elem.end()) {
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".K in argument mesh");
+                         }
+
+                         ov_A = s_elem.contents(iter_K);
+
+                         FEM_ASSERT(ov_A.numel() == s_elem.numel());
+                    }
+
+                    if (oElemType.type == ElementTypes::ELEM_DASHPOT) {
+                         const auto iter_D = s_elem.seek("D");
+
+                         if (iter_D == s_elem.end()) {
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".D in argument mesh");
+                         }
+
+                         ov_A = s_elem.contents(iter_D);
+
+                         FEM_ASSERT(ov_D.numel() == s_elem.numel());
                     }
 
                     Cell ov_weight;
@@ -16032,6 +16232,34 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                          pElem.reset(new ElementBlock<ElemJoint>(oElemType.type, s_elem.numel()));
                          break;
+                    case ElementTypes::ELEM_SPRING:
+                    case ElementTypes::ELEM_DASHPOT: {
+                         for (octave_idx_type i = 0; i < ov_A.numel(); ++i) {
+                              if (!(ov_A.xelem(i).isreal() && ov_A.xelem(i).isreal())) {
+                                   bRealA = false;
+                                   break;
+                              }
+                         }
+
+                         switch (oElemType.type) {
+                         case ElementTypes::ELEM_SPRING:
+                              if (bRealA) {
+                                   pElem.reset(new ElementBlock<ElemSpring<double, Matrix>>(oElemType.type, s_elem.numel()));
+                              } else {
+                                   pElem.reset(new ElementBlock<ElemSpring<std::complex<double>, ComplexMatrix>>(oElemType.type, s_elem.numel()));
+                              }
+                              break;
+                         case ElementTypes::ELEM_DASHPOT:
+                              if (bRealA) {
+                                   pElem.reset(new ElementBlock<ElemDashpot<double, Matrix>>(oElemType.type, s_elem.numel()));
+                              } else {
+                                   pElem.reset(new ElementBlock<ElemDashpot<std::complex<double>, ComplexMatrix>>(oElemType.type, s_elem.numel()));
+                              }
+                              break;
+                         default:
+                              FEM_ASSERT(false);
+                         }
+                    } break;
                     default:
                          FEM_ASSERT(false);
                     }
@@ -16252,7 +16480,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_JOINT:
                          case ElementTypes::ELEM_THERM_CONSTR:
                          case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
-                              const Matrix C(ov_C.xelem(i).matrix_value());
+                              const Matrix C(ov_A.xelem(i).matrix_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
@@ -16351,6 +16579,36 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               }
 
                               pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U, oDof.GetDomain(), dScale);
+                         } break;
+                         case ElementTypes::ELEM_SPRING:
+                         case ElementTypes::ELEM_DASHPOT: {
+                              if (bRealA) {
+                                   const Matrix A(ov_A.xelem(i).matrix_value());
+
+                                   switch (oElemType.type) {
+                                   case ElementTypes::ELEM_SPRING:
+                                        pElem->Insert<ElemSpring<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   case ElementTypes::ELEM_DASHPOT:
+                                        pElem->Insert<ElemDashpot<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   default:
+                                        FEM_ASSERT(false);
+                                   }
+                              } else {
+                                   const ComplexMatrix A(ov_A.xelem(i).complex_matrix_value());
+
+                                   switch (oElemType.type) {
+                                   case ElementTypes::ELEM_SPRING:
+                                        pElem->Insert<ElemSpring<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   case ElementTypes::ELEM_DASHPOT:
+                                        pElem->Insert<ElemDashpot<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   default:
+                                        FEM_ASSERT(false);
+                                   }
+                              }
                          } break;
                          default:
                               FEM_ASSERT(false);
