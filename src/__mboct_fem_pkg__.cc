@@ -20,6 +20,7 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -2463,7 +2464,7 @@ public:
 
           for (octave_idx_type i = 0; i < Khtau.rows(); ++i) {
                for (octave_idx_type j = 0; j < Khtau.columns(); ++j) {
-                    std::cerr << ElemSpring<ScalarType, MatType>::RealPart(Khtau.xelem(i, j)) << ' ';
+                    std::cerr << std::setw(10) << ElemSpring<ScalarType, MatType>::RealPart(Khtau.xelem(i, j)) << ' ';
                }
 
                std::cerr << "\n";
@@ -2477,7 +2478,7 @@ public:
 
           for (octave_idx_type i = 0; i < Hf.rows(); ++i) {
                for (octave_idx_type j = 0; j < Hf.columns(); ++j) {
-                    std::cerr << Hf.xelem(i, j) << ' ';
+                    std::cerr << std::setw(10) << Hf.xelem(i, j) << ' ';
                }
 
                std::cerr << "\n";
@@ -2490,7 +2491,7 @@ public:
 
           for (octave_idx_type i = 0; i < Khtau_Hf.rows(); ++i) {
                for (octave_idx_type j = 0; j < Khtau_Hf.columns(); ++j) {
-                    std::cerr << ElemSpring<ScalarType, MatType>::RealPart(Khtau_Hf.xelem(i, j)) << ' ';
+                    std::cerr << std::setw(10) << ElemSpring<ScalarType, MatType>::RealPart(Khtau_Hf.xelem(i, j)) << ' ';
                }
 
                std::cerr << "\n";
@@ -2502,7 +2503,7 @@ public:
 
           for (octave_idx_type i = 0; i < KHtau.rows(); ++i) {
                for (octave_idx_type j = 0; j < KHtau.columns(); ++j) {
-                    std::cerr << ElemSpring<ScalarType, MatType>::RealPart(KHtau.xelem(i, j)) << ' ';
+                    std::cerr << std::setw(10) << ElemSpring<ScalarType, MatType>::RealPart(KHtau.xelem(i, j)) << ' ';
                }
 
                std::cerr << "\n";
