@@ -2220,7 +2220,7 @@ protected:
 
           FEM_ASSERT(Arows == ndofidx.numel());
           FEM_ASSERT(Acols == ndofidx.numel());
-          
+
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
                     ndofidx.xelem(inode * iNumNodeDof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
@@ -2458,11 +2458,58 @@ public:
                }
           }
 
-          std::cerr << "Hf=\n" << Hf << std::endl;
+#ifdef DEBUG
+          std::cerr << "Khtau=[\n";
 
-          std::cerr << "Khtau=\n" << Khtau << std::endl;
-          std::cerr << "Khtau_Hf=\n" << Khtau_Hf << std::endl;
-          std::cerr << "KHtau=\n" << KHtau << std::endl;
+          for (octave_idx_type i = 0; i < Khtau.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Khtau.columns(); ++j) {
+                    std::cerr << Khtau.xelem(i, j).real() << std::endl;
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+
+
+
+          std::cerr << "Hf=[\n";
+
+          for (octave_idx_type i = 0; i < Hf.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Hf.columns(); ++j) {
+                    std::cerr << Hf.xelem(i, j).real() << std::endl;
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+
+
+          std::cerr << "Khtau_Hf=[\n";
+
+          for (octave_idx_type i = 0; i < Khtau_Hf.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Khtau_Hf.columns(); ++j) {
+                    std::cerr << Khtau_Hf.xelem(i, j).real() << std::endl;
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+
+          std::cerr << "KHtau=[\n";
+
+          for (octave_idx_type i = 0; i < KHtau.rows(); ++i) {
+               for (octave_idx_type j = 0; j < KHtau.columns(); ++j) {
+                    std::cerr << KHtau.xelem(i, j).real() << std::endl;
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+#endif
           return KHtau;
      }
 };
