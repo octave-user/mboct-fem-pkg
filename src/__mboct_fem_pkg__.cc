@@ -2216,6 +2216,9 @@ protected:
           const octave_idx_type Arows = A.rows();
           const octave_idx_type Acols = A.columns();
 
+          FEM_ASSERT(Arows == ndofidx.numel());
+          FEM_ASSERT(Acols == ndofidx.numel());
+
           Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
@@ -2254,6 +2257,8 @@ class ElemSpring: public ElemSpringDashpotBase<ScalarType, MatType>
 public:
      ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& K)
           :BaseType(eltype, id, X, material, nodes), K(K) {
+          FEM_ASSERT(K.rows() == nodes.numel() * 6);
+          FEM_ASSERT(K.columns() == nodes.numel() * 6);
      }
 
      virtual void Extract(octave_idx_type& idx, octave_map& sElem) const override {
@@ -2314,6 +2319,8 @@ class ElemDashpot: public ElemSpringDashpotBase<ScalarType, MatType>
 public:
      ElemDashpot(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& D)
           :BaseType(eltype, id, X, material, nodes), D(D) {
+          FEM_ASSERT(D.rows() == nodes.numel() * 6);
+          FEM_ASSERT(D.columns() == nodes.numel() * 6);
      }
 
      virtual void Extract(octave_idx_type& idx, octave_map& sElem) const override {
@@ -2398,6 +2405,11 @@ public:
           }
 
           const octave_idx_type M = Hf.columns();
+          const octave_idx_type N = M / 3;
+
+          FEM_ASSERT(M % 3 == 0);
+          FEM_ASSERT(N > 0);
+          FEM_ASSERT(N * 3 == M);
           FEM_ASSERT(Hf.rows() == 3);
 
           MatType Khtau_Hf(3, M);
@@ -2414,7 +2426,7 @@ public:
                }
           }
 
-          MatType KHtau(3 + M, 3 + M);
+          MatType KHtau(6 + 2 * M, 6 + 2 * M);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
@@ -2422,26 +2434,32 @@ public:
                }
           }
 
-          for (octave_idx_type j = 0; j < M; ++j) {
-               for (octave_idx_type i = 0; i < 3; ++i) {
-                    KHtau.xelem(i, j + 3) = KHtau.xelem(j + 3, i) = -Khtau_Hf.xelem(i, j);
+          for (octave_idx_type j = 0; j < N; ++j) {
+               for (octave_idx_type jj = 0; jj < 3; ++jj) {
+                    for (octave_idx_type i = 0; i < 3; ++i) {
+                         KHtau.xelem(i, 6 * (j + 1) + jj) = KHtau.xelem(6 * (j + 1) + jj, i) = -Khtau_Hf.xelem(i, j);
+                    }
                }
           }
 
-          for (octave_idx_type j = 0; j < M; ++j) {
-               for (octave_idx_type i = 0; i < M; ++i) {
-                    ScalarType aij{};
+          for (octave_idx_type j = 0; j < N; ++j) {
+               for (octave_idx_type jj = 0; jj < 3; ++jj) {
+                    for (octave_idx_type i = 0; i < N; ++i) {
+                         for (octave_idx_type ii = 0; ii < 3; ++ii) {
+                              ScalarType aij{};
 
-                    for (octave_idx_type k = 0; k < 3; ++k) {
-                         aij += Hf.xelem(k, i) * Khtau_Hf.xelem(k, j);
+                              for (octave_idx_type k = 0; k < 3; ++k) {
+                                   aij += Hf.xelem(k, i * 3 + ii) * Khtau_Hf.xelem(k, j * 3 + jj);
+                              }
+
+                              KHtau.xelem(6 * (i + 1) + ii, 6 * (j + 1) + jj) = aij;
+                         }
                     }
-
-                    KHtau.xelem(i + 3, j + 3) = aij;
                }
           }
 
           std::cerr << "Hf=\n" << Hf << std::endl;
-          
+
           std::cerr << "Khtau=\n" << Khtau << std::endl;
           std::cerr << "Khtau_Hf=\n" << Khtau_Hf << std::endl;
           std::cerr << "KHtau=\n" << KHtau << std::endl;
