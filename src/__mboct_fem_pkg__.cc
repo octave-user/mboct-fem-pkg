@@ -2393,7 +2393,7 @@ public:
 
           octave_value_list ovk = octave::feval(fnk, args, 1);
 
-          if (ovk.numel() != 1) {
+          if (ovk.length() != 1) {
                throw std::runtime_error("sfncon.k must return one output argument");
           }
 
