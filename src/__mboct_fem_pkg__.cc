@@ -14285,22 +14285,6 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
 
      Cell ov_k = s_elem.contents(iter_k);
 
-     // const auto iter_sigma0 = s_elem.seek("sigma0");
-
-     // if (iter_sigma0 == s_elem.end()) {
-     //      throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.sigma0 not defined");
-     // }
-
-     // Cell ov_sigma0 = s_elem.contents(iter_sigma0);
-
-     // const auto iter_sigma_delta = s_elem.seek("sigma_delta");
-
-     // if (iter_sigma_delta == s_elem.end()) {
-     //      throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.sigma_delta not defined");
-     // }
-
-     // Cell ov_sigma_delta = s_elem.contents(iter_sigma_delta);
-
      FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
      FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
      FEM_ASSERT(ov_maxdist.numel() == s_elem.numel());
@@ -14396,8 +14380,6 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
           if (!(k.is_function_handle() || k.is_inline_function() || k.is_string())) {
                throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.k must be a function handle, inline function or string");
           }
-          // const std::complex<double> sigma0 = ov_sigma0.xelem(l).complex_value();
-          // const double sigma_delta = ov_sigma_delta.xelem(l).scalar_value();
 
           switch (oElemType.type) {
           case ElementTypes::ELEM_SFNCON4S:
@@ -17336,7 +17318,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON8RS:
                case ElementTypes::ELEM_SFNCON10S: {
 #if HAVE_NLOPT == 1
-                    constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
+                    constexpr unsigned uFlags = SurfToNodeConstrBase::CF_DEFAULT;
                     SurfToNodeConstrBase::BuildContacts(nodes, elements, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
 #else
                     throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
