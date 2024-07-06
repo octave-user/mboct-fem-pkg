@@ -6,12 +6,23 @@
 %! ##########################################################################################
 %! close all;
 %! p = 1.25e6;
-%! a = 20e-3;
-%! b = 20e-3;
-%! c = 20e-3;
-%! A = 20e-3;
+%! a = 25e-3;
+%! b = 15e-3;
+%! c = 15e-3;
+%! A = 35e-3;
 %! B = 20e-3;
 %! C = 20e-3;
+%! function K = stiffness(R, h0, dA, k, sigma_delta, sigma0)
+%!   c1 = 4.4086e-5;
+%!   c2 = 6.804;
+%!   Hmax = 4.;
+%!   H0 = h0 / sigma_delta;
+%!   F5_2 = (H0 <= Hmax) * c1 * (Hmax - H0).^c2;
+%!   dF5_2_dH0 = -(Hmax - H0).^(c2 - 1.) * c1 * c2;
+%!   p = real(k) * F5_2;
+%!   kh = -k / sigma_delta * dF5_2_dH0;
+%!   K = diag([p * sigma0, p * sigma0, kh]);
+%! endfunction
 %! scale = 10e-3;
 %! num_modes = int32(6);
 %! do_plot = false;
@@ -31,15 +42,24 @@
 %!      0.5 * A, -0.5 * B, 0;
 %!      0.5 * A,  0.5 * B, 0;
 %!      -0.5 * A,  0.5 * B, 0];
+%! e1 = [1; 0.5; 0.3];
+%! e2 = [-0.5; 0.9; 1];
+%! e3 = cross(e1, e2);
+%! e2 = cross(e3, e1);
+%! R = [e1, e2, e3];
+%! R *= diag(1 ./ norm(R, "cols"));
+%! R = eye(3);
+%! X *= R.';
 %! mesh.nodes = [X, zeros(rows(X), 3)];
 %! mesh.elements.iso8 = int32([1:8;
 %!                             9:16]);
 %! mesh.elements.sfncon4s.master = int32(9:12);
 %! mesh.elements.sfncon4s.slave = int32(5:8).';
 %! mesh.elements.sfncon4s.maxdist = sqrt(eps) * max(norm(X, "rows"));
-%! mesh.elements.sfncon4s.k = 1e12;
-%! mesh.elements.sfncon4s.sigma0 = 1e12;
-%! mesh.elements.sfncon4s.sigma_delta = 4 * mesh.elements.sfncon4s.maxdist;
+%! sigma0 = 1e5;
+%! sigma_delta = 1e-6;
+%! k = 100000e6;
+%! mesh.elements.sfncon4s.k = @(R, h0, dA) stiffness(R, h0, dA, k, sigma_delta, sigma0);
 %! E(1) = 210000e6;
 %! nu(1) = 0.3;
 %! mesh.material_data(1).rho = 7850;
