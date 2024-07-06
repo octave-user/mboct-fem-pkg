@@ -2427,7 +2427,7 @@ public:
                }
           }
 
-          MatType KHtau(6 + 2 * M, 6 + 2 * M);
+          MatType KHtau((N + 1) * 6, (N + 1) * 6, 0.);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
@@ -2438,7 +2438,7 @@ public:
           for (octave_idx_type j = 0; j < N; ++j) {
                for (octave_idx_type jj = 0; jj < 3; ++jj) {
                     for (octave_idx_type i = 0; i < 3; ++i) {
-                         KHtau.xelem(i, 6 * (j + 1) + jj) = KHtau.xelem(6 * (j + 1) + jj, i) = -Khtau_Hf.xelem(i, j);
+                         KHtau.xelem(i, 6 * (j + 1) + jj) = KHtau.xelem(6 * (j + 1) + jj, i) = -Khtau_Hf.xelem(i, j * 3 + jj);
                     }
                }
           }
