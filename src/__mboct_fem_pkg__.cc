@@ -2414,8 +2414,8 @@ public:
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
-                    Khtau.xelem(i, j) = ((R.xelem(i, 0) * R.xelem(j, 0) * k.xelem(0, 0)
-                                          + R.xelem(i, 1) * R.xelem(j, 1)) * k.xelem(1, 1)
+                    Khtau.xelem(i, j) = (R.xelem(i, 0) * R.xelem(j, 0) * k.xelem(0, 0)
+                                          + R.xelem(i, 1) * R.xelem(j, 1) * k.xelem(1, 1)
                                          + R.xelem(i, 2) * R.xelem(j, 2) * k.xelem(2, 2)) * dA;
                }
           }
