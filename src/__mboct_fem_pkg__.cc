@@ -2407,6 +2407,9 @@ public:
                k = ovk(0).complex_matrix_value();
           }
 
+          if (!(k.rows() == 3 && k.columns() == 3)) {
+               throw std::runtime_error("sfncon.k must be a 3x3 matrix");
+          }
           MatType Khtau(3, 3);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
