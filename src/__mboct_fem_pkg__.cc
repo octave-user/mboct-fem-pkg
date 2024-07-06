@@ -2463,7 +2463,7 @@ public:
 
           for (octave_idx_type i = 0; i < Khtau.rows(); ++i) {
                for (octave_idx_type j = 0; j < Khtau.columns(); ++j) {
-                    std::cerr << Khtau.xelem(i, j).real() << std::endl;
+                    std::cerr << this->RealPart(Khtau.xelem(i, j)) << std::endl;
                }
 
                std::cerr << "\n";
@@ -2477,7 +2477,7 @@ public:
 
           for (octave_idx_type i = 0; i < Hf.rows(); ++i) {
                for (octave_idx_type j = 0; j < Hf.columns(); ++j) {
-                    std::cerr << Hf.xelem(i, j).real() << std::endl;
+                    std::cerr << Hf.xelem(i, j) << std::endl;
                }
 
                std::cerr << "\n";
@@ -2490,7 +2490,7 @@ public:
 
           for (octave_idx_type i = 0; i < Khtau_Hf.rows(); ++i) {
                for (octave_idx_type j = 0; j < Khtau_Hf.columns(); ++j) {
-                    std::cerr << Khtau_Hf.xelem(i, j).real() << std::endl;
+                    std::cerr << this->RealPart(Khtau_Hf.xelem(i, j)) << std::endl;
                }
 
                std::cerr << "\n";
@@ -2502,7 +2502,7 @@ public:
 
           for (octave_idx_type i = 0; i < KHtau.rows(); ++i) {
                for (octave_idx_type j = 0; j < KHtau.columns(); ++j) {
-                    std::cerr << KHtau.xelem(i, j).real() << std::endl;
+                    std::cerr << this->RealPart(KHtau.xelem(i, j)) << std::endl;
                }
 
                std::cerr << "\n";
