@@ -2399,24 +2399,45 @@ public:
           args.append(h0);
           args.append(dA);
           const octave_value_list ovk = octave::feval(fnk, args, 1);
-          MatType k;
+
+          MatType km;
 
           if constexpr(std::is_same<ScalarType, double>::value) {
-               k = ovk(0).matrix_value();
+               km = ovk(0).matrix_value();
           } else {
-               k = ovk(0).complex_matrix_value();
+               km = ovk(0).complex_matrix_value();
           }
 
-          if (!(k.rows() == 3 && k.columns() == 3)) {
+          if (!(km.rows() == 3 && km.columns() == 3)) {
                throw std::runtime_error("sfncon.k must be a 3x3 matrix");
           }
-          MatType Khtau(3, 3);
+
+          MatType kmR_T(3, 3);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
-                    Khtau.xelem(i, j) = (R.xelem(i, 0) * R.xelem(j, 0) * k.xelem(0, 0)
-                                          + R.xelem(i, 1) * R.xelem(j, 1) * k.xelem(1, 1)
-                                         + R.xelem(i, 2) * R.xelem(j, 2) * k.xelem(2, 2)) * dA;
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += km.xelem(i, k) * R.xelem(j, k);
+                    }
+
+                    kmR_T.xelem(i, j) = aij;
+               }
+          }
+
+          MatType Khtau(3, 3);
+
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += R.xelem(i, k) * kmR_T.xelem(k, j);
+                    }
+
+                    Khtau.xelem(i, j) = aij * dA;
                }
           }
 
