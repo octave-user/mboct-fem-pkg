@@ -2216,11 +2216,11 @@ protected:
           const octave_idx_type Arows = A.rows();
           const octave_idx_type Acols = A.columns();
 
-          FEM_ASSERT(Arows == ndofidx.numel());
-          FEM_ASSERT(Acols == ndofidx.numel());
-
           Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
 
+          FEM_ASSERT(Arows == ndofidx.numel());
+          FEM_ASSERT(Acols == ndofidx.numel());
+          
           for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
                for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
                     ndofidx.xelem(inode * iNumNodeDof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
