@@ -17318,7 +17318,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_SFNCON8RS:
                case ElementTypes::ELEM_SFNCON10S: {
 #if HAVE_NLOPT == 1
-                    constexpr unsigned uFlags = SurfToNodeConstrBase::CF_DEFAULT;
+                    constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
                     SurfToNodeConstrBase::BuildContacts(nodes, elements, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
 #else
                     throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
