@@ -56,6 +56,7 @@ using namespace std::string_literals;
 
 #include <octave/oct.h>
 #include <octave/oct-map.h>
+#include <octave/parse.h>
 
 #ifdef DEBUG
 #define xelem checkelem
@@ -2379,11 +2380,11 @@ class ElemContact: public ElemSpring<ScalarType, MatType>
 {
      typedef ElemSpring<ScalarType, MatType> BaseType;
 public:
-     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& R, const Matrix& Hf, const ScalarType& sigma0, const ScalarType& k, const double sigma_delta, const double h0, const double dA)
-          :BaseType(eltype, id, X, material, nodes, StiffnessMatrix(R, Hf, sigma0, k, sigma_delta, h0, dA)) {
+     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA)
+          :BaseType(eltype, id, X, material, nodes, StiffnessMatrix(R, Hf, fnk, h0, dA)) {
      }
 
-     static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const ScalarType& sigma0, const ScalarType& k, const double sigma_delta, const double h0, const double dA) {
+     static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA) {
           // constexpr double c1 = 4.4086e-5;
           // constexpr double c2 = 6.804;
           // constexpr double Hmax = 4.;
@@ -2393,15 +2394,26 @@ public:
           // const double dF5_2_dH0 = -pow(Hmax - H0, c2 - 1.) * c1 * c2;
           // const double p = BaseType::RealPart(k) * F5_2;
           // const ScalarType kh = -k / sigma_delta * dF5_2_dH0;
-          const double p = 1;
-          const auto kh = k;
+          octave_value_list args;
+          args.append(R);
+          args.append(h0);
+          args.append(dA);
+          const octave_value_list ovk = octave::feval(fnk, args, 1);
+          MatType k;
+
+          if constexpr(std::is_same<ScalarType, double>::value) {
+               k = ovk(0).matrix_value();
+          } else {
+               k = ovk(0).complex_matrix_value();
+          }
+
           MatType Khtau(3, 3);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
-                    Khtau.xelem(i, j) = ((R.xelem(i, 0) * R.xelem(j, 0)
-                                          + R.xelem(i, 1) * R.xelem(j, 1)) * p * sigma0
-                                         + R.xelem(i, 2) * R.xelem(j, 2) * kh) * dA;
+                    Khtau.xelem(i, j) = ((R.xelem(i, 0) * R.xelem(j, 0) * k.xelem(0, 0)
+                                          + R.xelem(i, 1) * R.xelem(j, 1)) * k.xelem(1, 1)
+                                         + R.xelem(i, 2) * R.xelem(j, 2) * k.xelem(2, 2)) * dA;
                }
           }
 
@@ -13193,14 +13205,12 @@ public:
                    const unsigned uConstraintFlags,
                    const DofMap::DomainType eDomain,
                    vector<std::unique_ptr<ElementBlockBase>>& rgElemBlocks,
-                   const std::complex<double>& sigma0,
-                   const std::complex<double>& k,
-                   const double sigma_delta) {
+                   const octave_value& k) {
 
           const octave_idx_type iNumNodesSlave = nidxslave.numel();
           ElemBlockContactPtr pElemBlockPtr{new ElemBlockContactType{ElementTypes::ELEM_SPRING, iNumNodesSlave}};
 
-          auto pfnInsertElemHook = [eType, eDomain, sigma0, k, sigma_delta, &pElemBlockPtr]
+          auto pfnInsertElemHook = [eType, eDomain, &k, &pElemBlockPtr]
                (const octave_idx_type id,
                 const Matrix& X,
                 const int32NDArray& nidxmaster,
@@ -13223,9 +13233,7 @@ public:
                                                       eidxmaster,
                                                       rvopt,
                                                       Xi,
-                                                      sigma0,
-                                                      k,
-                                                      sigma_delta);
+                                                      k);
                                    };
 
           FindSmallestDistance(id,
@@ -13530,9 +13538,7 @@ private:
                                const octave_idx_type eidxmaster,
                                const ColumnVector& rvopt,
                                const ColumnVector& Xi,
-                               const std::complex<double>& sigma0,
-                               const std::complex<double>& k,
-                               const double sigma_delta) {
+                               const octave_value& k) {
           constexpr octave_idx_type iNumDofNodeConstr = 3;
           const octave_idx_type iNumNodes = X.rows();
 
@@ -13605,7 +13611,7 @@ private:
                h0 += R.xelem(i, 2) * (Xe.xelem(i) - Xi.xelem(i));
           }
 
-          pElemBlock->Insert(id, Xe, nullptr, enodes, R, Hf, sigma0, k, sigma_delta, h0, dA);
+          pElemBlock->Insert(id, Xe, nullptr, enodes, R, Hf, k, h0, dA);
      }
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
@@ -14259,21 +14265,21 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
 
      Cell ov_k = s_elem.contents(iter_k);
 
-     const auto iter_sigma0 = s_elem.seek("sigma0");
+     // const auto iter_sigma0 = s_elem.seek("sigma0");
 
-     if (iter_sigma0 == s_elem.end()) {
-          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.sigma0 not defined");
-     }
+     // if (iter_sigma0 == s_elem.end()) {
+     //      throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.sigma0 not defined");
+     // }
 
-     Cell ov_sigma0 = s_elem.contents(iter_sigma0);
+     // Cell ov_sigma0 = s_elem.contents(iter_sigma0);
 
-     const auto iter_sigma_delta = s_elem.seek("sigma_delta");
+     // const auto iter_sigma_delta = s_elem.seek("sigma_delta");
 
-     if (iter_sigma_delta == s_elem.end()) {
-          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.sigma_delta not defined");
-     }
+     // if (iter_sigma_delta == s_elem.end()) {
+     //      throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.sigma_delta not defined");
+     // }
 
-     Cell ov_sigma_delta = s_elem.contents(iter_sigma_delta);
+     // Cell ov_sigma_delta = s_elem.contents(iter_sigma_delta);
 
      FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
      FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
@@ -14365,9 +14371,13 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                }
           }
 
-          const std::complex<double> k = ov_k.xelem(l).complex_value();
-          const std::complex<double> sigma0 = ov_sigma0.xelem(l).complex_value();
-          const double sigma_delta = ov_sigma_delta.xelem(l).scalar_value();
+          const octave_value k = ov_k.xelem(l);
+
+          if (!(k.is_function_handle() || k.is_inline_function() || k.is_string())) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.k must be a function handle, inline function or string");
+          }
+          // const std::complex<double> sigma0 = ov_sigma0.xelem(l).complex_value();
+          // const double sigma_delta = ov_sigma_delta.xelem(l).scalar_value();
 
           switch (oElemType.type) {
           case ElementTypes::ELEM_SFNCON4S:
@@ -14380,9 +14390,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                           uConstraintFlags,
                                                           eDomain,
                                                           rgElemBlocks,
-                                                          sigma0,
-                                                          k,
-                                                          sigma_delta);
+                                                          k);
                break;
           case ElementTypes::ELEM_SFNCON6S:
                SurfToNodeConstr<ShapeTria6>::BuildContacts(id,
@@ -14394,9 +14402,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            uConstraintFlags,
                                                            eDomain,
                                                            rgElemBlocks,
-                                                           sigma0,
-                                                           k,
-                                                           sigma_delta);
+                                                           k);
                break;
           case ElementTypes::ELEM_SFNCON6HS:
                SurfToNodeConstr<ShapeTria6H>::BuildContacts(id,
@@ -14408,9 +14414,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             uConstraintFlags,
                                                             eDomain,
                                                             rgElemBlocks,
-                                                            sigma0,
-                                                            k,
-                                                            sigma_delta);
+                                                            k);
                break;
           case ElementTypes::ELEM_SFNCON8S:
                SurfToNodeConstr<ShapeQuad8>::BuildContacts(id,
@@ -14422,9 +14426,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            uConstraintFlags,
                                                            eDomain,
                                                            rgElemBlocks,
-                                                           sigma0,
-                                                           k,
-                                                           sigma_delta);
+                                                           k);
                break;
           case ElementTypes::ELEM_SFNCON8RS:
                SurfToNodeConstr<ShapeQuad8r>::BuildContacts(id,
@@ -14436,9 +14438,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             uConstraintFlags,
                                                             eDomain,
                                                             rgElemBlocks,
-                                                            sigma0,
-                                                            k,
-                                                            sigma_delta);
+                                                            k);
                break;
           case ElementTypes::ELEM_SFNCON9S:
                SurfToNodeConstr<ShapeQuad9>::BuildContacts(id,
@@ -14450,9 +14450,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                            uConstraintFlags,
                                                            eDomain,
                                                            rgElemBlocks,
-                                                           sigma0,
-                                                           k,
-                                                           sigma_delta);
+                                                           k);
                break;
           case ElementTypes::ELEM_SFNCON10S:
                SurfToNodeConstr<ShapeTria10>::BuildContacts(id,
@@ -14464,9 +14462,7 @@ void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
                                                             uConstraintFlags,
                                                             eDomain,
                                                             rgElemBlocks,
-                                                            sigma0,
-                                                            k,
-                                                            sigma_delta);
+                                                            k);
                break;
           default:
                FEM_ASSERT(false);
