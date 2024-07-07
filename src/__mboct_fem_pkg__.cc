@@ -2400,9 +2400,9 @@ public:
           MatType km;
 
           if constexpr(std::is_same<ScalarType, double>::value) {
-               km = ovk.xelem(0).matrix_value();
+               km = ovk(0).matrix_value();
           } else {
-               km = ovk.xelem(0).complex_matrix_value();
+               km = ovk(0).complex_matrix_value();
           }
 
           if (!(km.rows() == 3 && km.columns() == 3)) {
