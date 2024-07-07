@@ -75,7 +75,7 @@ function [C1, C2, mesh_constr] = fem_ass_constraint_matrix(mesh, elem_type_maste
   dof_map_constr = [];
   mat_ass_constr = [];
 
-  mesh_constr.joints = fem_pre_mesh_constr_surf_to_node(mesh_constr.nodes, mesh_constr.elements, FEM_DO_STRUCTURAL);
+  mesh_constr.joints = fem_pre_mesh_constr_surf_to_node(mesh_constr.nodes, mesh_constr.elements, FEM_DO_STRUCTURAL).joints;
 
   nnz_C2 = nnz_C1 = int32(0);
 

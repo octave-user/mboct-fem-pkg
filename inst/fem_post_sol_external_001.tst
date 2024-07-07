@@ -86,7 +86,7 @@
 %!   elem.sfncon6.slave = mesh.groups.tria6(1).nodes(:);
 %!   elem.sfncon6.master = mesh.elements.tria6(mesh.groups.tria6(2).elements, :);
 %!   elem.sfncon6.maxdist = param.g * (1 + sqrt(eps));
-%!   mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem);
+%!   mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem).joints;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
