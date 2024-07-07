@@ -15811,7 +15811,9 @@ ElementTypes::TypeId ConstrSurfToNodeElemTypeExtract(ElementTypes::TypeId eElemT
 string_vector ConstrSurfToNodeElemFields(ElementTypes::TypeId eElemType)
 {
      switch (eElemType) {
-     case ElementTypes::ELEM_JOINT: {
+     case ElementTypes::ELEM_JOINT:
+     case ElementTypes::ELEM_THERM_CONSTR:
+     case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
           constexpr size_t nFields = 2;
           static constexpr const char* const rgFields[nFields] = {"C", "nodes"};
           return string_vector(rgFields, nFields);
@@ -15920,6 +15922,8 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
                switch (eElemType) {
                case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_THERM_CONSTR:
+               case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                case ElementTypes::ELEM_SPRING:
                     break;
                default:
