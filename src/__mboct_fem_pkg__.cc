@@ -15784,6 +15784,48 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      return retval;
 }
 
+ElementTypes::TypeId ConstrSurfToNodeElemTypeExtract(ElementTypes::TypeId eElemType)
+{
+     switch (eElemType) {
+     case ElementTypes::ELEM_SFNCON4:
+     case ElementTypes::ELEM_SFNCON6:
+     case ElementTypes::ELEM_SFNCON6H:
+     case ElementTypes::ELEM_SFNCON8:
+     case ElementTypes::ELEM_SFNCON8R:
+     case ElementTypes::ELEM_SFNCON9:
+     case ElementTypes::ELEM_SFNCON10:
+          return ElementTypes::ELEM_JOINT;
+     case ElementTypes::ELEM_SFNCON4S:
+     case ElementTypes::ELEM_SFNCON6S:
+     case ElementTypes::ELEM_SFNCON6HS:
+     case ElementTypes::ELEM_SFNCON8S:
+     case ElementTypes::ELEM_SFNCON8RS:
+     case ElementTypes::ELEM_SFNCON9S:
+     case ElementTypes::ELEM_SFNCON10S:
+          return ElementTypes::ELEM_SPRING;
+     default:
+          throw std::logic_error("unknown element type");
+     }
+}
+
+string_vector ConstrSurfToNodeElemFields(ElementTypes::TypeId eElemType)
+{
+     switch (eElemType) {
+     case ElementTypes::ELEM_JOINT: {
+          constexpr size_t nFields = 2;
+          static constexpr const char* const rgFields[nFields] = {"C", "nodes"};
+          return string_vector(rgFields, nFields);
+     }
+     case ElementTypes::ELEM_SPRING: {
+          constexpr size_t nFields = 2;
+          static constexpr const char* const rgFields[nFields] = {"K", "nodes"};
+          return string_vector(rgFields, nFields);
+     }
+     default:
+          throw std::logic_error("invalid element type");
+     }
+}
+
 DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
           "-*- texinfo -*-\n"
           "@deftypefn {} @var{joints} = fem_pre_mesh_constr_surf_to_node(@var{nodes}, @var{elements}, @var{domain})\n"
@@ -15851,35 +15893,58 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
           vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
 
-          rgElemBlocks.reserve(2);
+          rgElemBlocks.reserve(ElementTypes::ELEM_SFNCON10S - ElementTypes::ELEM_SFNCON4 + 1);
 
-          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON10; ++k) {
+          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON10S; ++k) {
                constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
                const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
 
                FEM_ASSERT(oElemType.type == k);
 
-               SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, eDomain);
+               switch (ConstrSurfToNodeElemTypeExtract(oElemType.type)) {
+               case ElementTypes::ELEM_JOINT:
+                    SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, eDomain);
+                    break;
+               case ElementTypes::ELEM_SPRING:
+                    SurfToNodeConstrBase::BuildContacts(nodes, elements, oElemType, uFlags, rgElemBlocks, eDomain);
+                    break;
+               default:
+                    continue;
+               }
           }
 
-          octave_idx_type iNumElem = 0;
+          std::unordered_map<ElementTypes::TypeId, octave_idx_type> rgElemTypes;
 
           for (const auto& oElemBlk: rgElemBlocks) {
-               iNumElem += oElemBlk->iGetNumElem();
+               ElementTypes::TypeId eElemType = ConstrSurfToNodeElemTypeExtract(oElemBlk->GetElementType());
+
+               rgElemTypes[eElemType] += oElemBlk->iGetNumElem();
           }
 
-          constexpr size_t nFields = 2;
-          static constexpr const char* const rgFields[nFields] = {"C", "nodes"};
-          const string_vector strFields(rgFields, nFields);
+          octave_scalar_map sElem;
 
-          octave_map sElem(dim_vector(1, iNumElem), strFields);
-          octave_idx_type idx = 0;
+          for (const auto& oElemType: rgElemTypes) {
+               const ElementTypes::TypeId eElemType = oElemType.first;
+               const octave_idx_type iNumElem = oElemType.second;
+               const string_vector strFields = ConstrSurfToNodeElemFields(eElemType);
 
-          for (const auto& oElemBlk: rgElemBlocks) {
-               oElemBlk->Extract(idx, sElem);
+               octave_map sElemType(dim_vector(1, iNumElem), strFields);
+               octave_idx_type idx = 0;
+
+               for (const auto& oElemBlk: rgElemBlocks) {
+                    const ElementTypes::TypeId eElemTypeExtract = ConstrSurfToNodeElemTypeExtract(oElemBlk->GetElementType());
+
+                    if (eElemTypeExtract != eElemType) {
+                         continue;
+                    }
+
+                    oElemBlk->Extract(idx, sElemType);
+               }
+
+               sElemType.resize(dim_vector(1, idx));
+
+               sElem.assign(ElementTypes::GetType(eElemType).name, sElemType);
           }
-
-          sElem.resize(dim_vector(1, idx));
 
           retval.append(sElem);
      } catch (const std::exception& err) {
