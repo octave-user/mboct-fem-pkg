@@ -15916,7 +15916,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
           std::unordered_map<ElementTypes::TypeId, octave_idx_type> rgElemTypes;
 
           for (const auto& oElemBlk: rgElemBlocks) {
-               const ElementTypes::TypeId eElemType = ConstrSurfToNodeElemTypeExtract(oElemBlk->GetElementType());
+               const ElementTypes::TypeId eElemType = oElemBlk->GetElementType();
 
                switch (eElemType) {
                case ElementTypes::ELEM_JOINT:
@@ -15940,7 +15940,7 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
                octave_idx_type idx = 0;
 
                for (const auto& oElemBlk: rgElemBlocks) {
-                    const ElementTypes::TypeId eElemTypeExtract = ConstrSurfToNodeElemTypeExtract(oElemBlk->GetElementType());
+                    const ElementTypes::TypeId eElemTypeExtract = oElemBlk->GetElementType();
 
                     if (eElemTypeExtract != eElemType) {
                          continue;
