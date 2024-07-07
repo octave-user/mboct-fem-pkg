@@ -15804,7 +15804,7 @@ ElementTypes::TypeId ConstrSurfToNodeElemTypeExtract(ElementTypes::TypeId eElemT
      case ElementTypes::ELEM_SFNCON10S:
           return ElementTypes::ELEM_SPRING;
      default:
-          throw std::logic_error("unknown element type");
+          return ElementTypes::ELEM_TYPE_UNKNOWN;
      }
 }
 
@@ -15916,7 +15916,15 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
           std::unordered_map<ElementTypes::TypeId, octave_idx_type> rgElemTypes;
 
           for (const auto& oElemBlk: rgElemBlocks) {
-               ElementTypes::TypeId eElemType = ConstrSurfToNodeElemTypeExtract(oElemBlk->GetElementType());
+               const ElementTypes::TypeId eElemType = ConstrSurfToNodeElemTypeExtract(oElemBlk->GetElementType());
+
+               switch (eElemType) {
+               case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_SPRING:
+                    break;
+               default:
+                    continue;
+               }
 
                rgElemTypes[eElemType] += oElemBlk->iGetNumElem();
           }
