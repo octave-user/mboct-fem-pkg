@@ -70,12 +70,15 @@ In addition to that, mboct-fem-pkg has also functions for pre- and post-processi
   - Surface to node constraint elements for coupling of unrelated meshes
   - Lumped force/torque element
 
-Copyright<sup>&copy;</sup> 2019-2023
+Copyright<sup>&copy;</sup> 2019-2024
 
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
   See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml as an example on how to install the package.
+
+# Docker images
+  Docker images may be pulled from https://hub.docker.com/r/octaveuser/mboct-fem-pkg
 
 # Applications
   - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
