@@ -121,6 +121,6 @@ RUN rm -rf ${BUILD_DIR}
 USER ubuntu
 ENV LANG=en_US.UTF-8
 
-## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/hakon/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg
+## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg
 
 ENTRYPOINT [ "/usr/local/bin/octave", "--persist", "--eval", "pkg('load','mboct-fem-pkg')" ]
