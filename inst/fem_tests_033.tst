@@ -57,7 +57,7 @@
 %!   elements.sfncon4.master(end + (1:numel(ielem)), :) = data(3).mesh.elements.iso8(ielem, [4, 1, 5, 8]);
 %! endfor
 %! elements.sfncon4.maxdist = c * (1 + sqrt(eps));
-%! data(3).mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(data(3).mesh.nodes, elements);
+%! data(3).mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(data(3).mesh.nodes, elements).joints;
 %! data(3).dof_map = fem_ass_dof_map(data(3).mesh, data(3).load_case);
 %! [data(3).mat_ass.K, ...
 %!  data(3).mat_ass.M, ...

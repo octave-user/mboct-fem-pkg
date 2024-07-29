@@ -127,7 +127,7 @@
 %!   elem_constr.sfncon6.maxdist = 1e-4 * a;
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
-%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain);
+%!   thermal_constr_surf = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem_constr, load_case.domain).thermal_constr;
 %!   for i=1:numel(elem_constr.sfncon6.slave)
 %!     idx = find(nodes_constr == elem_constr.sfncon6.slave(i));
 %!     nodes_constr(idx) = -1;
