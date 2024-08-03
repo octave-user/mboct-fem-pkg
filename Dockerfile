@@ -297,17 +297,19 @@
 
 FROM ubuntu:latest
 
-LABEL org.opencontainers.image.description = "Finite Element toolkit for structural, thermal, \
-acoustic and fluid structure interaction problems. \
-\
-See also the following references: \
-https://github.com/octave-user/mboct-fem-pkg/blob/master/README.md \
-https://github.com/octave-user/mboct-fem-pkg/blob/master/Dockerfile"
+LABEL org.opencontainers.image.title = "mboct-fem-pkg"
+LABEL org.opencontainers.image.vendor = "Reinhard"
+LABEL com.docker.desktop.extension.icon = "https://yt3.googleusercontent.com/HNK0rqhf4dCLnlP99g8c1odImPBZLM_QxLRb7yGBGDlDCbiiReQmoRZK4fuSU0XLC4yGApVS5Q=s160-c-k-c0x00ffffff-no-rj"
+LABEL org.opencontainers.image.description = "This package belongs to a suite of packages which can be used for pre- and postprocessing of flexible bodies in MBDyn (www.mbdyn.org) with GNU-Octave. It contains a general purpose structural Finite Element toolkit for linear statics and dynamics, which can be used to generate flexible body data for MBDyn's modal element and also hydrodynamic lubricated journal and slider plain bearings."
+LABEL com.docker.extension.screenshots = [{"alt":"Fourbar", "url":"https://i.ytimg.com/an_webp/d4i5AYPxsG4/mqdefault_6s.webp?du=3000&sqp=CI6PubUG&rs=AOn4CLDf2JH21dC1U_B8UytYHSNBP_LV9g"}, {"alt":"Twisted bar", "url":"https://i.ytimg.com/an_webp/I8HENx5mszA/mqdefault_6s.webp?du=3000&sqp=CICNubUG&rs=AOn4CLCr0TUUL4UZoynMQxoO7JMz27qNRg"}, {"alt":"Cook's membrane", "url":"https://i.ytimg.com/vi/rxQP8V4U0dE/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBsASAAuADigIMCAAQARgTIB4ofzAP&rs=AOn4CLC7YAoIVIleUQWKwJ00c3tNb-1CBg"}]
+LABEL com.docker.extension.publisher-url = "https://github.com/octave-user"
+LABEL com.docker.extension.additional-urls = [{"title":"MBDyn","url":"https://www.mbdyn.org"},{"title":"MBDyn-GitLab","url":"https://public.gitlab.polimi.it/DAER/mbdyn"},{"title":"Fourbar","url":"https://www.youtube.com/watch?v=d4i5AYPxsG4"},{"title":"Twisted bar","url":"https://www.youtube.com/watch?v=I8HENx5mszA"},{"title":"Rolling ring","url":"https://www.youtube.com/watch?v=rxQP8V4U0dE"},{"title":"Cook's membrane","url":"https://www.youtube.com/watch?v=EAgejp4jQ00"},{"title":"videos","url":"https://www.youtube.com/@nonlinearmultibodydynamics6802"}]
 
 ENV SRC_DIR=/opt/src/
 ENV LICENSE_DIR=/opt/src/license/
 ENV BUILD_DIR=/tmp/build/
 ENV TESTS_DIR=/tmp/tests
+ENV MBD_NUM_TASKS=8
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
@@ -317,10 +319,12 @@ COPY . .
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
+
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-  --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libnetcdf-c++4-dev parallel
+    apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev \
+    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libnetcdf-c++4-dev parallel
 
 ENV GMSH_URL="http://www.gmsh.info/bin/Linux/"
 ENV GMSH_VERSION="stable"
@@ -332,17 +336,20 @@ RUN --mount=type=cache,target=${SRC_DIR}/gmsh,sharing=locked <<EOT bash
     if ! test -f "${GMSH_TAR}"; then
       wget "${GMSH_URL}${GMSH_TAR}"
     fi
+
     if ! test -d gmsh-*.*.*-Linux64/bin; then
       tar -zxvf "${GMSH_TAR}"
     fi
+
     install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
 EOT
 
 WORKDIR ${SRC_DIR}/octave
+WORKDIR ${BUILD_DIR}/octave
 
-RUN --mount=type=cache,target=${SRC_DIR}/octave,sharing=locked <<EOT bash
-    if ! test -d ${SRC_DIR}/octave/.hg; then
-      hg clone https://www.octave.org/hg/octave ${SRC_DIR}/octave
+RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/octave/.hg; then
+      hg clone https://www.octave.org/hg/octave ${BUILD_DIR}/octave
     fi
 
     hg pull
@@ -352,19 +359,16 @@ RUN --mount=type=cache,target=${SRC_DIR}/octave,sharing=locked <<EOT bash
     if ! test -x ./configure; then
       ./bootstrap
     fi
-EOT
 
-WORKDIR ${BUILD_DIR}/octave
-
-RUN --mount=type=cache,target=${SRC_DIR}/octave,sharing=locked --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -f Makefile; then
-      ${SRC_DIR}/octave/configure CXXFLAGS="-O3 -Wall -march=native"
+      ./configure CXXFLAGS="-O3 -Wall -march=native"
     fi
 
-    make -j8 all
-    ## make check
+    make -j${MBD_NUM_TASKS} all
+    make check
     make install
-    ## make distclean
+    make dist-bzip2
+    cp octave-*.tar.bz2 ${SRC_DIR}/octave
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl
@@ -381,55 +385,71 @@ ENV XFLAGS="-Ofast -Wall -march=native -mtune=native"
 ENV CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl"
 
 WORKDIR ${SRC_DIR}/mbdyn
+WORKDIR ${BUILD_DIR}/mbdyn
 
-RUN --mount=type=cache,target=${SRC_DIR}/mbdyn,sharing=locked <<EOT bash
-    if ! test -d ${SRC_DIR}/mbdyn/.git; then
-      git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${SRC_DIR}/mbdyn
+RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/mbdyn/.git; then
+      git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${BUILD_DIR}/mbdyn
     fi
+
     git pull --force
+
     if ! test -x ./configure; then
       ./bootstrap.sh
     fi
-EOT
 
-WORKDIR ${BUILD_DIR}/mbdyn
-
-RUN --mount=type=cache,target=${SRC_DIR}/mbdyn,sharing=locked --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     if ! test -f Makefile; then
       ${SRC_DIR}/mbdyn/configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
     fi
-    make -j8 all
+
+    make -j${MBD_NUM_TASKS} all
     make test
     make install
-    ##make dist
+    make dist
+    cp mbdyn-*.tar.gz ${SRC_DIR}/mbdyn
 EOT
 
 WORKDIR ${SRC_DIR}/octave-pkg
+WORKDIR ${BUILD_DIR}/octave-pkg
 
-RUN --mount=type=cache,target=${SRC_DIR}/octave-pkg,sharing=locked <<EOT bash
+RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     octave --eval 'pkg install -global -forge nurbs'
     octave --eval 'pkg install -global -forge netcdf'
+
     if ! test -d mboct-octave-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-octave-pkg.git'
     fi
+
     pushd mboct-octave-pkg && git pull --force && popd
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-octave-pkg' install_global
+
+    make CXXFLAGS="${XFLAGS}" -C 'mboct-octave-pkg' dist install_global
+
     if ! test -d mboct-numerical-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-numerical-pkg.git'
     fi
+
     pushd mboct-numerical-pkg && git pull --force && popd
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-numerical-pkg' install_global
+
+    make CXXFLAGS="${XFLAGS}" -C 'mboct-numerical-pkg' dist install_global
+
     if ! test -d mboct-mbdyn-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-mbdyn-pkg.git'
     fi
+
     pushd mboct-mbdyn-pkg && git pull --force && popd
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-mbdyn-pkg' install_global
+
+    make CXXFLAGS="${XFLAGS}" -C 'mboct-mbdyn-pkg' dist install_global
+
     if ! test -d mboct-fem-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-fem-pkg.git'
     fi
+
     pushd mboct-fem-pkg && git pull --force && popd
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-fem-pkg' install_global
+
+    make CXXFLAGS="${XFLAGS}" -C 'mboct-fem-pkg' dist install_global
+
     pushd mboct-fem-pkg/src
+
     if ! test -x configure; then
       ./bootstrap
     fi
@@ -438,11 +458,13 @@ RUN --mount=type=cache,target=${SRC_DIR}/octave-pkg,sharing=locked <<EOT bash
       ./configure CXXFLAGS="${XFLAGS}"
     fi
 
-    make -j8 all
+    make -j${MBD_NUM_TASKS} all
     make install
     make distclean
 
     popd
+
+    find . -name 'mboct-*-pkg-*.tar.gz' -exec cp '{}' ${SRC_DIR}/octave-pkg
 EOT
 
 ENV OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
@@ -460,5 +482,18 @@ USER ubuntu
 ENV LANG=en_US.UTF-8
 
 ## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg
+
+# docker run \
+#   --rm \
+#   --network=host \
+#   --env="DISPLAY" \
+#   --env="HOME=$HOME" \
+#   --env="XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" \
+#   --user $(id -u):$(id -g) \
+#   --volume="$HOME:$HOME:rw" \
+#   --volume="/dev:/dev:rw" \
+#   --volume="/run/user:/run/user:rw" \
+#   --workdir="$HOME" \
+#   ghcr.io/octave-user/mboct-fem-pkg
 
 ENTRYPOINT [ "/usr/local/bin/octave", "--persist", "--eval", "pkg('load','mboct-fem-pkg')" ]
