@@ -78,7 +78,7 @@ Copyright<sup>&copy;</sup> 2019-2024
   See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml as an example on how to install the package.
 
 # Docker images
-  Docker images may be pulled from https://hub.docker.com/r/octaveuser/mboct-fem-pkg
+  Docker images may be pulled from https://github.com/octave-user/mboct-fem-pkg/pkgs/container/mboct-fem-pkg
 
 # Applications
   - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
