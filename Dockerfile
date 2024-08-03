@@ -243,7 +243,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
 
     make -j8 all
     make check
-    make install distclean
+    make install
+    make distclean
 EOT
 
 WORKDIR /home/ubuntu/licenses
@@ -271,7 +272,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     if ! test -f Makefile; then
       ./configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
     fi
-    make -j8 all test install distclean
+    make -j8 all
+    make test
+    make install
+    make distclean
 EOT
 
 WORKDIR ${BUILD_DIR}/octave-pkg
@@ -308,7 +312,9 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
       ./configure CXXFLAGS="${XFLAGS}"
     fi
 
-    make install distclean
+    make -j8 all
+    make install
+    make distclean
 
     popd
 EOT
