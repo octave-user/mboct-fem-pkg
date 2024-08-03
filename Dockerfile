@@ -407,6 +407,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     make -j${MBD_NUM_TASKS} all
     make test
     make install
+
     make dist
     cp mbdyn-*.tar.gz ${SRC_DIR}/mbdyn
 EOT
