@@ -194,9 +194,9 @@
 ## free to use, disclose, reproduce, license or otherwise distribute or exploit the
 ## Feedback in its sole discretion without any obligations or restrictions of any
 
-LABEL org.opencontainers.image.description Finite Element toolkit for structural, thermal, acoustic and fluid structure interaction problems.
-
 FROM ubuntu:latest
+
+LABEL org.opencontainers.image.description "Finite Element toolkit for structural, thermal, acoustic and fluid structure interaction problems."
 
 ENV SRC_DIR=/opt/src/
 ENV LICENSE_DIR=/opt/src/license/
