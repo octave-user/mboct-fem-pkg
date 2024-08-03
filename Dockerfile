@@ -297,10 +297,10 @@
 FROM ubuntu:latest
 
 LABEL org.opencontainers.image.description = "Finite Element toolkit for structural, thermal, \
-acoustic and fluid structure interaction problems. 
-
-See also the following references:
-https://github.com/octave-user/mboct-fem-pkg/blob/master/README.md
+acoustic and fluid structure interaction problems. \
+\
+See also the following references: \
+https://github.com/octave-user/mboct-fem-pkg/blob/master/README.md \
 https://github.com/octave-user/mboct-fem-pkg/blob/master/Dockerfile"
 
 ENV SRC_DIR=/opt/src/
