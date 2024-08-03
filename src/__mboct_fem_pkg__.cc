@@ -20,6 +20,7 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include <iomanip>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -55,6 +56,7 @@ using namespace std::string_literals;
 
 #include <octave/oct.h>
 #include <octave/oct-map.h>
+#include <octave/parse.h>
 
 #ifdef DEBUG
 #define xelem checkelem
@@ -1110,6 +1112,8 @@ public:
           ELEM_BEAM2,
           ELEM_RBE3,
           ELEM_JOINT,
+          ELEM_SPRING,
+          ELEM_DASHPOT,
           ELEM_RIGID_BODY,
           ELEM_SFNCON4,
           ELEM_SFNCON6,
@@ -1118,6 +1122,13 @@ public:
           ELEM_SFNCON8R,
           ELEM_SFNCON9,
           ELEM_SFNCON10,
+          ELEM_SFNCON4S,
+          ELEM_SFNCON6S,
+          ELEM_SFNCON6HS,
+          ELEM_SFNCON8S,
+          ELEM_SFNCON8RS,
+          ELEM_SFNCON9S,
+          ELEM_SFNCON10S,
           ELEM_PRESSURE_ISO4,
           ELEM_PRESSURE_QUAD8,
           ELEM_PRESSURE_QUAD8R,
@@ -1205,6 +1216,8 @@ private:
           {ElementTypes::ELEM_BEAM2,                "beam2",           2,  2, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_RBE3,                 "rbe3",            2, -1, DofMap::ELEM_RBE3},
           {ElementTypes::ELEM_JOINT,                "joints",          1, -1, DofMap::ELEM_JOINT},
+          {ElementTypes::ELEM_SPRING,               "springs",         1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_DASHPOT,              "dashpots",        1, -1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_RIGID_BODY,           "bodies",          1,  1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_SFNCON4,              "sfncon4",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON6,              "sfncon6",         1, -1, DofMap::ELEM_JOINT},
@@ -1213,6 +1226,13 @@ private:
           {ElementTypes::ELEM_SFNCON8R,             "sfncon8r",        1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON9,              "sfncon9",         1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SFNCON10,             "sfncon10",        1, -1, DofMap::ELEM_JOINT},
+          {ElementTypes::ELEM_SFNCON4S,             "sfncon4s",        1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_SFNCON6S,             "sfncon6s",        1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_SFNCON6HS,            "sfncon6hs",       1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_SFNCON8S,             "sfncon8s",        1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_SFNCON8RS,            "sfncon8rs",       1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_SFNCON9S,             "sfncon9s",        1, -1, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_SFNCON10S,            "sfncon10s",       1, -1, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_ISO4,        "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_QUAD8,       "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PRESSURE_QUAD8R,      "quad8r",          8,  8, DofMap::ELEM_NODOF},
@@ -2166,6 +2186,372 @@ private:
      const DofMap::NodalDofType eNodalDofType;
      const double dScale;
 };
+
+template <typename ScalarType, typename MatType>
+class ElemSpringDashpotBase: public Element
+{
+public:
+     ElemSpringDashpotBase(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :Element(eltype, id, X, material, nodes) {
+          FEM_ASSERT(X.rows() == 6);
+     }
+
+     static constexpr bool bNeedMatrixInfo(Element::FemMatrixType eMatType) {
+          return false;
+     }
+
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+     }
+
+protected:
+     void AssembleMatrixReal(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          AssembleMatrix<RealPart>(mat, dof, A);
+     }
+
+     void AssembleMatrixImag(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          AssembleMatrix<ImagPart>(mat, dof, A);
+     }
+
+     template <double ScalarFunctionRealImag(const ScalarType&)>
+     void AssembleMatrix(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          constexpr octave_idx_type iNumNodeDof = 6;
+          const octave_idx_type Arows = A.rows();
+          const octave_idx_type Acols = A.columns();
+
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
+
+          FEM_ASSERT(Arows == ndofidx.numel());
+          FEM_ASSERT(Acols == ndofidx.numel());
+
+          for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+               for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
+                    ndofidx.xelem(inode * iNumNodeDof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < Acols; ++j) {
+               for (octave_idx_type i = 0; i < Arows; ++i) {
+                    const double Aij = ScalarFunctionRealImag(A.xelem(i + Arows * j));
+                    mat.Insert(Aij, ndofidx.xelem(j), ndofidx.xelem(i));
+               }
+          }
+     }
+
+     static double RealPart(const ScalarType& z) {
+          if constexpr(std::is_same<ScalarType, double>::value) {
+               return z;
+          } else {
+               return std::real(z);
+          }
+     }
+
+     static double ImagPart(const ScalarType& z) {
+          return std::imag(z);
+     }
+};
+
+template <typename ScalarType, typename MatType>
+class ElemSpring: public ElemSpringDashpotBase<ScalarType, MatType>
+{
+     typedef ElemSpringDashpotBase<ScalarType, MatType> BaseType;
+     using BaseType::AssembleMatrixReal;
+     using BaseType::AssembleMatrixImag;
+public:
+     ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& K)
+          :BaseType(eltype, id, X, material, nodes), K(K) {
+          FEM_ASSERT(K.rows() == nodes.numel() * 6);
+          FEM_ASSERT(K.columns() == nodes.numel() * 6);
+     }
+
+     virtual void Extract(octave_idx_type& idx, octave_map& sElem) const override {
+          FEM_ASSERT(sElem.numel() > idx);
+
+          Cell& ovK = sElem.contents("K");
+          Cell& ovNodes = sElem.contents("nodes");
+
+          ovK(idx) = K;
+          ovNodes(idx) = this->nodes.transpose();
+          ++idx;
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_STIFFNESS:
+          case Element::MAT_STIFFNESS_SYM:
+          case Element::MAT_STIFFNESS_SYM_L:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
+               AssembleMatrixReal(mat, dof, K);
+               break;
+
+          case Element::MAT_STIFFNESS_IM:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_IM:
+               if constexpr(std::is_same<ScalarType, std::complex<double>>::value) {
+                   AssembleMatrixImag(mat, dof, K);
+               }
+               break;
+
+          default:
+               break;
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_STIFFNESS:
+          case Element::MAT_STIFFNESS_IM:
+          case Element::MAT_STIFFNESS_SYM:
+          case Element::MAT_STIFFNESS_SYM_L:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case Element::MAT_STIFFNESS_FLUID_STRUCT_IM:
+               return K.rows() * K.columns();
+          default:
+               return 0;
+          }
+     }
+private:
+     const MatType K;
+};
+
+template <typename ScalarType, typename MatType>
+class ElemDashpot: public ElemSpringDashpotBase<ScalarType, MatType>
+{
+     typedef ElemSpringDashpotBase<ScalarType, MatType> BaseType;
+     using BaseType::AssembleMatrixReal;
+     using BaseType::AssembleMatrixImag;
+public:
+     ElemDashpot(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& D)
+          :BaseType(eltype, id, X, material, nodes), D(D) {
+          FEM_ASSERT(D.rows() == nodes.numel() * 6);
+          FEM_ASSERT(D.columns() == nodes.numel() * 6);
+     }
+
+     virtual void Extract(octave_idx_type& idx, octave_map& sElem) const override {
+          FEM_ASSERT(sElem.numel() > idx);
+
+          Cell& ovD = sElem.contents("D");
+          Cell& ovNodes = sElem.contents("nodes");
+
+          ovD(idx) = D;
+          ovNodes(idx) = this->nodes.transpose();
+          ++idx;
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_DAMPING:
+          case Element::MAT_DAMPING_SYM:
+          case Element::MAT_DAMPING_SYM_L:
+          case Element::MAT_DAMPING_FLUID_STRUCT_RE:
+               AssembleMatrixReal(mat, dof, D);
+               break;
+
+               //case MAT_DAMPING_IM:
+          case Element::MAT_DAMPING_FLUID_STRUCT_IM:
+               if constexpr(std::is_same<ScalarType, std::complex<double>>::value) {
+                   AssembleMatrixImag(mat, dof, D);
+               }
+               break;
+
+          default:
+               break;
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(Element::FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case Element::MAT_DAMPING:
+               //case MAT_DAMPING_IM:
+          case Element::MAT_DAMPING_SYM:
+          case Element::MAT_DAMPING_SYM_L:
+          case Element::MAT_DAMPING_FLUID_STRUCT_RE:
+          case Element::MAT_DAMPING_FLUID_STRUCT_IM:
+               return D.rows() * D.columns();
+          default:
+               return 0;
+          }
+     }
+
+private:
+     const MatType D;
+};
+
+template <typename ScalarType, typename MatType>
+class ElemContact: public ElemSpring<ScalarType, MatType>
+{
+     typedef ElemSpring<ScalarType, MatType> BaseType;
+public:
+     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA)
+          :BaseType(eltype, id, X, material, nodes, StiffnessMatrix(R, Hf, fnk, h0, dA)) {
+     }
+
+     static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA) {
+          octave_value_list args;
+
+          args.append(R);
+          args.append(h0);
+          args.append(dA);
+
+          octave_value_list ovk = octave::feval(fnk, args, 1);
+
+          if (ovk.length() != 1) {
+               throw std::runtime_error("sfncon.k must return one output argument");
+          }
+
+          MatType km;
+
+          if constexpr(std::is_same<ScalarType, double>::value) {
+               km = ovk(0).matrix_value();
+          } else {
+               km = ovk(0).complex_matrix_value();
+          }
+
+          if (!(km.rows() == 3 && km.columns() == 3)) {
+               throw std::runtime_error("sfncon.k must be a 3x3 matrix");
+          }
+
+          MatType kmR_T(3, 3);
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += km.xelem(i, k) * R.xelem(j, k);
+                    }
+
+                    kmR_T.xelem(i, j) = aij;
+               }
+          }
+
+          MatType Khtau(3, 3);
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += R.xelem(i, k) * kmR_T.xelem(k, j);
+                    }
+
+                    Khtau.xelem(i, j) = aij * dA;
+               }
+          }
+
+          const octave_idx_type M = Hf.columns();
+          const octave_idx_type N = M / 3;
+
+          FEM_ASSERT(M % 3 == 0);
+          FEM_ASSERT(N > 0);
+          FEM_ASSERT(N * 3 == M);
+          FEM_ASSERT(Hf.rows() == 3);
+
+          MatType Khtau_Hf(3, M);
+
+          for (octave_idx_type j = 0; j < M; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    ScalarType aij{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         aij += Khtau.xelem(i, k) * Hf.xelem(k, j);
+                    }
+
+                    Khtau_Hf.xelem(i, j) = aij;
+               }
+          }
+
+          MatType KHtau((N + 1) * 6, (N + 1) * 6, 0.);
+
+          for (octave_idx_type j = 0; j < 3; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    KHtau.xelem(i, j) = Khtau.xelem(i, j);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < N; ++j) {
+               for (octave_idx_type jj = 0; jj < 3; ++jj) {
+                    for (octave_idx_type i = 0; i < 3; ++i) {
+                         KHtau.xelem(i, 6 * (j + 1) + jj) = KHtau.xelem(6 * (j + 1) + jj, i) = -Khtau_Hf.xelem(i, j * 3 + jj);
+                    }
+               }
+          }
+
+          for (octave_idx_type j = 0; j < N; ++j) {
+               for (octave_idx_type jj = 0; jj < 3; ++jj) {
+                    for (octave_idx_type i = 0; i < N; ++i) {
+                         for (octave_idx_type ii = 0; ii < 3; ++ii) {
+                              ScalarType aij{};
+
+                              for (octave_idx_type k = 0; k < 3; ++k) {
+                                   aij += Hf.xelem(k, i * 3 + ii) * Khtau_Hf.xelem(k, j * 3 + jj);
+                              }
+
+                              KHtau.xelem(6 * (i + 1) + ii, 6 * (j + 1) + jj) = aij;
+                         }
+                    }
+               }
+          }
+
+#ifdef DEBUG
+          std::cerr << "Khtau=[\n";
+
+          for (octave_idx_type i = 0; i < Khtau.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Khtau.columns(); ++j) {
+                    std::cerr << std::setw(6) << ElemSpring<ScalarType, MatType>::RealPart(Khtau.xelem(i, j)) << ' ';
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+
+
+
+          std::cerr << "Hf=[\n";
+
+          for (octave_idx_type i = 0; i < Hf.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Hf.columns(); ++j) {
+                    std::cerr << std::setw(6) << Hf.xelem(i, j) << ' ';
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+
+
+          std::cerr << "Khtau_Hf=[\n";
+
+          for (octave_idx_type i = 0; i < Khtau_Hf.rows(); ++i) {
+               for (octave_idx_type j = 0; j < Khtau_Hf.columns(); ++j) {
+                    std::cerr << std::setw(6) << ElemSpring<ScalarType, MatType>::RealPart(Khtau_Hf.xelem(i, j)) << ' ';
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+
+          std::cerr << "KHtau=[\n";
+
+          for (octave_idx_type i = 0; i < KHtau.rows(); ++i) {
+               for (octave_idx_type j = 0; j < KHtau.columns(); ++j) {
+                    std::cerr << std::setw(6) << ElemSpring<ScalarType, MatType>::RealPart(KHtau.xelem(i, j)) << ' ';
+               }
+
+               std::cerr << "\n";
+          }
+
+          std::cerr << "];\n";
+#endif
+          return KHtau;
+     }
+};
+
+template
+class ElemContact<double, Matrix>;
+
+template
+class ElemContact<std::complex<double>, ComplexMatrix>;
 
 class ElemRBE3: public Element
 {
@@ -12684,7 +13070,11 @@ public:
           CF_ELEM_DOF_PRE_ALLOCATED = 0x2u
      };
 
-     typedef std::unique_ptr<ElementBlock<ElemJoint>> ElemBlockPtr;
+     typedef ElemContact<std::complex<double>, ComplexMatrix> ElemContactType;
+     typedef ElementBlock<ElemContactType> ElemBlockContactType;
+     typedef ElementBlock<ElemJoint> ElemBlockJointType;
+     typedef std::unique_ptr<ElemBlockJointType> ElemBlockJointPtr;
+     typedef std::unique_ptr<ElemBlockContactType> ElemBlockContactPtr;
 
      static ConstraintType GetConstraintType(int constr) {
           switch (constr) {
@@ -12737,6 +13127,13 @@ public:
                              const unsigned uConstraintFlags,
                              vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
                              DofMap::DomainType eDomain);
+
+     static void BuildContacts(const Matrix& nodes,
+                               const octave_scalar_map& elements,
+                               const ElementTypes::TypeInfo& oElemType,
+                               const unsigned uConstraintFlags,
+                               vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                               const DofMap::DomainType eDomain);
 #else
      static const char szErrCompileWithNlopt[90];
 #endif
@@ -12780,9 +13177,118 @@ public:
           }
 
           const octave_idx_type iNumNodesSlave = nidxslave.numel();
+          ElemBlockJointPtr pElemBlockPtr{new ElemBlockJointType{eElemType, iNumNodesSlave}};
+
+          auto pfnInsertElemHook = [dScale, eType, eElemType, eDomain, &pElemBlockPtr]
+               (const octave_idx_type id,
+                const Matrix& X,
+                const int32NDArray& nidxmaster,
+                const int32NDArray& nidxslave,
+                const unsigned uConstraintFlags,
+                const octave_idx_type iSlaveNode,
+                const octave_idx_type eidxmaster,
+                const ColumnVector& rvopt,
+                const ColumnVector& Xi) {
+                                        InsertConstraint(id,
+                                                         X,
+                                                         nidxmaster,
+                                                         nidxslave,
+                                                         eType,
+                                                         uConstraintFlags,
+                                                         eDomain,
+                                                         iSlaveNode,
+                                                         pElemBlockPtr,
+                                                         eElemType,
+                                                         eidxmaster,
+                                                         rvopt,
+                                                         dScale);
+                                   };
+
+          FindSmallestDistance(id,
+                               X,
+                               nidxmaster,
+                               nidxslave,
+                               maxdist,
+                               uConstraintFlags,
+                               pfnInsertElemHook);
+
+          rgElemBlocks.emplace_back(std::move(pElemBlockPtr));
+     }
+
+     static void
+     BuildContacts(octave_idx_type& id,
+                   const Matrix& X,
+                   const int32NDArray& nidxmaster,
+                   const int32NDArray& nidxslave,
+                   const ColumnVector& maxdist,
+                   const ConstraintType eType,
+                   const unsigned uConstraintFlags,
+                   const DofMap::DomainType eDomain,
+                   vector<std::unique_ptr<ElementBlockBase>>& rgElemBlocks,
+                   const octave_value& k) {
+
+          const octave_idx_type iNumNodesSlave = nidxslave.numel();
+          ElemBlockContactPtr pElemBlockPtr{new ElemBlockContactType{ElementTypes::ELEM_SPRING, iNumNodesSlave}};
+
+          auto pfnInsertElemHook = [eType, eDomain, &k, &pElemBlockPtr]
+               (const octave_idx_type id,
+                const Matrix& X,
+                const int32NDArray& nidxmaster,
+                const int32NDArray& nidxslave,
+                const unsigned uConstraintFlags,
+                const octave_idx_type iSlaveNode,
+                const octave_idx_type eidxmaster,
+                const ColumnVector& rvopt,
+                const ColumnVector& Xi) {
+                                        InsertContact(id,
+                                                      X,
+                                                      nidxmaster,
+                                                      nidxslave,
+                                                      eType,
+                                                      uConstraintFlags,
+                                                      eDomain,
+                                                      iSlaveNode,
+                                                      pElemBlockPtr,
+                                                      ElementTypes::ELEM_SPRING,
+                                                      eidxmaster,
+                                                      rvopt,
+                                                      Xi,
+                                                      k);
+                                   };
+
+          FindSmallestDistance(id,
+                               X,
+                               nidxmaster,
+                               nidxslave,
+                               maxdist,
+                               uConstraintFlags,
+                               pfnInsertElemHook);
+
+          rgElemBlocks.emplace_back(std::move(pElemBlockPtr));
+     }
+
+private:
+     typedef void InsertElemHook(const octave_idx_type id,
+                                 const Matrix& X,
+                                 const int32NDArray& nidxmaster,
+                                 const int32NDArray& nidxslave,
+                                 const unsigned uConstraintFlags,
+                                 const octave_idx_type iSlaveNode,
+                                 const octave_idx_type eidxmaster,
+                                 const ColumnVector& rvopt,
+                                 const ColumnVector& Xi);
+     static void
+     FindSmallestDistance(octave_idx_type& id,
+                          const Matrix& X,
+                          const int32NDArray& nidxmaster,
+                          const int32NDArray& nidxslave,
+                          const ColumnVector& maxdist,
+                          const unsigned uConstraintFlags,
+                          const std::function<InsertElemHook>& pfnInsertElemHook) {
+
+          const octave_idx_type iNumNodesSlave = nidxslave.numel();
           const octave_idx_type iNumNodes = X.rows();
           const octave_idx_type iNumElem = nidxmaster.rows();
-          ElemBlockPtr pElemBlock{new ElementBlock<ElemJoint>{eElemType, iNumNodesSlave}};
 
           FEM_ASSERT(X.columns() >= iNumDimNode);
           FEM_ASSERT(X.columns() == 6);
@@ -12915,25 +13421,18 @@ public:
 
                FEM_TRACE("nlopt: i=" << i << " l=" << lopt << " rc=" << rcopt << " f=" << fopt << " maxdist=" << maxdist(i) << std::endl);
 
-               InsertConstraint(++id,
-                                X,
-                                nidxmaster,
-                                nidxslave,
-                                eType,
-                                uConstraintFlags,
-                                eDomain,
-                                i,
-                                pElemBlock,
-                                eElemType,
-                                eidxmaster[i][lopt].eidx,
-                                rvopt,
-                                dScale);
+               pfnInsertElemHook(++id,
+                                 X,
+                                 nidxmaster,
+                                 nidxslave,
+                                 uConstraintFlags,
+                                 i,
+                                 eidxmaster[i][lopt].eidx,
+                                 rvopt,
+                                 Xi);
           }
-
-          rgElemBlocks.emplace_back(std::move(pElemBlock));
      }
 
-private:
      static void InsertConstraint(const octave_idx_type id,
                                   const Matrix& X,
                                   const int32NDArray& nidxmaster,
@@ -12942,7 +13441,7 @@ private:
                                   const unsigned uConstraintFlags,
                                   const DofMap::DomainType eDomain,
                                   const octave_idx_type iSlaveNode,
-                                  const ElemBlockPtr& pElemBlock,
+                                  const ElemBlockJointPtr& pElemBlock,
                                   const ElementTypes::TypeId eElemType,
                                   const octave_idx_type eidxmaster,
                                   const ColumnVector& rvopt,
@@ -13044,6 +13543,95 @@ private:
           } else {
                pElemBlock->Insert(id, Xe, nullptr, enodes, C, Matrix{iNumDofNodeConstr, 0}, eDomain, dScale);
           }
+     }
+
+     static void InsertContact(const octave_idx_type id,
+                               const Matrix& X,
+                               const int32NDArray& nidxmaster,
+                               const int32NDArray& nidxslave,
+                               const ConstraintType eType,
+                               const unsigned uConstraintFlags,
+                               const DofMap::DomainType eDomain,
+                               const octave_idx_type iSlaveNode,
+                               const ElemBlockContactPtr& pElemBlock,
+                               const ElementTypes::TypeId eElemType,
+                               const octave_idx_type eidxmaster,
+                               const ColumnVector& rvopt,
+                               const ColumnVector& Xi,
+                               const octave_value& k) {
+          constexpr octave_idx_type iNumDofNodeConstr = 3;
+          const octave_idx_type iNumNodes = X.rows();
+
+          Matrix Hf(iNumDofNodeConstr, iNumDofNodeConstr * iNumNodesElem);
+
+          SHAPE_FUNC::VectorInterpMatrix(rvopt, Hf);
+
+          int32NDArray enodes(dim_vector(iNumNodesElem + 1, 1));
+
+          enodes.xelem(0) = nidxslave.xelem(iSlaveNode).value();
+
+          for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
+               enodes.xelem(j + 1) = nidxmaster.xelem(eidxmaster, j).value();
+          }
+
+          const octave_idx_type iNumCoord = X.columns();
+
+          FEM_ASSERT(iNumCoord == 6);
+
+          Matrix Xe(iNumCoord, iNumNodesElem + 1);
+
+          for (octave_idx_type j = 0; j < iNumCoord; ++j) {
+               Xe.xelem(j) = X.xelem(nidxslave.xelem(iSlaveNode).value() - 1, j);
+          }
+
+          for (octave_idx_type j = 0; j < iNumNodesElem; ++j) {
+               for (octave_idx_type k = 0; k < iNumCoord; ++k) {
+                    Xe.xelem(k + iNumCoord * (j + 1)) = X.xelem(nidxmaster.xelem(eidxmaster, j).value() - 1 + iNumNodes * k);
+               }
+          }
+
+          Matrix dHf_dr(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+          Matrix dHf_ds(iNumDimNode, iNumDofNodeConstr * iNumNodesElem);
+          ColumnVector n1(iNumDimNode), n2(iNumDimNode);
+          ColumnVector n3(iNumDimNode);
+
+          SHAPE_FUNC::VectorInterpMatrixDerR(rvopt, dHf_dr);
+          SHAPE_FUNC::VectorInterpMatrixDerS(rvopt, dHf_ds);
+
+          SurfaceTangentVector(Xe, dHf_dr, n1);
+          SurfaceTangentVector(Xe, dHf_ds, n2);
+          SurfaceElement::SurfaceNormalVector(n1, n2, n3);
+          const double dA = SurfaceElement::JacobianDet(n3);
+
+          Matrix R(iNumDimNode, iNumDimNode);
+
+          for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+               R.xelem(i, 0) = n1.xelem(i);
+               R.xelem(i, 1) = n2.xelem(i);
+               R.xelem(i, 2) = n3.xelem(i);
+          }
+
+          for (octave_idx_type j = 0; j < iNumDimNode; ++j) {
+               double n = 0.;
+
+               for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+                    n += std::pow(R.xelem(i, j), 2);
+               }
+
+               n = sqrt(n);
+
+               for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+                    R.xelem(i, j) /= n;
+               }
+          }
+
+          double h0 = 0.;
+
+          for (octave_idx_type i = 0; i < iNumDimNode; ++i) {
+               h0 += R.xelem(i, 2) * (Xe.xelem(i) - Xi.xelem(i));
+          }
+
+          pElemBlock->Insert(id, Xe, nullptr, enodes, R, Hf, k, h0, dA);
      }
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
@@ -13642,6 +14230,248 @@ void SurfToNodeConstrBase::BuildJoints(const Matrix& nodes,
           }
      }
 }
+
+void SurfToNodeConstrBase::BuildContacts(const Matrix& nodes,
+                                         const octave_scalar_map& elements,
+                                         const ElementTypes::TypeInfo& oElemType,
+                                         const unsigned uConstraintFlags,
+                                         vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                                         const DofMap::DomainType eDomain) {
+     const auto iter_elem = elements.seek(oElemType.name);
+
+     if (iter_elem == elements.end()) {
+          return;
+     }
+
+     const auto eConstrType = CT_FIXED;
+
+     const octave_map s_elem(elements.contents(iter_elem).map_value());
+
+#if OCTAVE_MAJOR_VERSION < 6
+     if (error_state) {
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s must be a struct array");
+     }
+#endif
+
+     const auto iter_nidxmaster = s_elem.seek("master");
+
+     if (iter_nidxmaster == s_elem.end()) {
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.master not defined");
+     }
+
+     const Cell ov_nidxmaster = s_elem.contents(iter_nidxmaster);
+
+     const auto iter_nidxslave = s_elem.seek("slave");
+
+     if (iter_nidxslave == s_elem.end()) {
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.slave not defined");
+     }
+
+     const Cell ov_nidxslave = s_elem.contents(iter_nidxslave);
+
+     const auto iter_maxdist = s_elem.seek("maxdist");
+
+     if (iter_maxdist == s_elem.end()) {
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.maxdist not defined");
+     }
+
+     const Cell ov_maxdist = s_elem.contents(iter_maxdist);
+
+     const auto iter_k = s_elem.seek("k");
+
+     if (iter_k == s_elem.end()) {
+          throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.k not defined");
+     }
+
+     Cell ov_k = s_elem.contents(iter_k);
+
+     FEM_ASSERT(ov_nidxslave.numel() == s_elem.numel());
+     FEM_ASSERT(ov_nidxmaster.numel() == s_elem.numel());
+     FEM_ASSERT(ov_maxdist.numel() == s_elem.numel());
+
+     octave_idx_type id = 0;
+
+     for (octave_idx_type l = 0; l < s_elem.numel(); ++l) {
+          const int32NDArray nidxmaster = ov_nidxmaster(l).int32_array_value();
+
+#if OCTAVE_MAJOR_VERSION < 6
+          if (error_state) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.master must be an integer array");
+          }
+#endif
+
+          const int32NDArray nidxslave = ov_nidxslave(l).int32_array_value();
+
+#if OCTAVE_MAJOR_VERSION < 6
+          if (error_state) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.slave must be an integer array");
+          }
+#endif
+
+          ColumnVector maxdist = ov_maxdist(l).column_vector_value();
+
+#if OCTAVE_MAJOR_VERSION < 6
+          if (error_state) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}.maxdist must be a column vector");
+          }
+#endif
+          octave_idx_type iNumNodesElem = -1;
+
+          switch (oElemType.type) {
+          case ElementTypes::ELEM_SFNCON4S:
+               iNumNodesElem = ShapeIso4::iGetNumNodes();
+               break;
+          case ElementTypes::ELEM_SFNCON6S:
+               iNumNodesElem = ShapeTria6::iGetNumNodes();
+               break;
+          case ElementTypes::ELEM_SFNCON6HS:
+               iNumNodesElem = ShapeTria6H::iGetNumNodes();
+               break;
+          case ElementTypes::ELEM_SFNCON8S:
+               iNumNodesElem = ShapeQuad8::iGetNumNodes();
+               break;
+          case ElementTypes::ELEM_SFNCON8RS:
+               iNumNodesElem = ShapeQuad8r::iGetNumNodes();
+               break;
+          case ElementTypes::ELEM_SFNCON9S:
+               iNumNodesElem = ShapeQuad9::iGetNumNodes();
+               break;
+          case ElementTypes::ELEM_SFNCON10S:
+               iNumNodesElem = ShapeTria10::iGetNumNodes();
+               break;
+          default:
+               FEM_ASSERT(false);
+          }
+
+          if (nidxmaster.ndims() != 2 || nidxmaster.rows() < 1 || nidxmaster.columns() != iNumNodesElem) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.master must be an nx{4|6|8} array");
+          }
+
+          if (nidxslave.ndims() != 2 || nidxslave.rows() < 1 || nidxslave.columns() != 1) {
+               throw std::runtime_error("snfcon: elements.sfncon{4|6|8}s.slave must be an nx1 array");
+          }
+
+          if (maxdist.rows() == 1 && nidxslave.rows() > 1) {
+               const double maxdistval = maxdist(0);
+               maxdist.resize(nidxslave.rows(), maxdistval);
+          }
+
+          if (maxdist.rows() != nidxslave.rows()) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.maxdist must have "
+                                        "the same dimensions like elements.sfncon{4|6|8}s.slave");
+          }
+
+          for (octave_idx_type i = 0; i < nidxmaster.rows(); ++i) {
+               for (octave_idx_type j = 0; j < nidxmaster.columns(); ++j) {
+                    if (nidxmaster(i, j).value() < 1 || nidxmaster(i, j).value() > nodes.rows()) {
+                         throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.master: node index out of range");
+                    }
+               }
+          }
+
+          for (octave_idx_type i = 0; i < nidxslave.rows(); ++i) {
+               if (nidxslave(i).value() < 1 || nidxslave(i).value() > nodes.rows()) {
+                    throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.slave: node index out of range");
+               }
+          }
+
+          const octave_value k = ov_k.xelem(l);
+
+          if (!(k.is_function_handle() || k.is_inline_function() || k.is_string())) {
+               throw std::runtime_error("sfncon: elements.sfncon{4|6|8}s.k must be a function handle, inline function or string");
+          }
+
+          switch (oElemType.type) {
+          case ElementTypes::ELEM_SFNCON4S:
+               SurfToNodeConstr<ShapeIso4>::BuildContacts(id,
+                                                          nodes,
+                                                          nidxmaster,
+                                                          nidxslave,
+                                                          maxdist,
+                                                          eConstrType,
+                                                          uConstraintFlags,
+                                                          eDomain,
+                                                          rgElemBlocks,
+                                                          k);
+               break;
+          case ElementTypes::ELEM_SFNCON6S:
+               SurfToNodeConstr<ShapeTria6>::BuildContacts(id,
+                                                           nodes,
+                                                           nidxmaster,
+                                                           nidxslave,
+                                                           maxdist,
+                                                           eConstrType,
+                                                           uConstraintFlags,
+                                                           eDomain,
+                                                           rgElemBlocks,
+                                                           k);
+               break;
+          case ElementTypes::ELEM_SFNCON6HS:
+               SurfToNodeConstr<ShapeTria6H>::BuildContacts(id,
+                                                            nodes,
+                                                            nidxmaster,
+                                                            nidxslave,
+                                                            maxdist,
+                                                            eConstrType,
+                                                            uConstraintFlags,
+                                                            eDomain,
+                                                            rgElemBlocks,
+                                                            k);
+               break;
+          case ElementTypes::ELEM_SFNCON8S:
+               SurfToNodeConstr<ShapeQuad8>::BuildContacts(id,
+                                                           nodes,
+                                                           nidxmaster,
+                                                           nidxslave,
+                                                           maxdist,
+                                                           eConstrType,
+                                                           uConstraintFlags,
+                                                           eDomain,
+                                                           rgElemBlocks,
+                                                           k);
+               break;
+          case ElementTypes::ELEM_SFNCON8RS:
+               SurfToNodeConstr<ShapeQuad8r>::BuildContacts(id,
+                                                            nodes,
+                                                            nidxmaster,
+                                                            nidxslave,
+                                                            maxdist,
+                                                            eConstrType,
+                                                            uConstraintFlags,
+                                                            eDomain,
+                                                            rgElemBlocks,
+                                                            k);
+               break;
+          case ElementTypes::ELEM_SFNCON9S:
+               SurfToNodeConstr<ShapeQuad9>::BuildContacts(id,
+                                                           nodes,
+                                                           nidxmaster,
+                                                           nidxslave,
+                                                           maxdist,
+                                                           eConstrType,
+                                                           uConstraintFlags,
+                                                           eDomain,
+                                                           rgElemBlocks,
+                                                           k);
+               break;
+          case ElementTypes::ELEM_SFNCON10S:
+               SurfToNodeConstr<ShapeTria10>::BuildContacts(id,
+                                                            nodes,
+                                                            nidxmaster,
+                                                            nidxslave,
+                                                            maxdist,
+                                                            eConstrType,
+                                                            uConstraintFlags,
+                                                            eDomain,
+                                                            rgElemBlocks,
+                                                            k);
+               break;
+          default:
+               FEM_ASSERT(false);
+          }
+     }
+}
+
 #endif
 
 octave_scalar_map
@@ -14123,7 +14953,6 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
           "@deftypefn {} @var{dof_map} = fem_ass_dof_map(@var{mesh}, @var{load_case})\n"
-          "@deftypefnx {} @var{dof_map} = fem_ass_dof_map(@dots{}, @var{dof_in_use})\n"
           "Build a data structure which assigns global degrees of freedom to each node and each element with Lagrange multipliers.\n\n"
           "@var{mesh} @dots{} Finite element mesh data structure\n\n"
           "@var{load_case} @dots{} Scalar struct for defining nodal constraints.\n\n"
@@ -14134,7 +14963,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      octave_value_list retval;
 
      try {
-          if (args.length() < 2 || args.length() > 3) {
+          if (args.length() < 2) {
                print_usage();
                return retval;
           }
@@ -14258,7 +15087,11 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           const vector<Material> rgMaterials = Material::ExtractMaterialData(material_data, eDomain);
 
-          boolNDArray dof_in_use(args.length() > 2 ? args(2).bool_array_value() : boolNDArray(dim_vector(iNumNodes, iNodeMaxDofIndex), false));
+          const auto it_dof_in_use = m_load_case.seek("dof_in_use");
+
+          boolNDArray dof_in_use(it_dof_in_use == m_load_case.end()
+                                 ? boolNDArray(dim_vector(iNumNodes, iNodeMaxDofIndex), false)
+                                 : m_load_case.contents(it_dof_in_use).bool_array_value());
 
           if (dof_in_use.ndims() != 2 || dof_in_use.rows() != iNumNodes || dof_in_use.columns() != iNodeMaxDofIndex) {
                throw std::runtime_error("fem_ass_dof_map: invalid size for dof_in_use");
@@ -14951,6 +15784,50 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
      return retval;
 }
 
+ElementTypes::TypeId ConstrSurfToNodeElemTypeExtract(ElementTypes::TypeId eElemType)
+{
+     switch (eElemType) {
+     case ElementTypes::ELEM_SFNCON4:
+     case ElementTypes::ELEM_SFNCON6:
+     case ElementTypes::ELEM_SFNCON6H:
+     case ElementTypes::ELEM_SFNCON8:
+     case ElementTypes::ELEM_SFNCON8R:
+     case ElementTypes::ELEM_SFNCON9:
+     case ElementTypes::ELEM_SFNCON10:
+          return ElementTypes::ELEM_JOINT;
+     case ElementTypes::ELEM_SFNCON4S:
+     case ElementTypes::ELEM_SFNCON6S:
+     case ElementTypes::ELEM_SFNCON6HS:
+     case ElementTypes::ELEM_SFNCON8S:
+     case ElementTypes::ELEM_SFNCON8RS:
+     case ElementTypes::ELEM_SFNCON9S:
+     case ElementTypes::ELEM_SFNCON10S:
+          return ElementTypes::ELEM_SPRING;
+     default:
+          return ElementTypes::ELEM_TYPE_UNKNOWN;
+     }
+}
+
+string_vector ConstrSurfToNodeElemFields(ElementTypes::TypeId eElemType)
+{
+     switch (eElemType) {
+     case ElementTypes::ELEM_JOINT:
+     case ElementTypes::ELEM_THERM_CONSTR:
+     case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
+          constexpr size_t nFields = 2;
+          static constexpr const char* const rgFields[nFields] = {"C", "nodes"};
+          return string_vector(rgFields, nFields);
+     }
+     case ElementTypes::ELEM_SPRING: {
+          constexpr size_t nFields = 2;
+          static constexpr const char* const rgFields[nFields] = {"K", "nodes"};
+          return string_vector(rgFields, nFields);
+     }
+     default:
+          throw std::logic_error("invalid element type");
+     }
+}
+
 DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
           "-*- texinfo -*-\n"
           "@deftypefn {} @var{joints} = fem_pre_mesh_constr_surf_to_node(@var{nodes}, @var{elements}, @var{domain})\n"
@@ -15018,35 +15895,68 @@ DEFUN_DLD(fem_pre_mesh_constr_surf_to_node, args, nargout,
 
           vector<std::unique_ptr<ElementBlockBase> > rgElemBlocks;
 
-          rgElemBlocks.reserve(2);
+          rgElemBlocks.reserve(ElementTypes::ELEM_SFNCON10S - ElementTypes::ELEM_SFNCON4 + 1);
 
-          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON10; ++k) {
+          for (octave_idx_type k = ElementTypes::ELEM_SFNCON4; k <= ElementTypes::ELEM_SFNCON10S; ++k) {
                constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
                const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(k);
 
                FEM_ASSERT(oElemType.type == k);
 
-               SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, eDomain);
+               switch (ConstrSurfToNodeElemTypeExtract(oElemType.type)) {
+               case ElementTypes::ELEM_JOINT:
+                    SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, eDomain);
+                    break;
+               case ElementTypes::ELEM_SPRING:
+                    SurfToNodeConstrBase::BuildContacts(nodes, elements, oElemType, uFlags, rgElemBlocks, eDomain);
+                    break;
+               default:
+                    continue;
+               }
           }
 
-          octave_idx_type iNumElem = 0;
+          std::unordered_map<ElementTypes::TypeId, octave_idx_type> rgElemTypes;
 
           for (const auto& oElemBlk: rgElemBlocks) {
-               iNumElem += oElemBlk->iGetNumElem();
+               const ElementTypes::TypeId eElemType = oElemBlk->GetElementType();
+
+               switch (eElemType) {
+               case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_THERM_CONSTR:
+               case ElementTypes::ELEM_ACOUSTIC_CONSTR:
+               case ElementTypes::ELEM_SPRING:
+                    break;
+               default:
+                    continue;
+               }
+
+               rgElemTypes[eElemType] += oElemBlk->iGetNumElem();
           }
 
-          constexpr size_t nFields = 2;
-          static constexpr const char* const rgFields[nFields] = {"C", "nodes"};
-          const string_vector strFields(rgFields, nFields);
+          octave_scalar_map sElem;
 
-          octave_map sElem(dim_vector(1, iNumElem), strFields);
-          octave_idx_type idx = 0;
+          for (const auto& oElemType: rgElemTypes) {
+               const ElementTypes::TypeId eElemType = oElemType.first;
+               const octave_idx_type iNumElem = oElemType.second;
+               const string_vector strFields = ConstrSurfToNodeElemFields(eElemType);
 
-          for (const auto& oElemBlk: rgElemBlocks) {
-               oElemBlk->Extract(idx, sElem);
+               octave_map sElemType(dim_vector(1, iNumElem), strFields);
+               octave_idx_type idx = 0;
+
+               for (const auto& oElemBlk: rgElemBlocks) {
+                    const ElementTypes::TypeId eElemTypeExtract = oElemBlk->GetElementType();
+
+                    if (eElemTypeExtract != eElemType) {
+                         continue;
+                    }
+
+                    oElemBlk->Extract(idx, sElemType);
+               }
+
+               sElemType.resize(dim_vector(1, idx));
+
+               sElem.assign(ElementTypes::GetType(eElemType).name, sElemType);
           }
-
-          sElem.resize(dim_vector(1, idx));
 
           retval.append(sElem);
      } catch (const std::exception& err) {
@@ -15328,27 +16238,31 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_STIFFNESS:
                     case Element::MAT_STIFFNESS_SYM:
                     case Element::MAT_STIFFNESS_SYM_L:
-                    case Element::MAT_STIFFNESS_TAU0:
+                    case Element::MAT_STIFFNESS_TAU0: // FIXME: Needed only for solid elements; should be placed somewhere else
                     case Element::MAT_STIFFNESS_OMEGA:
                     case Element::MAT_STIFFNESS_OMEGA_DOT:
                     case Element::MAT_DAMPING_OMEGA:
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON4] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON6H] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON8R] = true;
                          rgElemUse[ElementTypes::ELEM_SFNCON10] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON4S] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6S] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6HS] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8S] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8RS] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10S] = true;
                          [[fallthrough]];
 
                     case Element::MAT_MASS:
                     case Element::MAT_MASS_SYM:
                     case Element::MAT_MASS_SYM_L:
                     case Element::MAT_MASS_LUMPED:
-                    case Element::MAT_DAMPING:
-                    case Element::MAT_DAMPING_SYM:
-                    case Element::MAT_DAMPING_SYM_L:
                     case Element::SCA_TOT_MASS:
                     case Element::VEC_INERTIA_M1:
                     case Element::MAT_INERTIA_J:
@@ -15360,8 +16274,21 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_RIGID_BODY] = true;
                          [[fallthrough]];
 
+                    case Element::MAT_DAMPING:
+                    case Element::MAT_DAMPING_SYM:
+                    case Element::MAT_DAMPING_SYM_L:
+                         rgElemUse[ElementTypes::ELEM_DASHPOT] = true;
+                         [[fallthrough]];
+
                     case Element::MAT_STIFFNESS_IM:
                          rgElemUse[ElementTypes::ELEM_BEAM2] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON4S] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6S] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON6HS] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8S] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON8RS] = true;
+                         rgElemUse[ElementTypes::ELEM_SFNCON10S] = true;
                          [[fallthrough]];
 
                     case Element::VEC_STRESS_CAUCH:
@@ -15568,6 +16495,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
                     case Element::MAT_MASS_FLUID_STRUCT_RE:
@@ -15586,6 +16514,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
+                         rgElemUse[ElementTypes::ELEM_SPRING] = true;
                          break;
 
                     case Element::VEC_LOAD_FLUID_STRUCT:
@@ -15649,6 +16578,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA6H] = true;
                          rgElemUse[ElementTypes::ELEM_FLUID_STRUCT_TRIA10] = true;
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_CONSTR] = true;
+                         rgElemUse[ElementTypes::ELEM_DASHPOT] = true;
                          // FIXME: Add support for ELEM_SFNCON*
                          [[fallthrough]];
 
@@ -15881,6 +16811,8 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_RIGID_BODY:
                case ElementTypes::ELEM_RBE3:
                case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_SPRING:
+               case ElementTypes::ELEM_DASHPOT:
                case ElementTypes::ELEM_THERM_CONSTR:
                case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
                     const auto iter_elem = elements.seek(oElemType.name);
@@ -15896,7 +16828,6 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("fem_ass_matrix: mesh.elements."s + oElemType.name + " must be an struct array in argument mesh");
                     }
 #endif
-
                     const auto iter_nodes = s_elem.seek("nodes");
 
                     if (iter_nodes == s_elem.end()) {
@@ -15978,7 +16909,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          cell_lcg = s_elem.contents(iter_lcg);
                     }
 
-                    Cell ov_C, ov_Scale;
+                    Cell ov_A, ov_Scale;
 
                     if (oElemType.type == ElementTypes::ELEM_JOINT ||
                         oElemType.type == ElementTypes::ELEM_THERM_CONSTR ||
@@ -15989,15 +16920,41 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".C in argument mesh");
                          }
 
-                         ov_C = s_elem.contents(iter_C);
+                         ov_A = s_elem.contents(iter_C);
 
-                         FEM_ASSERT(ov_C.numel() == s_elem.numel());
+                         FEM_ASSERT(ov_A.numel() == s_elem.numel());
 
                          const auto iter_Scale = s_elem.seek("scale");
 
                          if (iter_Scale != s_elem.end()) {
                               ov_Scale = s_elem.contents(iter_Scale);
                          }
+                    }
+
+                    bool bRealA = true;
+
+                    if (oElemType.type == ElementTypes::ELEM_SPRING) {
+                         const auto iter_K = s_elem.seek("K");
+
+                         if (iter_K == s_elem.end()) {
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".K in argument mesh");
+                         }
+
+                         ov_A = s_elem.contents(iter_K);
+
+                         FEM_ASSERT(ov_A.numel() == s_elem.numel());
+                    }
+
+                    if (oElemType.type == ElementTypes::ELEM_DASHPOT) {
+                         const auto iter_D = s_elem.seek("D");
+
+                         if (iter_D == s_elem.end()) {
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".D in argument mesh");
+                         }
+
+                         ov_A = s_elem.contents(iter_D);
+
+                         FEM_ASSERT(ov_A.numel() == s_elem.numel());
                     }
 
                     Cell ov_weight;
@@ -16029,6 +16986,34 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case ElementTypes::ELEM_ACOUSTIC_CONSTR:
                          pElem.reset(new ElementBlock<ElemJoint>(oElemType.type, s_elem.numel()));
                          break;
+                    case ElementTypes::ELEM_SPRING:
+                    case ElementTypes::ELEM_DASHPOT: {
+                         for (octave_idx_type i = 0; i < ov_A.numel(); ++i) {
+                              if (!(ov_A.xelem(i).isreal() && ov_A.xelem(i).isreal())) {
+                                   bRealA = false;
+                                   break;
+                              }
+                         }
+
+                         switch (oElemType.type) {
+                         case ElementTypes::ELEM_SPRING:
+                              if (bRealA) {
+                                   pElem.reset(new ElementBlock<ElemSpring<double, Matrix>>(oElemType.type, s_elem.numel()));
+                              } else {
+                                   pElem.reset(new ElementBlock<ElemSpring<std::complex<double>, ComplexMatrix>>(oElemType.type, s_elem.numel()));
+                              }
+                              break;
+                         case ElementTypes::ELEM_DASHPOT:
+                              if (bRealA) {
+                                   pElem.reset(new ElementBlock<ElemDashpot<double, Matrix>>(oElemType.type, s_elem.numel()));
+                              } else {
+                                   pElem.reset(new ElementBlock<ElemDashpot<std::complex<double>, ComplexMatrix>>(oElemType.type, s_elem.numel()));
+                              }
+                              break;
+                         default:
+                              FEM_ASSERT(false);
+                         }
+                    } break;
                     default:
                          FEM_ASSERT(false);
                     }
@@ -16249,7 +17234,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_JOINT:
                          case ElementTypes::ELEM_THERM_CONSTR:
                          case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
-                              const Matrix C(ov_C.xelem(i).matrix_value());
+                              const Matrix C(ov_A.xelem(i).matrix_value());
 
 #if OCTAVE_MAJOR_VERSION < 6
                               if (error_state) {
@@ -16349,6 +17334,36 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                               pElem->Insert<ElemJoint>(++dofelemid[oElemType.dof_type], X, nullptr, elem_nodes, C, U, oDof.GetDomain(), dScale);
                          } break;
+                         case ElementTypes::ELEM_SPRING:
+                         case ElementTypes::ELEM_DASHPOT: {
+                              if (bRealA) {
+                                   const Matrix A(ov_A.xelem(i).matrix_value());
+
+                                   switch (oElemType.type) {
+                                   case ElementTypes::ELEM_SPRING:
+                                        pElem->Insert<ElemSpring<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   case ElementTypes::ELEM_DASHPOT:
+                                        pElem->Insert<ElemDashpot<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   default:
+                                        FEM_ASSERT(false);
+                                   }
+                              } else {
+                                   const ComplexMatrix A(ov_A.xelem(i).complex_matrix_value());
+
+                                   switch (oElemType.type) {
+                                   case ElementTypes::ELEM_SPRING:
+                                        pElem->Insert<ElemSpring<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   case ElementTypes::ELEM_DASHPOT:
+                                        pElem->Insert<ElemDashpot<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A);
+                                        break;
+                                   default:
+                                        FEM_ASSERT(false);
+                                   }
+                              }
+                         } break;
                          default:
                               FEM_ASSERT(false);
                          }
@@ -16369,6 +17384,19 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 #if HAVE_NLOPT == 1
                     constexpr unsigned uFlags = SurfToNodeConstrBase::CF_ELEM_DOF_PRE_ALLOCATED;
                     SurfToNodeConstrBase::BuildJoints(nodes, elements, edof, dofelemid, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
+#else
+                    throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
+#endif
+               } break;
+               case ElementTypes::ELEM_SFNCON4S:
+               case ElementTypes::ELEM_SFNCON6S:
+               case ElementTypes::ELEM_SFNCON6HS:
+               case ElementTypes::ELEM_SFNCON8S:
+               case ElementTypes::ELEM_SFNCON8RS:
+               case ElementTypes::ELEM_SFNCON10S: {
+#if HAVE_NLOPT == 1
+                    constexpr unsigned uFlags = SurfToNodeConstrBase::CF_IGNORE_NODES_OUT_OF_RANGE;
+                    SurfToNodeConstrBase::BuildContacts(nodes, elements, oElemType, uFlags, rgElemBlocks, oDof.GetDomain());
 #else
                     throw std::runtime_error(SurfToNodeConstrBase::szErrCompileWithNlopt);
 #endif

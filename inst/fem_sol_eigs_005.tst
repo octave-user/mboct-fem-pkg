@@ -9,6 +9,7 @@
 %! solvers={"lu", "chol", "mldivide"};
 %! unwind_protect
 %!   rand("seed", 0);
+%!   idx = int32(0);
 %!   for isol=1:numel(solvers)
 %!     opts.solver = solvers{isol};
 %!     for N=[2, 10, 50, 100]
@@ -19,8 +20,8 @@
 %!         M = rand(N, N);
 %!         M *= M.';
 %!         opts.rho = -gamma * norm(K) / norm(M);
-%!         fprintf(stderr, "%s: %d: %d\n", opts.solver, N, i);
-%!         [U, lambda] = fem_sol_eigs(K, M, num_modes, opts);
+%!         [U, lambda, err] = fem_sol_eigs(K, M, num_modes, opts);
+%!         fprintf(stderr, "%s: %d: %d: %e\n", opts.solver, N, i, max(err));
 %!       endfor
 %!     endfor
 %!   endfor

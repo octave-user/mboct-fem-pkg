@@ -428,9 +428,16 @@ function [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, materia
     endif
   endfor
 
-  mesh.structured.r = r;
-  mesh.structured.s = s;
-  mesh.structured.t = t;
+  switch (options.elem_type)
+    case {"iso20", "iso20r"}
+      mesh.structured.r = struct_mesh_coord_quad(r);
+      mesh.structured.s = struct_mesh_coord_quad(s);
+      mesh.structured.t = struct_mesh_coord_quad(t);
+    otherwise
+      mesh.structured.r = r;
+      mesh.structured.s = s;
+      mesh.structured.t = t;
+  endswitch
   mesh.structured.inode_idx = inode_idx;
 
   switch (options.elem_type)
@@ -634,4 +641,9 @@ function mesh = replace_degenerated(mesh, options)
   mesh.materials = setfield(mesh.materials, options.elem_type, iso20matrepl(1:inum_iso20));
   mesh.elements.penta15 = penta15repl(1:inum_penta15, :);
   mesh.materials.penta15 = penta15matrepl(1:inum_penta15);
+endfunction
+
+function r = struct_mesh_coord_quad(rl)
+  r(1:2:2 * (numel(rl) - 1) + 1) = rl;
+  r(2:2:end) = 0.5 * (rl(1:end - 1) + rl(2:end));
 endfunction

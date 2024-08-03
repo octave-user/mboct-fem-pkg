@@ -368,8 +368,8 @@
 %!   for i=1:numel(mesh3dummy.elements.sfncon6)
 %!     mesh3dummy.elements.sfncon6(i).constraint = FEM_CT_SLIDING;
 %!   endfor
-%!   mesh3.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh3.nodes, mesh3.elements, load_case3.domain);
-%!   mesh3dummy.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh3.nodes, mesh3dummy.elements, load_case3.domain);
+%!   mesh3.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh3.nodes, mesh3.elements, load_case3.domain).joints;
+%!   mesh3dummy.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh3.nodes, mesh3dummy.elements, load_case3.domain).joints;
 %!   mesh3.elements = rmfield(mesh3.elements, "sfncon6h");
 %!   load_case3.joints = struct("U", mat2cell(zeros(3, numel(mesh3.elements.joints)), ...
 %!                                            3, ones(1, numel(mesh3.elements.joints))));

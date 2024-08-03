@@ -172,7 +172,7 @@
 %!   load_case.pressure.tria6.p = [repmat(px, numel(tria6_rear), 6); repmat(pz, numel(tria6_top), 6)];
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   if (build_joints)
-%!     joints_constr = fem_pre_mesh_constr_surf_to_node(mesh.nodes, mesh.elements, FEM_DO_STRUCTURAL);
+%!     joints_constr = fem_pre_mesh_constr_surf_to_node(mesh.nodes, mesh.elements, FEM_DO_STRUCTURAL).joints;
 %!     mesh.elements.joints(end + (1:numel(joints_constr))) = joints_constr;
 %!     mesh.elements = rmfield(mesh.elements, "sfncon6");
 %!     mesh.elements = rmfield(mesh.elements, "sfncon10");

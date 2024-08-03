@@ -88,7 +88,7 @@
 %!   elem.sfncon8.slave = mesh.groups.quad8(1).nodes(:);
 %!   elem.sfncon8.master = mesh.elements.quad8(mesh.groups.quad8(2).elements, :);
 %!   elem.sfncon8.maxdist = param.g * (1 + sqrt(eps));
-%!   mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem);
+%!   mesh.elements.joints = fem_pre_mesh_constr_surf_to_node(mesh.nodes, elem).joints;
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
