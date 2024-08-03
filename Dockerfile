@@ -211,7 +211,7 @@
 ## 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 University
 ## Corporation for Atmospheric Research/Unidata.
 
-## Portions of this software were developed by the Unidata Program at the 
+## Portions of this software were developed by the Unidata Program at the
 ## University Corporation for Atmospheric Research.
 
 ## Access and use of this software shall impose the following obligations
@@ -306,6 +306,7 @@ https://github.com/octave-user/mboct-fem-pkg/blob/master/Dockerfile"
 ENV SRC_DIR=/opt/src/
 ENV LICENSE_DIR=/opt/src/license/
 ENV BUILD_DIR=/tmp/build/
+ENV TESTS_DIR=/tmp/tests
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
@@ -318,7 +319,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
   --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libnetcdf-c++4-dev
+    apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libnetcdf-c++4-dev parallel
 
 ENV GMSH_URL="http://www.gmsh.info/bin/Linux/"
 ENV GMSH_VERSION="stable"
@@ -443,8 +444,17 @@ RUN --mount=type=cache,target=${SRC_DIR}/octave-pkg,sharing=locked <<EOT bash
     popd
 EOT
 
+ENV OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
+
+WORKDIR ${TESTS_DIR}/octave-pkg-tests
+WORKDIR ${SRC_DIR}/mbdyn
+
+RUN --mount=type=cache,target=${SRC_DIR}/mbdyn,sharing=locked <<EOT bash
+    ${SRC_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single
+EOT
+
 WORKDIR /home/ubuntu
-RUN rm -rf ${BUILD_DIR} ## Clean up temporary files
+RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
 USER ubuntu
 ENV LANG=en_US.UTF-8
 
