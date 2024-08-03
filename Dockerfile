@@ -394,12 +394,14 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
 
     git pull --force
 
+    # git checkout fix-make-dist
+
     if ! test -x ./configure; then
       ./bootstrap.sh
     fi
 
     if ! test -f Makefile; then
-      ${SRC_DIR}/mbdyn/configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+      ./configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
     fi
 
     make -j${MBD_NUM_TASKS} all
