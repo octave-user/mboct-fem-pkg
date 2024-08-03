@@ -51,6 +51,9 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     make install
 EOT
 
+WORKDIR /home/ubuntu/licenses
+RUN wget -o mkl-license.pdf https://cdrdv2.intel.com/v1/dl/getContent/749362
+
 WORKDIR ${BUILD_DIR}
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
