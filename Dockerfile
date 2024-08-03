@@ -467,7 +467,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     popd
 
-    find . -name 'mboct-*-pkg-*.tar.gz' -exec cp '{}' ${SRC_DIR}/octave-pkg
+    find . -name 'mboct-*-pkg-*.tar.gz' -exec cp '{}' ${SRC_DIR}/octave-pkg ';'
 EOT
 
 ENV OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
