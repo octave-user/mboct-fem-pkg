@@ -26,11 +26,12 @@
 
 ## Some of those copyright statements are included below.
 
-## Nevertheless, despite of extensive research by the author,
+## Despite of extensive research by the author,
 ## there is no guarantee that this section is really comprehensive.
-## So, if the reader can find any third-party software inside such
-## an image, but the respective license text is not included yet,
-## please inform the author of this Dockerfile about that!
+## So, just in case that the reader may find any third-party software
+## inside such an image, but the respective license statement is not yet
+## included here, please inform the author about the license text
+## to be included!
 
 #####################################################################
 ## GNU-Octave
@@ -367,7 +368,7 @@ RUN --mount=type=cache,target=${SRC_DIR}/octave,sharing=locked --mount=type=cach
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl
-RUN wget -o mkl-license.pdf https://cdrdv2.intel.com/v1/dl/getContent/749362
+RUN wget --output-document=mkl-license.pdf https://cdrdv2.intel.com/v1/dl/getContent/749362
 
 WORKDIR ${BUILD_DIR}
 
@@ -400,7 +401,7 @@ RUN --mount=type=cache,target=${SRC_DIR}/mbdyn,sharing=locked --mount=type=cache
     make -j8 all
     make test
     make install
-    ##make distclean
+    ##make dist
 EOT
 
 WORKDIR ${SRC_DIR}/octave-pkg
