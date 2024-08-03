@@ -194,9 +194,15 @@
 ## free to use, disclose, reproduce, license or otherwise distribute or exploit the
 ## Feedback in its sole discretion without any obligations or restrictions of any
 
-FROM ubuntu:24.04
-ENV BUILD_DIR=/opt/source
+LABEL org.opencontainers.image.description Finite Element toolkit for structural, thermal, acoustic and fluid structure interaction problems.
 
+FROM ubuntu:latest
+
+ENV SRC_DIR=/opt/src/
+ENV LICENSE_DIR=/opt/src/license/
+ENV BUILD_DIR=/tmp/build/
+
+WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
 
 COPY . .
@@ -209,12 +215,13 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
     apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libnetcdf-c++4-dev
 
-WORKDIR ${BUILD_DIR}/gmsh
 ENV GMSH_URL="http://www.gmsh.info/bin/Linux/"
 ENV GMSH_VERSION="stable"
 ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
 
-RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
+WORKDIR ${SRC_DIR}/gmsh
+
+RUN --mount=type=cache,target=${SRC_DIR}/gmsh,sharing=locked <<EOT bash
     if ! test -f "${GMSH_TAR}"; then
       wget "${GMSH_URL}${GMSH_TAR}"
     fi
@@ -224,30 +231,36 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
     install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
 EOT
 
-WORKDIR ${BUILD_DIR}/octave
+WORKDIR ${SRC_DIR}/octave
 
-RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/octave/.hg; then
-      hg clone https://www.octave.org/hg/octave ${BUILD_DIR}/octave
+RUN --mount=type=cache,target=${SRC_DIR}/octave,sharing=locked <<EOT bash
+    if ! test -d ${SRC_DIR}/octave/.hg; then
+      hg clone https://www.octave.org/hg/octave ${SRC_DIR}/octave
     fi
 
-    hg pull && hg update && hg checkout stable
+    hg pull
+    hg update
+    hg checkout stable
 
     if ! test -x ./configure; then
       ./bootstrap
     fi
+EOT
 
+WORKDIR ${BUILD_DIR}/octave
+
+RUN --mount=type=cache,target=${SRC_DIR}/octave --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -f Makefile; then
-      ./configure CXXFLAGS="-O3 -Wall -march=native"
+      ${SRC_DIR}/octave/configure CXXFLAGS="-O3 -Wall -march=native"
     fi
 
     make -j8 all
-    make check
+    ## make check
     make install
-    make distclean
+    ## make distclean
 EOT
 
-WORKDIR /home/ubuntu/licenses
+WORKDIR ${LICENSE_DIR}/mkl
 RUN wget -o mkl-license.pdf https://cdrdv2.intel.com/v1/dl/getContent/749362
 
 WORKDIR ${BUILD_DIR}
@@ -256,31 +269,37 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq install libmkl-full-dev
 
-WORKDIR ${BUILD_DIR}/mbdyn
 
 ENV XFLAGS="-Ofast -Wall -march=native -mtune=native"
 ENV CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl"
 
-RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/mbdyn/.git; then
-      git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${BUILD_DIR}/mbdyn
+WORKDIR ${SRC_DIR}/mbdyn
+
+RUN --mount=type=cache,target=${SRC_DIR}/mbdyn,sharing=locked <<EOT bash
+    if ! test -d ${SRC_DIR}/mbdyn/.git; then
+      git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${SRC_DIR}/mbdyn
     fi
     git pull --force
     if ! test -x ./configure; then
       ./bootstrap.sh
     fi
+EOT
+
+WORKDIR ${BUILD_DIR}/mbdyn
+
+RUN --mount=type=cache,target=${SRC_DIR}/mbdyn,sharing=locked --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     if ! test -f Makefile; then
-      ./configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+      ${SRC_DIR}/mbdyn/configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
     fi
     make -j8 all
     make test
     make install
-    make distclean
+    ##make distclean
 EOT
 
-WORKDIR ${BUILD_DIR}/octave-pkg
+WORKDIR ${SRC_DIR}/octave-pkg
 
-RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
+RUN --mount=type=cache,target=${SRC_DIR}/octave-pkg,sharing=locked <<EOT bash
     octave --eval 'pkg install -global -forge nurbs'
     octave --eval 'pkg install -global -forge netcdf'
     if ! test -d mboct-octave-pkg; then
@@ -319,8 +338,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     popd
 EOT
 
-
 WORKDIR /home/ubuntu
+RUN rm -rf ${BUILD_DIR} ## Clean up temporary files
 USER ubuntu
 ENV LANG=en_US.UTF-8
 
