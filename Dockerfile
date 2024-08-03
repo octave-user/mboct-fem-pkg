@@ -29,10 +29,8 @@
 ## Nevertheless, despite of extensive research by the author,
 ## there is no guarantee that this section is really comprehensive.
 ## So, if the reader can find any third-party software inside such
-## an image, but the respective license text is not included in this
-## section, please inform the author of this Dockerfile about it!
-## Then the missing license text will be added to this section by
-## the author.
+## an image, but the respective license text is not included yet,
+## please inform the author of this Dockerfile about that!
 
 #####################################################################
 ## GNU-Octave
@@ -51,6 +49,52 @@
 ## You should have received a copy of the GNU General Public License
 ## along with Octave; see the file COPYING.  If not, see
 ## <https://www.gnu.org/licenses/>.
+
+#####################################################################
+## NLopt
+#####################################################################
+
+## NLopt combines several free/open-source nonlinear optimization
+## libraries by various authors.  See the COPYING, COPYRIGHT, and README
+## files in the subdirectories for the original copyright and licensing
+## information of these packages.
+
+## The compiled NLopt library, i.e. the combined work of all of the
+## included optimization routines, is licensed under the conjunction of
+## all of these licensing terms.  Currently, the most restrictive terms
+## are for the code in the "luksan" directory, which is licensed under
+## the GNU Lesser General Public License (GNU LGPL), version 2.1 or
+## later (see luksan/COPYRIGHT).
+
+## That means that the compiled NLopt library is governed by the terms of
+## the LGPL.
+
+## ---------------------------------------------------------------------------
+
+## Other portions of NLopt, including any modifications to the abovementioned
+## packages, are licensed under the standard "MIT License:"
+
+## Copyright (c) 2007-2011 Massachusetts Institute of Technology
+
+## Permission is hereby granted, free of charge, to any person obtaining
+## a copy of this software and associated documentation files (the
+## "Software"), to deal in the Software without restriction, including
+## without limitation the rights to use, copy, modify, merge, publish,
+## distribute, sublicense, and/or sell copies of the Software, and to
+## permit persons to whom the Software is furnished to do so, subject to
+## the following conditions:
+
+## The above copyright notice and this permission notice shall be
+## included in all copies or substantial portions of the Software.
+
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+## EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+## MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+## NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+## LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+## OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+## WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 #####################################################################
 ## Trilinos
@@ -143,6 +187,62 @@
 ## ----------------------------------------------------------------
 
 #####################################################################
+## NetCDF
+#####################################################################
+
+## Copyright 2018 Unidata
+
+## Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+## 1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+## 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+## 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+## The NetCDF Copyright.
+
+## \page copyright Copyright
+
+## Copyright 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+## 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 University
+## Corporation for Atmospheric Research/Unidata.
+
+## Portions of this software were developed by the Unidata Program at the 
+## University Corporation for Atmospheric Research.
+
+## Access and use of this software shall impose the following obligations
+## and understandings on the user. The user is granted the right, without
+## any fee or cost, to use, copy, modify, alter, enhance and distribute
+## this software, and any derivative works thereof, and its supporting
+## documentation for any purpose whatsoever, provided that this entire
+## notice appears in all copies of the software, derivative works and
+## supporting documentation.  Further, UCAR requests that the user credit
+## UCAR/Unidata in any publications that result from the use of this
+## software or in any product that includes this software, although this
+## is not an obligation. The names UCAR and/or Unidata, however, may not
+## be used in any advertising or publicity to endorse or promote any
+## products or commercial entity unless specific written permission is
+## obtained from UCAR/Unidata. The user also understands that
+## UCAR/Unidata is not obligated to provide the user with any support,
+## consulting, training or assistance of any kind with regard to the use,
+## operation and performance of this software nor to provide the user
+## with any updates, revisions, new versions or "bug fixes."
+
+## THIS SOFTWARE IS PROVIDED BY UCAR/UNIDATA "AS IS" AND ANY EXPRESS OR
+## IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+## WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+## DISCLAIMED. IN NO EVENT SHALL UCAR/UNIDATA BE LIABLE FOR ANY SPECIAL,
+## INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+## FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+## NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+## WITH THE ACCESS, USE OR PERFORMANCE OF THIS SOFTWARE.
+
+
+#####################################################################
 ## Intel MKL
 #####################################################################
 
@@ -196,7 +296,12 @@
 
 FROM ubuntu:latest
 
-LABEL org.opencontainers.image.description "Finite Element toolkit for structural, thermal, acoustic and fluid structure interaction problems."
+LABEL org.opencontainers.image.description = "Finite Element toolkit for structural, thermal, \
+acoustic and fluid structure interaction problems. 
+
+See also the following references:
+https://github.com/octave-user/mboct-fem-pkg/blob/master/README.md
+https://github.com/octave-user/mboct-fem-pkg/blob/master/Dockerfile"
 
 ENV SRC_DIR=/opt/src/
 ENV LICENSE_DIR=/opt/src/license/
@@ -249,7 +354,7 @@ EOT
 
 WORKDIR ${BUILD_DIR}/octave
 
-RUN --mount=type=cache,target=${SRC_DIR}/octave --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
+RUN --mount=type=cache,target=${SRC_DIR}/octave,sharing=locked --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -f Makefile; then
       ${SRC_DIR}/octave/configure CXXFLAGS="-O3 -Wall -march=native"
     fi
