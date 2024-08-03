@@ -294,6 +294,18 @@
 ## enhancements or other input ("Feedback") related to the Software, Intel will be
 ## free to use, disclose, reproduce, license or otherwise distribute or exploit the
 ## Feedback in its sole discretion without any obligations or restrictions of any
+## kind, including without limitation, intellectual property rights or licensing
+## obligations.
+## Compliance with laws. You agree to comply with all relevant laws and regulations
+## governing your use, transfer, import or export (or prohibition thereof) of the
+## Software.
+## Governing law. All disputes will be governed by the laws of the United States of
+## America and the State of Delaware without reference to conflict of law principles
+## and subject to the exclusive jurisdiction of the state or federal courts sitting
+## in the State of Delaware, and each party agrees that it submits to the personal
+## jurisdiction and venue of those courts and waives any objections. THE UNITED
+## NATIONS CONVENTION ON CONTRACTS FOR THE INTERNATIONAL SALE OF GOODS (1980) IS
+## SPECIFICALLY EXCLUDED AND WILL NOT APPLY TO THE SOFTWARE.
 
 FROM ubuntu:latest
 
