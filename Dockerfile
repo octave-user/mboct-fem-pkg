@@ -324,7 +324,7 @@ ENV LICENSE_DIR=/usr/local/share/license/
 ENV BUILD_DIR=/tmp/build/
 ENV TESTS_DIR=/tmp/tests/
 ENV MBD_NUM_TASKS=4
-ENV RUN_TESTS='\<mbdyn\>|\<octave\>'
+ENV RUN_TESTS='\<mbdyn\>|\<octave\>|\<oct-pkg\>'
 ENV RUN_CONFIGURE=no
 
 WORKDIR ${SRC_DIR}
@@ -352,14 +352,24 @@ WORKDIR ${BUILD_DIR}/gmsh
 
 RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
     if ! test -f "${GMSH_TAR}"; then
-      wget "${GMSH_URL}${GMSH_TAR}"
+      if ! wget "${GMSH_URL}${GMSH_TAR}"; then
+        exit 1
+      fi
     fi
 
     if ! test -d gmsh-*.*.*-Linux64/bin; then
-      tar -zxvf "${GMSH_TAR}"
+      if ! tar -zxvf "${GMSH_TAR}"; then
+        exit 1
+      fi
     fi
 
-    install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
+    if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
+      exit 1
+    fi
+
+    if ! gmsh --version; then
+      exit 1
+    fi
     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
 EOT
 
@@ -371,7 +381,9 @@ ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
 
 RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/tfel/.git; then
-      git clone ${TFEL_REPO} ${BUILD_DIR}/tfel
+      if ! git clone ${TFEL_REPO} ${BUILD_DIR}/tfel; then
+        exit 1
+      fi
     fi
 
     if ! test -d build_dir; then
@@ -381,18 +393,28 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
+      if ! cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18; then
+        exit 1
+      fi
     fi
 
-    make -j${MBD_NUM_TASKS}
+    if ! make -j${MBD_NUM_TASKS}; then
+      exit 1
+    fi
 
     if echo tfel | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      make -j${MBD_NUM_TASKS} check
+      if ! make -j${MBD_NUM_TASKS} check; then
+        exit 1
+      fi
     fi
 
-    make install
+    if ! make install; then
+      exit 1
+    fi
 
-    cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+    if test -f install_manifest.txt; then
+      cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+    fi
 EOT
 
 ENV MGIS_REPO=https://github.com/thelfer/MFrontGenericInterfaceSupport.git
@@ -402,7 +424,9 @@ WORKDIR ${BUILD_DIR}/mgis
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/mgis/.git; then
-      git clone ${MGIS_REPO} ${BUILD_DIR}/mgis
+      if ! git clone ${MGIS_REPO} ${BUILD_DIR}/mgis; then
+        exit 1
+      fi
     fi
 
     if ! test -d build_dir; then
@@ -412,18 +436,28 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      cmake -DCMAKE_BUILD_TYPE=Release -S ..
+      if ! cmake -DCMAKE_BUILD_TYPE=Release -S ..; then
+        exit 1
+      fi
     fi
 
-    make -j${MBD_NUM_TASKS}
+    if ! make -j${MBD_NUM_TASKS}; then
+      exit 1
+    fi
 
     if echo mgis | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      make -j${MBD_NUM_TASKS} check
+      if ! make -j${MBD_NUM_TASKS} check; then
+        exit 1
+      fi
     fi
 
-    make install
+    if ! make install; then
+      exit 1
+    fi
 
-    cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+    if test -f install_manifest.txt; then
+      cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+    fi
 EOT
 
 WORKDIR ${SRC_DIR}/gallery
@@ -433,7 +467,9 @@ ENV GALLERY_REPO=https://github.com/thelfer/MFrontGallery.git
 
 RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/gallery/.git; then
-      git clone ${GALLERY_REPO} ${BUILD_DIR}/gallery
+      if ! git clone ${GALLERY_REPO} ${BUILD_DIR}/gallery; then
+        exit 1
+      fi
     fi
 
     if ! test -d build_dir; then
@@ -443,18 +479,28 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      cmake -j${MBD_NUM_TASKS} -S .. -DCMAKE_BUILD_TYPE=Release -Denable-generic-behaviours=ON
+      if ! cmake -S .. -DCMAKE_BUILD_TYPE=Release -Denable-generic-behaviours=ON; then
+        exit 1
+      fi
     fi
 
-    cmake --build --parallel ${MBD_NUM_TASKS} . --target all
+    if ! cmake --build --parallel ${MBD_NUM_TASKS} . --target all; then
+      exit 1
+    fi
 
     if echo gallery | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      cmake --build --parallel ${MBD_NUM_TASKS} . --target check
+      if ! cmake --build --parallel ${MBD_NUM_TASKS} . --target check; then
+        exit 1
+      fi
     fi
 
-    cmake --build . --target install
+    if ! cmake --build . --target install; then
+      exit 1
+    fi
 
-    cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+    if test -f install_manifest.txt; then
+      cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+    fi
 EOT
 
 WORKDIR ${SRC_DIR}/octave
@@ -462,7 +508,9 @@ WORKDIR ${BUILD_DIR}/octave
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/octave/.hg; then
-      hg clone https://www.octave.org/hg/octave ${BUILD_DIR}/octave
+      if ! hg clone https://www.octave.org/hg/octave ${BUILD_DIR}/octave; then
+        exit 1
+      fi
     fi
 
     hg pull
@@ -481,15 +529,23 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
       ./configure CXXFLAGS="-O3 -Wall -march=native"
     fi
 
-    make -j${MBD_NUM_TASKS} all
-
-    if echo octave | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      make check
+    if ! make -j${MBD_NUM_TASKS} all; then
+      exit 1
     fi
 
-    make install
-    make dist-bzip2
-    cp octave-*.tar.bz2 ${SRC_DIR}/octave
+    if echo octave | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+      if ! make check; then
+        exit 1
+      fi
+    fi
+
+    if ! make install; then
+      exit 1
+    fi
+
+    if make dist-bzip2; then
+      cp octave-*.tar.bz2 ${SRC_DIR}/octave
+    fi
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl
@@ -542,7 +598,9 @@ WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/mbdyn/.git; then
-      git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${BUILD_DIR}/mbdyn
+      if ! git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${BUILD_DIR}/mbdyn; then
+        exit 1
+      fi
     fi
 
     git pull --force
@@ -559,25 +617,34 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       ./configure CPPFLAGS="${MBD_CPPFLAGS}" LDFLAGS="${MBD_FLAGS}" CXXFLAGS="${MBD_FLAGS} ${MBD_CXXFLAGS}" CFLAGS="${MBD_FLAGS}" FCFLAGS="${MBD_FLAGS}" F77FLAGS="${MBD_FLAGS}" ${MBD_ARGS_WITH} ${MBD_ARGS_ENABLE}
     fi
 
-    make -j${MBD_NUM_TASKS} all
-
-    if echo mbdyn | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      make test
+    if ! make -j${MBD_NUM_TASKS} all; then
+      exit 1
     fi
 
-    make install
+    if echo mbdyn | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+      if ! make test; then
+        exit 1
+      fi
+    fi
 
-    make dist
+    if ! make install; then
+      exit 1
+    fi
 
-    cp mbdyn-*.tar.gz ${SRC_DIR}/mbdyn
+    if ! /usr/local/mbdyn/bin/mbdyn --version; then
+      exit 1
+    fi
+
+    if make dist; then
+      cp mbdyn-*.tar.gz ${SRC_DIR}/mbdyn
+    fi
 EOT
 
 WORKDIR ${SRC_DIR}/octave-pkg
 WORKDIR ${BUILD_DIR}/octave-pkg
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
-    octave --eval 'pkg install -global -forge nurbs'
-    octave --eval 'pkg install -global -forge netcdf'
+    octave -q --eval 'pkg install -verbose -global -forge nurbs;pkg install -verbose -global -forge netcdf'
 
     if ! test -d mboct-octave-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-octave-pkg.git'
@@ -641,7 +708,9 @@ WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     if echo oct-pkg | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single
+      if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
+        exit 1
+      fi
     fi
 EOT
 
