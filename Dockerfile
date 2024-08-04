@@ -319,12 +319,12 @@ LABEL com.docker.extension.publisher-url="https://github.com/octave-user"
 LABEL com.docker.extension.additional-urls=[{"title":"MBDyn","url":"https://www.mbdyn.org"},{"title":"MBDyn-GitLab","url":"https://public.gitlab.polimi.it/DAER/mbdyn"},{"title":"Fourbar","url":"https://www.youtube.com/watch?v=d4i5AYPxsG4"},{"title":"Twisted bar","url":"https://www.youtube.com/watch?v=I8HENx5mszA"},{"title":"Rolling ring","url":"https://www.youtube.com/watch?v=rxQP8V4U0dE"},{"title":"Cook's membrane","url":"https://www.youtube.com/watch?v=EAgejp4jQ00"},{"title":"videos","url":"https://www.youtube.com/@nonlinearmultibodydynamics6802"}]
 LABEL org.opencontainers.image.licenses=GPL3
 
-ENV SRC_DIR=/opt/src/
-ENV LICENSE_DIR=/opt/src/license/
+ENV SRC_DIR=/usr/local/src/
+ENV LICENSE_DIR=/usr/local/share/license/
 ENV BUILD_DIR=/tmp/build/
-ENV TESTS_DIR=/tmp/tests
-ENV MBD_NUM_TASKS=8
-ENV RUN_TESTS=yes
+ENV TESTS_DIR=/tmp/tests/
+ENV MBD_NUM_TASKS=4
+ENV RUN_TESTS=no
 ENV RUN_CONFIGURE=no
 
 WORKDIR ${SRC_DIR}
@@ -379,13 +379,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      cmake -S .. -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
+      cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
     fi
 
     make -j${MBD_NUM_TASKS}
 
     if ! test "${RUN_TESTS}" = no; then
-      make check
+      make -j${MBD_NUM_TASKS} check
     fi
 
     make install
@@ -410,13 +410,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      cmake -S .. #-DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
+      cmake -DCMAKE_BUILD_TYPE=Release -S ..
     fi
 
     make -j${MBD_NUM_TASKS}
 
     if ! test "${RUN_TESTS}" = no; then
-      make check
+      make -j${MBD_NUM_TASKS} check
     fi
 
     make install
@@ -441,17 +441,18 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      cmake -S .. -DCMAKE_BUILD_TYPE=Release     \
-                  -Denable-generic-behaviours=ON
+      cmake -j${MBD_NUM_TASKS} -S .. -DCMAKE_BUILD_TYPE=Release -Denable-generic-behaviours=ON
     fi
 
     cmake --build --parallel ${MBD_NUM_TASKS} . --target all
 
     if ! test "${RUN_TESTS}" = no; then
-      cmake --build . --target check
+      cmake --build --parallel ${MBD_NUM_TASKS} . --target check
     fi
 
     cmake --build . --target install
+
+    cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
 EOT
 
 WORKDIR ${SRC_DIR}/octave
@@ -528,9 +529,11 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 #     make install
 # EOT
 
-ENV XFLAGS="-Ofast -Wall -march=native -mtune=native"
-ENV CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
-ENV CXXFLAGS="-std=c++20"
+ENV MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
+ENV MBD_CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
+ENV MBD_CXXFLAGS="-std=c++20"
+ENV MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate"
+ENV MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror"
 
 WORKDIR ${SRC_DIR}/mbdyn
 WORKDIR ${BUILD_DIR}/mbdyn
@@ -551,7 +554,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     fi
 
     if ! test -f Makefile; then
-      ./configure CPPFLAGS="${CPPFLAGS}" --with-mfront --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS} ${CXXFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+      ./configure CPPFLAGS="${MBD_CPPFLAGS}" LDFLAGS="${MBD_FLAGS}" CXXFLAGS="${MBD_FLAGS} ${MBD_CXXFLAGS}" CFLAGS="${MBD_FLAGS}" FCFLAGS="${MBD_FLAGS}" F77FLAGS="${MBD_FLAGS}" ${MBD_ARGS_WITH} ${MBD_ARGS_ENABLE}
     fi
 
     make -j${MBD_NUM_TASKS} all
@@ -580,7 +583,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-octave-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-octave-pkg' dist install_global
+    make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-octave-pkg' dist install_global
 
     if ! test -d mboct-numerical-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-numerical-pkg.git'
@@ -588,7 +591,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-numerical-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-numerical-pkg' dist install_global
+    make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-numerical-pkg' dist install_global
 
     if ! test -d mboct-mbdyn-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-mbdyn-pkg.git'
@@ -596,7 +599,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-mbdyn-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-mbdyn-pkg' dist install_global
+    make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-mbdyn-pkg' dist install_global
 
     if ! test -d mboct-fem-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-fem-pkg.git'
@@ -604,7 +607,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-fem-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-fem-pkg' dist install_global
+    make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-fem-pkg' dist install_global
 
     pushd mboct-fem-pkg/src
 
@@ -617,7 +620,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     fi
 
     if ! test -f Makefile; then
-      ./configure CXXFLAGS="${XFLAGS}"
+      ./configure CXXFLAGS="${MBD_FLAGS}"
     fi
 
     make -j${MBD_NUM_TASKS} all
