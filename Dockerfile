@@ -324,7 +324,7 @@ ENV LICENSE_DIR=/usr/local/share/license/
 ENV BUILD_DIR=/tmp/build/
 ENV TESTS_DIR=/tmp/tests/
 ENV MBD_NUM_TASKS=4
-ENV RUN_TESTS=no
+ENV RUN_TESTS='\<mbdyn\>|\<octave\>'
 ENV RUN_CONFIGURE=no
 
 WORKDIR ${SRC_DIR}
@@ -348,8 +348,9 @@ ENV GMSH_VERSION="stable"
 ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
 
 WORKDIR ${SRC_DIR}/gmsh
+WORKDIR ${BUILD_DIR}/gmsh
 
-RUN --mount=type=cache,target=${SRC_DIR}/gmsh,sharing=locked <<EOT bash
+RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
     if ! test -f "${GMSH_TAR}"; then
       wget "${GMSH_URL}${GMSH_TAR}"
     fi
@@ -359,6 +360,7 @@ RUN --mount=type=cache,target=${SRC_DIR}/gmsh,sharing=locked <<EOT bash
     fi
 
     install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
+    cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
 EOT
 
 WORKDIR ${SRC_DIR}/tfel
@@ -384,7 +386,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
 
     make -j${MBD_NUM_TASKS}
 
-    if ! test "${RUN_TESTS}" = no; then
+    if echo tfel | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
       make -j${MBD_NUM_TASKS} check
     fi
 
@@ -415,7 +417,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
 
     make -j${MBD_NUM_TASKS}
 
-    if ! test "${RUN_TESTS}" = no; then
+    if echo mgis | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
       make -j${MBD_NUM_TASKS} check
     fi
 
@@ -446,7 +448,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
 
     cmake --build --parallel ${MBD_NUM_TASKS} . --target all
 
-    if ! test "${RUN_TESTS}" = no; then
+    if echo gallery | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
       cmake --build --parallel ${MBD_NUM_TASKS} . --target check
     fi
 
@@ -481,7 +483,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
 
     make -j${MBD_NUM_TASKS} all
 
-    if ! test "${RUN_TESTS}" = no; then
+    if echo octave | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
       make check
     fi
 
@@ -559,7 +561,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
 
     make -j${MBD_NUM_TASKS} all
 
-    if ! test "${RUN_TESTS}" = no; then
+    if echo mbdyn | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
       make test
     fi
 
@@ -638,7 +640,7 @@ WORKDIR ${TESTS_DIR}/octave-pkg-tests
 WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
-    if ! test "${RUN_TESTS}" = no; then
+    if echo oct-pkg | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
       ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single
     fi
 EOT
@@ -648,7 +650,8 @@ RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
 USER ubuntu
 ENV LANG=en_US.UTF-8
 
-## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg
+## Run on Ubuntu with graphics enabled
+## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg:v2
 
 # docker run \
 #   --rm \
