@@ -441,7 +441,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
       fi
     fi
 
-    if ! make -j${MBD_NUM_TASKS}; then
+    if ! make -j${MBD_NUM_TASKS} all; then
       exit 1
     fi
 
@@ -484,18 +484,18 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
       fi
     fi
 
-    if ! cmake --build --parallel ${MBD_NUM_TASKS} . --target all; then
-      echo "Warning: cmake failed"
+    if ! make -j${MBD_NUM_TASKS} all; then
+      exit 1
     fi
 
     if echo gallery | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
-      if ! cmake --build --parallel ${MBD_NUM_TASKS} . --target check; then
-        echo "Warning: cmake failed"
+      if ! make -j${MBD_NUM_TASKS} check; then
+        exit 1
       fi
     fi
 
-    if ! cmake --build . --target install; then
-      echo "Warning: cmake failed"
+    if ! make install; then
+      exit 1
     fi
 
     if test -f install_manifest.txt; then
