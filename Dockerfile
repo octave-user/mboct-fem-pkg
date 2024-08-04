@@ -326,6 +326,10 @@ ENV TESTS_DIR=/tmp/tests/
 ENV MBD_NUM_TASKS=4
 ENV RUN_TESTS='\<mbdyn\>|\<octave\>|\<oct-pkg\>'
 ENV RUN_CONFIGURE=no
+ENV CXX=g++
+ENV CC=gcc
+ENV FC=gfortran
+ENV F77=gfortran
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
@@ -717,7 +721,7 @@ EOT
 WORKDIR /home/ubuntu
 RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
 USER ubuntu
-ENV LANG=en_US.UTF-8
+ENV LANG=C
 
 ## Run on Ubuntu with graphics enabled
 ## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg:v2
