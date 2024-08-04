@@ -309,19 +309,23 @@
 
 FROM ubuntu:latest
 
-LABEL org.opencontainers.image.title = "mboct-fem-pkg"
-LABEL org.opencontainers.image.vendor = "Reinhard"
-LABEL com.docker.desktop.extension.icon = "https://yt3.googleusercontent.com/HNK0rqhf4dCLnlP99g8c1odImPBZLM_QxLRb7yGBGDlDCbiiReQmoRZK4fuSU0XLC4yGApVS5Q=s160-c-k-c0x00ffffff-no-rj"
-LABEL org.opencontainers.image.description = "This package belongs to a suite of packages which can be used for pre- and postprocessing of flexible bodies in MBDyn (www.mbdyn.org) with GNU-Octave. It contains a general purpose structural Finite Element toolkit for linear statics and dynamics, which can be used to generate flexible body data for MBDyn's modal element and also hydrodynamic lubricated journal and slider plain bearings."
-LABEL com.docker.extension.screenshots = [{"alt":"Fourbar", "url":"https://i.ytimg.com/an_webp/d4i5AYPxsG4/mqdefault_6s.webp?du=3000&sqp=CI6PubUG&rs=AOn4CLDf2JH21dC1U_B8UytYHSNBP_LV9g"}, {"alt":"Twisted bar", "url":"https://i.ytimg.com/an_webp/I8HENx5mszA/mqdefault_6s.webp?du=3000&sqp=CICNubUG&rs=AOn4CLCr0TUUL4UZoynMQxoO7JMz27qNRg"}, {"alt":"Cook's membrane", "url":"https://i.ytimg.com/vi/rxQP8V4U0dE/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBsASAAuADigIMCAAQARgTIB4ofzAP&rs=AOn4CLC7YAoIVIleUQWKwJ00c3tNb-1CBg"}]
-LABEL com.docker.extension.publisher-url = "https://github.com/octave-user"
-LABEL com.docker.extension.additional-urls = [{"title":"MBDyn","url":"https://www.mbdyn.org"},{"title":"MBDyn-GitLab","url":"https://public.gitlab.polimi.it/DAER/mbdyn"},{"title":"Fourbar","url":"https://www.youtube.com/watch?v=d4i5AYPxsG4"},{"title":"Twisted bar","url":"https://www.youtube.com/watch?v=I8HENx5mszA"},{"title":"Rolling ring","url":"https://www.youtube.com/watch?v=rxQP8V4U0dE"},{"title":"Cook's membrane","url":"https://www.youtube.com/watch?v=EAgejp4jQ00"},{"title":"videos","url":"https://www.youtube.com/@nonlinearmultibodydynamics6802"}]
+LABEL org.opencontainers.image.title="mboct-fem-pkg"
+LABEL org.opencontainers.image.vendor="Reinhard"
+LABEL com.docker.desktop.extension.icon="https://yt3.googleusercontent.com/HNK0rqhf4dCLnlP99g8c1odImPBZLM_QxLRb7yGBGDlDCbiiReQmoRZK4fuSU0XLC4yGApVS5Q=s160-c-k-c0x00ffffff-no-rj"
+LABEL org.opencontainers.image.description="This package belongs to a suite of packages which can be used for pre- and postprocessing of flexible bodies in MBDyn (www.mbdyn.org) with GNU-Octave. It contains a general purpose structural Finite Element toolkit for linear statics and dynamics, which can be used to generate flexible body data for MBDyn's modal element and also hydrodynamic lubricated journal and slider plain bearings."
+LABEL com.docker.extension.screenshots=[{"alt"="Fourbar","url"="https://i.ytimg.com/an_webp/d4i5AYPxsG4/mqdefault_6s.webp?du=3000&sqp=CI6PubUG&rs=AOn4CLDf2JH21dC1U_B8UytYHSNBP_LV9g"},{"alt"="Twisted bar","url"="https://i.ytimg.com/an_webp/I8HENx5mszA/mqdefault_6s.webp?du=3000&sqp=CICNubUG&rs=AOn4CLCr0TUUL4UZoynMQxoO7JMz27qNRg"},{"alt"="Cook's membrane","url"="https://i.ytimg.com/vi/rxQP8V4U0dE/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgBsASAAuADigIMCAAQARgTIB4ofzAP&rs=AOn4CLC7YAoIVIleUQWKwJ00c3tNb-1CBg"}]
+LABEL org.opencontainers.image.source=https://github.com/octave-user
+LABEL com.docker.extension.publisher-url="https://github.com/octave-user"
+LABEL com.docker.extension.additional-urls=[{"title":"MBDyn","url":"https://www.mbdyn.org"},{"title":"MBDyn-GitLab","url":"https://public.gitlab.polimi.it/DAER/mbdyn"},{"title":"Fourbar","url":"https://www.youtube.com/watch?v=d4i5AYPxsG4"},{"title":"Twisted bar","url":"https://www.youtube.com/watch?v=I8HENx5mszA"},{"title":"Rolling ring","url":"https://www.youtube.com/watch?v=rxQP8V4U0dE"},{"title":"Cook's membrane","url":"https://www.youtube.com/watch?v=EAgejp4jQ00"},{"title":"videos","url":"https://www.youtube.com/@nonlinearmultibodydynamics6802"}]
+LABEL org.opencontainers.image.licenses=GPL3
 
 ENV SRC_DIR=/opt/src/
 ENV LICENSE_DIR=/opt/src/license/
 ENV BUILD_DIR=/tmp/build/
 ENV TESTS_DIR=/tmp/tests
 ENV MBD_NUM_TASKS=8
+ENV RUN_TESTS=yes
+ENV RUN_CONFIGURE=no
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
@@ -336,7 +340,8 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
     apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev \
-    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libnetcdf-c++4-dev parallel
+    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget \
+    libnetcdf-c++4-dev parallel cmake clang++-18
 
 ENV GMSH_URL="http://www.gmsh.info/bin/Linux/"
 ENV GMSH_VERSION="stable"
@@ -356,6 +361,99 @@ RUN --mount=type=cache,target=${SRC_DIR}/gmsh,sharing=locked <<EOT bash
     install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
 EOT
 
+WORKDIR ${SRC_DIR}/tfel
+WORKDIR ${BUILD_DIR}/tfel
+
+ENV TFEL_REPO=https://github.com/thelfer/tfel.git
+ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
+
+RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/tfel/.git; then
+      git clone ${TFEL_REPO} ${BUILD_DIR}/tfel
+    fi
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    if ! test -f Makefile; then
+      cmake -S .. -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    if ! test "${RUN_TESTS}" = no; then
+      make check
+    fi
+
+    make install
+
+    cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+EOT
+
+ENV MGIS_REPO=https://github.com/thelfer/MFrontGenericInterfaceSupport.git
+
+WORKDIR ${SRC_DIR}/mgis
+WORKDIR ${BUILD_DIR}/mgis
+
+RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/mgis/.git; then
+      git clone ${MGIS_REPO} ${BUILD_DIR}/mgis
+    fi
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    if ! test -f Makefile; then
+      cmake -S .. #-DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    if ! test "${RUN_TESTS}" = no; then
+      make check
+    fi
+
+    make install
+
+    cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
+EOT
+
+WORKDIR ${SRC_DIR}/gallery
+WORKDIR ${BUILD_DIR}/gallery
+
+ENV GALLERY_REPO=https://github.com/thelfer/MFrontGallery.git
+
+RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/gallery/.git; then
+      git clone ${GALLERY_REPO} ${BUILD_DIR}/gallery
+    fi
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    if ! test -f Makefile; then
+      cmake -S .. -DCMAKE_BUILD_TYPE=Release     \
+                  -Denable-generic-behaviours=ON
+    fi
+
+    cmake --build --parallel ${MBD_NUM_TASKS} . --target all
+
+    if ! test "${RUN_TESTS}" = no; then
+      cmake --build . --target check
+    fi
+
+    cmake --build . --target install
+EOT
+
 WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
 
@@ -372,12 +470,20 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
       ./bootstrap
     fi
 
+    if ! test "${RUN_CONFIGURE}" = no; then
+      rm -f Makefile
+    fi
+
     if ! test -f Makefile; then
       ./configure CXXFLAGS="-O3 -Wall -march=native"
     fi
 
     make -j${MBD_NUM_TASKS} all
-    make check
+
+    if ! test "${RUN_TESTS}" = no; then
+      make check
+    fi
+
     make install
     make dist-bzip2
     cp octave-*.tar.bz2 ${SRC_DIR}/octave
@@ -392,9 +498,39 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq install libmkl-full-dev
 
+# WORKDIR ${SRC_DIR}/siconos
+# WORKDIR ${BUILD_DIR}/siconos
+
+# ENV SICONOS_REPOSITORY="https://github.com/siconos/siconos.git"
+# ENV SICONOS_BRANCH="master"
+
+# RUN --mount=type=cache,target=${BUILD_DIR}/siconos,sharing=locked <<EOT bash
+#     if ! test -d ${BUILD_DIR}/siconos/.git; then
+#       git clone -b "${SICONOS_BRANCH}" "${SICONOS_REPOSITORY}" "${BUILD_DIR}/siconos"
+#     fi
+
+#     git pull --force
+
+#     if ! test -d build_dir; then
+#       mkdir build_dir
+#     fi
+
+#     cd build_dir
+
+#     if ! test -f Makefile; then
+#       export CPPFLAGS="`python3-config --cflags` ${CPPFLAGS}"
+#       export LDFLAGS="`python3-config --ldflags` ${LDFLAGS}"
+#       export LIBS="`python3-config --libs` ${LIBS}"
+#       cmake -S .. -DSICONOS_SYSTEM_WIDE_INSTALL=ON -DWITH_TESTING=OFF  -DWITH_PYTHON_WRAPPER=OFF -DWITH_CMAKE_BUILD_TYPE=Release ## -DUSER_OPTIONS_FILE=../config_samples/siconos_lite.cmake
+#     fi
+
+#     make -j${MBD_NUM_TASKS} all
+#     make install
+# EOT
 
 ENV XFLAGS="-Ofast -Wall -march=native -mtune=native"
-ENV CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl"
+ENV CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
+ENV CXXFLAGS="-std=c++20"
 
 WORKDIR ${SRC_DIR}/mbdyn
 WORKDIR ${BUILD_DIR}/mbdyn
@@ -406,21 +542,28 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
 
     git pull --force
 
-    # git checkout fix-make-dist
-
     if ! test -x ./configure; then
       ./bootstrap.sh
     fi
 
+    if ! test "${RUN_CONFIGURE}" = no; then
+      rm -f Makefile
+    fi
+
     if ! test -f Makefile; then
-      ./configure CPPFLAGS="${CPPFLAGS}" --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+      ./configure CPPFLAGS="${CPPFLAGS}" --with-mfront --with-static-modules --enable-octave --disable-Werror LDFLAGS="${XFLAGS}" CXXFLAGS="${XFLAGS} ${CXXFLAGS}" CFLAGS="${XFLAGS}" FCFLAGS="${XFLAGS}" F77FLAGS="${XFLAGS}" --enable-multithread --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
     fi
 
     make -j${MBD_NUM_TASKS} all
-    make test
+
+    if ! test "${RUN_TESTS}" = no; then
+      make test
+    fi
+
     make install
 
     make dist
+
     cp mbdyn-*.tar.gz ${SRC_DIR}/mbdyn
 EOT
 
@@ -437,7 +580,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-octave-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-octave-pkg' dist install_global
+    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-octave-pkg' dist install_global
 
     if ! test -d mboct-numerical-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-numerical-pkg.git'
@@ -445,7 +588,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-numerical-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-numerical-pkg' dist install_global
+    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-numerical-pkg' dist install_global
 
     if ! test -d mboct-mbdyn-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-mbdyn-pkg.git'
@@ -453,7 +596,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-mbdyn-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-mbdyn-pkg' dist install_global
+    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-mbdyn-pkg' dist install_global
 
     if ! test -d mboct-fem-pkg; then
       git clone -b master 'https://github.com/octave-user/mboct-fem-pkg.git'
@@ -461,12 +604,16 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     pushd mboct-fem-pkg && git pull --force && popd
 
-    make CXXFLAGS="${XFLAGS}" -C 'mboct-fem-pkg' dist install_global
+    make CXXFLAGS="${XFLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-fem-pkg' dist install_global
 
     pushd mboct-fem-pkg/src
 
     if ! test -x configure; then
       ./bootstrap
+    fi
+
+    if ! test "${RUN_CONFIGURE}" = no; then
+      rm -f Makefile
     fi
 
     if ! test -f Makefile; then
@@ -488,7 +635,9 @@ WORKDIR ${TESTS_DIR}/octave-pkg-tests
 WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
-    ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single
+    if ! test "${RUN_TESTS}" = no; then
+      ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single
+    fi
 EOT
 
 WORKDIR /home/ubuntu
