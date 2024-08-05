@@ -509,10 +509,11 @@ EOT
 
 WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
+ENV OCTAVE_REPO="https://www.octave.org/hg/octave"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/octave/.hg; then
-      if ! hg clone https://www.octave.org/hg/octave ${BUILD_DIR}/octave; then
+      if ! hg clone ${OCTAVE_REPO} ${BUILD_DIR}/octave; then
         exit 1
       fi
     fi
@@ -530,7 +531,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     fi
 
     if ! test -f Makefile; then
-      ./configure CXXFLAGS="-O3 -Wall -march=native"
+      ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
     fi
 
     if ! make -j${MBD_NUM_TASKS} all; then
@@ -596,13 +597,14 @@ ENV MBD_CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/c
 ENV MBD_CXXFLAGS="-std=c++20"
 ENV MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate"
 ENV MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror"
+ENV MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
 WORKDIR ${SRC_DIR}/mbdyn
 WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/mbdyn/.git; then
-      if ! git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git ${BUILD_DIR}/mbdyn; then
+      if ! git clone -b develop ${MBD_REPO} ${BUILD_DIR}/mbdyn; then
         exit 1
       fi
     fi
