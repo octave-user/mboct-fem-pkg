@@ -708,6 +708,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 EOT
 
 ENV OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
+ENV OCT_PKG_PRINT_RES="all"
 
 WORKDIR ${TESTS_DIR}/octave-pkg-tests
 WORKDIR ${BUILD_DIR}/mbdyn
