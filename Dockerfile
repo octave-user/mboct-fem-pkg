@@ -390,6 +390,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
       fi
     fi
 
+    if ! git pull --force; then
+      exit 1
+    fi
+
     if ! test -d build_dir; then
       mkdir build_dir
     fi
@@ -433,6 +437,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
       fi
     fi
 
+    if ! git pull --force; then
+      exit 1
+    fi
+
     if ! test -d build_dir; then
       mkdir build_dir
     fi
@@ -474,6 +482,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
       if ! git clone ${GALLERY_REPO} ${BUILD_DIR}/gallery; then
         exit 1
       fi
+    fi
+
+    if ! git pull --force; then
+      exit 1
     fi
 
     if ! test -d build_dir; then
