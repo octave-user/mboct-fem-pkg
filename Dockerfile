@@ -592,10 +592,38 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 #     make install
 # EOT
 
+WORKDIR ${SRC_DIR}/gtest
+WORKDIR ${BUILD_DIR}/gtest
+
+ENV GTEST_REPO="https://github.com/google/googletest.git"
+ENV GTEST_BRANCH="main"
+
+RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/gtest/.git; then
+      git clone -b ${GTEST_BRANCH} ${GTEST_REPO} ${BUILD_DIR}/gtest
+    fi
+
+    cd ${BUILD_DIR}/gtest
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    make install
+EOT
+
 ENV MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ENV MBD_CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
 ENV MBD_CXXFLAGS="-std=c++20"
-ENV MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate"
+ENV MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
 ENV MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror"
 ENV MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
@@ -708,7 +736,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 EOT
 
 ENV OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
-ENV OCT_PKG_PRINT_RES="all"
+ENV OCT_PKG_PRINT_RES="no"
 
 WORKDIR ${TESTS_DIR}/octave-pkg-tests
 WORKDIR ${BUILD_DIR}/mbdyn
