@@ -78,7 +78,16 @@ Copyright<sup>&copy;</sup> 2019-2024
   See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml as an example on how to install the package.
 
 # Docker images
-  Docker images may be pulled from https://hub.docker.com/r/octaveuser/mboct-fem-pkg
+  Docker images may be pulled by one of the following commands:
+  - docker pull ghcr.io/octave-user/mboct-fem-pkg:master
+  - docker pull octaveuser/mboct-fem-pkg:latest
+
+# Run mboct-fem-pkg within docker
+  - On any operating system with support for docker, the container can be executed by using the following command:
+  docker run -it ghcr.io/octave-user/mboct-fem-pkg:master
+  - If the user wishes to start the container in graphics mode and the host system is based on Ubuntu, then the following commands should be used:
+  xhost + local:docker
+  docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority  -it ghcr.io/octave-user/mboct-fem-pkg:master --gui
 
 # Applications
   - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
