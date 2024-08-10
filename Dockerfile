@@ -420,6 +420,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
       exit 1
     fi
 
+    make package
+
+    find . -name 'tfel-*.tar.gz' -exec cp '{}' ${SRC_DIR}/tfel ';'
+
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
     fi
@@ -466,6 +470,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
     if ! make install; then
       exit 1
     fi
+
+    make package
+
+    find . -name 'mfront-generic-interface-*.tar.gz' -exec cp '{}' ${SRC_DIR}/mgis ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
