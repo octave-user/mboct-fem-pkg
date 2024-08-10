@@ -29,6 +29,5 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           provenance: mode=max
-          context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ vars.DOCKERHUB_USERNAME }}/mboct-fem-pkg:latest
