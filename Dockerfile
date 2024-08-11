@@ -52,6 +52,332 @@
 ## <https://www.gnu.org/licenses/>.
 
 #####################################################################
+## TFEL
+#####################################################################
+
+## Description
+
+## `TFEL` is a collaborative development of CEA and EDF.
+
+## `MFront` is a code generator which translates a set of closely related
+## domain specific languages into plain C++ on top of the `TFEL`
+## library. Those languages covers three kind of material knowledge:
+
+## - material properties (for instance the
+##   Young modulus, the thermal conductivity, etc.)
+## - mechanical behaviours. Numerical performances of generated
+##   mechanical behaviours was given a particular attention. MFront
+##   offers a variety of interfaces to finite element solvers `Cast3M`,
+##   `Code-Aster`, `EUROPLEXUS`, `Abaqus-Standard`, `Abaqus-Explicit`,
+##   `Zebulon`, etc.. or various FFT solvers such as
+##   `AMITEX_FFTP`. Various benchmarks shows that `MFront`
+##   implementations are competitive with native implementations
+##   available in the `Cast3M`, `Code-Aster` and `Cyrano3` solvers.
+## - simple point-wise models, such as material swelling
+##   used in fuel performance codes.
+
+## `MFront` comes with an handy easy-to-use tool called `MTest` that can
+## test the local behaviour of a material, by imposing independent
+## constraints on each component of the strain or the stress. This tool
+## has been much faster (from ten to several hundred times depending on
+## the test case) than using a full-fledged finite element solver.
+
+## # Licences
+
+## `TFEL` version prior to 0.1 were released under both the LGPL and the
+## CECILL-B licences. A copy of those licences are included in the
+## distributions of TFEL.
+
+## `TFEL` versions 1.x were developped by CEA within the PLEIADES
+## project. Since svn revision 584, TFEL was part of the `PLEIADES`
+## projet.
+
+## Starting from versions 2.x, TFEL has been publicly released under
+## either the GPL or the CECILL-A licence. A copy of thoses licences are
+## delivered with the sources of TFEL. CEA or EDF may also distribute
+## this project under specific licensing conditions.
+
+## Copyright (C) 2006-2013 CEA/DEN. All rights reserved.
+## Copyright (C) 2014-2015 CEA/DEN, EDF R&D. All rights reserved.
+
+#####################################################################
+## MFrontGenericInterfaceSupport
+#####################################################################
+
+## This project aims at providing tools (functions, classes, bindings,
+## etc...) to handle behaviours written using `MFront` generic interface.
+## For information about `MFront`, see
+## <http://thelfer.github.io/tfel/web/index.html>.
+
+## Those tools are meant to be used by (`FEM`, `FFT`, etc.) solver
+## developers. This tools are *not* linked to the `TFEL` libraries.
+## Permissive licences have been chosen to allow integration in open-source
+## and proprietary codes.
+
+## This project is described in this paper:
+## [![DOI](https://joss.theoj.org/papers/10.21105/joss.02003/status.svg)](https://doi.org/10.21105/joss.02003)
+
+## The official website can be found here:
+## <https://thelfer.github.io/mgis/web/index.html>.
+
+## ## The `MFrontGenericInterface` `C++` library
+
+## The project is build around the `MFrontGenericInterface` library. This
+## library provides two main functions:
+
+## - the `mgis::behaviour::load` functions loads `MFront` behaviours from
+##   external shared libraries and retrieve all relevant meta data
+##   function. Those relevant information are stored in the
+##   `mgis::behaviour::Behaviour` class.
+## - the `mgis::behaviour::integrate` integrates the behaviour over one
+##   time step. The data associated with an integration point are handled
+##   by the `mgis::behaviour::BehaviourData` class which contains the state
+##   of the integration point at the beginning and at the end of the time
+##   step.
+
+## The library also supports handling a group of integration points though
+## the `mgis::behaviour::MaterialStateManager` class.
+
+## ## Bindings
+
+## ### Existing
+
+## The following bindings are available:
+
+## - `c` bindings.
+## - `python` bindings .
+## - `fortran03` bindings.
+## - `fenics` bindings (under current work in the `master` branch). Those
+##   bindings are strongly inspired by the `fenics-solid-mechanics`
+##   project. Those bindings are currently quite limited as mostly serve
+##   as a proof of concept. Note that `MGIS` can also be used in `FEniCS`
+##   through the `python` interface. This is discussed here:
+##   <https://thelfer.github.io/mgis/web/FEniCSBindings.html>.
+## - `julia` bindings (experimental)
+
+## ### Future bindings (contributors are welcomed)
+
+## The following bindings are under consideration:
+
+## - `octave` binding
+
+## # Versions, branches
+
+## - Version `2.2` is meant to be build against `TFEL` 4.2
+## - Version `2.1` is meant to be build against `TFEL` 4.1
+## - Version `2.0` is meant to be build against `TFEL` 4.0
+## - Version `1.2.2` is meant to be build against `TFEL` 3.4.3
+## - Version `1.2.1` is meant to be build against `TFEL` 3.4.1
+## - Version `1.2` is meant to be build against `TFEL` 3.4.0
+## - Version `1.1` is meant to be build against `TFEL` 3.3.0
+## - Version `1.0` is meant to be build against `TFEL` 3.2.0
+## - Version `1.0.1` is meant to be build against `TFEL` 3.2.1
+
+## The following branches are available:
+
+## - The `master` branch follows the evolution of the `master` branch of
+##   the `TFEL` project
+## - The `rliv-2.2` follows the evolution of the 4.2.x series of the `TFEL`
+##   project.
+## - The `rliv-2.1` follows the evolution of the 4.1.x series of the `TFEL`
+##   project.
+## - The `rliv-2.0` follows the evolution of the 4.0.x series of the `TFEL`
+##   project.
+## - The `rliv-1.2` follows the evolution of the 3.4.x series of the `TFEL`
+##   project.
+## - The `rliv-1.1` follows the evolution of the 3.3.x series of the `TFEL`
+##   project.
+## - The `rliv-1.0` follows the evolution of the 3.2.x series of the `TFEL`
+##   project. Note that this branch is **not** compatible with
+##   `TFEL-3.2.0`.
+
+## # Acknowledgement
+
+## This project uses code extracted from the following projects:
+
+## - https://github.com/bitwizeshift/string_view-standalone by Matthew
+##   Rodusek
+## - https://github.com/mpark/variant: by Michael Park
+## - https://github.com/progschj/ThreadPool by Jakob Progsch and Vaclav
+##   Zeman
+## - https://github.com/martinmoene/span-lite by Martin Moene
+## - https://bitbucket.org/fenics-apps/fenics-solid-mechanics/ by
+##   Kristian B. Olgaard and Garth N. Wells.
+
+##  Use, modification and distribution are subject
+##  to one of the following licences:
+##  - GNU Lesser General Public License (LGPL), Version 3.0. (See accompanying
+##    file LGPL-3.0.txt)
+##  - CECILL-C,  Version 1.0 (See accompanying files
+##    CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt).
+
+#####################################################################
+## MFrontGallery
+#####################################################################
+
+## Contributing to the `MFrontGallery` project
+
+## Contributions to `MFrontGallery` are greatly appreciated.
+
+## Please take a moment to review this document in order to make the
+## contribution process easy and effective for everyone involved.
+
+## Following these guidelines helps to communicate that you respect the time of
+## the developers managing and developing this open source project. In return,
+## they should reciprocate that respect in addressing your issue or assessing
+## patches and features.
+
+## ## Using the issue tracker
+
+## The [issue
+## tracker](https://github.com/thelfer/MFrontGallery/issues)
+## is the preferred channel for [bug reports](#bugs), [features
+## requests](#features) and [submitting pull requests](#pull-requests), but
+## please respect the following restrictions:
+
+## * Please **do not** use the issue tracker for personal support requests
+##   (contact directly the authors
+##   [tfel-contact@cea.fr](mailto:tfel-contact@cea.fr)
+
+## ## Bug reports
+
+## A bug is a _demonstrable problem_ that is caused by the code in the repository.
+## Good bug reports are extremely helpful - thank you!
+
+## Guidelines for bug reports:
+
+## 1. **Use the GitHub issue search**: check if the issue has already been
+##    reported.
+
+## 2. **Check if the issue has been fixed**: try to reproduce it using the
+##    latest `master` or development branch in the repository.
+
+## 3. **Isolate the problem**: ideally create a [reduced test
+##    case].
+
+## A good bug report shouldn't leave others needing to chase you up for more
+## information. Please try to be as detailed as possible in your report. What is
+## your environment? What steps will reproduce the issue? What compiler(s) and OS
+## experience the problem? What would you expect to be the outcome? All these
+## details will help people to fix any potential bugs.
+
+## Example:
+
+## > Short and descriptive example bug report title
+## >
+## > A summary of the issue, versions of `TFEL/MFront` used and the
+## > OS/compiler environment in which it occurs. If suitable, include the
+## > steps required to reproduce the bug.
+## >
+## > 1. This is the first step
+## > 2. This is the second step
+## > 3. Further steps, etc.
+## >
+## > Any other information you want to share that is relevant to the issue being
+## > reported. This might include the lines of code that you have identified as
+## > causing the bug, and potential solutions (and your opinions on their
+## > merits).
+
+## ## Feature requests
+
+## Feature requests are welcome. But take a moment to find out whether your idea
+## fits with the scope and aims of the project. It's up to *you* to make a strong
+## case to convince the project's developers of the merits of this feature. Please
+## provide as much detail and context as possible.
+
+## ## Pull requests
+
+## Good pull requests - patches, improvements, new features - are a fantastic
+## help. They should remain focused in scope and avoid containing unrelated
+## commits.
+
+## **Please ask first** before embarking on any significant pull request (e.g.
+## implementing features, refactoring code, porting to a different language),
+## otherwise you risk spending a lot of time working on something that the
+## project's developers might not want to merge into the project.
+
+## Please adhere to the coding conventions used throughout a project (indentation,
+## accurate comments, etc.) and any other requirements (such as test coverage).
+
+## Adhering to the following this process is the best way to get your work
+## included in the project:
+
+## 1. [Fork](http://help.github.com/fork-a-repo/) the project, clone your fork,
+##    and configure the remotes:
+
+##    ```bash
+##    # Clone your fork of the repo into the current directory
+##    git clone https://github.com/<your-username>/MFrontGallery.git
+##    # Navigate to the newly cloned directory
+##    cd MFrontGallery
+##    # Assign the original repo to a remote called "upstream"
+##    git remote add upstream https://github.com/thelfer/MFrontGallery.git
+##    ```
+
+## 2. If you cloned a while ago, get the latest changes from upstream:
+
+##    ```bash
+##    git checkout master
+##    git pull upstream master
+##    ```
+
+## 3. Create a new topic branch (off the main project development branch) to
+##    contain your feature, change, or fix:
+
+##    ```bash
+##    git checkout -b <topic-branch-name>
+##    ```
+
+## 4. Commit your changes in logical chunks. Please adhere to these [git commit
+##    message guidelines](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
+##    or your code is unlikely be merged into the main project. Use Git's
+##    [interactive rebase](https://help.github.com/articles/interactive-rebase)
+##    feature to tidy up your commits before making them public.
+
+## 5. Locally merge (or rebase) the upstream development branch into your topic branch:
+
+##    ```bash
+##    git pull [--rebase] upstream master
+##    ```
+
+## 6. Push your topic branch up to your fork:
+
+##    ```bash
+##    git push origin <topic-branch-name>
+##    ```
+
+## 7. [Open a Pull Request](https://help.github.com/articles/using-pull-requests/)
+##     with a clear title and description.
+
+## **IMPORTANT**: By submitting a patch, you agree to allow the project owners to
+## license your work under the the terms of the *LGPL License*.
+
+## <!--
+## This file is merely a copy of the `CONTRIBUTING.md` file of the
+## html5boilerplate project
+
+## Copyright (c) HTML5 Boilerplate
+
+## Permission is hereby granted, free of charge, to any person obtaining a copy of
+## this software and associated documentation files (the "Software"), to deal in
+## the Software without restriction, including without limitation the rights to
+## use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+## of the Software, and to permit persons to whom the Software is furnished to do
+## so, subject to the following conditions:
+
+## The above copyright notice and this permission notice shall be included in all
+## copies or substantial portions of the Software.
+
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+## SOFTWARE.
+## -->
+
+#####################################################################
 ## NLopt
 #####################################################################
 
@@ -152,6 +478,39 @@
 ## INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS
 ## THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 ##
+
+#####################################################################
+## googletest
+#####################################################################
+
+## Copyright 2008, Google Inc.
+## All rights reserved.
+
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are
+## met:
+
+##     * Redistributions of source code must retain the above copyright
+## notice, this list of conditions and the following disclaimer.
+##     * Redistributions in binary form must reproduce the above
+## copyright notice, this list of conditions and the following disclaimer
+## in the documentation and/or other materials provided with the
+## distribution.
+##     * Neither the name of Google Inc. nor the names of its
+## contributors may be used to endorse or promote products derived from
+## this software without specific prior written permission.
+
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+## "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+## LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+## A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+## OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+## SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+## LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+## DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+## THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #####################################################################
 ## MBDyn
@@ -325,6 +684,7 @@ ENV BUILD_DIR=/tmp/build/
 ENV TESTS_DIR=/tmp/tests/
 ENV MBD_NUM_TASKS=4
 ENV RUN_TESTS='\<mbdyn\>|\<octave\>|\<oct-pkg\>'
+# ENV RUN_TESTS='\<mbdyn\>'
 ENV RUN_CONFIGURE=no
 ENV CXX=g++
 ENV CC=gcc
@@ -420,9 +780,9 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
       exit 1
     fi
 
-    make package
+    make package_source
 
-    find . -name 'tfel-*.tar.gz' -exec cp '{}' ${SRC_DIR}/tfel ';'
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/tfel ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
@@ -471,9 +831,9 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
       exit 1
     fi
 
-    make package
+    make package_source
 
-    find . -name 'mfront-generic-interface-*.tar.gz' -exec cp '{}' ${SRC_DIR}/mgis ';'
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/mgis ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
@@ -521,6 +881,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
     if ! make install; then
       exit 1
     fi
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/gallery ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
@@ -636,6 +1000,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
     fi
 
     make -j${MBD_NUM_TASKS}
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/gtest ';'
 
     make install
 EOT
