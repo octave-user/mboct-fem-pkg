@@ -1041,13 +1041,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
       ;;
     esac
 
-    make package_source
+    ## FIXME: make package_source requires too much disc space
+    # make package_source
 
-    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/Trilinos ';'
+    # find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/Trilinos ';'
 
     make install
 EOT
-
 
 WORKDIR ${SRC_DIR}/gtest
 WORKDIR ${BUILD_DIR}/gtest
