@@ -1024,7 +1024,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
     esac
 
     if ! test -f Makefile; then
-      cmake .. -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DNOX_ENABLE_Epetra=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DTrilinos_ENABLE_TESTS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
+      cmake .. -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DTrilinos_ENABLE_TESTS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
     fi
 
     make -j${MBD_NUM_TASKS}
