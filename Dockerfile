@@ -776,6 +776,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
         exit 1
       fi
       ;;
+    none)
+      ;;
     esac
 
     if ! make install; then
@@ -828,6 +830,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
       if ! make -j${MBD_NUM_TASKS} check; then
         exit 1
       fi
+      ;;
+    none)
       ;;
     esac
 
@@ -882,6 +886,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
         exit 1
       fi
       ;;
+    none)
+      ;;
     esac
 
     if ! make install; then
@@ -917,8 +923,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     fi
 
     case "${RUN_CONFIGURE}" in
-    *octave*)
+    *octave*|all)
       rm -f Makefile
+      ;;
+    none)
       ;;
     esac
 
@@ -935,6 +943,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
       if ! make check; then
         exit 1
       fi
+      ;;
+    none)
       ;;
     esac
 
@@ -1006,13 +1016,15 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
     cd build_dir
 
     case "${RUN_CONFIGURE}" in
-    *trilinos*)
+    *trilinos*|all)
       rm -f Makefile
+      ;;
+    none)
       ;;
     esac
 
     if ! test -f Makefile; then
-      cmake .. -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DTrilinos_ENABLE_TESTS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
+      cmake .. -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DNOX_ENABLE_Epetra=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DTrilinos_ENABLE_TESTS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
     fi
 
     make -j${MBD_NUM_TASKS}
@@ -1022,6 +1034,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
       if ! make -j${MBD_NUM_TASKS} check; then
         exit 1
       fi
+      ;;
+    none)
       ;;
     esac
 
@@ -1053,8 +1067,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
     cd build_dir
 
     case "${RUN_CONFIGURE}" in
-    *gtest*)
+    *gtest*|all)
       rm -f Makefile
+      ;;
+    none)
       ;;
     esac
 
@@ -1095,8 +1111,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     fi
 
     case "${RUN_CONFIGURE}" in
-    *mbdyn*)
+    *mbdyn*|all)
       rm -f Makefile
+      ;;
+    none)
       ;;
     esac
 
@@ -1113,6 +1131,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       if ! make test; then
         exit 1
       fi
+      ;;
+    none)
       ;;
     esac
 
@@ -1183,8 +1203,10 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     fi
 
     case "${RUN_CONFIGURE}" in
-    *mboct*)
+    *mboct*|all)
       rm -f Makefile
+      ;;
+    none)
       ;;
     esac
 
@@ -1213,6 +1235,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
         exit 1
       fi
+      ;;
+    none)
       ;;
     esac
 EOT
