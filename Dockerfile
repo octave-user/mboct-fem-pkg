@@ -1001,6 +1001,8 @@ WORKDIR ${BUILD_DIR}/Trilinos
 
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
 ARG TRILINOS_BRANCH="master"
+ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=ON"
+ARG TRILINOS_PREFIX="/usr/local/"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/Trilinos/.git; then
@@ -1024,7 +1026,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
     esac
 
     if ! test -f Makefile; then
-      cmake .. -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DTrilinos_ENABLE_TESTS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/
+      cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
     fi
 
     make -j${MBD_NUM_TASKS}
