@@ -1001,7 +1001,8 @@ WORKDIR ${BUILD_DIR}/Trilinos
 
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
 ARG TRILINOS_BRANCH="master"
-ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=ON"
+#ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=ON"
+ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
 ARG TRILINOS_PREFIX="/usr/local/"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
@@ -1048,6 +1049,58 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
 
     make install
 EOT
+
+# WORKDIR ${SRC_DIR}/pastix
+# WORKDIR ${BUILD_DIR}/pastix
+
+# ARG PASTIX_REPO="https://gitlab.inria.fr/solverstack/pastix.git"
+# ARG PASTIX_BRANCH="master"
+# ARG PASTIX_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release"
+# ARG PASTIX_PREFIX="/usr/local/"
+
+# RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
+#     if ! test -d ${BUILD_DIR}/pastix/.git; then
+#       git clone -b ${PASTIX_BRANCH} ${PASTIX_REPO} ${BUILD_DIR}/pastix
+#     fi
+
+#     cd ${BUILD_DIR}/pastix
+
+#     if ! test -d build_dir; then
+#       mkdir build_dir
+#     fi
+
+#     cd build_dir
+
+#     case "${RUN_CONFIGURE}" in
+#     *pastix*|all)
+#       rm -f Makefile
+#       ;;
+#     none)
+#       ;;
+#     esac
+
+#     if ! test -f Makefile; then
+#       cmake .. -DCMAKE_INSTALL_PREFIX="${PASTIX_PREFIX}" ${PASTIX_CONFIG}
+#     fi
+
+#     make -j${MBD_NUM_TASKS}
+
+#     case "${RUN_TESTS}" in
+#       *pastix*|all)
+#       if ! make -j${MBD_NUM_TASKS} check; then
+#         exit 1
+#       fi
+#       ;;
+#     none)
+#       ;;
+#     esac
+
+#     make package_source
+
+#     find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
+
+#     make install
+# EOT
 
 WORKDIR ${SRC_DIR}/gtest
 WORKDIR ${BUILD_DIR}/gtest
