@@ -683,8 +683,8 @@ ARG LICENSE_DIR=/usr/local/share/license/
 ARG BUILD_DIR=/tmp/build/
 ARG TESTS_DIR=/tmp/tests/
 ARG MBD_NUM_TASKS=4
-ARG RUN_TESTS='\<mbdyn\>|\<octave\>|\<oct-pkg\>'
-ARG RUN_CONFIGURE='\<mbdyn\>'
+ARG RUN_TESTS='all'
+ARG RUN_CONFIGURE='none'
 ARG CXX=g++
 ARG CC=gcc
 ARG FC=gfortran
@@ -1287,7 +1287,7 @@ WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     case "${RUN_TESTS}" in
-      *mboct*)
+      *mboct*|all)
       if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
         exit 1
       fi
