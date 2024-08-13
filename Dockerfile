@@ -1298,7 +1298,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
 EOT
 
 WORKDIR /home/ubuntu
-RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
+##RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
 USER ubuntu
 ENV LANG=C
 
