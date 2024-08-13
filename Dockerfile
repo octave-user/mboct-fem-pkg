@@ -853,7 +853,7 @@ WORKDIR ${BUILD_DIR}/gallery
 
 ##ARG GALLERY_REPO="https://github.com/thelfer/MFrontGallery.git"
 ARG GALLERY_REPO="https://github.com/octave-user/MFrontGallery.git"
-ARG GALLERY_BRANCH="fix-CPack-file-not-found"
+ARG GALLERY_BRANCH="master"
 RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
     if ! test -d "${BUILD_DIR}/gallery/.git"; then
       if ! git clone -b "${GALLERY_BRANCH}" "${GALLERY_REPO}" "${BUILD_DIR}/gallery"; then
