@@ -705,37 +705,37 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
     apt-get -yq install mercurial git libopenmpi-dev \
     libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget \
-    libnetcdf-c++4-dev parallel cmake clang++-18
+    libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
-ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
-ARG GMSH_VERSION="stable"
-ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
+# ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
+# ARG GMSH_VERSION="stable"
+# ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
 
-WORKDIR ${SRC_DIR}/gmsh
-WORKDIR ${BUILD_DIR}/gmsh
+# WORKDIR ${SRC_DIR}/gmsh
+# WORKDIR ${BUILD_DIR}/gmsh
 
-RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
-    if ! test -f "${GMSH_TAR}"; then
-      if ! wget "${GMSH_URL}${GMSH_TAR}"; then
-        exit 1
-      fi
-    fi
+# RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
+#     if ! test -f "${GMSH_TAR}"; then
+#       if ! wget "${GMSH_URL}${GMSH_TAR}"; then
+#         exit 1
+#       fi
+#     fi
 
-    if ! test -d gmsh-*.*.*-Linux64/bin; then
-      if ! tar -zxvf "${GMSH_TAR}"; then
-        exit 1
-      fi
-    fi
+#     if ! test -d gmsh-*.*.*-Linux64/bin; then
+#       if ! tar -zxvf "${GMSH_TAR}"; then
+#         exit 1
+#       fi
+#     fi
 
-    if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
-      exit 1
-    fi
+#     if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
+#       exit 1
+#     fi
 
-    if ! gmsh --version; then
-      exit 1
-    fi
-    cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
-EOT
+#     if ! gmsh --version; then
+#       exit 1
+#     fi
+#     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
+# EOT
 
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
