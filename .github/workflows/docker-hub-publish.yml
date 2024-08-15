@@ -30,5 +30,6 @@ jobs:
         with:
           provenance: mode=max
           sbom: true
-          push: ${{ github.event_name != 'pull_request' }}
+          build-args: MBOCT_FEM_PKG_BRANCH=${{ github.ref_name }}
+          push: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
           tags: ${{ vars.DOCKERHUB_USERNAME }}/mboct-fem-pkg:latest

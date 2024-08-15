@@ -52,6 +52,332 @@
 ## <https://www.gnu.org/licenses/>.
 
 #####################################################################
+## TFEL
+#####################################################################
+
+## Description
+
+## `TFEL` is a collaborative development of CEA and EDF.
+
+## `MFront` is a code generator which translates a set of closely related
+## domain specific languages into plain C++ on top of the `TFEL`
+## library. Those languages covers three kind of material knowledge:
+
+## - material properties (for instance the
+##   Young modulus, the thermal conductivity, etc.)
+## - mechanical behaviours. Numerical performances of generated
+##   mechanical behaviours was given a particular attention. MFront
+##   offers a variety of interfaces to finite element solvers `Cast3M`,
+##   `Code-Aster`, `EUROPLEXUS`, `Abaqus-Standard`, `Abaqus-Explicit`,
+##   `Zebulon`, etc.. or various FFT solvers such as
+##   `AMITEX_FFTP`. Various benchmarks shows that `MFront`
+##   implementations are competitive with native implementations
+##   available in the `Cast3M`, `Code-Aster` and `Cyrano3` solvers.
+## - simple point-wise models, such as material swelling
+##   used in fuel performance codes.
+
+## `MFront` comes with an handy easy-to-use tool called `MTest` that can
+## test the local behaviour of a material, by imposing independent
+## constraints on each component of the strain or the stress. This tool
+## has been much faster (from ten to several hundred times depending on
+## the test case) than using a full-fledged finite element solver.
+
+## # Licences
+
+## `TFEL` version prior to 0.1 were released under both the LGPL and the
+## CECILL-B licences. A copy of those licences are included in the
+## distributions of TFEL.
+
+## `TFEL` versions 1.x were developped by CEA within the PLEIADES
+## project. Since svn revision 584, TFEL was part of the `PLEIADES`
+## projet.
+
+## Starting from versions 2.x, TFEL has been publicly released under
+## either the GPL or the CECILL-A licence. A copy of thoses licences are
+## delivered with the sources of TFEL. CEA or EDF may also distribute
+## this project under specific licensing conditions.
+
+## Copyright (C) 2006-2013 CEA/DEN. All rights reserved.
+## Copyright (C) 2014-2015 CEA/DEN, EDF R&D. All rights reserved.
+
+#####################################################################
+## MFrontGenericInterfaceSupport
+#####################################################################
+
+## This project aims at providing tools (functions, classes, bindings,
+## etc...) to handle behaviours written using `MFront` generic interface.
+## For information about `MFront`, see
+## <http://thelfer.github.io/tfel/web/index.html>.
+
+## Those tools are meant to be used by (`FEM`, `FFT`, etc.) solver
+## developers. This tools are *not* linked to the `TFEL` libraries.
+## Permissive licences have been chosen to allow integration in open-source
+## and proprietary codes.
+
+## This project is described in this paper:
+## [![DOI](https://joss.theoj.org/papers/10.21105/joss.02003/status.svg)](https://doi.org/10.21105/joss.02003)
+
+## The official website can be found here:
+## <https://thelfer.github.io/mgis/web/index.html>.
+
+## ## The `MFrontGenericInterface` `C++` library
+
+## The project is build around the `MFrontGenericInterface` library. This
+## library provides two main functions:
+
+## - the `mgis::behaviour::load` functions loads `MFront` behaviours from
+##   external shared libraries and retrieve all relevant meta data
+##   function. Those relevant information are stored in the
+##   `mgis::behaviour::Behaviour` class.
+## - the `mgis::behaviour::integrate` integrates the behaviour over one
+##   time step. The data associated with an integration point are handled
+##   by the `mgis::behaviour::BehaviourData` class which contains the state
+##   of the integration point at the beginning and at the end of the time
+##   step.
+
+## The library also supports handling a group of integration points though
+## the `mgis::behaviour::MaterialStateManager` class.
+
+## ## Bindings
+
+## ### Existing
+
+## The following bindings are available:
+
+## - `c` bindings.
+## - `python` bindings .
+## - `fortran03` bindings.
+## - `fenics` bindings (under current work in the `master` branch). Those
+##   bindings are strongly inspired by the `fenics-solid-mechanics`
+##   project. Those bindings are currently quite limited as mostly serve
+##   as a proof of concept. Note that `MGIS` can also be used in `FEniCS`
+##   through the `python` interface. This is discussed here:
+##   <https://thelfer.github.io/mgis/web/FEniCSBindings.html>.
+## - `julia` bindings (experimental)
+
+## ### Future bindings (contributors are welcomed)
+
+## The following bindings are under consideration:
+
+## - `octave` binding
+
+## # Versions, branches
+
+## - Version `2.2` is meant to be build against `TFEL` 4.2
+## - Version `2.1` is meant to be build against `TFEL` 4.1
+## - Version `2.0` is meant to be build against `TFEL` 4.0
+## - Version `1.2.2` is meant to be build against `TFEL` 3.4.3
+## - Version `1.2.1` is meant to be build against `TFEL` 3.4.1
+## - Version `1.2` is meant to be build against `TFEL` 3.4.0
+## - Version `1.1` is meant to be build against `TFEL` 3.3.0
+## - Version `1.0` is meant to be build against `TFEL` 3.2.0
+## - Version `1.0.1` is meant to be build against `TFEL` 3.2.1
+
+## The following branches are available:
+
+## - The `master` branch follows the evolution of the `master` branch of
+##   the `TFEL` project
+## - The `rliv-2.2` follows the evolution of the 4.2.x series of the `TFEL`
+##   project.
+## - The `rliv-2.1` follows the evolution of the 4.1.x series of the `TFEL`
+##   project.
+## - The `rliv-2.0` follows the evolution of the 4.0.x series of the `TFEL`
+##   project.
+## - The `rliv-1.2` follows the evolution of the 3.4.x series of the `TFEL`
+##   project.
+## - The `rliv-1.1` follows the evolution of the 3.3.x series of the `TFEL`
+##   project.
+## - The `rliv-1.0` follows the evolution of the 3.2.x series of the `TFEL`
+##   project. Note that this branch is **not** compatible with
+##   `TFEL-3.2.0`.
+
+## # Acknowledgement
+
+## This project uses code extracted from the following projects:
+
+## - https://github.com/bitwizeshift/string_view-standalone by Matthew
+##   Rodusek
+## - https://github.com/mpark/variant: by Michael Park
+## - https://github.com/progschj/ThreadPool by Jakob Progsch and Vaclav
+##   Zeman
+## - https://github.com/martinmoene/span-lite by Martin Moene
+## - https://bitbucket.org/fenics-apps/fenics-solid-mechanics/ by
+##   Kristian B. Olgaard and Garth N. Wells.
+
+##  Use, modification and distribution are subject
+##  to one of the following licences:
+##  - GNU Lesser General Public License (LGPL), Version 3.0. (See accompanying
+##    file LGPL-3.0.txt)
+##  - CECILL-C,  Version 1.0 (See accompanying files
+##    CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt).
+
+#####################################################################
+## MFrontGallery
+#####################################################################
+
+## Contributing to the `MFrontGallery` project
+
+## Contributions to `MFrontGallery` are greatly appreciated.
+
+## Please take a moment to review this document in order to make the
+## contribution process easy and effective for everyone involved.
+
+## Following these guidelines helps to communicate that you respect the time of
+## the developers managing and developing this open source project. In return,
+## they should reciprocate that respect in addressing your issue or assessing
+## patches and features.
+
+## ## Using the issue tracker
+
+## The [issue
+## tracker](https://github.com/thelfer/MFrontGallery/issues)
+## is the preferred channel for [bug reports](#bugs), [features
+## requests](#features) and [submitting pull requests](#pull-requests), but
+## please respect the following restrictions:
+
+## * Please **do not** use the issue tracker for personal support requests
+##   (contact directly the authors
+##   [tfel-contact@cea.fr](mailto:tfel-contact@cea.fr)
+
+## ## Bug reports
+
+## A bug is a _demonstrable problem_ that is caused by the code in the repository.
+## Good bug reports are extremely helpful - thank you!
+
+## Guidelines for bug reports:
+
+## 1. **Use the GitHub issue search**: check if the issue has already been
+##    reported.
+
+## 2. **Check if the issue has been fixed**: try to reproduce it using the
+##    latest `master` or development branch in the repository.
+
+## 3. **Isolate the problem**: ideally create a [reduced test
+##    case].
+
+## A good bug report shouldn't leave others needing to chase you up for more
+## information. Please try to be as detailed as possible in your report. What is
+## your environment? What steps will reproduce the issue? What compiler(s) and OS
+## experience the problem? What would you expect to be the outcome? All these
+## details will help people to fix any potential bugs.
+
+## Example:
+
+## > Short and descriptive example bug report title
+## >
+## > A summary of the issue, versions of `TFEL/MFront` used and the
+## > OS/compiler environment in which it occurs. If suitable, include the
+## > steps required to reproduce the bug.
+## >
+## > 1. This is the first step
+## > 2. This is the second step
+## > 3. Further steps, etc.
+## >
+## > Any other information you want to share that is relevant to the issue being
+## > reported. This might include the lines of code that you have identified as
+## > causing the bug, and potential solutions (and your opinions on their
+## > merits).
+
+## ## Feature requests
+
+## Feature requests are welcome. But take a moment to find out whether your idea
+## fits with the scope and aims of the project. It's up to *you* to make a strong
+## case to convince the project's developers of the merits of this feature. Please
+## provide as much detail and context as possible.
+
+## ## Pull requests
+
+## Good pull requests - patches, improvements, new features - are a fantastic
+## help. They should remain focused in scope and avoid containing unrelated
+## commits.
+
+## **Please ask first** before embarking on any significant pull request (e.g.
+## implementing features, refactoring code, porting to a different language),
+## otherwise you risk spending a lot of time working on something that the
+## project's developers might not want to merge into the project.
+
+## Please adhere to the coding conventions used throughout a project (indentation,
+## accurate comments, etc.) and any other requirements (such as test coverage).
+
+## Adhering to the following this process is the best way to get your work
+## included in the project:
+
+## 1. [Fork](http://help.github.com/fork-a-repo/) the project, clone your fork,
+##    and configure the remotes:
+
+##    ```bash
+##    # Clone your fork of the repo into the current directory
+##    git clone https://github.com/<your-username>/MFrontGallery.git
+##    # Navigate to the newly cloned directory
+##    cd MFrontGallery
+##    # Assign the original repo to a remote called "upstream"
+##    git remote add upstream https://github.com/thelfer/MFrontGallery.git
+##    ```
+
+## 2. If you cloned a while ago, get the latest changes from upstream:
+
+##    ```bash
+##    git checkout master
+##    git pull upstream master
+##    ```
+
+## 3. Create a new topic branch (off the main project development branch) to
+##    contain your feature, change, or fix:
+
+##    ```bash
+##    git checkout -b <topic-branch-name>
+##    ```
+
+## 4. Commit your changes in logical chunks. Please adhere to these [git commit
+##    message guidelines](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)
+##    or your code is unlikely be merged into the main project. Use Git's
+##    [interactive rebase](https://help.github.com/articles/interactive-rebase)
+##    feature to tidy up your commits before making them public.
+
+## 5. Locally merge (or rebase) the upstream development branch into your topic branch:
+
+##    ```bash
+##    git pull [--rebase] upstream master
+##    ```
+
+## 6. Push your topic branch up to your fork:
+
+##    ```bash
+##    git push origin <topic-branch-name>
+##    ```
+
+## 7. [Open a Pull Request](https://help.github.com/articles/using-pull-requests/)
+##     with a clear title and description.
+
+## **IMPORTANT**: By submitting a patch, you agree to allow the project owners to
+## license your work under the the terms of the *LGPL License*.
+
+## <!--
+## This file is merely a copy of the `CONTRIBUTING.md` file of the
+## html5boilerplate project
+
+## Copyright (c) HTML5 Boilerplate
+
+## Permission is hereby granted, free of charge, to any person obtaining a copy of
+## this software and associated documentation files (the "Software"), to deal in
+## the Software without restriction, including without limitation the rights to
+## use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+## of the Software, and to permit persons to whom the Software is furnished to do
+## so, subject to the following conditions:
+
+## The above copyright notice and this permission notice shall be included in all
+## copies or substantial portions of the Software.
+
+## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+## AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+## SOFTWARE.
+## -->
+
+#####################################################################
 ## NLopt
 #####################################################################
 
@@ -152,6 +478,39 @@
 ## INFORMATION, APPARATUS, PRODUCT, OR PROCESS DISCLOSED, OR REPRESENTS
 ## THAT ITS USE WOULD NOT INFRINGE PRIVATELY OWNED RIGHTS.
 ##
+
+#####################################################################
+## googletest
+#####################################################################
+
+## Copyright 2008, Google Inc.
+## All rights reserved.
+
+## Redistribution and use in source and binary forms, with or without
+## modification, are permitted provided that the following conditions are
+## met:
+
+##     * Redistributions of source code must retain the above copyright
+## notice, this list of conditions and the following disclaimer.
+##     * Redistributions in binary form must reproduce the above
+## copyright notice, this list of conditions and the following disclaimer
+## in the documentation and/or other materials provided with the
+## distribution.
+##     * Neither the name of Google Inc. nor the names of its
+## contributors may be used to endorse or promote products derived from
+## this software without specific prior written permission.
+
+## THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+## "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+## LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+## A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+## OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+## SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+## LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+## DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+## THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+## (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+## OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #####################################################################
 ## MBDyn
@@ -319,22 +678,23 @@ LABEL com.docker.extension.publisher-url="https://github.com/octave-user"
 LABEL com.docker.extension.additional-urls=[{"title":"MBDyn","url":"https://www.mbdyn.org"},{"title":"MBDyn-GitLab","url":"https://public.gitlab.polimi.it/DAER/mbdyn"},{"title":"Fourbar","url":"https://www.youtube.com/watch?v=d4i5AYPxsG4"},{"title":"Twisted bar","url":"https://www.youtube.com/watch?v=I8HENx5mszA"},{"title":"Rolling ring","url":"https://www.youtube.com/watch?v=rxQP8V4U0dE"},{"title":"Cook's membrane","url":"https://www.youtube.com/watch?v=EAgejp4jQ00"},{"title":"videos","url":"https://www.youtube.com/@nonlinearmultibodydynamics6802"}]
 LABEL org.opencontainers.image.licenses=GPL3
 
-ENV SRC_DIR=/usr/local/src/
-ENV LICENSE_DIR=/usr/local/share/license/
-ENV BUILD_DIR=/tmp/build/
-ENV TESTS_DIR=/tmp/tests/
-ENV MBD_NUM_TASKS=4
-ENV RUN_TESTS='\<mbdyn\>|\<octave\>|\<oct-pkg\>'
-ENV RUN_CONFIGURE=no
-ENV CXX=g++
-ENV CC=gcc
-ENV FC=gfortran
-ENV F77=gfortran
+ARG SRC_DIR=/usr/local/src/
+ARG LICENSE_DIR=/usr/local/share/license/
+ARG BUILD_DIR=/tmp/build/
+ARG TESTS_DIR=/tmp/tests/
+ARG MBD_NUM_TASKS=4
+ARG RUN_TESTS='octave;trilinos;mbdyn;mboct'
+ARG RUN_CONFIGURE='none'
+ARG CXX=g++
+ARG CC=gcc
+ARG FC=gfortran
+ARG F77=gfortran
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
 
-COPY . .
+COPY Dockerfile ${SRC_DIR}
+COPY Dockerfile ${BUILD_DIR}
 
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
 
@@ -343,12 +703,12 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install mercurial git trilinos-all-dev libopenmpi-dev \
+    apt-get -yq install mercurial git libopenmpi-dev \
     libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget \
     libnetcdf-c++4-dev parallel cmake clang++-18
 
-ENV GMSH_URL="http://www.gmsh.info/bin/Linux/"
-ENV GMSH_VERSION="stable"
+ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
+ARG GMSH_VERSION="stable"
 ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
 
 WORKDIR ${SRC_DIR}/gmsh
@@ -380,7 +740,7 @@ EOT
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
 
-ENV TFEL_REPO=https://github.com/thelfer/tfel.git
+ARG TFEL_REPO=https://github.com/thelfer/tfel.git
 ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
 
 RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
@@ -410,26 +770,30 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
       exit 1
     fi
 
-    if echo tfel | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+    case "${RUN_TESTS}" in
+    *tfel*|all)
       if ! make -j${MBD_NUM_TASKS} check; then
         exit 1
       fi
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! make install; then
       exit 1
     fi
 
-    make package
+    make package_source
 
-    find . -name 'tfel-*.tar.gz' -exec cp '{}' ${SRC_DIR}/tfel ';'
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/tfel ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
     fi
 EOT
 
-ENV MGIS_REPO=https://github.com/thelfer/MFrontGenericInterfaceSupport.git
+ARG MGIS_REPO=https://github.com/thelfer/MFrontGenericInterfaceSupport.git
 
 WORKDIR ${SRC_DIR}/mgis
 WORKDIR ${BUILD_DIR}/mgis
@@ -461,19 +825,23 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
       exit 1
     fi
 
-    if echo mgis | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+    case "${RUN_TESTS}" in
+      *mgis*|all)
       if ! make -j${MBD_NUM_TASKS} check; then
         exit 1
       fi
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! make install; then
       exit 1
     fi
 
-    make package
+    make package_source
 
-    find . -name 'mfront-generic-interface-*.tar.gz' -exec cp '{}' ${SRC_DIR}/mgis ';'
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/mgis ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
@@ -483,11 +851,11 @@ EOT
 WORKDIR ${SRC_DIR}/gallery
 WORKDIR ${BUILD_DIR}/gallery
 
-ENV GALLERY_REPO=https://github.com/thelfer/MFrontGallery.git
-
+ARG GALLERY_REPO="https://github.com/thelfer/MFrontGallery.git"
+ARG GALLERY_BRANCH="master"
 RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/gallery/.git; then
-      if ! git clone ${GALLERY_REPO} ${BUILD_DIR}/gallery; then
+    if ! test -d "${BUILD_DIR}/gallery/.git"; then
+      if ! git clone -b "${GALLERY_BRANCH}" "${GALLERY_REPO}" "${BUILD_DIR}/gallery"; then
         exit 1
       fi
     fi
@@ -512,15 +880,23 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
       exit 1
     fi
 
-    if echo gallery | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+    case "${RUN_TESTS}" in
+      *gallery*|all)
       if ! make -j${MBD_NUM_TASKS} check; then
         exit 1
       fi
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! make install; then
       exit 1
     fi
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/gallery ';'
 
     if test -f install_manifest.txt; then
       cat install_manifest.txt | awk '/\/lib.*\.so$/' | xargs chmod +x
@@ -529,7 +905,7 @@ EOT
 
 WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
-ENV OCTAVE_REPO="https://www.octave.org/hg/octave"
+ARG OCTAVE_REPO="https://www.octave.org/hg/octave"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/octave/.hg; then
@@ -546,9 +922,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
       ./bootstrap
     fi
 
-    if ! test "${RUN_CONFIGURE}" = no; then
+    case "${RUN_CONFIGURE}" in
+    *octave*|all)
       rm -f Makefile
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! test -f Makefile; then
       ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
@@ -558,11 +938,15 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
       exit 1
     fi
 
-    if echo octave | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+    case "${RUN_TESTS}" in
+      *octave*|all)
       if ! make check; then
         exit 1
       fi
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! make install; then
       exit 1
@@ -612,11 +996,116 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 #     make install
 # EOT
 
+WORKDIR ${SRC_DIR}/Trilinos
+WORKDIR ${BUILD_DIR}/Trilinos
+
+ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
+ARG TRILINOS_BRANCH="master"
+ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
+ARG TRILINOS_PREFIX="/usr/local/"
+
+RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/Trilinos/.git; then
+      git clone -b ${TRILINOS_BRANCH} ${TRILINOS_REPO} ${BUILD_DIR}/Trilinos
+    fi
+
+    cd ${BUILD_DIR}/Trilinos
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *trilinos*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    case "${RUN_TESTS}" in
+      *trilinos*|all)
+      if ! make -j${MBD_NUM_TASKS} check; then
+        exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
+
+    ## FIXME: make package_source requires too much disc space
+    # make package_source
+
+    # find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/Trilinos ';'
+
+    make install
+EOT
+
+# WORKDIR ${SRC_DIR}/pastix
+# WORKDIR ${BUILD_DIR}/pastix
+
+# ARG PASTIX_REPO="https://gitlab.inria.fr/solverstack/pastix.git"
+# ARG PASTIX_BRANCH="master"
+# ARG PASTIX_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release"
+# ARG PASTIX_PREFIX="/usr/local/"
+
+# RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
+#     if ! test -d ${BUILD_DIR}/pastix/.git; then
+#       git clone -b ${PASTIX_BRANCH} ${PASTIX_REPO} ${BUILD_DIR}/pastix
+#     fi
+
+#     cd ${BUILD_DIR}/pastix
+
+#     if ! test -d build_dir; then
+#       mkdir build_dir
+#     fi
+
+#     cd build_dir
+
+#     case "${RUN_CONFIGURE}" in
+#     *pastix*|all)
+#       rm -f Makefile
+#       ;;
+#     none)
+#       ;;
+#     esac
+
+#     if ! test -f Makefile; then
+#       cmake .. -DCMAKE_INSTALL_PREFIX="${PASTIX_PREFIX}" ${PASTIX_CONFIG}
+#     fi
+
+#     make -j${MBD_NUM_TASKS}
+
+#     case "${RUN_TESTS}" in
+#       *pastix*|all)
+#       if ! make -j${MBD_NUM_TASKS} check; then
+#         exit 1
+#       fi
+#       ;;
+#     none)
+#       ;;
+#     esac
+
+#     make package_source
+
+#     find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
+
+#     make install
+# EOT
+
 WORKDIR ${SRC_DIR}/gtest
 WORKDIR ${BUILD_DIR}/gtest
 
-ENV GTEST_REPO="https://github.com/google/googletest.git"
-ENV GTEST_BRANCH="main"
+ARG GTEST_REPO="https://github.com/google/googletest.git"
+ARG GTEST_BRANCH="main"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/gtest/.git; then
@@ -631,21 +1120,33 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
 
     cd build_dir
 
+    case "${RUN_CONFIGURE}" in
+    *gtest*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
     if ! test -f Makefile; then
       cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
     fi
 
     make -j${MBD_NUM_TASKS}
 
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/gtest ';'
+
     make install
 EOT
 
-ENV MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
-ENV MBD_CPPFLAGS="-I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/x86_64-linux-gnu/openmpi -I/usr/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
-ENV MBD_CXXFLAGS="-std=c++20"
-ENV MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
-ENV MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror"
-ENV MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
+ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
+ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
+ARG MBD_CXXFLAGS="-std=c++20"
+ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
+ARG MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
+ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
 WORKDIR ${SRC_DIR}/mbdyn
 WORKDIR ${BUILD_DIR}/mbdyn
@@ -663,9 +1164,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       ./bootstrap.sh
     fi
 
-    if ! test "${RUN_CONFIGURE}" = no; then
+    case "${RUN_CONFIGURE}" in
+    *mbdyn*|all)
       rm -f Makefile
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! test -f Makefile; then
       ./configure CPPFLAGS="${MBD_CPPFLAGS}" LDFLAGS="${MBD_FLAGS}" CXXFLAGS="${MBD_FLAGS} ${MBD_CXXFLAGS}" CFLAGS="${MBD_FLAGS}" FCFLAGS="${MBD_FLAGS}" F77FLAGS="${MBD_FLAGS}" ${MBD_ARGS_WITH} ${MBD_ARGS_ENABLE}
@@ -675,11 +1180,15 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       exit 1
     fi
 
-    if echo mbdyn | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+    case "${RUN_TESTS}" in
+    *mbdyn*|all)
       if ! make test; then
         exit 1
       fi
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! make install; then
       exit 1
@@ -697,11 +1206,20 @@ EOT
 WORKDIR ${SRC_DIR}/octave-pkg
 WORKDIR ${BUILD_DIR}/octave-pkg
 
+ARG MBOCT_OCTAVE_PKG_REPO="https://github.com/octave-user/mboct-octave-pkg.git"
+ARG MBOCT_OCTAVE_PKG_BRANCH="master"
+ARG MBOCT_NUMERICAL_PKG_REPO="https://github.com/octave-user/mboct-numerical-pkg.git"
+ARG MBOCT_NUMERICAL_PKG_BRANCH="master"
+ARG MBOCT_MBDYN_PKG_REPO="https://github.com/octave-user/mboct-mbdyn-pkg.git"
+ARG MBOCT_MBDYN_PKG_BRANCH="master"
+ARG MBOCT_FEM_PKG_REPO="https://github.com/octave-user/mboct-fem-pkg.git"
+ARG MBOCT_FEM_PKG_BRANCH="master"
+
 RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     octave -q --eval 'pkg install -verbose -global -forge nurbs;pkg install -verbose -global -forge netcdf'
 
     if ! test -d mboct-octave-pkg; then
-      git clone -b master 'https://github.com/octave-user/mboct-octave-pkg.git'
+      git clone -b "${MBOCT_OCTAVE_PKG_BRANCH}" "${MBOCT_OCTAVE_PKG_REPO}" 'mboct-octave-pkg'
     fi
 
     pushd mboct-octave-pkg && git pull --force && popd
@@ -709,7 +1227,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-octave-pkg' dist install_global
 
     if ! test -d mboct-numerical-pkg; then
-      git clone -b master 'https://github.com/octave-user/mboct-numerical-pkg.git'
+      git clone -b "${MBOCT_NUMERICAL_PKG_BRANCH}" "${MBOCT_NUMERICAL_PKG_REPO}" mboct-numerical-pkg
     fi
 
     pushd mboct-numerical-pkg && git pull --force && popd
@@ -717,7 +1235,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-numerical-pkg' dist install_global
 
     if ! test -d mboct-mbdyn-pkg; then
-      git clone -b master 'https://github.com/octave-user/mboct-mbdyn-pkg.git'
+      git clone -b "${MBOCT_MBDYN_PKG_BRANCH}" "${MBOCT_MBDYN_PKG_REPO}" mboct-mbdyn-pkg
     fi
 
     pushd mboct-mbdyn-pkg && git pull --force && popd
@@ -725,7 +1243,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-mbdyn-pkg' dist install_global
 
     if ! test -d mboct-fem-pkg; then
-      git clone -b master 'https://github.com/octave-user/mboct-fem-pkg.git'
+      git clone -b "${MBOCT_FEM_PKG_BRANCH}" "${MBOCT_FEM_PKG_REPO}" mboct-fem-pkg
     fi
 
     pushd mboct-fem-pkg && git pull --force && popd
@@ -738,9 +1256,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
       ./bootstrap
     fi
 
-    if ! test "${RUN_CONFIGURE}" = no; then
+    case "${RUN_CONFIGURE}" in
+    *mboct*|all)
       rm -f Makefile
-    fi
+      ;;
+    none)
+      ;;
+    esac
 
     if ! test -f Makefile; then
       ./configure CXXFLAGS="${MBD_FLAGS}"
@@ -755,22 +1277,26 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     find . -name 'mboct-*-pkg-*.tar.gz' -exec cp '{}' ${SRC_DIR}/octave-pkg ';'
 EOT
 
-ENV OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
-ENV OCT_PKG_PRINT_RES="no"
+ARG OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
+ARG OCT_PKG_PRINT_RES="no"
 
 WORKDIR ${TESTS_DIR}/octave-pkg-tests
 WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
-    if echo oct-pkg | awk "BEGIN{m=0;} /${RUN_TESTS}/ {m=1;} END{if(m==0) exit(1);}"; then
+    case "${RUN_TESTS}" in
+      *mboct*|all)
       if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
         exit 1
       fi
-    fi
+      ;;
+    none)
+      ;;
+    esac
 EOT
 
 WORKDIR /home/ubuntu
-RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
+## RUN rm -rf ${BUILD_DIR} ${TESTS_DIR} ## Clean up temporary files
 USER ubuntu
 ENV LANG=C
 

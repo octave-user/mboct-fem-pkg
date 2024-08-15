@@ -80,7 +80,8 @@ jobs:
           provenance: mode=max
           sbom: true
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
+          build-args: MBOCT_FEM_PKG_BRANCH=${{ github.ref_name }}
+          push: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -92,7 +93,7 @@ jobs:
       # transparency data even for private images, pass --force to cosign below.
       # https://github.com/sigstore/cosign
       - name: Sign the published Docker image
-        if: ${{ github.event_name != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
         env:
           # https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-an-intermediate-environment-variable
           TAGS: ${{ steps.meta.outputs.tags }}
