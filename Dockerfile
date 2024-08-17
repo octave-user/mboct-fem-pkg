@@ -1020,7 +1020,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
 EOT
 
 ARG SCOTCH_REPO="https://gitlab.inria.fr/scotch/scotch.git"
-ARG SCOTCH_BRANC="master"
+ARG SCOTCH_BRANCH="master"
 ARG SCOTCH_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DINTSIZE=64 -DBUILD_PTSCOTCH=OFF"
 ARG SCOTCH_PREFIX="/usr/local/"
 
