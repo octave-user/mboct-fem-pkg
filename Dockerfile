@@ -683,7 +683,7 @@ ARG LICENSE_DIR=/usr/local/share/license/
 ARG BUILD_DIR=/tmp/build/
 ARG TESTS_DIR=/tmp/tests/
 ARG MBD_NUM_TASKS=4
-ARG RUN_TESTS='octave;trilinos;mbdyn;mboct'
+ARG RUN_TESTS='octave;scotch;pastix;trilinos;mbdyn;mboct'
 ARG RUN_CONFIGURE='none'
 ARG CXX=g++
 ARG CC=gcc
@@ -966,59 +966,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 #     make install
 # EOT
 
-WORKDIR ${SRC_DIR}/Trilinos
-WORKDIR ${BUILD_DIR}/Trilinos
-
-ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
-ARG TRILINOS_BRANCH="master"
-ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
-ARG TRILINOS_PREFIX="/usr/local/"
-
-RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/Trilinos/.git; then
-      git clone -b ${TRILINOS_BRANCH} ${TRILINOS_REPO} ${BUILD_DIR}/Trilinos
-    fi
-
-    cd ${BUILD_DIR}/Trilinos
-
-    if ! test -d build_dir; then
-      mkdir build_dir
-    fi
-
-    cd build_dir
-
-    case "${RUN_CONFIGURE}" in
-    *trilinos*|all)
-      rm -f Makefile
-      ;;
-    none)
-      ;;
-    esac
-
-    if ! test -f Makefile; then
-      cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
-    fi
-
-    make -j${MBD_NUM_TASKS}
-
-    case "${RUN_TESTS}" in
-      *trilinos*|all)
-      if ! make -j${MBD_NUM_TASKS} check; then
-        exit 1
-      fi
-      ;;
-    none)
-      ;;
-    esac
-
-    ## FIXME: make package_source requires too much disc space
-    # make package_source
-
-    # find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/Trilinos ';'
-
-    make install
-EOT
-
 ARG SCOTCH_REPO="https://gitlab.inria.fr/scotch/scotch.git"
 ARG SCOTCH_BRANCH="master"
 ARG SCOTCH_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DINTSIZE=64 -DBUILD_PTSCOTCH=OFF"
@@ -1119,6 +1066,59 @@ RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
     make package_source
 
     find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
+
+    make install
+EOT
+
+WORKDIR ${SRC_DIR}/Trilinos
+WORKDIR ${BUILD_DIR}/Trilinos
+
+ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
+ARG TRILINOS_BRANCH="master"
+ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
+ARG TRILINOS_PREFIX="/usr/local/"
+
+RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/Trilinos/.git; then
+      git clone -b ${TRILINOS_BRANCH} ${TRILINOS_REPO} ${BUILD_DIR}/Trilinos
+    fi
+
+    cd ${BUILD_DIR}/Trilinos
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *trilinos*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    case "${RUN_TESTS}" in
+      *trilinos*|all)
+      if ! make -j${MBD_NUM_TASKS} check; then
+        exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
+
+    ## FIXME: make package_source requires too much disc space
+    # make package_source
+
+    # find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/Trilinos ';'
 
     make install
 EOT
