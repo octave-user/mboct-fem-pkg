@@ -12,7 +12,7 @@ jobs:
         run: |
           gh extension install actions/gh-actions-cache
           gh actions-cache list -R $REPO
-          gh actions-cache delete -R $REPO --all --confirm
+          gh actions-cache delete -R $REPO --confirm
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
