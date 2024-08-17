@@ -1029,7 +1029,7 @@ WORKDIR ${BUILD_DIR}/scotch
 
 RUN --mount=type=cache,target=${BUILD_DIR}/scotch,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/scotch/.git; then
-      git clone -b ${SCOTCH_BRANCH} ${SCOTCH_REPO} ${BUILD_DIR}/scotch
+      git clone ${SCOTCH_REPO} ${BUILD_DIR}/scotch
     fi
 
     cd ${BUILD_DIR}/scotch
