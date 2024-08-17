@@ -707,36 +707,6 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget \
     libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
-# ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
-# ARG GMSH_VERSION="stable"
-# ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
-
-# WORKDIR ${SRC_DIR}/gmsh
-# WORKDIR ${BUILD_DIR}/gmsh
-
-# RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
-#     if ! test -f "${GMSH_TAR}"; then
-#       if ! wget "${GMSH_URL}${GMSH_TAR}"; then
-#         exit 1
-#       fi
-#     fi
-
-#     if ! test -d gmsh-*.*.*-Linux64/bin; then
-#       if ! tar -zxvf "${GMSH_TAR}"; then
-#         exit 1
-#       fi
-#     fi
-
-#     if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
-#       exit 1
-#     fi
-
-#     if ! gmsh --version; then
-#       exit 1
-#     fi
-#     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
-# EOT
-
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
 
@@ -1049,57 +1019,109 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
     make install
 EOT
 
-# WORKDIR ${SRC_DIR}/pastix
-# WORKDIR ${BUILD_DIR}/pastix
+ARG SCOTCH_REPO="https://gitlab.inria.fr/scotch/scotch.git"
+ARG SCOTCH_BRANC="master"
+ARG SCOTCH_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DINTSIZE=64 -DBUILD_PTSCOTCH=OFF"
+ARG SCOTCH_PREFIX="/usr/local/"
 
-# ARG PASTIX_REPO="https://gitlab.inria.fr/solverstack/pastix.git"
-# ARG PASTIX_BRANCH="master"
-# ARG PASTIX_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release"
-# ARG PASTIX_PREFIX="/usr/local/"
+WORKDIR ${SRC_DIR}/scotch
+WORKDIR ${BUILD_DIR}/scotch
 
-# RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
-#     if ! test -d ${BUILD_DIR}/pastix/.git; then
-#       git clone -b ${PASTIX_BRANCH} ${PASTIX_REPO} ${BUILD_DIR}/pastix
-#     fi
+RUN --mount=type=cache,target=${BUILD_DIR}/scotch,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/scotch/.git; then
+      git clone -b ${SCOTCH_BRANCH} ${SCOTCH_REPO} ${BUILD_DIR}/scotch
+    fi
 
-#     cd ${BUILD_DIR}/pastix
+    cd ${BUILD_DIR}/scotch
 
-#     if ! test -d build_dir; then
-#       mkdir build_dir
-#     fi
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
 
-#     cd build_dir
+    cd build_dir
 
-#     case "${RUN_CONFIGURE}" in
-#     *pastix*|all)
-#       rm -f Makefile
-#       ;;
-#     none)
-#       ;;
-#     esac
+    case "${RUN_CONFIGURE}" in
+    *scotch*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
 
-#     if ! test -f Makefile; then
-#       cmake .. -DCMAKE_INSTALL_PREFIX="${PASTIX_PREFIX}" ${PASTIX_CONFIG}
-#     fi
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_INSTALL_PREFIX="${SCOTCH_PREFIX}" ${SCOTCH_CONFIG}
+    fi
 
-#     make -j${MBD_NUM_TASKS}
+    make -j${MBD_NUM_TASKS}
 
-#     case "${RUN_TESTS}" in
-#       *pastix*|all)
-#       if ! make -j${MBD_NUM_TASKS} check; then
-#         exit 1
-#       fi
-#       ;;
-#     none)
-#       ;;
-#     esac
+    case "${RUN_TESTS}" in
+      *scotch*|all)
+      if ! make -j${MBD_NUM_TASKS} test; then
+        exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
 
-#     make package_source
+    make package_source
 
-#     find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/scotch ';'
 
-#     make install
-# EOT
+    make install
+EOT
+
+WORKDIR ${SRC_DIR}/pastix
+WORKDIR ${BUILD_DIR}/pastix
+
+ARG PASTIX_REPO="https://gitlab.inria.fr/solverstack/pastix.git"
+ARG PASTIX_BRANCH="master"
+ARG PASTIX_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_PYTHON=OFF -DPASTIX_WITH_MPI=OFF"
+ARG PASTIX_PREFIX="/usr/local/"
+
+RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/pastix/.git; then
+      git clone -b ${PASTIX_BRANCH} ${PASTIX_REPO} ${BUILD_DIR}/pastix
+    fi
+
+    cd ${BUILD_DIR}/pastix
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *pastix*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_INSTALL_PREFIX="${PASTIX_PREFIX}" ${PASTIX_CONFIG}
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    case "${RUN_TESTS}" in
+      *pastix*|all)
+      if ! make -j${MBD_NUM_TASKS} check; then
+        exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
+
+    make install
+EOT
 
 WORKDIR ${SRC_DIR}/gtest
 WORKDIR ${BUILD_DIR}/gtest
@@ -1144,7 +1166,7 @@ EOT
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
 ARG MBD_CXXFLAGS="-std=c++20"
-ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
+ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest --with-pastix"
 ARG MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
 ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
