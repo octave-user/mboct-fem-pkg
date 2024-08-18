@@ -1,0 +1,121 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master, pastix ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  MBD_NUM_THREADS: 4
+  OCT_PKG_LIST: "mboct-fem-pkg:yes:master:yes:unlimited"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Install Gmsh
+        run: |
+           sudo apt-get install gmsh
+
+      # Runs a single command using the runners shell
+      - name: Install GNU/Octave
+        run: |
+           sudo apt-get install octave liboctave-dev octave-nurbs octave-netcdf \
+           libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
+           libmetis-dev libnlopt-dev \
+           trilinos-all-dev libopenmpi-dev libptscotch-dev libsuitesparse-dev libqrupdate-dev
+
+      # Runs a single command using the runners shell
+      - name: Install MKL
+        run: |
+           sudo apt-get install libmkl-full-dev ## Should be installed after GNU/Octave in order to avoid race conditions
+
+      # Runs a set of commands using the runners shell
+      - name: Clone MBDyn
+        run: |
+          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
+          # cd mbdyn
+          # git config user.name octave-user
+          # git config user.email octave-user@a1.net
+          # git merge origin/solid-unilateral-contact-mcp_a
+
+      # Runs a set of commands using the runners shell
+      - name: Compile MBDyn
+        run: |
+          pushd mbdyn
+          chmod +x ./bootstrap.sh
+          ./bootstrap.sh
+          ./configure --with-static-modules \
+          --enable-octave \
+          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native -mtune=native" \
+          CPPFLAGS="-I/usr/include/mkl -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
+          LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
+          --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
+          make -j${MBD_NUM_THREADS}
+          popd
+
+      # Runs a set of commands using the runners shell
+      - name: Check MBDyn
+        run: |
+          make -j${MBD_NUM_THREADS} -C mbdyn test
+
+      # Runs a set of commands using the runners shell
+      - name: Install MBDyn
+        run: |
+          sudo make -C mbdyn install
+
+      - name: Install mboct-octave-pkg
+        run: |
+           git clone -b master https://github.com/octave-user/mboct-octave-pkg.git
+           make -j${MBD_NUM_THREADS} -C mboct-octave-pkg CXXFLAGS="-Ofast -Wall -march=native" install_local
+
+      - name: Install mboct-numerical-pkg
+        run: |
+           git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git
+           make -j${MBD_NUM_THREADS} -C mboct-numerical-pkg CXXFLAGS="-Ofast -Wall -march=native" install_local
+
+      - name: Install mboct-mbdyn-pkg
+        run: |
+           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git
+           make -j${MBD_NUM_THREADS} -C mboct-mbdyn-pkg CXXFLAGS="-Ofast -Wall -march=native" install_local
+
+      - name: Create distribution
+        run: make -C $GITHUB_WORKSPACE dist
+
+      - name: Install the package
+        run: make -C $GITHUB_WORKSPACE CXXFLAGS="-Ofast -Wall -march=native" install_local
+
+      - name: Install fem_pre_mesh_size
+        run: |
+             pushd $GITHUB_WORKSPACE/src
+             chmod +x ./bootstrap
+             ./bootstrap
+             ./configure
+             make -j${MBD_NUM_THREADS}
+             sudo make install
+             popd
+
+      - name: Run all tests
+        run: |
+             mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir --octave-pkg-test-mode single --tasks ${MBD_NUM_THREADS} --octave-pkg-list "${OCT_PKG_LIST}"
+        with:
+        name: octave_pkg_testsuite
+        path: mbdyn/testsuite/var/**/fntests.*
+        retention-days: 5
