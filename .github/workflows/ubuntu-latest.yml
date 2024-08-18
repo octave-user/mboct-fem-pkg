@@ -37,7 +37,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Install GNU/Octave
         run: |
-           sudo apt-get install octave liboctave-dev octave-nurbs octave-netcdf \
+           sudo apt-get install octave octave-dev octave-nurbs octave-netcdf \
            libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
            libmetis-dev libnlopt-dev \
            trilinos-all-dev libopenmpi-dev libptscotch-dev libsuitesparse-dev libqrupdate-dev
