@@ -164,7 +164,7 @@
 %!   tau = l / a;
 %!   f = sin(pi * sol.t / tau).^2 .* (sol.t <= tau / 2) + (sol.t > tau / 2);
 %!   Z = ZP = ZPP = zeros(dof_map.totdof, 1);
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
 %!   opt_sol.delta = 0.5;
 %!   opt_sol.pre_scaling = true;

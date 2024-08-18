@@ -121,7 +121,7 @@
 %!   load_case.dTheta = repmat(dT, rows(mesh.nodes), 1);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   dof_map.parallel.threads_ass = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(100);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
 %!   opt_sol.verbose = int32(0);

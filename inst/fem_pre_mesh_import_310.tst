@@ -106,7 +106,7 @@
 %!                                         FEM_VEC_LOAD_FLUID_STRUCT], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = mat_ass.Rfs(:, 1) + 1j * mat_ass.Rfs(:, 2);

@@ -120,7 +120,7 @@
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   omegai = linspace(sqrt(eps) * omegac, omegac, 50);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
