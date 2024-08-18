@@ -115,7 +115,8 @@ jobs:
       - name: Run all tests
         run: |
              mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir --octave-pkg-test-mode single --tasks ${MBD_NUM_THREADS} --octave-pkg-list "${OCT_PKG_LIST}"
+        uses: actions/upload-artifact@v4        
         with:
-        name: octave_pkg_testsuite
-        path: mbdyn/testsuite/var/**/fntests.*
-        retention-days: 5
+          name: octave_pkg_testsuite
+          path: mbdyn/testsuite/var/**/fntests.*
+          retention-days: 5
