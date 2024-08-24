@@ -69,8 +69,7 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Check MBDyn
-        run: |
-          make -j${MBD_NUM_THREADS} -C mbdyn test
+        run: make -j${MBD_NUM_THREADS} -C mbdyn test
 
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
