@@ -13,6 +13,10 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+env:
+  MBD_NUM_THREADS: 4
+  OCT_PKG_LIST: "mboct-fem-pkg:yes:master:yes:unlimited"
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -63,7 +67,7 @@ jobs:
            chmod +x ./bootstrap
            ./bootstrap
            ./configure --disable-java
-           make -j4
+           make -j${MBD_NUM_THREADS}
            popd
 
       # Runs a single command using the runners shell
@@ -112,36 +116,12 @@ jobs:
           CPPFLAGS="-I/usr/include/mkl -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
           LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
           --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
-          make -j4
+          make -j${MBD_NUM_THREADS}
           popd
 
       # Runs a set of commands using the runners shell
       - name: Check MBDyn
-        run: |
-          pushd mbdyn
-          for cmd in "libraries/libmbmath/sp_gradient_test" \
-                     "libraries/libmbmath/dgeequtest" \
-                     "libraries/libmbmath/itertest" \
-                     "libraries/libmbmath/matmultest" \
-                     "libraries/libmbmath/subtest" \
-                     "libraries/libmbwrap/arptest" \
-                     "libraries/libmbwrap/cctest -m umfpack" \
-                     "libraries/libmbwrap/cctest -m y12" \
-                     "libraries/libmbwrap/wraptest -m umfpack" \
-                     "libraries/libmbwrap/wraptest -m pardiso" \
-                     "libraries/libmbwrap/wraptest -m pardiso_64" \
-                     "libraries/libmbwrap/wraptest -m naive" \
-                     "libraries/libmbwrap/wraptest -m lapack" \
-                     "libraries/libmbwrap/wraptest -m qr" \
-                     "libraries/libmbwrap/wraptest -m spqr" \
-                     "libraries/liby12/y12test" \
-                     "mbdyn/struct/solidshapetest" ; do
-               printf "running command: \"%s\"\n" "${cmd}"
-               ${cmd}
-               rc=$?
-               printf "status: %d\n" ${rc}
-          done
-          popd
+        run: make -j${MBD_NUM_THREADS} -C mbdyn test
 
       # Runs a set of commands using the runners shell
       - name: Install MBDyn
@@ -152,39 +132,42 @@ jobs:
 
       - name: Install mboct-octave-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-octave-pkg.git && \
-           pushd mboct-octave-pkg && \
-           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
+           git clone -b master https://github.com/octave-user/mboct-octave-pkg.git
+           make -C mboct-octave-pkg -j${MBD_NUM_THREADS} CXXFLAGS="-Ofast -Wall -march=native" install_local
 
       - name: Install mboct-numerical-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git && \
-           pushd mboct-numerical-pkg && \
-           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
+           git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git
+           make -C mboct-numerical-pkg -j${MBD_NUM_THREADS} CXXFLAGS="-Ofast -Wall -march=native" install_local
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
-           pushd mboct-mbdyn-pkg && \
-           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
+           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git
+           make -C mboct-mbdyn-pkg -j${MBD_NUM_THREADS} CXXFLAGS="-Ofast -Wall -march=native" install_local
 
       - name: Create distribution
         run: make -C $GITHUB_WORKSPACE dist
 
       - name: Install the package
-        run: make -C $GITHUB_WORKSPACE CXXFLAGS="-Ofast -Wall -march=native" install_local
+        run: make -j${MBD_NUM_THREADS} -C $GITHUB_WORKSPACE CXXFLAGS="-Ofast -Wall -march=native" install_local
 
       - name: Install fem_pre_mesh_size
         run: |
              pushd $GITHUB_WORKSPACE/src
              chmod +x ./bootstrap
-             ./bootstrap && ./configure && make && sudo make install
+             ./bootstrap
+             ./configure
+             make -j${MBD_NUM_THREADS}
+             sudo make install
              popd
 
       - name: Run all tests
         run: |
-             export MBD_NUM_THREADS=2
-             make -C $GITHUB_WORKSPACE check_installed 2>&1 | tee fntests.out
-             cat ${GITHUB_WORKSPACE}/fntests.log
-             tail -n 14 fntests.out
-             awk -F ' ' 'BEGIN{ failed=9999; } /^  FAIL\>/{ failed = $2; } END { if (failed != 0) exit 1; }' fntests.out
+             mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-mode single --tasks ${MBD_NUM_THREADS} --octave-pkg-list "${OCT_PKG_LIST}"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: octave_pkg_testsuite
+          path: mbdyn/testsuite/var/**/fntests.*
+          retention-days: 5
