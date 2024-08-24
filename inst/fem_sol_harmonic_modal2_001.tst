@@ -74,13 +74,12 @@
 %!   opt_eig.disp = int32(0);
 %!   opt_eig.maxit = int32(10);
 %!   switch (solvers{i})
-%!   case "pardiso"
-%!     opt_sol.symmetric = false; ## FIXME: Pardiso is not able to solve it in symmetric mode with weighted matching enabled
-%!     opt_sol.weighted_matching = false;
+%!   case {"pardiso", "pastix", "chol"}
+%!     opt_sol.symmetric = false; ## FIXME: Pardiso is not able to solve it in symmetric mode
 %!   otherwise
 %!     opt_sol.symmetric = true;
-%!     opt_sol.weighted_matching = true;
 %!   endswitch
+%!   opt_sol.pre_scaling = true;
 %!   opt_sol.algorithm = "generic";
 %!   [sol, Phi] = fem_sol_modal(mesh, dof_map, mat_ass, num_modes, opt_sol, opt_eig);
 %!   [dgen, kgen, rgen] = fem_sol_modes_scale2(mat_ass.M, mat_ass.D, mat_ass.K, Phi, mat_ass.R);
