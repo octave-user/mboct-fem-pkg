@@ -232,10 +232,11 @@
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   # opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.verbose = int32(0);
+%!   opt_sol.check_solution = false;
+%!   opt_sol.symmetric = false; ## FIXME: Workaround suspected issue in PaStiX 6.4.0
 %!   Keff = -omega^2 * complex(mat_ass.Ma_re, mat_ass.Ma_im) + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + complex(mat_ass.Ka_re, mat_ass.Ka_im);
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
