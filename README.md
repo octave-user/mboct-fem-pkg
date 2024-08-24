@@ -75,7 +75,7 @@ Copyright<sup>&copy;</sup> 2019-2024
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
-  See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml as an example on how to install the package.
+  See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/ubuntu-latest.yml as an example on how to install the package.
 
 # Docker images
   Docker images may be pulled by one of the following commands:
@@ -86,9 +86,9 @@ Copyright<sup>&copy;</sup> 2019-2024
   - On any operating system with support for docker, the container can be executed by using the following command:
   docker run -it ghcr.io/octave-user/mboct-fem-pkg:master
   - If the user wishes to start the container in graphics mode and the host system is based on Ubuntu, then the following commands should be used:
-  
+
     xhost + local:docker
-  
+
     docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority  -it ghcr.io/octave-user/mboct-fem-pkg:master --gui
 
 # Applications
