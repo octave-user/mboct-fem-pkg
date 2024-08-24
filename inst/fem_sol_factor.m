@@ -139,11 +139,6 @@ function Afact = fem_sol_factor(A, options)
       endif
 
       linear_solver = @fem_fact_pastix;
-
-      if (blambda)
-        ## FIXME: work around suspected regression in PaStiX 6.4.0 (1151c30a25e2014ff4b39bf8c7ac4b381913f193)
-        A += eps * max(max(abs(A))) * eye(size(A));
-      endif
     case "pardiso"
       if (~isfield(options, "scaling"))
         options.scaling = blambda;

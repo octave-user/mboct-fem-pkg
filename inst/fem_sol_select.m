@@ -31,16 +31,18 @@ function solver = fem_sol_select(blambda, solver)
 
     for i=1:numel(solvers)
       if (fem_sol_check_func(solvers{i}))
+        if (blambda)        
+          switch (solvers{i})
+            case "pastix"
+              ## FIXME: work around suspected regression in PaStiX 6.4.0 (1151c30a25e2014ff4b39bf8c7ac4b381913f193)
+              continue;
+            case "chol"
+              continue;
+          endswitch
+        endif
         solver = solvers{i};
         break;
       endif
     endfor
   endif
-
-  switch (solver)
-    case "chol"
-      if (blambda)
-        solver = "lu";
-      endif
-  endswitch
 endfunction
