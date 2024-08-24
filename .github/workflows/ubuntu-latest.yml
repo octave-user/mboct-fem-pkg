@@ -31,8 +31,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
-        run: |
-           sudo apt-get install gmsh
+        run: sudo apt-get install gmsh
 
       # Runs a single command using the runners shell
       - name: Install GNU/Octave
@@ -44,13 +43,11 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Install MKL
-        run: |
-           sudo apt-get install libmkl-full-dev ## Should be installed after GNU/Octave in order to avoid race conditions
+        run: sudo apt-get install libmkl-full-dev ## Should be installed after GNU/Octave in order to avoid race conditions
 
       # Runs a set of commands using the runners shell
       - name: Clone MBDyn
-        run: |
-          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
+        run: git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
 
       # Runs a set of commands using the runners shell
       - name: Compile MBDyn
@@ -95,7 +92,7 @@ jobs:
         run: make -C $GITHUB_WORKSPACE dist
 
       - name: Install the package
-        run: make -C $GITHUB_WORKSPACE CXXFLAGS="-Ofast -Wall -march=native" install_local
+        run: make -C $GITHUB_WORKSPACE -j${MBD_NUM_THREADS} CXXFLAGS="-Ofast -Wall -march=native" install_local
 
       - name: Install fem_pre_mesh_size
         run: |
@@ -108,8 +105,7 @@ jobs:
              popd
 
       - name: Run all tests
-        run: |
-             mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-mode single --tasks ${MBD_NUM_THREADS} --octave-pkg-list "${OCT_PKG_LIST}"
+        run: mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-mode single --tasks ${MBD_NUM_THREADS} --octave-pkg-list "${OCT_PKG_LIST}"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
