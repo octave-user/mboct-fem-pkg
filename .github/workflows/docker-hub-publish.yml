@@ -4,7 +4,7 @@ on:
   schedule:
     - cron: '0 5 * * sun'
   push:
-    branches: ["master", "docker-publish"]
+    branches: ["master", "docker-publish", "pastix"]
   pull_request:
     branches: [ "master" ]
   # Allows you to run this workflow manually from the Actions tab
@@ -30,6 +30,6 @@ jobs:
         with:
           provenance: mode=max
           sbom: true
-          build-args: MBOCT_FEM_PKG_BRANCH=${{ github.ref_name }}
+          build-args: MBOCT_FEM_PKG_BRANCH=${{ github.ref_name }} RUN_TESTS='mbdyn;mboct'
           push: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
           tags: ${{ vars.DOCKERHUB_USERNAME }}/mboct-fem-pkg:latest
