@@ -75,7 +75,7 @@ Copyright<sup>&copy;</sup> 2019-2024
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
-  See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/ubuntu-latest.yml as an example on how to install the package.
+  See the workflow file [ubuntu-latest.yml](https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/ubuntu-latest.yml) as an example on how to install the package.
 
 # Docker images
   Docker images may be pulled by one of the following commands:
@@ -92,18 +92,18 @@ Copyright<sup>&copy;</sup> 2019-2024
     docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority  -it ghcr.io/octave-user/mboct-fem-pkg:master --gui
 
 # Applications
-  - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
+  - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 ([#1](https://www.youtube.com/watch?v=YE0gnTt35WA), [#2](https://www.youtube.com/watch?v=tipxGDXe1mI), [#3](https://www.youtube.com/watch?v=akkelq04mrU))
 
-  - Test case for double elasto-hydrodynamic journal plain bearing (https://youtu.be/kCVneVwXYbc, https://youtu.be/eienVfAFyfk)
+  - Test case for double elasto-hydrodynamic journal plain bearing ([#1](https://youtu.be/kCVneVwXYbc), [#2](https://youtu.be/eienVfAFyfk))
 
-  - Rotor dynamics test case using MBDyn (https://www.youtube.com/watch?v=VohVTeggqI4)
+  - Rotor dynamics test case using MBDyn ([#1](https://www.youtube.com/watch?v=VohVTeggqI4))
 
-  - Large deflection analysis of a cantilever beam using MBDyn and Gmsh (https://youtu.be/j8D821HVXDc)
+  - Large deflection analysis of a cantilever beam using MBDyn and Gmsh ([#1](https://youtu.be/j8D821HVXDc))
 
-  - Nonlinear elasticity of a twisted bar using MBDyn and Gmsh (https://youtu.be/D2OZHT9luQs)
+  - Nonlinear elasticity of a twisted bar using MBDyn and Gmsh ([#1](https://youtu.be/D2OZHT9luQs))
 
-  - Cook's membrane benchmark with large deformations and hyperelastic material (https://youtu.be/EAgejp4jQ00)
+  - Cook's membrane benchmark with large deformations and hyperelastic material ([#1](https://youtu.be/EAgejp4jQ00))
 
-  - Noise radiation of a disc surrounded by air (https://youtu.be/I8R0HouG2Ck, https://youtu.be/b4oc1F3Wc3I)
+  - Noise radiation of a disc surrounded by air ([#1](https://youtu.be/I8R0HouG2Ck), [#2](https://youtu.be/b4oc1F3Wc3I))
 
-  - Propagation of acoustic waves in a flexible pipe (https://youtu.be/N7NdN70kHRQ)
+  - Propagation of acoustic waves in a flexible pipe ([#1](https://youtu.be/N7NdN70kHRQ))
