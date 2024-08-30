@@ -104,7 +104,7 @@
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
 %!   # opt_sol.solver = "pastix";
-%!   opt_sol.refine_max_iter = int32(50);
+%!   opt_sol.refine_max_iter = int32(250);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;
 %!   Reff = mat_ass.Rfs(:, 1) + 1j * mat_ass.Rfs(:, 2);
 %!   Phi = fem_sol_factor(Keff, opt_sol) \ Reff;
