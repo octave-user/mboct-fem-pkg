@@ -57,7 +57,7 @@
 %!        cms_opt.solver = sol{isol};
 %!        for ialg=1:numel(alg)
 %!          for invariants=[true, false]
-%!            for verbose=[true]
+%!            for verbose=[false]
 %!              for threads=int32([1, 2])
 %!                cms_opt.verbose = verbose;
 %!                cms_opt.modes.number = modes;
