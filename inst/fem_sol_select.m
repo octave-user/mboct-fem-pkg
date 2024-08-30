@@ -31,7 +31,7 @@ function solver = fem_sol_select(blambda, solver)
   if (isempty(solvers))
     ## FIXME: work around suspected regression in PaStiX 6.4.0 (1151c30a25e2014ff4b39bf8c7ac4b381913f193)
     solvers = struct("name",   {"pastix", "pardiso", "mumps", "umfpack", "chol",  "lu", "mldivide"}, ...
-                     "lambda", {   false,      true,    true,      true,  false,  true,       true});
+                     "lambda", {    true,      true,    true,      true,  false,  true,       true});
 
     idx_func = cellfun(@fem_sol_check_func, {solvers.name}, "UniformOutput", true);
 
