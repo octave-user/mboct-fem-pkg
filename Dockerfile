@@ -1320,8 +1320,8 @@ ARG BUILD_WITH_MBDYN=yes
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
 ARG MBD_CXXFLAGS="-std=c++20"
-ARG MBD_ARGS_WITH="--with-static-modules --with-arpack --with-umfpack --with-klu --with-lapack --without-metis --without-mpi --with-pardiso --with-suitesparseqr --with-qrupdate"
-ARG MBD_ARGS_ENABLE="--enable-multithread --disable-Werror --enable-install_test_progs"
+ARG MBD_ARGS_WITH="--with-static-modules --with-arpack --with-umfpack --with-klu --with-lapack --without-metis --without-mpi --with-pardiso --with-suitesparseqr --with-qrupdate --with-trilinos --with-mfront --with-gtest --with-pastix"
+ARG MBD_ARGS_ENABLE="--enable-multithread --disable-Werror --enable-install_test_progs --enable-octave"
 ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
 WORKDIR ${SRC_DIR}/mbdyn
@@ -1355,46 +1355,50 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       ;;
     esac
 
-    case "${BUILD_WITH_OCTAVE}" in
-    no)
-      ;;
-    *)
-      MBD_ARGS_ENABLE="${MBD_ARGS_ENABLE} --enable-octave"
-      ;;
-    esac
+    # mbd_args_enable="${MBD_ARGS_ENABLE}"
 
-    case "${BUILD_WITH_TRILINOS}" in
-    no)
-      ;;
-    *)
-      MBD_ARGS_WITH="${MBD_ARGS_WITH} --with-trilinos"
-      ;;
-    esac
+    # case "${BUILD_WITH_OCTAVE}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_enable="${mbd_args_enable} --enable-octave"
+    #   ;;
+    # esac
 
-    case "${BUILD_WITH_MFRONT}" in
-    no)
-      ;;
-    *)
-      MBD_ARGS_WITH="${MBD_ARGS_WITH} --with-mfront"
-      ;;
-    esac
+    # mbd_args_with="${MBD_ARGS_WITH}"
+
+    # case "${BUILD_WITH_TRILINOS}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-trilinos"
+    #   ;;
+    # esac
+
+    # case "${BUILD_WITH_MFRONT}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-mfront"
+    #   ;;
+    # esac
 
 
-    case "${BUILD_WITH_GTEST}" in
-    no)
-      ;;
-    *)
-      MBD_ARGS_WITH="${MBD_ARGS_WITH} --with-gtest"
-      ;;
-    esac
+    # case "${BUILD_WITH_GTEST}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-gtest"
+    #   ;;
+    # esac
 
-    case "${BUILD_WITH_PASTIX}" in
-    no)
-      ;;
-    *)
-      MBD_ARGS_WITH="${MBD_ARGS_WITH} --with-pastix"
-      ;;
-    esac
+    # case "${BUILD_WITH_PASTIX}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-pastix"
+    #   ;;
+    # esac
 
     if ! test -f Makefile; then
       ./configure CPPFLAGS="${MBD_CPPFLAGS}" LDFLAGS="${MBD_FLAGS}" CXXFLAGS="${MBD_FLAGS} ${MBD_CXXFLAGS}" CFLAGS="${MBD_FLAGS}" FCFLAGS="${MBD_FLAGS}" F77FLAGS="${MBD_FLAGS}" ${MBD_ARGS_WITH} ${MBD_ARGS_ENABLE}
