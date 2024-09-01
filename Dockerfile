@@ -717,7 +717,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && \
     apt-get -yq build-dep octave && \
-    apt-get -yq install mercurial bzip2 gcc g++ gfortran flex libbison-dev libarchive-dev autotools-dev git wget cmake clang++-18 libatomic-ops-dev libnetcdf-c++4-dev parallel
+    apt-get -yq install mercurial bzip2 gcc g++ gfortran flex libbison-dev libarchive-dev autotools-dev git wget cmake clang++-18 libatomic-ops-dev libnetcdf-c++4-dev gmsh parallel
 
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
