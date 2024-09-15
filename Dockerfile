@@ -666,7 +666,7 @@
 ## NATIONS CONVENTION ON CONTRACTS FOR THE INTERNATIONAL SALE OF GOODS (1980) IS
 ## SPECIFICALLY EXCLUDED AND WILL NOT APPLY TO THE SOFTWARE.
 
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 LABEL org.opencontainers.image.title="mboct-fem-pkg"
 LABEL org.opencontainers.image.vendor="Reinhard"
@@ -683,12 +683,15 @@ ARG LICENSE_DIR=/usr/local/share/license/
 ARG BUILD_DIR=/tmp/build/
 ARG TESTS_DIR=/tmp/tests/
 ARG MBD_NUM_TASKS=4
-ARG RUN_TESTS='octave;trilinos;mbdyn;mboct'
+ARG RUN_TESTS='octave;scotch;pastix;trilinos;mbdyn;mboct'
 ARG RUN_CONFIGURE='none'
 ARG CXX=g++
 ARG CC=gcc
 ARG FC=gfortran
 ARG F77=gfortran
+ARG MAKE_TARGET=all
+
+ARG CMAKE_CONFIG_GCC="-DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_C_COMPILER=${CC} -DCMAKE_Fortran_COMPILER=${FC}"
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
@@ -700,50 +703,37 @@ RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.so
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
 
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install mercurial git libopenmpi-dev \
-    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget \
-    libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
+# RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked \
+#     apt-get -yq update && \
+#     apt-get -yq build-dep octave && \
+#     apt-get -yq install mercurial git libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev \
+#                 wget libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
-# ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
-# ARG GMSH_VERSION="stable"
-# ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
+# RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked \
+#     apt-get -yq update && \
+#     apt-get -yq install gcc g++ gfortran flex libbison-dev libarchive-dev autotools-dev mercurial git libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev \
+#                 wget libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
-# WORKDIR ${SRC_DIR}/gmsh
-# WORKDIR ${BUILD_DIR}/gmsh
-
-# RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
-#     if ! test -f "${GMSH_TAR}"; then
-#       if ! wget "${GMSH_URL}${GMSH_TAR}"; then
-#         exit 1
-#       fi
-#     fi
-
-#     if ! test -d gmsh-*.*.*-Linux64/bin; then
-#       if ! tar -zxvf "${GMSH_TAR}"; then
-#         exit 1
-#       fi
-#     fi
-
-#     if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
-#       exit 1
-#     fi
-
-#     if ! gmsh --version; then
-#       exit 1
-#     fi
-#     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
-# EOT
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get -yq update && \
+    apt-get -yq build-dep octave && \
+    apt-get -yq install mercurial bzip2 gcc g++ gfortran flex libbison-dev libarchive-dev autotools-dev git wget cmake clang++-18 libatomic-ops-dev libnlopt-dev libnetcdf-c++4-dev gmsh parallel
 
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
 
+ARG BUILD_WITH_TFEL=yes
 ARG TFEL_REPO=https://github.com/thelfer/tfel.git
 ENV LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
 
 RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
+    case "${BUILD_WITH_TFEL}" in
+    no)
+      echo "tfel will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d ${BUILD_DIR}/tfel/.git; then
       if ! git clone ${TFEL_REPO} ${BUILD_DIR}/tfel; then
         exit 1
@@ -766,7 +756,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
       fi
     fi
 
-    if ! make -j${MBD_NUM_TASKS}; then
+    if ! make -j${MBD_NUM_TASKS} ${MAKE_TARGET}; then
       exit 1
     fi
 
@@ -799,6 +789,13 @@ WORKDIR ${SRC_DIR}/mgis
 WORKDIR ${BUILD_DIR}/mgis
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
+    case "${BUILD_WITH_TFEL}" in
+    no)
+      echo "mgis will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d ${BUILD_DIR}/mgis/.git; then
       if ! git clone ${MGIS_REPO} ${BUILD_DIR}/mgis; then
         exit 1
@@ -821,7 +818,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
       fi
     fi
 
-    if ! make -j${MBD_NUM_TASKS} all; then
+    if ! make -j${MBD_NUM_TASKS} ${MAKE_TARGET}; then
       exit 1
     fi
 
@@ -854,6 +851,13 @@ WORKDIR ${BUILD_DIR}/gallery
 ARG GALLERY_REPO="https://github.com/thelfer/MFrontGallery.git"
 ARG GALLERY_BRANCH="master"
 RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
+    case "${BUILD_WITH_TFEL}" in
+    no)
+      echo "MFrontGallery will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d "${BUILD_DIR}/gallery/.git"; then
       if ! git clone -b "${GALLERY_BRANCH}" "${GALLERY_REPO}" "${BUILD_DIR}/gallery"; then
         exit 1
@@ -876,7 +880,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gallery,sharing=locked <<EOT bash
       fi
     fi
 
-    if ! make -j${MBD_NUM_TASKS} all; then
+    if ! make -j${MBD_NUM_TASKS} ${MAKE_TARGET}; then
       exit 1
     fi
 
@@ -905,9 +909,17 @@ EOT
 
 WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
+ARG BUILD_WITH_OCTAVE=yes
 ARG OCTAVE_REPO="https://www.octave.org/hg/octave"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
+    case "${BUILD_WITH_OCTAVE}" in
+    no)
+      echo "octave will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d ${BUILD_DIR}/octave/.hg; then
       if ! hg clone ${OCTAVE_REPO} ${BUILD_DIR}/octave; then
         exit 1
@@ -996,15 +1008,222 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 #     make install
 # EOT
 
+ARG BUILD_WITH_PASTIX=yes
+ARG SCOTCH_REPO="https://gitlab.inria.fr/scotch/scotch.git"
+ARG SCOTCH_BRANCH="master"
+ARG SCOTCH_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Debug -DINTSIZE=64 -DBUILD_PTSCOTCH=OFF ${CMAKE_CONFIG_GCC}"
+ARG SCOTCH_PREFIX="/usr/local/"
+
+WORKDIR ${SRC_DIR}/scotch
+WORKDIR ${BUILD_DIR}/scotch
+
+RUN --mount=type=cache,target=${BUILD_DIR}/scotch,sharing=locked <<EOT bash
+    case "${BUILD_WITH_PASTIX}" in
+    no)
+      echo "scotch will not be installed"
+      exit 0
+      ;;
+    esac
+
+    if ! test -d ${BUILD_DIR}/scotch/.git; then
+      git clone -b ${SCOTCH_BRANCH} ${SCOTCH_REPO} ${BUILD_DIR}/scotch
+    fi
+
+    cd ${BUILD_DIR}/scotch
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *scotch*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_INSTALL_PREFIX="${SCOTCH_PREFIX}" ${SCOTCH_CONFIG}
+    fi
+
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
+
+    case "${RUN_TESTS}" in
+      *scotch*|all)
+      if ! make -j${MBD_NUM_TASKS} test; then
+        exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/scotch ';'
+
+    make install
+EOT
+
+
+ARG HWLOC_VERSION="hwloc-2.11.1"
+ARG HWLOC_REPO="https://github.com/open-mpi/hwloc/releases/download/${HWLOC_VERSION}/${HWLOC_VERSION}.tar.bz2"
+ARG HWLOC_PREFIX="/usr/local/"
+ARG HWLOC_BUILD_DIR=${BUILD_DIR}${HWLOC_VERSION}
+WORKDIR ${SRC_DIR}/${HWLOC_VERSION}
+WORKDIR ${BUILD_DIR}/${HWLOC_VERSION}
+
+RUN --mount=type=cache,target=${HWLOC_BUILD_DIR},sharing=locked <<EOT bash
+    case "${BUILD_WITH_PASTIX}" in
+    no)
+      echo "hwloc will not be installed"
+      exit 0
+      ;;
+    esac
+
+    cd ${BUILD_DIR}
+
+    if ! test -x ${BUILD_DIR}/${HWLOC_VERSION}/configure; then
+      rm -f hwloc-2.11.1.tar.bz2
+
+      if ! wget ${HWLOC_REPO}; then
+        exit 1
+      fi
+
+      if ! tar -jxvf ${HWLOC_VERSION}.tar.bz2; then
+        exit 1
+      fi
+    fi
+
+#    ls -lhtR
+
+    cd ${BUILD_DIR}/${HWLOC_VERSION}
+
+    if ! test -x ./configure; then
+      echo "configure not found ..."
+      exit 1
+    fi
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *hwloc*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      ../configure --prefix="${HWLOC_PREFIX}" ${HWLOC_CONFIG}
+    fi
+
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
+
+    case "${RUN_TESTS}" in
+      *hwloc*|all)
+      if ! make -j${MBD_NUM_TASKS} check; then
+        echo exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
+
+    make dist
+
+    find . -name '*.tar.gz' -exec cp '{}' ${SRC_DIR}/${HWLOC_VERSION} ';'
+
+    make install
+EOT
+
+WORKDIR ${SRC_DIR}/pastix
+WORKDIR ${BUILD_DIR}/pastix
+
+ARG PASTIX_REPO="https://gitlab.inria.fr/solverstack/pastix.git"
+ARG PASTIX_BRANCH="master"
+ARG PASTIX_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DENABLE_PYTHON=OFF -DPASTIX_WITH_MPI=OFF ${CMAKE_CONFIG_GCC}"
+ARG PASTIX_PREFIX="/usr/local/"
+
+RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
+## RUN <<EOT bash
+    case "${BUILD_WITH_PASTIX}" in
+    no)
+      echo "pastix will not be installed"
+      exit 0
+      ;;
+    esac
+
+    if ! test -d ${BUILD_DIR}/pastix/.git; then
+      git clone --recursive -b ${PASTIX_BRANCH} ${PASTIX_REPO} ${BUILD_DIR}/pastix
+    fi
+
+    cd ${BUILD_DIR}/pastix
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *pastix*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+    if ! cmake .. -DCMAKE_INSTALL_PREFIX="${PASTIX_PREFIX}" ${PASTIX_CONFIG}; then
+    echo "cmake failed with status $?"
+    exit 0
+    fi
+    fi
+
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
+
+    case "${RUN_TESTS}" in
+      *pastix*|all)
+      if ! make -j${MBD_NUM_TASKS} test; then
+        echo exit 1
+      fi
+      ;;
+    none)
+      ;;
+    esac
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
+
+    make install
+EOT
+
 WORKDIR ${SRC_DIR}/Trilinos
 WORKDIR ${BUILD_DIR}/Trilinos
 
+ARG BUILD_WITH_TRILINOS=yes
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
 ARG TRILINOS_BRANCH="master"
 ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
 ARG TRILINOS_PREFIX="/usr/local/"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
+    case "${BUILD_WITH_TRILINOS}" in
+    no)
+      echo "trilinos will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d ${BUILD_DIR}/Trilinos/.git; then
       git clone -b ${TRILINOS_BRANCH} ${TRILINOS_REPO} ${BUILD_DIR}/Trilinos
     fi
@@ -1029,7 +1248,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
       cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
     fi
 
-    make -j${MBD_NUM_TASKS}
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
 
     case "${RUN_TESTS}" in
       *trilinos*|all)
@@ -1049,65 +1268,21 @@ RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
     make install
 EOT
 
-# WORKDIR ${SRC_DIR}/pastix
-# WORKDIR ${BUILD_DIR}/pastix
-
-# ARG PASTIX_REPO="https://gitlab.inria.fr/solverstack/pastix.git"
-# ARG PASTIX_BRANCH="master"
-# ARG PASTIX_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release"
-# ARG PASTIX_PREFIX="/usr/local/"
-
-# RUN --mount=type=cache,target=${BUILD_DIR}/pastix,sharing=locked <<EOT bash
-#     if ! test -d ${BUILD_DIR}/pastix/.git; then
-#       git clone -b ${PASTIX_BRANCH} ${PASTIX_REPO} ${BUILD_DIR}/pastix
-#     fi
-
-#     cd ${BUILD_DIR}/pastix
-
-#     if ! test -d build_dir; then
-#       mkdir build_dir
-#     fi
-
-#     cd build_dir
-
-#     case "${RUN_CONFIGURE}" in
-#     *pastix*|all)
-#       rm -f Makefile
-#       ;;
-#     none)
-#       ;;
-#     esac
-
-#     if ! test -f Makefile; then
-#       cmake .. -DCMAKE_INSTALL_PREFIX="${PASTIX_PREFIX}" ${PASTIX_CONFIG}
-#     fi
-
-#     make -j${MBD_NUM_TASKS}
-
-#     case "${RUN_TESTS}" in
-#       *pastix*|all)
-#       if ! make -j${MBD_NUM_TASKS} check; then
-#         exit 1
-#       fi
-#       ;;
-#     none)
-#       ;;
-#     esac
-
-#     make package_source
-
-#     find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/pastix ';'
-
-#     make install
-# EOT
-
 WORKDIR ${SRC_DIR}/gtest
 WORKDIR ${BUILD_DIR}/gtest
 
+ARG BUILD_WITH_GTEST=yes
 ARG GTEST_REPO="https://github.com/google/googletest.git"
 ARG GTEST_BRANCH="main"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
+    case "${BUILD_WITH_GTEST}" in
+    no)
+      echo "gtest will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d ${BUILD_DIR}/gtest/.git; then
       git clone -b ${GTEST_BRANCH} ${GTEST_REPO} ${BUILD_DIR}/gtest
     fi
@@ -1132,7 +1307,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
       cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
     fi
 
-    make -j${MBD_NUM_TASKS}
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
 
     make package_source
 
@@ -1141,17 +1316,25 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
     make install
 EOT
 
+ARG BUILD_WITH_MBDYN=yes
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
 ARG MBD_CXXFLAGS="-std=c++20"
-ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
-ARG MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
+ARG MBD_ARGS_WITH="--with-static-modules --with-arpack --with-umfpack --with-klu --with-lapack --without-metis --without-mpi --with-pardiso --with-suitesparseqr --with-qrupdate --with-trilinos --with-mfront --with-gtest --with-pastix"
+ARG MBD_ARGS_ENABLE="--enable-multithread --disable-Werror --enable-install_test_progs --enable-octave"
 ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
 WORKDIR ${SRC_DIR}/mbdyn
 WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
+    case "${BUILD_WITH_MBDYN}" in
+    no)
+      echo "mbdyn will not be installed"
+      exit 0
+      ;;
+    esac
+
     if ! test -d ${BUILD_DIR}/mbdyn/.git; then
       if ! git clone -b develop ${MBD_REPO} ${BUILD_DIR}/mbdyn; then
         exit 1
@@ -1172,11 +1355,56 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
       ;;
     esac
 
+    # mbd_args_enable="${MBD_ARGS_ENABLE}"
+
+    # case "${BUILD_WITH_OCTAVE}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_enable="${mbd_args_enable} --enable-octave"
+    #   ;;
+    # esac
+
+    # mbd_args_with="${MBD_ARGS_WITH}"
+
+    # case "${BUILD_WITH_TRILINOS}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-trilinos"
+    #   ;;
+    # esac
+
+    # case "${BUILD_WITH_MFRONT}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-mfront"
+    #   ;;
+    # esac
+
+
+    # case "${BUILD_WITH_GTEST}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-gtest"
+    #   ;;
+    # esac
+
+    # case "${BUILD_WITH_PASTIX}" in
+    # no)
+    #   ;;
+    # *)
+    #   mbd_args_with="${mbd_args_with} --with-pastix"
+    #   ;;
+    # esac
+
     if ! test -f Makefile; then
       ./configure CPPFLAGS="${MBD_CPPFLAGS}" LDFLAGS="${MBD_FLAGS}" CXXFLAGS="${MBD_FLAGS} ${MBD_CXXFLAGS}" CFLAGS="${MBD_FLAGS}" FCFLAGS="${MBD_FLAGS}" F77FLAGS="${MBD_FLAGS}" ${MBD_ARGS_WITH} ${MBD_ARGS_ENABLE}
     fi
 
-    if ! make -j${MBD_NUM_TASKS} all; then
+    if ! make -j${MBD_NUM_TASKS} ${MAKE_TARGET}; then
       exit 1
     fi
 
@@ -1216,6 +1444,13 @@ ARG MBOCT_FEM_PKG_REPO="https://github.com/octave-user/mboct-fem-pkg.git"
 ARG MBOCT_FEM_PKG_BRANCH="master"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
+    case "${BUILD_WITH_OCTAVE}" in
+    no)
+      echo "mboct-*-pkg will not be installed"
+      exit 0
+      ;;
+    esac
+
     octave -q --eval 'pkg install -verbose -global -forge nurbs;pkg install -verbose -global -forge netcdf'
 
     if ! test -d mboct-octave-pkg; then
@@ -1233,6 +1468,13 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     pushd mboct-numerical-pkg && git pull --force && popd
 
     make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-numerical-pkg' dist install_global
+
+    case "${BUILD_WITH_MBDYN}" in
+    no)
+      echo "mboct-mbdyn-pkg will not be installed"
+      exit 0
+      ;;
+    esac
 
     if ! test -d mboct-mbdyn-pkg; then
       git clone -b "${MBOCT_MBDYN_PKG_BRANCH}" "${MBOCT_MBDYN_PKG_REPO}" mboct-mbdyn-pkg
@@ -1268,7 +1510,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
       ./configure CXXFLAGS="${MBD_FLAGS}"
     fi
 
-    make -j${MBD_NUM_TASKS} all
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
     make install
     make distclean
 
@@ -1284,6 +1526,20 @@ WORKDIR ${TESTS_DIR}/octave-pkg-tests
 WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
+    case "${BUILD_WITH_MBDYN}" in
+    no)
+      echo "mbdyn was not installed"
+      exit 0
+      ;;
+    esac
+
+    case "${BUILD_WITH_OCTAVE}" in
+    no)
+      echo "octave was not installed"
+      exit 0
+      ;;
+    esac
+
     case "${RUN_TESTS}" in
       *mboct*|all)
       if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then

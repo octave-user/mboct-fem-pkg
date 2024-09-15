@@ -194,9 +194,9 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
 
   dof_map.parallel.threads_ass = cms_opt.number_of_threads;
   dof_map.parallel.threshold_elem = cms_opt.threshold_elem;
-  mat_type_stiffness = FEM_MAT_STIFFNESS_SYM_L;
-  mat_type_mass = FEM_MAT_MASS_SYM_L;
-  mat_type_damping = FEM_MAT_DAMPING_SYM_L;
+  mat_type_stiffness = FEM_MAT_STIFFNESS_SYM;
+  mat_type_mass = FEM_MAT_MASS_SYM;
+  mat_type_damping = FEM_MAT_DAMPING_SYM;
 
   cms_opt.solver = fem_sol_select(true, cms_opt.solver);
   cms_opt.symmetric = true;
@@ -264,14 +264,14 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   endswitch
 
   switch (mat_type_stiffness)
-    case {FEM_MAT_STIFFNESS_SYM, FEM_MAT_STIFFNESS_SYM_L}
+    case {FEM_MAT_STIFFNESS_SYM, FEM_MAT_STIFFNESS_SYM}
       Ksym = fem_mat_sym(mat_ass.K);
     otherwise
       Ksym = mat_ass.K;
   endswitch
 
   switch (mat_type_mass)
-    case {FEM_MAT_MASS_SYM, FEM_MAT_MASS_SYM_L}
+    case {FEM_MAT_MASS_SYM, FEM_MAT_MASS_SYM}
       Msym = fem_mat_sym(mat_ass.M);
     otherwise
       Msym = mat_ass.M;
@@ -287,7 +287,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
   opt_sol.solver = cms_opt.solver;
   opt_sol.verbose = cms_opt.verbose;
 
-  if (mat_type_stiffness == FEM_MAT_STIFFNESS_SYM_L || mat_type_mass == FEM_MAT_MASS_SYM_L)
+  if (mat_type_stiffness == FEM_MAT_STIFFNESS_SYM || mat_type_mass == FEM_MAT_MASS_SYM)
     opt_sol.pre_scaling = false;
   endif
 
@@ -619,4 +619,3 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     endif
   endif
 endfunction
-

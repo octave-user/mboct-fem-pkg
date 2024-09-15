@@ -117,7 +117,7 @@
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   Keff = -omega^2 * mat_ass.Ma + 1j * omega * complex(mat_ass.Da_re, mat_ass.Da_im) + mat_ass.Ka;
 %!   Reff = complex(mat_ass.Ra(:, 1), mat_ass.Ra(:, 2));

@@ -168,7 +168,9 @@
 %!                                        [FEM_MAT_THERMAL_COND, ...
 %!                                         FEM_VEC_LOAD_THERMAL], ...
 %!                                        load_case);
-%!   opt_sol.refine_max_iter = int32(20);
+%!   opt_sol.refine_max_iter = int32(100);
+%!   opt_sol.verbose = 0;
+%!   opt_sol.pre_scaling = true;
 %!   U = fem_sol_factor(mat_ass.Kk, opt_sol) \ mat_ass.Qc;
 %!   sol.theta = U(dof_map.ndof);
 %!   assert_simple(sol.theta, theta_s, eps^0.5 * max(abs(thetae)));

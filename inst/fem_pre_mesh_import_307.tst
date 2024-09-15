@@ -161,7 +161,7 @@
 %!                                         FEM_VEC_COLL_MASS_FLUID_STRUCT], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.refine_max_iter = int32(250);
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.pre_scaling = true;

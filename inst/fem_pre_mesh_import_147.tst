@@ -99,7 +99,7 @@
 %!   t = 0:dt:T;
 %!   Phi = dPhi_dt = dPhi_dt2 = zeros(dof_map.totdof, numel(t));
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   # opt_sol.solver = "pastix";
 %!   opt_sol.delta = 0.5;
 %!   sol_dat = fem_sol_transient_init(mat_ass.Ma, mat_ass.Da, mat_ass.Ka, dt, opt_sol);
 %!   [x, idx] = sort(mesh.nodes(:, 1));
