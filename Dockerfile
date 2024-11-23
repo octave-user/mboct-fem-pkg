@@ -1321,7 +1321,7 @@ ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
 ARG MBD_CXXFLAGS="-std=c++20"
 ARG MBD_ARGS_WITH="--with-static-modules --with-arpack --with-umfpack --with-klu --with-lapack --without-metis --without-mpi --with-pardiso --with-suitesparseqr --with-qrupdate --with-trilinos --with-mfront --with-gtest --with-pastix"
-ARG MBD_ARGS_ENABLE="--enable-multithread --disable-Werror --enable-install_test_progs --enable-octave"
+ARG MBD_ARGS_ENABLE="--enable-multithread --disable-Werror --enable-install_test_progs --enable-octave-utils"
 ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
 
 WORKDIR ${SRC_DIR}/mbdyn
@@ -1361,7 +1361,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     # no)
     #   ;;
     # *)
-    #   mbd_args_enable="${mbd_args_enable} --enable-octave"
+    #   mbd_args_enable="${mbd_args_enable} --enable-octave-utils"
     #   ;;
     # esac
 

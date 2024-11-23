@@ -56,7 +56,7 @@ jobs:
           chmod +x ./bootstrap.sh
           ./bootstrap.sh
           ./configure --with-static-modules \
-          --enable-octave \
+          --enable-octave-utils \
           --disable-Werror CXXFLAGS="-Ofast -Wall -march=native -mtune=native" \
           CPPFLAGS="-I/usr/include/mkl -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
           LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
