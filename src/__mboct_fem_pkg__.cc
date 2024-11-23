@@ -1414,7 +1414,7 @@ public:
           VEC_COLL_STIFF_FLUID_STRUCT    = MAT_STIFFNESS_FLUID_STRUCT_RE | MAT_COLL_PNT_OUTPUT
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 43u;
+     static constexpr unsigned MAT_TYPE_COUNT = 44u;
 
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -3999,7 +3999,7 @@ protected:
      }
 
      virtual void DispInterpMatrix(const ColumnVector& rv, Matrix& H) const {
-          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(rv.numel() == 3 || rv.numel() == 4);
           FEM_ASSERT(H.rows() == 3);
           FEM_ASSERT(H.columns() == nodes.numel() * 3);
 

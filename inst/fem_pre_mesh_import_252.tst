@@ -30,7 +30,7 @@
 %!     d3 = 60e-3 / unit_meters;
 %!     t = 3.5e-3 / unit_meters;
 %!     r = 1500e-3 / unit_meters;
-%!     h1 = 10 * t;
+%!     h1 = 20 * t;
 %!     h2 = 200e-3 / unit_meters;
 %!     h3 = 200e-3 / unit_meters;
 %!     E1 = 210000e6 / unit_pascal;
