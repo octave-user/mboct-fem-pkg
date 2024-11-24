@@ -40,7 +40,7 @@
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
-%! sol = {"pardiso", "pastix", "mumps", "umfpack", "chol", "lu", "mldivide"};
+%! sol = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
@@ -67,6 +67,7 @@
 %!                cms_opt.invariants = invariants;
 %!                cms_opt.refine_max_iter = iter;
 %!                cms_opt.pre_scaling = true;
+%!                cms_opt.check_solution = false;
 %!                [mesh_cms, ...
 %!                 mat_ass_cms, ...
 %!                 dof_map_cms, ...

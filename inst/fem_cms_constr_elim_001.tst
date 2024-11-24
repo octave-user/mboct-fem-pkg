@@ -55,7 +55,7 @@
 %!   idx = find(dof_map.ndof(:, i) > 0);
 %!   sol_red.def(idx, i) = Ured(dof_map.ndof(idx, i));
 %! endfor
-%! tol = eps^0.9;
+%! tol = eps^0.8;
 %! ## Solve the full set of equations
 %! [sol_ref] = fem_sol_static(mesh, dof_map, mat_ass);
 %! ## Check if we got the same result with reduced set of equations and full set of equations

@@ -182,4 +182,3 @@ function Afact = fem_sol_factor(A, options)
 
   Afact = linear_solver(A, options);
 endfunction
-

@@ -1,4 +1,4 @@
-## Copyright (C) 2020(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2020(-2024) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -26,21 +26,31 @@ function solver = fem_sol_select(blambda, solver)
     print_usage();
   endif
 
-  if (nargin < 2 || ~fem_sol_check_func(solver))
-    solvers = {"pastix", "pardiso", "mumps", "umfpack", "chol", "lu"};
-    
-    for i=1:numel(solvers)
-      if (fem_sol_check_func(solvers{i}))
-        solver = solvers{i};
-        break;
-      endif
-    endfor
+  persistent solvers = [];
+
+  if (isempty(solvers))
+    ## FIXME: work around suspected regression in PaStiX 6.4.0 (1151c30a25e2014ff4b39bf8c7ac4b381913f193)
+    solvers = struct("name",   {"pastix", "pardiso", "mumps", "umfpack", "chol",  "lu", "mldivide"}, ...
+                     "lambda", {    true,      true,    true,      true,  false,  true,       true});
+
+    idx_func = cellfun(@fem_sol_check_func, {solvers.name}, "UniformOutput", true);
+
+    solvers = solvers(idx_func);
   endif
-  
-  switch (solver)
-    case "chol"
-      if (blambda)
-        solver = "lu";
-      endif
-  endswitch
+
+  solsel = solvers;
+
+  if (blambda)
+    solsel = solsel([solvers.lambda]);
+  endif
+
+  if (nargin < 2)
+    solver = solsel(1).name;
+  endif
+
+  valid_solver = any(cellfun(@(name) strcmp(solver, name), {solsel.name}, "UniformOutput", true));
+
+  if (~valid_solver)
+    solver = solsel(1).name;
+  endif
 endfunction

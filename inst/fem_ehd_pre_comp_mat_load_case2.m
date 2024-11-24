@@ -143,7 +143,7 @@ function [mesh, load_case, bearing_surf, idx_modes, sol_eig] = fem_ehd_pre_comp_
     case {"umfpack", "lu", "mldivide"}
       mat_type_stiffness = FEM_MAT_STIFFNESS;
     otherwise
-      mat_type_stiffness = FEM_MAT_STIFFNESS_SYM_L;
+      mat_type_stiffness = FEM_MAT_STIFFNESS_SYM;
       options.symmetric = true;
   endswitch
 
