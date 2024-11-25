@@ -1226,6 +1226,30 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     make CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} -C 'mboct-octave-pkg' dist install_global
 
+    pushd mboct-octave-pkg/src
+
+    if ! test -x configure; then
+      ./bootstrap
+    fi
+
+    case "${RUN_CONFIGURE}" in
+    *mboct*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      ./configure CXXFLAGS="${MBD_FLAGS}"
+    fi
+
+    make -j${MBD_NUM_TASKS} ${MAKE_TARGET}
+    make install
+    make distclean
+
+    popd
+
     if ! test -d mboct-numerical-pkg; then
       git clone -b "${MBOCT_NUMERICAL_PKG_BRANCH}" "${MBOCT_NUMERICAL_PKG_REPO}" mboct-numerical-pkg
     fi
@@ -1286,7 +1310,8 @@ WORKDIR ${BUILD_DIR}/mbdyn
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     case "${RUN_TESTS}" in
       *mboct*|all)
-      if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
+
+      if ! gtest-octave-cli --persist -q "${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.m" --octave-pkg-test-dir "${TESTS_DIR}/octave-pkg-tests" --octave-pkg-list "${OCT_PKG_LIST}" --octave-exec "gtest-octave-cli" --tasks "${MBD_NUM_TASKS}"; then
         exit 1
       fi
       ;;
