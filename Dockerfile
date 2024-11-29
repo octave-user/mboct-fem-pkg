@@ -1285,10 +1285,16 @@ WORKDIR ${BUILD_DIR}/mbdyn
 
 RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
     case "${RUN_TESTS}" in
-      *mboct*|all)
-      if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
-        exit 1
-      fi
+    *mboct*|all)
+      make -C 'mboct-octave-pkg' check_installed
+      make -C 'mboct-numerical-pkg' check_installed
+      make -C 'mboct-mbdyn-pkg' check_installed
+      make -C 'mboct-fem-pkg' check_installed
+
+      cat mboct-octave-pkg/fntests.log
+      cat mboct-numerical-pkg/fntests.log
+      cat mboct-mbdyn-pkg/fntests.log
+      cat mboct-fem-pkg/fntests.log
       ;;
     none)
       ;;
