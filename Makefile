@@ -14,6 +14,7 @@ TAR ?= tar
 GREP ?= grep
 CUT ?= cut
 TR ?= tr
+NUM_TASKS ?= 4
 
 ## Note the use of ':=' (immediate set) and not just '=' (lazy set).
 ## http://stackoverflow.com/a/448939/1609556
@@ -257,6 +258,11 @@ check: $(install_stamp)
 check_installed:
 	$(OCTAVE) --eval '$(octave_pkg_prefix_local_cmd) pkg ("load", "$(package)"); ' \
 		  --eval $(octave_test_commands)
+
+check_installed_parallel:
+	$(OCTAVE) --eval '$(octave_pkg_prefix_local_cmd) pkg ("load", "$(package)"); ' \
+		  --eval "run_tests_parallel($(NUM_TASKS),{\"$(package)\"})"
+
 ##
 ## CLEAN
 ##

@@ -183,8 +183,4 @@ jobs:
 
       - name: Run all tests
         run: |
-             export MBD_NUM_THREADS=2
-             make -C $GITHUB_WORKSPACE check_installed 2>&1 | tee fntests.out
-             cat ${GITHUB_WORKSPACE}/fntests.log
-             tail -n 14 fntests.out
-             awk -F ' ' 'BEGIN{ failed=9999; } /^  FAIL\>/{ failed = $2; } END { if (failed != 0) exit 1; }' fntests.out
+             MBD_NUM_THREADS=1 make NUM_TASKS=2 -C ${GITHUB_WORKSPACE} check_installed_parallel
