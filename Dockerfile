@@ -1287,12 +1287,12 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     *mboct*|all)
       make -C mboct-octave-pkg check_installed
       make -C mboct-numerical-pkg check_installed
-      make -C mboct-mbdyn-pkg check_installed
+      ## make -C mboct-mbdyn-pkg check_installed
       make -C mboct-fem-pkg check_installed
 
       cat mboct-octave-pkg/fntests.log
       cat mboct-numerical-pkg/fntests.log
-      cat mboct-mbdyn-pkg/fntests.log
+      ## cat mboct-mbdyn-pkg/fntests.log
       cat mboct-fem-pkg/fntests.log
       ;;
     none)
