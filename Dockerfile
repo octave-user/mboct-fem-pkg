@@ -1285,10 +1285,10 @@ WORKDIR ${BUILD_DIR}/octave-pkg
 RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     case "${RUN_TESTS}" in
     *mboct*|all)
-      make NUM_TASKS=2 -C mboct-octave-pkg check_installed_parallel
-      make NUM_TASKS=2 -C mboct-numerical-pkg check_installed_parallel
+      make -C mboct-octave-pkg check_installed
+      make -C mboct-numerical-pkg check_installed
       ## MBD_NUM_THREADS=1 make NUM_TASKS=2 -C mboct-mbdyn-pkg check_installed_parallel
-      MBD_NUM_THREADS=1 make NUM_TASKS=2 -C mboct-fem-pkg check_installed_parallel
+      MBD_NUM_THREADS=2 make -C mboct-fem-pkg check_installed
       ;;
     none)
       ;;
