@@ -2385,7 +2385,7 @@ public:
           args.append(h0);
           args.append(dA);
 
-          octave_value_list ovk = octave::feval(fnk, args, 1);
+          octave_value_list ovk = octave::feval(fnk, args, 2);
 
           if (ovk.length() != 2) {
                throw std::runtime_error("sfncon.k must return one output argument");
