@@ -21,8 +21,8 @@
 %!   dF5_2_dH0 = -(Hmax - H0).^(c2 - 1.) * c1 * c2;
 %!   p = real(k) * F5_2;
 %!   kh = -k / sigma_delta * dF5_2_dH0;
-%!   K = diag([p * sigma0, p * sigma0, kh]) * dA;
-%!   F = [0; 0; p] * dA;
+%!   K = diag([p * sigma0, p * sigma0, kh]);
+%!   F = [0; 0; p];
 %! endfunction
 %! scale = 10e-3;
 %! num_modes = int32(6);
