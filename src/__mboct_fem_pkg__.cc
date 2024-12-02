@@ -2385,11 +2385,7 @@ public:
           args.append(h0);
           args.append(dA);
 
-          octave_value_list ovk = octave::feval(fnk, args, 2);
-
-          if (ovk.length() != 2) {
-               throw std::runtime_error("sfncon.k must return one output argument");
-          }
+          const octave_value_list ovk = octave::feval(fnk, args, 2);
 
           MatType km, fm;
 
@@ -2407,7 +2403,7 @@ public:
 
           if (!(fm.rows() == 3 && fm.columns() == 1)) {
                throw std::runtime_error("sfncon.f must be a 3x1 matrix");
-          }          
+          }
 
           MatType kmR_T(3, 3);
 
@@ -2460,7 +2456,7 @@ public:
           }
 
           KHtau.resize((N + 1) * 6, (N + 1) * 6, 0.);
-          
+
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
                     KHtau.xelem(i, j) = Khtau.xelem(i, j);
@@ -2472,6 +2468,30 @@ public:
                     for (octave_idx_type i = 0; i < 3; ++i) {
                          KHtau.xelem(i, 6 * (j + 1) + jj) = KHtau.xelem(6 * (j + 1) + jj, i) = -Khtau_Hf.xelem(i, j * 3 + jj);
                     }
+               }
+          }
+
+          FHtau.resize((N + 1) * 6, 1, 0.);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               ScalarType ai{};
+
+               for (octave_idx_type k = 0; k < 3; ++k) {
+                    ai += R.xelem(i, k) * fm.xelem(k);
+               }
+
+               FHtau.xelem(i) = ai * dA;
+          }
+
+          for (octave_idx_type i = 0; i < N; ++i) {
+               for (octave_idx_type ii = 0; ii < 3; ++ii) {
+                    ScalarType ai{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         ai += Hf.xelem(k, i * 3 + ii) * FHtau.xelem(k);
+                    }
+
+                    FHtau.xelem(6 * (i + 1) + ii) = ai;
                }
           }
 
