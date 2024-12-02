@@ -2488,7 +2488,7 @@ public:
                     ScalarType ai{};
 
                     for (octave_idx_type k = 0; k < 3; ++k) {
-                         ai += Hf.xelem(k, i * 3 + ii) * FHtau.xelem(k);
+                         ai -= Hf.xelem(k, i * 3 + ii) * FHtau.xelem(k);
                     }
 
                     FHtau.xelem(6 * (i + 1) + ii) = ai;
