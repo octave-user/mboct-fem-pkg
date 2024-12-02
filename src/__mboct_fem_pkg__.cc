@@ -2376,15 +2376,9 @@ private:
 };
 
 template <typename ScalarType, typename MatType>
-class ElemContact: public ElemSpring<ScalarType, MatType>
-{
-     typedef ElemSpring<ScalarType, MatType> BaseType;
+class ElemContactInit {
 public:
-     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA)
-          :BaseType(eltype, id, X, material, nodes, StiffnessMatrix(R, Hf, fnk, h0, dA)) {
-     }
-
-     static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA) {
+     ElemContactInit(const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA) {
           octave_value_list args;
 
           args.append(R);
@@ -2393,21 +2387,27 @@ public:
 
           octave_value_list ovk = octave::feval(fnk, args, 1);
 
-          if (ovk.length() != 1) {
+          if (ovk.length() != 2) {
                throw std::runtime_error("sfncon.k must return one output argument");
           }
 
-          MatType km;
+          MatType km, fm;
 
           if constexpr(std::is_same<ScalarType, double>::value) {
                km = ovk(0).matrix_value();
+               fm = ovk(1).matrix_value();
           } else {
                km = ovk(0).complex_matrix_value();
+               fm = ovk(1).complex_matrix_value();
           }
 
           if (!(km.rows() == 3 && km.columns() == 3)) {
                throw std::runtime_error("sfncon.k must be a 3x3 matrix");
           }
+
+          if (!(fm.rows() == 3 && fm.columns() == 1)) {
+               throw std::runtime_error("sfncon.f must be a 3x1 matrix");
+          }          
 
           MatType kmR_T(3, 3);
 
@@ -2459,8 +2459,8 @@ public:
                }
           }
 
-          MatType KHtau((N + 1) * 6, (N + 1) * 6, 0.);
-
+          KHtau.resize((N + 1) * 6, (N + 1) * 6, 0.);
+          
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
                     KHtau.xelem(i, j) = Khtau.xelem(i, j);
@@ -2543,7 +2543,19 @@ public:
 
           std::cerr << "];\n";
 #endif
-          return KHtau;
+     }
+
+     MatType KHtau;
+     MatType FHtau;
+};
+
+template <typename ScalarType, typename MatType>
+class ElemContact: public ElemSpring<ScalarType, MatType>
+{
+     typedef ElemSpring<ScalarType, MatType> BaseType;
+public:
+     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const ElemContactInit<ScalarType, MatType>& stiffness)
+          :BaseType(eltype, id, X, material, nodes, stiffness.KHtau) {
      }
 };
 
@@ -13071,6 +13083,7 @@ public:
      };
 
      typedef ElemContact<std::complex<double>, ComplexMatrix> ElemContactType;
+     typedef ElemContactInit<std::complex<double>, ComplexMatrix> ElemContactInitType;
      typedef ElementBlock<ElemContactType> ElemBlockContactType;
      typedef ElementBlock<ElemJoint> ElemBlockJointType;
      typedef std::unique_ptr<ElemBlockJointType> ElemBlockJointPtr;
@@ -13631,7 +13644,7 @@ private:
                h0 += R.xelem(i, 2) * (Xe.xelem(i) - Xi.xelem(i));
           }
 
-          pElemBlock->Insert(id, Xe, nullptr, enodes, R, Hf, k, h0, dA);
+          pElemBlock->Insert(id, Xe, nullptr, enodes, ElemContactInitType(R, Hf, k, h0, dA));
      }
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
