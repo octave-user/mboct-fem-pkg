@@ -2265,7 +2265,7 @@ public:
           for (octave_idx_type j = 0; j < Acols; ++j) {
                for (octave_idx_type i = 0; i < Arows; ++i) {
                     const double Aij = ScalarFunctionRealImag(A.xelem(i + Arows * j));
-                    mat.Insert(Aij, ndofidx.xelem(j), j + 1);
+                    mat.Insert(Aij, ndofidx.xelem(i), j + 1);
                }
           }
      }
