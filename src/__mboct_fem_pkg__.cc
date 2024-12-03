@@ -2305,9 +2305,11 @@ public:
           FEM_ASSERT(sElem.numel() > idx);
 
           Cell& ovK = sElem.contents("K");
+          Cell& ovF = sElem.contents("F");          
           Cell& ovNodes = sElem.contents("nodes");
 
           ovK(idx) = K;
+          ovF(idx) = F;
           ovNodes(idx) = this->nodes.transpose();
           ++idx;
      }
