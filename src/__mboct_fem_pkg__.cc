@@ -15897,8 +15897,8 @@ string_vector ConstrSurfToNodeElemFields(ElementTypes::TypeId eElemType)
           return string_vector(rgFields, nFields);
      }
      case ElementTypes::ELEM_SPRING: {
-          constexpr size_t nFields = 2;
-          static constexpr const char* const rgFields[nFields] = {"K", "nodes"};
+          constexpr size_t nFields = 3;
+          static constexpr const char* const rgFields[nFields] = {"K", "F", "nodes"};
           return string_vector(rgFields, nFields);
      }
      default:
