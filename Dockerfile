@@ -1280,15 +1280,15 @@ EOT
 ARG OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
 ARG OCT_PKG_PRINT_RES="no"
 
-WORKDIR ${TESTS_DIR}/octave-pkg-tests
-WORKDIR ${BUILD_DIR}/mbdyn
+WORKDIR ${BUILD_DIR}/octave-pkg
 
-RUN --mount=type=cache,target=${BUILD_DIR}/mbdyn,sharing=locked <<EOT bash
+RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     case "${RUN_TESTS}" in
-      *mboct*|all)
-      if ! ${BUILD_DIR}/mbdyn/testsuite/octave_pkg_testsuite.sh --octave-pkg-test-dir ${TESTS_DIR}/octave-pkg-tests --octave-pkg-test-mode single; then
-        exit 1
-      fi
+    *mboct*|all)
+      make -C mboct-octave-pkg check_installed
+      make -C mboct-numerical-pkg check_installed
+      ## MBD_NUM_THREADS=1 make NUM_TASKS=2 -C mboct-mbdyn-pkg check_installed_parallel
+      MBD_NUM_THREADS=2 make -C mboct-fem-pkg check_installed
       ;;
     none)
       ;;
