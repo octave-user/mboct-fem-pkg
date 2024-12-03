@@ -2293,8 +2293,8 @@ class ElemSpring: public ElemSpringDashpotBase<ScalarType, MatType>
      using BaseType::AssembleVectorReal;
      using BaseType::AssembleVectorImag;
 public:
-     ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& K, const MatType& F)
-          :BaseType(eltype, id, X, material, nodes), K(K) {
+     ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& Ktmp, const MatType& Ftmp)
+          :BaseType(eltype, id, X, material, nodes), K(Ktmp), F(Ftmp) {
           FEM_ASSERT(K.rows() == nodes.numel() * 6);
           FEM_ASSERT(K.columns() == nodes.numel() * 6);
      }
