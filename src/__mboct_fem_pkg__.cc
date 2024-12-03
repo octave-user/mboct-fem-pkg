@@ -2203,7 +2203,7 @@ public:
      static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
      }
 
-protected:
+public:
      void AssembleMatrixReal(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
           AssembleMatrix<RealPart>(mat, dof, A);
      }
