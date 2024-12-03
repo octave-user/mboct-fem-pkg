@@ -2265,7 +2265,7 @@ protected:
           for (octave_idx_type j = 0; j < Acols; ++j) {
                for (octave_idx_type i = 0; i < Arows; ++i) {
                     const double Aij = ScalarFunctionRealImag(A.xelem(i + Arows * j));
-                    mat.Insert(Aij, ndofidx.xelem(j), j);
+                    mat.Insert(Aij, ndofidx.xelem(j), j + 1);
                }
           }
      }
@@ -2297,6 +2297,8 @@ public:
           :BaseType(eltype, id, X, material, nodes), K(Ktmp), F(Ftmp) {
           FEM_ASSERT(K.rows() == nodes.numel() * 6);
           FEM_ASSERT(K.columns() == nodes.numel() * 6);
+          FEM_ASSERT(F.rows() == nodes.numel() * 6);
+          FEM_ASSERT(F.columns() == 1);
      }
 
      virtual void Extract(octave_idx_type& idx, octave_map& sElem) const override {
