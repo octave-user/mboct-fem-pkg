@@ -2219,7 +2219,7 @@ public:
      void AssembleVectorImag(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
           AssembleVector<ImagPart>(mat, dof, A);
      }
-     
+
      template <double ScalarFunctionRealImag(const ScalarType&)>
      void AssembleMatrix(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
           constexpr octave_idx_type iNumNodeDof = 6;
@@ -2305,7 +2305,7 @@ public:
           FEM_ASSERT(sElem.numel() > idx);
 
           Cell& ovK = sElem.contents("K");
-          Cell& ovF = sElem.contents("F");          
+          Cell& ovF = sElem.contents("F");
           Cell& ovNodes = sElem.contents("nodes");
 
           ovK(idx) = K;
@@ -4156,6 +4156,8 @@ protected:
           FEM_ASSERT(KNLe.rows() == iNumDof);
           FEM_ASSERT(KNLe.columns() == KNLe.rows());
           FEM_ASSERT(iNumDir == 3); // FIXME: Jacobian must be a 3x3 matrix
+          FEM_ASSERT(tauRef.rows() == iNumStressComp);
+          FEM_ASSERT(tauRef.columns() == iNumNodes);
 
           Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), H(1, iNumNodes);
           Matrix BNL(iNumStressCompNL, iNumDof), Hd(iNumNodes, iNumDir), gradH(iNumNodes, iNumDir); // FIXME: will not work for Tet10 elements!!
@@ -17013,10 +17015,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     bool bRealA = true;
                     Cell ov_B;
-                    
+
                     if (oElemType.type == ElementTypes::ELEM_SPRING) {
                          const auto iter_K = s_elem.seek("K");
-                         
+
                          if (iter_K == s_elem.end()) {
                               throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".K in argument mesh");
                          }
@@ -17026,7 +17028,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          FEM_ASSERT(ov_A.numel() == s_elem.numel());
 
                          const auto iter_F = s_elem.seek("F");
-                         
+
                          if (iter_F == s_elem.end()) {
                               throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".F in argument mesh");
                          }
@@ -17426,24 +17428,24 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_SPRING:
                          case ElementTypes::ELEM_DASHPOT: {
                               const octave_idx_type iDim = elem_nodes.numel() * 6;
-                              
+
                               if (bRealA) {
                                    const Matrix A(ov_A.xelem(i).matrix_value());
 
                                    if (A.rows() != iDim || A.columns() != iDim) {
                                         throw std::runtime_error("mesh.elements.springs(i).K: dimension do not match");
                                    }
-                                   
+
                                    switch (oElemType.type) {
                                    case ElementTypes::ELEM_SPRING: {
                                         const Matrix B(ov_B.xelem(i).matrix_value());
-                                        
+
                                         if (B.rows() != iDim || B.columns() != 1) {
                                              throw std::runtime_error("mesh.elements.springs(i).F: dimension do not match");
                                         }
-                                        
+
                                         pElem->Insert<ElemSpring<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A, B);
-                                        
+
                                    } break;
                                    case ElementTypes::ELEM_DASHPOT:
                                         pElem->Insert<ElemDashpot<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
@@ -17465,7 +17467,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                         if (B.rows() != iDim || B.columns() != 1) {
                                              throw std::runtime_error("mesh.elements.springs(i).F: dimensions do not match");
                                         }
-                                        
+
                                         pElem->Insert<ElemSpring<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A, B);
                                    } break;
                                    case ElementTypes::ELEM_DASHPOT:
