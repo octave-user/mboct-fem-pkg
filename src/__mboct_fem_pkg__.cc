@@ -2203,13 +2203,21 @@ public:
      static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
      }
 
-protected:
+public:
      void AssembleMatrixReal(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
           AssembleMatrix<RealPart>(mat, dof, A);
      }
 
      void AssembleMatrixImag(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
           AssembleMatrix<ImagPart>(mat, dof, A);
+     }
+
+     void AssembleVectorReal(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          AssembleVector<RealPart>(mat, dof, A);
+     }
+
+     void AssembleVectorImag(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          AssembleVector<ImagPart>(mat, dof, A);
      }
 
      template <double ScalarFunctionRealImag(const ScalarType&)>
@@ -2237,6 +2245,31 @@ protected:
           }
      }
 
+
+     template <double ScalarFunctionRealImag(const ScalarType&)>
+     void AssembleVector(MatrixAss& mat, const DofMap& dof, const MatType& A) const {
+          constexpr octave_idx_type iNumNodeDof = 6;
+          const octave_idx_type Arows = A.rows();
+          const octave_idx_type Acols = A.columns();
+
+          Array<octave_idx_type> ndofidx(dim_vector(nodes.numel() * iNumNodeDof, 1), -1);
+
+          FEM_ASSERT(Arows == ndofidx.numel());
+
+          for (octave_idx_type inode = 0; inode < nodes.numel(); ++inode) {
+               for (octave_idx_type idof = 0; idof < iNumNodeDof; ++idof) {
+                    ndofidx.xelem(inode * iNumNodeDof + idof) = dof.GetNodeDofIndex(nodes.xelem(inode).value() - 1, DofMap::NDOF_DISPLACEMENT, idof);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < Acols; ++j) {
+               for (octave_idx_type i = 0; i < Arows; ++i) {
+                    const double Aij = ScalarFunctionRealImag(A.xelem(i + Arows * j));
+                    mat.Insert(Aij, ndofidx.xelem(i), j + 1);
+               }
+          }
+     }
+
      static double RealPart(const ScalarType& z) {
           if constexpr(std::is_same<ScalarType, double>::value) {
                return z;
@@ -2256,20 +2289,27 @@ class ElemSpring: public ElemSpringDashpotBase<ScalarType, MatType>
      typedef ElemSpringDashpotBase<ScalarType, MatType> BaseType;
      using BaseType::AssembleMatrixReal;
      using BaseType::AssembleMatrixImag;
+
+     using BaseType::AssembleVectorReal;
+     using BaseType::AssembleVectorImag;
 public:
-     ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& K)
-          :BaseType(eltype, id, X, material, nodes), K(K) {
+     ElemSpring(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const MatType& Ktmp, const MatType& Ftmp)
+          :BaseType(eltype, id, X, material, nodes), K(Ktmp), F(Ftmp) {
           FEM_ASSERT(K.rows() == nodes.numel() * 6);
           FEM_ASSERT(K.columns() == nodes.numel() * 6);
+          FEM_ASSERT(F.rows() == nodes.numel() * 6);
+          FEM_ASSERT(F.columns() == 1);
      }
 
      virtual void Extract(octave_idx_type& idx, octave_map& sElem) const override {
           FEM_ASSERT(sElem.numel() > idx);
 
           Cell& ovK = sElem.contents("K");
+          Cell& ovF = sElem.contents("F");
           Cell& ovNodes = sElem.contents("nodes");
 
           ovK(idx) = K;
+          ovF(idx) = F;
           ovNodes(idx) = this->nodes.transpose();
           ++idx;
      }
@@ -2289,7 +2329,9 @@ public:
                    AssembleMatrixImag(mat, dof, K);
                }
                break;
-
+          case Element::VEC_LOAD_CONSISTENT:
+               AssembleVectorReal(mat, dof, F);
+               break;
           default:
                break;
           }
@@ -2304,12 +2346,15 @@ public:
           case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
           case Element::MAT_STIFFNESS_FLUID_STRUCT_IM:
                return K.rows() * K.columns();
+          case Element::VEC_LOAD_CONSISTENT:
+               return F.rows() * F.columns();
           default:
                return 0;
           }
      }
 private:
      const MatType K;
+     const MatType F;
 };
 
 template <typename ScalarType, typename MatType>
@@ -2376,37 +2421,33 @@ private:
 };
 
 template <typename ScalarType, typename MatType>
-class ElemContact: public ElemSpring<ScalarType, MatType>
-{
-     typedef ElemSpring<ScalarType, MatType> BaseType;
+class ElemContactInit {
 public:
-     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA)
-          :BaseType(eltype, id, X, material, nodes, StiffnessMatrix(R, Hf, fnk, h0, dA)) {
-     }
-
-     static MatType StiffnessMatrix(const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA) {
+     ElemContactInit(const Matrix& R, const Matrix& Hf, const octave_value& fnk, const double h0, const double dA) {
           octave_value_list args;
 
           args.append(R);
           args.append(h0);
           args.append(dA);
 
-          octave_value_list ovk = octave::feval(fnk, args, 1);
+          const octave_value_list ovk = octave::feval(fnk, args, 2);
 
-          if (ovk.length() != 1) {
-               throw std::runtime_error("sfncon.k must return one output argument");
-          }
-
-          MatType km;
+          MatType km, fm;
 
           if constexpr(std::is_same<ScalarType, double>::value) {
                km = ovk(0).matrix_value();
+               fm = ovk(1).matrix_value();
           } else {
                km = ovk(0).complex_matrix_value();
+               fm = ovk(1).complex_matrix_value();
           }
 
           if (!(km.rows() == 3 && km.columns() == 3)) {
                throw std::runtime_error("sfncon.k must be a 3x3 matrix");
+          }
+
+          if (!(fm.rows() == 3 && fm.columns() == 1)) {
+               throw std::runtime_error("sfncon.f must be a 3x1 matrix");
           }
 
           MatType kmR_T(3, 3);
@@ -2459,7 +2500,7 @@ public:
                }
           }
 
-          MatType KHtau((N + 1) * 6, (N + 1) * 6, 0.);
+          KHtau.resize((N + 1) * 6, (N + 1) * 6, 0.);
 
           for (octave_idx_type j = 0; j < 3; ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
@@ -2472,6 +2513,30 @@ public:
                     for (octave_idx_type i = 0; i < 3; ++i) {
                          KHtau.xelem(i, 6 * (j + 1) + jj) = KHtau.xelem(6 * (j + 1) + jj, i) = -Khtau_Hf.xelem(i, j * 3 + jj);
                     }
+               }
+          }
+
+          FHtau.resize((N + 1) * 6, 1, 0.);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               ScalarType ai{};
+
+               for (octave_idx_type k = 0; k < 3; ++k) {
+                    ai += R.xelem(i, k) * fm.xelem(k);
+               }
+
+               FHtau.xelem(i) = ai * dA;
+          }
+
+          for (octave_idx_type i = 0; i < N; ++i) {
+               for (octave_idx_type ii = 0; ii < 3; ++ii) {
+                    ScalarType ai{};
+
+                    for (octave_idx_type k = 0; k < 3; ++k) {
+                         ai -= Hf.xelem(k, i * 3 + ii) * FHtau.xelem(k);
+                    }
+
+                    FHtau.xelem(6 * (i + 1) + ii) = ai;
                }
           }
 
@@ -2543,7 +2608,19 @@ public:
 
           std::cerr << "];\n";
 #endif
-          return KHtau;
+     }
+
+     MatType KHtau;
+     MatType FHtau;
+};
+
+template <typename ScalarType, typename MatType>
+class ElemContact: public ElemSpring<ScalarType, MatType>
+{
+     typedef ElemSpring<ScalarType, MatType> BaseType;
+public:
+     ElemContact(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const ElemContactInit<ScalarType, MatType>& stiffness)
+          :BaseType(eltype, id, X, material, nodes, stiffness.KHtau, stiffness.FHtau) {
      }
 };
 
@@ -3477,7 +3554,7 @@ public:
           if (iNumPreStress) {
                const octave_idx_type iNumStressComp = material->LinearElasticity().rows();
 
-               tauRef.resize(dim_vector(iNumStressComp, iNumNodes, iNumPreStress), 0.);
+               tauRef.resize(dim_vector(iNumStressComp, iNumNodes, iNumPreStress));
 
                for (octave_idx_type k = 0; k < iNumPreStress; ++k) {
                     const octave_scalar_map maTauRefk = data.oPreStress.rgPreStress.xelem(k).scalar_map_value();
@@ -3561,8 +3638,10 @@ public:
                break;
 
           case MAT_STIFFNESS_TAU0:
-               pFunc = &Element3D::StiffnessMatrixNL;
-               iNumRows = iNumCols = iNumDof;
+               if (!tauRef.isempty()) {
+                    pFunc = &Element3D::StiffnessMatrixNL;
+                    iNumRows = iNumCols = iNumDof;
+               }
                break;
 
           case MAT_STIFFNESS_OMEGA:
@@ -4077,6 +4156,8 @@ protected:
           FEM_ASSERT(KNLe.rows() == iNumDof);
           FEM_ASSERT(KNLe.columns() == KNLe.rows());
           FEM_ASSERT(iNumDir == 3); // FIXME: Jacobian must be a 3x3 matrix
+          FEM_ASSERT(tauRef.rows() == iNumStressComp);
+          FEM_ASSERT(tauRef.columns() == iNumNodes);
 
           Matrix J(iNumDir, iNumDir), invJ(iNumDir, iNumDir), H(1, iNumNodes);
           Matrix BNL(iNumStressCompNL, iNumDof), Hd(iNumNodes, iNumDir), gradH(iNumNodes, iNumDir); // FIXME: will not work for Tet10 elements!!
@@ -13071,6 +13152,7 @@ public:
      };
 
      typedef ElemContact<std::complex<double>, ComplexMatrix> ElemContactType;
+     typedef ElemContactInit<std::complex<double>, ComplexMatrix> ElemContactInitType;
      typedef ElementBlock<ElemContactType> ElemBlockContactType;
      typedef ElementBlock<ElemJoint> ElemBlockJointType;
      typedef std::unique_ptr<ElemBlockJointType> ElemBlockJointPtr;
@@ -13631,7 +13713,7 @@ private:
                h0 += R.xelem(i, 2) * (Xe.xelem(i) - Xi.xelem(i));
           }
 
-          pElemBlock->Insert(id, Xe, nullptr, enodes, R, Hf, k, h0, dA);
+          pElemBlock->Insert(id, Xe, nullptr, enodes, ElemContactInitType(R, Hf, k, h0, dA));
      }
 
      static void SurfaceTangentVector(const Matrix& X, const Matrix& dHf, ColumnVector& n) {
@@ -15819,8 +15901,8 @@ string_vector ConstrSurfToNodeElemFields(ElementTypes::TypeId eElemType)
           return string_vector(rgFields, nFields);
      }
      case ElementTypes::ELEM_SPRING: {
-          constexpr size_t nFields = 2;
-          static constexpr const char* const rgFields[nFields] = {"K", "nodes"};
+          constexpr size_t nFields = 3;
+          static constexpr const char* const rgFields[nFields] = {"K", "F", "nodes"};
           return string_vector(rgFields, nFields);
      }
      default:
@@ -16932,6 +17014,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     }
 
                     bool bRealA = true;
+                    Cell ov_B;
 
                     if (oElemType.type == ElementTypes::ELEM_SPRING) {
                          const auto iter_K = s_elem.seek("K");
@@ -16943,6 +17026,14 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          ov_A = s_elem.contents(iter_K);
 
                          FEM_ASSERT(ov_A.numel() == s_elem.numel());
+
+                         const auto iter_F = s_elem.seek("F");
+
+                         if (iter_F == s_elem.end()) {
+                              throw std::runtime_error("fem_ass_matrix: missing field mesh.elements."s + oElemType.name + ".F in argument mesh");
+                         }
+
+                         ov_B = s_elem.contents(iter_F);
                     }
 
                     if (oElemType.type == ElementTypes::ELEM_DASHPOT) {
@@ -17336,13 +17427,26 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          } break;
                          case ElementTypes::ELEM_SPRING:
                          case ElementTypes::ELEM_DASHPOT: {
+                              const octave_idx_type iDim = elem_nodes.numel() * 6;
+
                               if (bRealA) {
                                    const Matrix A(ov_A.xelem(i).matrix_value());
 
+                                   if (A.rows() != iDim || A.columns() != iDim) {
+                                        throw std::runtime_error("mesh.elements.springs(i).K: dimension do not match");
+                                   }
+
                                    switch (oElemType.type) {
-                                   case ElementTypes::ELEM_SPRING:
-                                        pElem->Insert<ElemSpring<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
-                                        break;
+                                   case ElementTypes::ELEM_SPRING: {
+                                        const Matrix B(ov_B.xelem(i).matrix_value());
+
+                                        if (B.rows() != iDim || B.columns() != 1) {
+                                             throw std::runtime_error("mesh.elements.springs(i).F: dimension do not match");
+                                        }
+
+                                        pElem->Insert<ElemSpring<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A, B);
+
+                                   } break;
                                    case ElementTypes::ELEM_DASHPOT:
                                         pElem->Insert<ElemDashpot<double, Matrix>>(i + 1, X, nullptr, elem_nodes, A);
                                         break;
@@ -17352,10 +17456,20 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               } else {
                                    const ComplexMatrix A(ov_A.xelem(i).complex_matrix_value());
 
+                                   if (A.rows() != iDim || A.columns() != iDim) {
+                                        throw std::runtime_error("mesh.elements.springs(i).K: dimensions do not match");
+                                   }
+
                                    switch (oElemType.type) {
-                                   case ElementTypes::ELEM_SPRING:
-                                        pElem->Insert<ElemSpring<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A);
-                                        break;
+                                   case ElementTypes::ELEM_SPRING: {
+                                        const ComplexMatrix B(ov_B.xelem(i).complex_matrix_value());
+
+                                        if (B.rows() != iDim || B.columns() != 1) {
+                                             throw std::runtime_error("mesh.elements.springs(i).F: dimensions do not match");
+                                        }
+
+                                        pElem->Insert<ElemSpring<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A, B);
+                                   } break;
                                    case ElementTypes::ELEM_DASHPOT:
                                         pElem->Insert<ElemDashpot<std::complex<double>, ComplexMatrix>>(i + 1, X, nullptr, elem_nodes, A);
                                         break;

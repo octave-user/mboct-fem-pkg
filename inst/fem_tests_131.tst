@@ -12,7 +12,7 @@
 %! A = 35e-3;
 %! B = 20e-3;
 %! C = 20e-3;
-%! function K = stiffness(R, h0, dA, k, sigma_delta, sigma0)
+%! function [K, F] = stiffness(R, h0, dA, k, sigma_delta, sigma0)
 %!   c1 = 4.4086e-5;
 %!   c2 = 6.804;
 %!   Hmax = 4.;
@@ -22,6 +22,7 @@
 %!   p = real(k) * F5_2;
 %!   kh = -k / sigma_delta * dF5_2_dH0;
 %!   K = diag([p * sigma0, p * sigma0, kh]);
+%!   F = [0; 0; p];
 %! endfunction
 %! scale = 10e-3;
 %! num_modes = int32(6);
@@ -106,6 +107,7 @@
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes, opt_sol);
 %! Aref = 2 * (a * b + A * B);
 %! assert_simple(sum(sum(mat_ass.surface.iso4)), Aref, eps^0.8 * Aref);
+%! elem_springs = fem_pre_mesh_constr_surf_to_node(mesh.nodes, mesh.elements);
 %! if (do_plot)
 %!   figure("visible", "off");
 %!   fem_post_sol_plot(mesh, sol_stat, scale / max(norm(sol_stat.def(:, 1:3), "rows")), 1);
