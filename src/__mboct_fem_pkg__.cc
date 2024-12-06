@@ -3554,7 +3554,7 @@ public:
           if (iNumPreStress) {
                const octave_idx_type iNumStressComp = material->LinearElasticity().rows();
 
-               tauRef.resize(dim_vector(iNumStressComp, iNumNodes, iNumPreStress), 0.);
+               tauRef.resize(dim_vector(iNumStressComp, iNumNodes, iNumPreStress));
 
                for (octave_idx_type k = 0; k < iNumPreStress; ++k) {
                     const octave_scalar_map maTauRefk = data.oPreStress.rgPreStress.xelem(k).scalar_map_value();
