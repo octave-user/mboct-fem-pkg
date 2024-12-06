@@ -3638,8 +3638,10 @@ public:
                break;
 
           case MAT_STIFFNESS_TAU0:
-               pFunc = &Element3D::StiffnessMatrixNL;
-               iNumRows = iNumCols = iNumDof;
+               if (!tauRef.isempty()) {
+                    pFunc = &Element3D::StiffnessMatrixNL;
+                    iNumRows = iNumCols = iNumDof;
+               }
                break;
 
           case MAT_STIFFNESS_OMEGA:
