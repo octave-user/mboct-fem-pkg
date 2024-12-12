@@ -40,6 +40,7 @@
 %!   geometry.mesh_size.t = [0, 1];
 %!   loads.F = [0; 250; 0] / (length(geometry.mesh_size.s) * length(geometry.mesh_size.t));
 %!   [mesh, load_case] = fem_pre_mesh_struct_create(geometry, loads, material);
+%!   [mesh] = fem_pre_mesh_solid_to_surf(mesh);
 %!   [dof_map] = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
 %!    mat_ass.R] = fem_ass_matrix(mesh, ...
