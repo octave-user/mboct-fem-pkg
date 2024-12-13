@@ -96,6 +96,8 @@ function quad8 = fem_pre_mesh_solid_to_surf_iso20(mesh, elem_type_solid)
     return
   endif
 
+  iso20 = getfield(mesh.elements, elem_type_solid);
+
   quad8 = zeros(rows(mesh.elements.penta15) * 3, 8);
 
   idx_node = int32([1, 2, 6, 5,  9, 18, 13, 17;
@@ -105,9 +107,9 @@ function quad8 = fem_pre_mesh_solid_to_surf_iso20(mesh, elem_type_solid)
                     1, 2, 3, 4,  9, 10, 11, 12;
                     5, 6, 7, 8, 13, 14, 15, 16]);
 
-  for i=1:rows(mesh.elements.iso20)
+  for i=1:rows(iso20)
     for j=1:rows(idx_node)
-      quad8(rows(idx_node) * (i - 1) + j, :) = getfield(mesh.elements, elem_type_solid)(i, idx_node(j, :));
+      quad8(rows(idx_node) * (i - 1) + j, :) = iso20(i, idx_node(j, :));
     endfor
   endfor
 
