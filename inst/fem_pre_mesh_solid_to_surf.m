@@ -24,11 +24,13 @@
 function [mesh] = fem_pre_mesh_solid_to_surf(mesh)
   [quad8_1, tria6_1] = fem_pre_mesh_solid_to_surf_penat15(mesh);
 
-  [quad8_2] = fem_pre_mesh_solid_to_surf_iso20(mesh);
+  [quad8_2] = fem_pre_mesh_solid_to_surf_iso20(mesh, "iso20");
+  [quad8_3] = fem_pre_mesh_solid_to_surf_iso20(mesh, "iso20r");
 
   mesh.elements.tria6 = tria6_1;
   mesh.elements.quad8 = [quad8_1;
-                         quad8_2];
+                         quad8_2;
+                         quad8_3];
 endfunction
 
 function [quad8, tria6] = fem_pre_mesh_solid_to_surf_penat15(mesh)
@@ -88,8 +90,8 @@ function [quad8, tria6] = fem_pre_mesh_solid_to_surf_penat15(mesh)
   tria6 = tria6(~duplicate, :);
 endfunction
 
-function quad8 = fem_pre_mesh_solid_to_surf_iso20(mesh)
-  if (~isfield(mesh.elements, "iso20"))
+function quad8 = fem_pre_mesh_solid_to_surf_iso20(mesh, elem_type_solid)
+  if (~isfield(mesh.elements, elem_type_solid))
     quad8 = zeros(0, 8, "int32");
     return
   endif
@@ -105,7 +107,7 @@ function quad8 = fem_pre_mesh_solid_to_surf_iso20(mesh)
 
   for i=1:rows(mesh.elements.iso20)
     for j=1:rows(idx_node)
-      quad8(rows(idx_node) * (i - 1) + j, :) = mesh.elements.iso20(i, idx_node(j, :));
+      quad8(rows(idx_node) * (i - 1) + j, :) = getfield(mesh.elements, elem_type_solid)(i, idx_node(j, :));
     endfor
   endfor
 
