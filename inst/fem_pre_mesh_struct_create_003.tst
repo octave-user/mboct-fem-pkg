@@ -43,6 +43,7 @@
 %! load_data = struct();
 %! options.elem_type = "iso8";
 %! [mesh, load_case] = fem_pre_mesh_struct_create(geometry, load_data, material, options);
+%! [mesh] = fem_pre_mesh_solid_to_surf(mesh);
 %! [dof_map] = fem_ass_dof_map(mesh, load_case);
 %! [mat_ass.M, ...
 %!  mat_ass.K, ...

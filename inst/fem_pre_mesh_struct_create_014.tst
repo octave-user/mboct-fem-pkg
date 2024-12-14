@@ -98,6 +98,7 @@
 %!   options.elem_type = "iso20";
 %!   loads = struct();
 %!   [mesh, load_case_dof] = fem_pre_mesh_struct_create(geometry, loads, material, options);
+%!   [mesh] = fem_pre_mesh_solid_to_surf(mesh);
 %!   idx_node_bottom = unique(mesh.structured.inode_idx(1, :, :)(:));
 %!   idx_node_top = unique(mesh.structured.inode_idx(end, :, :)(:));
 %!   idx_node_bottom = idx_node_bottom(idx_node_bottom > 0);

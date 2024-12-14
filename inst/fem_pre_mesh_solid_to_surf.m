@@ -22,6 +22,23 @@
 ## @end deftypefn
 
 function [mesh] = fem_pre_mesh_solid_to_surf(mesh)
+  [quad8_1, tria6_1] = fem_pre_mesh_solid_to_surf_penat15(mesh);
+
+  [quad8_2] = fem_pre_mesh_solid_to_surf_iso20(mesh, "iso20");
+  [quad8_3] = fem_pre_mesh_solid_to_surf_iso20(mesh, "iso20r");
+
+  mesh.elements.tria6 = tria6_1;
+  mesh.elements.quad8 = [quad8_1;
+                         quad8_2;
+                         quad8_3];
+endfunction
+
+function [quad8, tria6] = fem_pre_mesh_solid_to_surf_penat15(mesh)
+  if (~isfield(mesh.elements, "penta15"))
+    quad8 = zeros(0, 8, "int32");
+    tria6 = zeros(0, 6, "int32");
+    return
+  endif
   quad8 = zeros(rows(mesh.elements.penta15) * 3, 8);
 
   idx_node = int32([1, 2, 5, 4, 7, 14, 10, 13;
@@ -45,7 +62,7 @@ function [mesh] = fem_pre_mesh_solid_to_surf(mesh)
     endif
   endfor
 
-  mesh.elements.quad8 = quad8(~duplicate, :);
+  quad8 = quad8(~duplicate, :);
 
 
   tria6 = zeros(rows(mesh.elements.penta15) * 3, 6);
@@ -70,5 +87,42 @@ function [mesh] = fem_pre_mesh_solid_to_surf(mesh)
     endif
   endfor
 
-  mesh.elements.tria6 = tria6(~duplicate, :);
+  tria6 = tria6(~duplicate, :);
+endfunction
+
+function quad8 = fem_pre_mesh_solid_to_surf_iso20(mesh, elem_type_solid)
+  if (~isfield(mesh.elements, elem_type_solid))
+    quad8 = zeros(0, 8, "int32");
+    return
+  endif
+
+  iso20 = getfield(mesh.elements, elem_type_solid);
+
+  quad8 = zeros(rows(mesh.elements.penta15) * 3, 8);
+
+  idx_node = int32([1, 2, 6, 5,  9, 18, 13, 17;
+                    2, 3, 7, 6, 10, 19, 14, 18;
+                    3, 4, 8, 7, 11, 20, 15, 19;
+                    4, 1, 5, 8, 12, 17, 16, 20;
+                    1, 2, 3, 4,  9, 10, 11, 12;
+                    5, 6, 7, 8, 13, 14, 15, 16]);
+
+  for i=1:rows(iso20)
+    for j=1:rows(idx_node)
+      quad8(rows(idx_node) * (i - 1) + j, :) = iso20(i, idx_node(j, :));
+    endfor
+  endfor
+
+  [quad8sort1] = sort(quad8, 2);
+  [quad8sort2, idx] = sortrows(quad8sort1, 1:columns(quad8));
+
+  duplicate = false(rows(quad8), 1);
+
+  for i=2:rows(quad8sort2)
+    if (all(quad8sort2(i, :) == quad8sort2(i - 1, :)))
+      duplicate(idx([i, i - 1])) = true;
+    endif
+  endfor
+
+  quad8 = quad8(~duplicate, :);
 endfunction

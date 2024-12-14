@@ -55,6 +55,7 @@
 %!   ub = 50;
 %!   load_data.pressure = 0;
 %!   [mesh] = fem_pre_mesh_struct_create(geometry, load_data, material, options);
+%!   [mesh] = fem_pre_mesh_solid_to_surf(mesh);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 1);
 %!   load_case.domain = FEM_DO_THERMAL;
 %!   [dof_map] = fem_ass_dof_map(mesh, load_case);
