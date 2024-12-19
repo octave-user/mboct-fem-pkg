@@ -53,10 +53,12 @@ function [mesh, offset] = fem_pre_mesh_merge(mesh_data)
   for j=1:numel(elem_types)
     offset_elem_idx_j = zeros(numel(mesh_data) + 1, 1, "int32");
     for i=1:numel(mesh_data)
+      num_elem_i = 0;
       if (isfield(mesh_data(i).mesh.elements, elem_types(j).name))
         elem_nodes_i = getfield(mesh_data(i).mesh.elements, elem_types(j).name);
-        offset_elem_idx_j(i + 1) = offset_elem_idx_j(i) + rows(elem_nodes_i);
+        num_elem_i = rows(elem_nodes_i);
       endif
+      offset_elem_idx_j(i + 1) = offset_elem_idx_j(i) + num_elem_i;
     endfor
 
     if (offset_elem_idx_j(end) == 0)
