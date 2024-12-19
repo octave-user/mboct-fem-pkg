@@ -274,8 +274,11 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
             curr_group_m(curr_group_idx_m).nodes = curr_group(k).nodes + dof_map.submesh.offset.nodes(i);
             curr_group_m(curr_group_idx_m).elements = curr_group(k).elements + offset_elem(i);
           endfor
-          offset_elem(i + 1) = offset_elem(i) + rows(curr_elem);
+          num_elem = rows(curr_elem);
+        else
+          num_elem = 0;
         endif
+        offset_elem(i + 1) = offset_elem(i) + num_elem;
       endfor
 
       if (~isfield(mesh, "groups"))
