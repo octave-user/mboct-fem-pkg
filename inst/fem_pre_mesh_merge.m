@@ -1,3 +1,29 @@
+## Copyright (C) 2019(-2024) Reinhard <octave-user@a1.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+## -*- texinfo -*-
+## @deftypefn {Function File} [@var{mesh}, @var{offset}] = fem_pre_mesh_merge(@var{mesh_data})
+## Merge several meshes into a single mesh.
+##
+## @var{mesh_data} @dots{} Struct array of mesh data including fields @var{mesh_data}.mesh
+##
+## @var{mesh} @dots{} Output mesh containing all nodes, elements and groups of all input meshes.
+##
+## @var{offset} @dots{} A struct containing the offset of node-, element- and material numbers of the combined mesh
+## @end deftypefn
+
 function [mesh, offset] = fem_pre_mesh_merge(mesh_data)
   ## merge nodes
   offset.node_idx = zeros(numel(mesh_data) + 1, 1, "int32");
@@ -93,13 +119,13 @@ function [mesh, offset] = fem_pre_mesh_merge(mesh_data)
 
     if (offset_group_j(end) > 0)
       empty_cell = cell(1, offset_group_j(end));
-      
+
       mesh_groups_j = struct("id", empty_cell, "name", empty_cell, "nodes", empty_cell, "elements", empty_cell);
 
       for i=1:numel(mesh_data)
         if (isfield(mesh_data(i).mesh, "groups") && isfield(mesh_data(i).mesh.groups, elem_types(j).name))
           mesh_group_i = getfield(mesh_data(i).mesh.groups, elem_types(j).name);
-          
+
           for k=1:numel(mesh_group_i)
             mesh_groups_j(offset_group_j(i) + k).id = mesh_group_i(k).id;
             mesh_groups_j(offset_group_j(i) + k).name = mesh_group_i(k).name;
@@ -111,18 +137,18 @@ function [mesh, offset] = fem_pre_mesh_merge(mesh_data)
 
       mesh.groups = setfield(mesh.groups, elem_types(j).name, mesh_groups_j);
     endif
-    
+
     mesh.elements = setfield(mesh.elements, elem_types(j).name, elem_nodes);
     mesh.materials = setfield(mesh.materials, elem_types(j).name, elem_mat);
     offset.elements = setfield(offset.elements, elem_types(j).name, offset_elem_idx_j);
   endfor
 
-  
+
 endfunction
 
 %!test
 %! mesh_data(1).mesh.nodes = repmat(1000, 3, 6);
-%! mesh_data(1).mesh.elements.iso8 = repmat(int32(1100), 3, 8);
+%! mesh_data(1).mesh.elements.iso8 = repmat(int32(1000), 3, 8);
 %! mesh_data(1).mesh.materials.iso8 = int32([1;2;2]);
 %! mesh_data(1).mesh.elements.line2 = repmat(int32(1100), 2, 2);
 %! mesh_data(1).mesh.material_data(1).E = 1000;
@@ -141,7 +167,7 @@ endfunction
 %! mesh_data(1).mesh.groups.iso8(2).elements = int32(1:2)(:);
 
 %! mesh_data(2).mesh.nodes = repmat(2000, 2, 6);
-%! mesh_data(2).mesh.elements.iso8 = repmat(int32(2100), 2, 8);
+%! mesh_data(2).mesh.elements.iso8 = repmat(int32(2000), 2, 8);
 %! mesh_data(2).mesh.materials.iso8 = int32([1;2]);
 %! mesh_data(2).mesh.elements.line2 = repmat(int32(2100), 4, 2);
 %! mesh_data(2).mesh.material_data(1).E = 2000;
@@ -161,10 +187,36 @@ endfunction
 %! mesh_data(2).mesh.groups.iso8(2).elements = int32(1)(:);
 
 %! mesh_data(3).mesh.nodes = repmat(3000, 4, 6);
-%! mesh_data(3).mesh.elements.iso8 = repmat(int32(3100), 2, 8);
+%! mesh_data(3).mesh.elements.iso8 = repmat(int32(3000), 2, 8);
 %! mesh_data(3).mesh.materials.iso8 = int32([1;1]);
 %! mesh_data(3).mesh.elements.line2 = repmat(int32(3100), 5, 2);
 %! mesh_data(3).mesh.material_data.E = 3000;
 %! mesh_data(3).mesh.material_data.nu = 0.3;
 %! mesh_data(3).mesh.material_data.rho = 30000;
+%! mesh_data(3).mesh.groups.iso8(1).id = 3000;
+%! mesh_data(3).mesh.groups.iso8(1).name = "iso8 3000";
+%! mesh_data(3).mesh.groups.iso8(1).nodes = int32(1:2)(:);
+%! mesh_data(3).mesh.groups.iso8(1).elements = int32(1:2)(:);
+
+%! mesh_data(4).mesh.nodes = repmat(4000, 4, 6);
+%! mesh_data(4).mesh.elements.iso20 = repmat(int32(4000), 2, 20);
+%! mesh_data(4).mesh.materials.iso20 = int32([1;1]);
+%! mesh_data(4).mesh.elements.line2 = repmat(int32(4100), 5, 2);
+%! mesh_data(4).mesh.material_data.E = 4000;
+%! mesh_data(4).mesh.material_data.nu = 0.3;
+%! mesh_data(4).mesh.material_data.rho = 40000;
+%! mesh_data(4).mesh.groups.iso20(1).id = 4000;
+%! mesh_data(4).mesh.groups.iso20(1).name = "iso8 4000";
+%! mesh_data(4).mesh.groups.iso20(1).nodes = int32(1:2)(:);
+%! mesh_data(4).mesh.groups.iso20(1).elements = int32(1:2)(:);
+
 %! [mesh, offset] = fem_pre_mesh_merge(mesh_data);
+
+%! grp_idx_1000 = find([mesh.groups.iso8.id] == 1000);
+%! assert(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_1000).elements) == 1000));
+%! grp_idx_2000 = find([mesh.groups.iso8.id] == 2000);
+%! assert(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_2000).elements) == 2000 + rows(mesh_data(1).mesh.nodes)));
+%! grp_idx_3000 = find([mesh.groups.iso8.id] == 3000);
+%! assert(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_3000).elements) == 3000 + rows(mesh_data(1).mesh.nodes) + rows(mesh_data(2).mesh.nodes)));
+%! grp_idx_4000 = find([mesh.groups.iso20.id] == 4000);
+%! assert(all(mesh.elements.iso20(mesh.groups.iso8(grp_idx_4000).elements) == 4000 + rows(mesh_data(1).mesh.nodes) + rows(mesh_data(2).mesh.nodes) + rows(mesh_data(3).mesh.nodes)));
