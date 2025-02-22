@@ -918,6 +918,15 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     hg update
     hg checkout stable
 
+    OCT_RELEASE=`hg tags | awk '/^release-/{print $1; exit(0)}'`
+
+    if ! test -z "${OCT_RELEASE}"; then
+      echo "hg checkout ${OCT_RELEASE}"
+      if ! hg checkout "${OCT_RELEASE}"; then
+        echo "hg checkout ${OCT_RELEASE} failed"
+      fi
+    fi
+
     if ! test -x ./configure; then
       ./bootstrap
     fi
