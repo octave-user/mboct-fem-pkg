@@ -917,6 +917,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     hg pull
     hg update
     hg checkout stable
+    # hg checkout release-9-2-0
 
     if ! test -x ./configure; then
       ./bootstrap
@@ -1276,9 +1277,6 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
 
     find . -name 'mboct-*-pkg-*.tar.gz' -exec cp '{}' ${SRC_DIR}/octave-pkg ';'
 EOT
-
-ARG OCT_PKG_LIST="netcdf:yes:master:yes:unlimited nurbs:yes:master:yes:unlimited mboct-octave-pkg:yes:master:yes:unlimited mboct-numerical-pkg:yes:master:yes:unlimited mboct-fem-pkg:yes:master:yes:unlimited mboct-mbdyn-pkg:yes:master:yes:unlimited"
-ARG OCT_PKG_PRINT_RES="no"
 
 WORKDIR ${BUILD_DIR}/octave-pkg
 
