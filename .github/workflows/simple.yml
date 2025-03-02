@@ -18,12 +18,27 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    env:
+      MBD_NUM_TASKS: 2
+      MBD_FLAGS: -Ofast -Wall -march=native -mtune=native
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      # Runs a single command using the runners shell
+      - name: Enable source code
+        run: |
+          sudo sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
+
+      # Runs a single command using the runners shell
+      - name: Install packages
+        run: |
+          sudo apt-get -yq update
+          sudo apt-get -yq build-dep octave
+          sudo apt-get -yq install mercurial git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev cmake
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -37,129 +52,100 @@ jobs:
            sudo install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin
            gmsh --version
 
-      # Runs a single command using the runners shell
-      - name: Install build dependencies for GNU/Octave
+      - name: Install GNU-Octave
         run: |
-           sudo sed -Ei 's/^# deb-src /deb-src /' /etc/apt/sources.list
-           sudo apt-get update
-           sudo apt-get build-dep octave
-           sudo apt-get install mercurial \
-           libsuitesparse-dev libarpack2-dev libmumps-seq-dev \
-           libmetis-dev libnlopt-dev \
-           trilinos-all-dev libopenmpi-dev libptscotch-dev libsuitesparse-dev libqrupdate-dev
+          OCTAVE_REPO="https://www.octave.org/hg/octave"
+          OCTAVE_BRANCH="stable"
+          hg clone ${OCTAVE_REPO} "${RUNNER_TEMP}/octave"
+          pushd "${RUNNER_TEMP}/octave"
+          hg checkout ${OCTAVE_BRANCH}
+          ./bootstrap
+          ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
+          make -j${MBD_NUM_TASKS}
+          make check
+          sudo make install
 
-      # Runs a single command using the runners shell
-      - name: Clone GNU/Octave
-        run: |
-           hg clone https://www.octave.org/hg/octave octave
-           pushd octave
-           hg checkout stable
-           popd
-
-      # Runs a single command using the runners shell
-      - name: Compile GNU/Octave
-        run: |
-           pushd octave
-           chmod +x ./bootstrap
-           ./bootstrap
-           ./configure CXX=g++-10 CC=gcc-10 FC=gfortran-10 F77=gfortran-10 --disable-java
-           make -j4
-           popd
-
-      # Runs a single command using the runners shell
-      - name: Check GNU/Octave
-        run: |
-           pushd octave
-           make check 2>&1 | tee fntests.out
-           awk -F ' ' 'BEGIN{ failed=9999; } /^  FAIL\>/{ failed = $2; } END { if (failed != 0) exit 1; }' fntests.out
-           popd
-
-      # Runs a single command using the runners shell
-      - name: Install GNU/Octave
-        run: |
-           pushd octave
-           sudo make install
-           popd
-
-      # Runs a single command using the runners shell
-      - name: Install nurbs
-        run: |
-           sudo octave --eval "pkg install -verbose -forge nurbs"
-
-      # Runs a single command using the runners shell
       - name: Install MKL
         run: |
-           sudo apt-get install libmkl-full-dev ## Should be installed after GNU/Octave in order to avoid race conditions
+          sudo apt-get -yq install libmkl-full-dev
 
-      # Runs a set of commands using the runners shell
-      - name: Clone MBDyn
+      - name: Install Trilinos
         run: |
-          git clone -b develop https://public.gitlab.polimi.it/DAER/mbdyn.git
-          # cd mbdyn
-          # git config user.name octave-user
-          # git config user.email octave-user@a1.net
-          # git merge origin/solid-unilateral-contact-mcp_a
+          TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
+          TRILINOS_BRANCH="trilinos-release-14-4-0"
+          TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
+          TRILINOS_PREFIX="/usr/local/"
+          git clone -b ${TRILINOS_BRANCH} ${TRILINOS_REPO} "${RUNNER_TEMP}/trilinos"
+          pushd "${RUNNER_TEMP}/trilinos"
+          mkdir build_dir
+          pushd build_dir
+          cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
+          make -j${MBD_NUM_TASKS}
+          sudo make install
 
-      # Runs a set of commands using the runners shell
-      - name: Compile MBDyn
+      - name: Install gtest
         run: |
-          pushd mbdyn
-          chmod +x ./bootstrap.sh
-          ./bootstrap.sh
-          ./configure --with-static-modules CXX=g++-10 CC=gcc-10 FC=gfortran-10 F77=gfortran-10 \
-          --enable-octave \
-          --disable-Werror CXXFLAGS="-Ofast -Wall -march=native -mtune=native" \
-          CPPFLAGS="-I/usr/include/mkl -I/usr/lib/x86_64-linux-gnu/openmpi/include -I/usr/lib/x86_64-linux-gnu/openmpi/include/openmpi/ompi/mpi/cxx -I/usr/include/trilinos -I/usr/include/suitesparse" \
-          LDFLAGS="-L/usr/lib/x86_64-linux-gnu/hdf5/openmpi" \
-          --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --with-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate
-          make -j4
-          popd
+          GTEST_REPO="https://github.com/google/googletest.git"
+          GTEST_BRANCH="main"
+          git clone -b ${GTEST_BRANCH} ${GTEST_REPO} "${RUNNER_TEMP}/googletest"
+          pushd "${RUNNER_TEMP}/googletest"
+          mkdir build_dir
+          pushd build_dir
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+          make -j${MBD_NUM_TASKS}
+          sudo make install
 
-      # Runs a set of commands using the runners shell
-      - name: Check MBDyn
-        run: |
-          pushd mbdyn
-          make test
-          popd
-
-      # Runs a set of commands using the runners shell
       - name: Install MBDyn
         run: |
-          pushd mbdyn
+          MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl"
+          MBD_ARGS_WITH="--with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
+          MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
+          MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
+          LDFLAGS="-L/usr/local/lib -Wl,-rpath=/usr/local/lib"
+          git clone -b develop ${MBD_REPO} "${RUNNER_TEMP}/mbdyn"
+          pushd "${RUNNER_TEMP}/mbdyn"
+          ./bootstrap.sh
+          ./configure CPPFLAGS="${MBD_CPPFLAGS}" LDFLAGS="${LDFLAGS} ${MBD_FLAGS}" CXXFLAGS="${MBD_FLAGS} ${MBD_CXXFLAGS}" CFLAGS="${MBD_FLAGS}" FCFLAGS="${MBD_FLAGS}" F77FLAGS="${MBD_FLAGS}" ${MBD_ARGS_WITH} ${MBD_ARGS_ENABLE}
+          make -j${MBD_NUM_TASKS}
+          make test
           sudo make install
-          popd
+
+      - name: Install octave-forge packages
+        run: |
+          octave -q --eval 'pkg install -verbose -forge nurbs;pkg install -verbose -forge netcdf'
 
       - name: Install mboct-octave-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-octave-pkg.git && \
-           pushd mboct-octave-pkg && \
-           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
+          MBOCT_OCTAVE_PKG_REPO="https://github.com/octave-user/mboct-octave-pkg.git"
+          MBOCT_OCTAVE_PKG_BRANCH="master"
+          git clone -b "${MBOCT_OCTAVE_PKG_BRANCH}" "${MBOCT_OCTAVE_PKG_REPO}" "${RUNNER_TEMP}/mboct-octave-pkg"
+          make -C "${RUNNER_TEMP}/mboct-octave-pkg" CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} install_local
+          make -C "${RUNNER_TEMP}/mboct-octave-pkg" check_installed
 
       - name: Install mboct-numerical-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-numerical-pkg.git && \
-           pushd mboct-numerical-pkg && \
-           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
+          MBOCT_NUMERICAL_PKG_REPO="https://github.com/octave-user/mboct-numerical-pkg.git"
+          MBOCT_NUMERICAL_PKG_BRANCH="master"
+          git clone -b "${MBOCT_NUMERICAL_PKG_BRANCH}" "${MBOCT_NUMERICAL_PKG_REPO}" "${RUNNER_TEMP}/mboct-numerical-pkg"
+          make -C "${RUNNER_TEMP}/mboct-numerical-pkg" CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} install_local
+          make -C "${RUNNER_TEMP}/mboct-numerical-pkg" check_installed
 
       - name: Install mboct-mbdyn-pkg
         run: |
-           git clone -b master https://github.com/octave-user/mboct-mbdyn-pkg.git && \
-           pushd mboct-mbdyn-pkg && \
-           make CXXFLAGS="-Ofast -Wall -march=native" install_local && popd
+          MBOCT_MBDYN_PKG_REPO="https://github.com/octave-user/mboct-mbdyn-pkg.git"
+          MBOCT_MBDYN_PKG_BRANCH="master"
+          git clone -b "${MBOCT_MBDYN_PKG_BRANCH}" "${MBOCT_MBDYN_PKG_REPO}" "${RUNNER_TEMP}/mboct-mbdyn-pkg"
+          make -C "${RUNNER_TEMP}/mboct-mbdyn-pkg" CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} install_local
 
-      - name: Create distribution
-        run: make -C $GITHUB_WORKSPACE dist
-
-      - name: Install the package
-        run: make -C $GITHUB_WORKSPACE CXXFLAGS="-Ofast -Wall -march=native" install_local
-
-      - name: Install fem_pre_mesh_size
+      - name: Install mboct-fem-pkg
         run: |
-             pushd $GITHUB_WORKSPACE/src
-             chmod +x ./bootstrap
-             ./bootstrap && ./configure && make && sudo make install
-             popd
+          make -C ${GITHUB_WORKSPACE} CXXFLAGS="${MBD_FLAGS}" -j${MBD_NUM_TASKS} install_local
+          pushd ${GITHUB_WORKSPACE}/src
+          ./bootstrap
+          ./configure CXXFLAGS="${MBD_FLAGS}"
+          make -j${MBD_NUM_TASKS}
+          sudo make install
 
-      - name: Run all tests
+      - name: Check mboct-fem-pkg
         run: |
-             MBD_NUM_THREADS=1 make NUM_TASKS=2 -C ${GITHUB_WORKSPACE} check_installed_parallel
+          make NUM_TASKS=${MBD_NUM_TASKS} -C ${GITHUB_WORKSPACE} check_installed_parallel
