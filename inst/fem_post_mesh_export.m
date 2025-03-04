@@ -402,8 +402,14 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
       error("element type \"%s\" is not unique", elem_types{i});
     endif
 
-    elem_node_order = zeros(1, numel(eltypes(idx_elem_type).norder));
-    elem_node_order(eltypes(idx_elem_type).norder) = 1:numel(elem_node_order);
+    elem_norder = eltypes(idx_elem_type).nordernonp;
+
+    if (isempty(elem_norder))
+      elem_norder = eltypes(idx_elem_type).norder;
+    endif
+
+    elem_node_order = zeros(1, numel(elem_norder));
+    elem_node_order(elem_norder) = 1:numel(elem_node_order);
     elem_type_id = eltypes(idx_elem_type).id;
 
     switch (elem_types{i})
