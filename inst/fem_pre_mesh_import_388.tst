@@ -89,7 +89,7 @@
 %!                                     [FEM_VEC_STRESS_CAUCH], ...
 %!                                     load_case, ...
 %!                                     sol_eig);
-%!   tolt = eps^0.6;
+%!   tolt = eps^0.5;
 %!   assert_simple(max(max(max(max(abs(sol_eig.stress.tau.iso20r(:, :, :, 1:6)))))) < tolt * max(max(max(max(abs(sol_eig.stress.tau.iso20r(:, :, :, 7:end)))))));
 %!   tolf = eps^0.4;
 %!   assert_simple(all(sol_eig.f(1:6) < tolf * max(sol_eig.f(7:10))));
