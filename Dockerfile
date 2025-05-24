@@ -704,7 +704,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
     apt-get -yq install mercurial git libopenmpi-dev \
-    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget \
+    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libmetis-dev \
     libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
 # ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
