@@ -38,7 +38,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq build-dep octave
-          sudo apt-get -yq install mercurial git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev cmake
+          sudo apt-get -yq install mercurial git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
