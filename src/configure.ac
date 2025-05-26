@@ -50,7 +50,7 @@ fi
 
 if test -z "${NLOPT_LIBS}"; then
   if ! test -z "${PKG_CONFIG}"; then
-    NLOPT_LIBS="`${PKG_CONFIG} --libs nlopt`"
+    NLOPT_LIBS="`${PKG_CONFIG} --libs nlopt` `${PKG_CONFIG} --libs-only-L nlopt | sed  's/^-L/-Wl,-rpath=/'`"
   else
     NLOPT_LIBS="-lnlopt"
   fi
