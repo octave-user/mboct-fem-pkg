@@ -240,6 +240,13 @@ function eltype_out = fem_pre_mesh_elem_type()
 
     ++idx;
 
+    eltype(idx).dim = 3;
+    eltype(idx).id = 29;
+    eltype(idx).name = "tet20f";
+    eltype(idx).norder = [1,5,6,2,7,8,3,9,10,17,16,20,14,19,12,18,15,13,11,4];
+
+    ++idx;
+
     eltype(idx).dim = 2;
     eltype(idx).id = 9;
     eltype(idx).name = "tria6";
