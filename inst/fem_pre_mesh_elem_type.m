@@ -26,7 +26,7 @@ function eltype_out = fem_pre_mesh_elem_type()
   persistent eltype = [];
 
   if (isempty(eltype))
-    empty_cell = cell(1, 38);
+    empty_cell = cell(1, 39);
 
     eltype = struct("dim", empty_cell, ...
                     "id", empty_cell, ...
@@ -358,7 +358,7 @@ endfunction
 %!test
 %! try
 %! eltype = fem_pre_mesh_elem_type();
-%! assert_simple(numel(eltype), 38);
+%! assert_simple(numel(eltype), 39);
 %! for i=1:numel(eltype)
 %!   switch (eltype(i).dim)
 %!   case {0, 1, 2, 3}
