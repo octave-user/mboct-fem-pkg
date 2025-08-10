@@ -8,7 +8,7 @@
 %! ## Notes by C. C. Mei
 %! ## CHAPTER THREE
 %! ## TWO DIMENSIONAL WAVES
-%! ## Reflection and tranmission of sound at an interface
+%! ## Reflection and transmission of sound at an interface
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;

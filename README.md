@@ -86,24 +86,71 @@ Copyright<sup>&copy;</sup> 2019-2024
   - On any operating system with support for docker, the container can be executed by using the following command:
   docker run -it ghcr.io/octave-user/mboct-fem-pkg:master
   - If the user wishes to start the container in graphics mode and the host system is based on Ubuntu, then the following commands should be used:
-  
+
     xhost + local:docker
-  
+
     docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority  -it ghcr.io/octave-user/mboct-fem-pkg:master --gui
 
 # Applications
-  - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 (https://www.youtube.com/watch?v=YE0gnTt35WA, https://www.youtube.com/watch?v=tipxGDXe1mI, https://www.youtube.com/watch?v=akkelq04mrU)
+  - modal analysis of a spherical shell [deformation](https://youtu.be/SLhWWGIIvXU)
 
-  - Test case for double elasto-hydrodynamic journal plain bearing (https://youtu.be/kCVneVwXYbc, https://youtu.be/eienVfAFyfk)
+  - modal analysis of a flexible ring [deformation](https://youtu.be/wcXl09-jTU8)
 
-  - Rotor dynamics test case using MBDyn (https://www.youtube.com/watch?v=VohVTeggqI4)
+  - modal analysis of a plate [deformation](https://youtu.be/e2J_W5Y31VU)
 
-  - Large deflection analysis of a cantilever beam using MBDyn and Gmsh (https://youtu.be/j8D821HVXDc)
+# Elasto hydrodynamic lubricated bearings (MBDyn)
+  - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 [deformation](https://www.youtube.com/watch?v=YE0gnTt35WA), [pressure](https://youtu.be/akkelq04mrU), [fractional film content](https://www.youtube.com/watch?v=tipxGDXe1mI)
 
-  - Nonlinear elasticity of a twisted bar using MBDyn and Gmsh (https://youtu.be/D2OZHT9luQs)
+  - Double elastohydrodynamic contact [deformation](https://youtu.be/kCVneVwXYbc), [pressure](https://youtu.be/eienVfAFyfk)
 
-  - Cook's membrane benchmark with large deformations and hyperelastic material (https://youtu.be/EAgejp4jQ00)
+# Modal elements (MBDyn)
+  - Rotor dynamics test case using MBDyn [rotor dynamics](https://www.youtube.com/watch?v=VohVTeggqI4)
 
-  - Noise radiation of a disc surrounded by air (https://youtu.be/I8R0HouG2Ck, https://youtu.be/b4oc1F3Wc3I)
+  - Flexible pendulum [deformation](https://youtu.be/ggihEM9Dtn4)
 
-  - Propagation of acoustic waves in a flexible pipe (https://youtu.be/N7NdN70kHRQ)
+  - eOSSP BMW i4 crankshaft (deformation and Von Mises stress) - [deformation rotating reference frame](https://youtu.be/DGmlRYLxtuA), [fluid pressure](https://youtu.be/JzW3mUuxoHE), [deformation inertial reference frame](https://youtu.be/ZV7OLzjZxpE)
+
+  - Flexible body dynamics of a double pendulum [deformation](https://youtu.be/I4FE0zunTDo)
+
+# Solid elements (MBDyn)
+  - Large deflection analysis of a cantilever beam using MBDyn and Gmsh [deformation](https://youtu.be/j8D821HVXDc)
+
+  - Nonlinear elasticity of a twisted bar using MBDyn and Gmsh [deformation](https://youtu.be/D2OZHT9luQs)
+
+  - Cook's membrane benchmark with large deformations and hyperelastic material [deformation](https://youtu.be/EAgejp4jQ00)
+
+  - Rolling flexible ring made of hyperelastic material [deformation](https://youtu.be/rxQP8V4U0dE)
+
+  - Nonlinear hyperviscoelasticity using MFront's Signorini model [deformation](https://youtu.be/I8HENx5mszA)
+
+  - Flexible four-bar linkage [deformation](https://youtu.be/d4i5AYPxsG4)
+
+  - Torsion of a beam meshed with 20-node tetrahedral elements [deformation](https://youtu.be/OGmW8F54Vc0)
+
+  - Model of a tire with internal pressure and contact between tire and ground [deformation](https://youtu.be/KTvsuRnZuGo)
+
+  - 1/4 pipe under radial load [deformation](https://youtu.be/0pGlOycfWRw)
+
+  - Bending of a cantilever beam based on K.J. Bathe [deformation](https://youtu.be/RXjAefPeG6Y)
+
+# Heat equation
+  - 1D heat equation based on Matthew J. Hancock [temperature](https://youtu.be/TJgq5sdHM8Q) [temperature profile](https://youtu.be/qgsaxq3t6EQ)
+
+# Helmholtz equation
+  - Noise radiation of a disc surrounded by air [deformation](https://youtu.be/I8R0HouG2Ck), [sound pressure](https://youtu.be/b4oc1F3Wc3I)
+
+  - Propagation of acoustic waves in a flexible pipe [deformation](https://youtu.be/N7NdN70kHRQ)
+
+  - 2D wave equation based on Jont Allen [sound pressure](https://youtu.be/vdebCp1RNoE)
+
+  - Reflection and transmission of sound at an interface [pressure](https://youtu.be/1cdsKLKrI3Y)
+
+  - Spherical wave equation with perfectly matched layers based on Jont Allen and Radu Cimpeanu [sound pressure](https://youtu.be/qhwL9JmkvEA)
+
+  - Spherical wave equation with perfectly matched layers based on Jonathan Deakin [pressure](https://youtu.be/ypimZzAQUF8)
+
+  - 1D dissipative wave equation with perfectly matched layers based on Jonathan Deakin [pressure](https://youtu.be/NEDQKOQtcG4), [pressure waveform](https://youtu.be/de8Kx8bF44I)
+
+  - 1D wave equation with medium interfaces [pressure waveform](https://youtu.be/n6p0i72I_dQ)
+
+  - 1D fluid structure interaction [sound pressure](https://www.youtube.com/watch?v=txpj6ah2WAw)
