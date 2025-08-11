@@ -909,7 +909,7 @@ ARG OCTAVE_REPO="https://www.octave.org/hg/octave"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     if ! test -d ${BUILD_DIR}/octave/.hg; then
-      if ! hg clone ${OCTAVE_REPO} ${BUILD_DIR}/octave; then
+      if ! hg clone -b stable ${OCTAVE_REPO} ${BUILD_DIR}/octave; then
         exit 1
       fi
     fi

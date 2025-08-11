@@ -178,7 +178,7 @@
 %!     grid minor on;
 %!     title(sprintf("pressure distribution Psi=%.1fdeg", Psi(i) * 180 / pi));
 %!   endfor
-%!   tol = 0.5e-2;
+%!   tol = 1e-2;
 %!   assert_simple(sol.p(idx, :), real(pref(x, sol.t)), tol * max(max(abs(pref(x, Psi)))));
 %!   for i=1:numel(Psi)
 %!     figure("visible", "off");

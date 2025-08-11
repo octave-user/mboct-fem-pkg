@@ -56,7 +56,7 @@ jobs:
         run: |
           OCTAVE_REPO="https://www.octave.org/hg/octave"
           OCTAVE_BRANCH="stable"
-          hg clone ${OCTAVE_REPO} "${RUNNER_TEMP}/octave"
+          hg clone -b ${OCTAVE_BRANCH} ${OCTAVE_REPO} "${RUNNER_TEMP}/octave"
           pushd "${RUNNER_TEMP}/octave"
           hg checkout ${OCTAVE_BRANCH}
           ./bootstrap
