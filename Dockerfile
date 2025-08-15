@@ -697,10 +697,10 @@ COPY Dockerfile ${SRC_DIR}
 COPY Dockerfile ${BUILD_DIR}
 
 RUN <<EOT bash
-    x=$(ls /)
+    x=`ls /`
     if test -z "${x}"; then
-    echo x is not defined
-    exit 1
+      echo x is not defined
+      exit 1
     fi
 EOT
 
