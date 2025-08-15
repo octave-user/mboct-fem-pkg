@@ -709,11 +709,10 @@ COPY Dockerfile ${BUILD_DIR}
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT bash
     apt-get -yq update
-    apt-get -yq install tnftp gawk
+    apt-get -yq install wget gawk
 
-    ping -c3 ftp.gnu.org
-    printf 'cd gnu/octave/\ndir\n' | tnftp anonymous@ftp.gnu.org
-    OCTAVE_TAR="$(printf 'dir\ncd gnu/octave/\ndir\n' | tnftp 'anonymous@ftp.gnu.org' | gawk -v RS='[[:space:]]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }')"
+    wget https://ftp.gnu.org/gnu/octave/
+    OCTAVE_TAR=$(gawk -v RS='[<>"]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }' index.html)
 
     if test -z "${OCTAVE_TAR}"; then
         echo Octave release not found
@@ -721,6 +720,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     fi
 
     echo found "${OCTAVE_TAR}"
+    wget "https://ftp.gnu.org/gnu/octave/${OCTAVE_TAR}"
 EOT
 
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
