@@ -696,6 +696,14 @@ WORKDIR ${BUILD_DIR}
 COPY Dockerfile ${SRC_DIR}
 COPY Dockerfile ${BUILD_DIR}
 
+RUN <<EOT bash
+    x=$(ls /)
+    if test -z "${x}"; then
+    echo x is not defined
+    exit 1
+    fi
+EOT
+
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
@@ -916,16 +924,16 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
 
     echo Found octave release "${OCTAVE_TAR}"
 
-    printf "cd gnu/octave\nget ${OCTAVE_TAR}\n" | tnftp "anonymous@ftp.gnu.org"
+    printf "cd gnu/octave\nget %s\n" "${OCTAVE_TAR}" | tnftp "anonymous@ftp.gnu.org"
 
-    if ! test -f ${OCTAVE_TAR}; then
-        echo Failed to get ${OCTAVE_TAR}
+    if ! test -f "${OCTAVE_TAR}"; then
+        echo Failed to get "${OCTAVE_TAR}"
         exit 1
     fi
 
     tar -zxvf "${OCTAVE_TAR}"
 
-    pushd `basename -s .tar.gz ${OCTAVE_TAR}`
+    pushd `basename -s .tar.gz "${OCTAVE_TAR}"`
 
     case "${RUN_CONFIGURE}" in
     *octave*|all)
