@@ -905,23 +905,25 @@ EOT
 
 WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
-ARG OCTAVE_REPO="https://www.octave.org/hg/octave"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/octave/.hg; then
-      if ! hg clone -b stable ${OCTAVE_REPO} ${BUILD_DIR}/octave; then
-        exit 1
-      fi
+    OCTAVE_TAR=`echo "cd gnu/octave/\ndir" | ftp anonymous@ftp.gnu.org | awk '/^-rw-r--r.* octave-.*\.tar.gz$/{print $9}' | awk -v FPAT='([^-. ]+)|' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar.gz/{ if ($2 >= majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 >= minorver) { minorver = $3; subver = $4; } else if ($2 == majorvor && $3 == minorver && $4 >= subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }'`
+    
+    if test -z "${OCTAVE_TAR}"; then
+      echo Octave release not found
+      exit 1
     fi
-
-    hg pull
-    hg update
-    hg checkout stable
-    # hg checkout release-9-2-0
-
-    if ! test -x ./configure; then
-      ./bootstrap
+    
+    echo Found octave release "${OCTAVE_TAR}"
+    echo "cd gnu/octave\nget ${OCTAVE_TAR}" | ftp "anonymous@ftp.gnu.org"
+    
+    if ! test -f ${OCTAVE_TAR}; then
+      echo Failed to get ${OCTAVE_TAR}
+      exit 1
     fi
+    
+    tar -zxvf "${OCTAVE_TAR}"
+    pushd `basename -s .tar.gz ${OCTAVE_TAR}`
 
     case "${RUN_CONFIGURE}" in
     *octave*|all)
