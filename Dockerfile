@@ -714,8 +714,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     wget https://ftp.gnu.org/gnu/octave/
     gawk -f "${BUILD_DIR}/octave-source.awk" index.html
 
-    exit 1
-    OCTAVE_TAR=$(gawk -v RS='[<>"]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }' index.html)
+    OCTAVE_TAR=`gawk -f "${BUILD_DIR}/octave-source.awk" index.html`
 
     if test -z "${OCTAVE_TAR}"; then
         echo Octave release not found
