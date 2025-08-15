@@ -38,7 +38,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq build-dep octave
-          sudo apt-get -yq install mercurial git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
+          sudo apt-get -yq install git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -54,12 +54,21 @@ jobs:
 
       - name: Install GNU-Octave
         run: |
-          OCTAVE_REPO="https://www.octave.org/hg/octave"
-          OCTAVE_BRANCH="stable"
-          hg clone -b ${OCTAVE_BRANCH} ${OCTAVE_REPO} "${RUNNER_TEMP}/octave"
+          OCTAVE_TAR=`echo "cd gnu/octave/\ndir" | ftp anonymous@ftp.gnu.org | awk '/^-rw-r--r.* octave-.*\.tar.gz$/{print $9}' | awk -v FPAT='([^-. ]+)|' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar.gz/{ if ($2 >= majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 >= minorver) { minorver = $3; subver = $4; } else if ($2 == majorvor && $3 == minorver && $4 >= subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }'`
+          if test -z "${OCTAVE_TAR}"; then
+            echo Octave release not found
+            exit 1
+          fi
+          echo Found octave release "${OCTAVE_TAR}"
+          mkdir "${RUNNER_TEMP}/octave"
           pushd "${RUNNER_TEMP}/octave"
-          hg checkout ${OCTAVE_BRANCH}
-          ./bootstrap
+          echo "cd gnu/octave\nget ${OCTAVE_TAR}" | ftp "anonymous@ftp.gnu.org"
+          if ! test -f ${OCTAVE_TAR}; then
+            echo Failed to get ${OCTAVE_TAR}
+            exit 1
+          fi
+          tar -zxvf "${OCTAVE_TAR}"
+          pushd `basename -r .tar.gz ${OCTAVE_TAR}`
           ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
           make -j${MBD_NUM_TASKS}
           make check
