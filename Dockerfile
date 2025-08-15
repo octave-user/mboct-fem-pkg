@@ -699,7 +699,7 @@ COPY Dockerfile ${BUILD_DIR}
 RUN <<EOT bash
     ls /
     x=`ls /`
-    echo x="${x}"
+    printf '%s\n' "${x}"
     if test -z "${x}"; then
       echo x is not defined
       exit 1
