@@ -699,23 +699,6 @@ COPY Dockerfile ${BUILD_DIR}
 COPY octave-source.awk ${BUILD_DIR}
 COPY octave-source.sh ${BUILD_DIR}
 
-# RUN <<EOT bash
-#     x="$(ls /)";
-#     if test -z "${x}"; then
-#       echo x is not defined;
-#       exit 1;
-#     else
-#       echo x is defined
-#     fi
-# EOT
-
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT bash
-    apt-get -yq update
-    apt-get -yq install wget gawk
-    "${BUILD_DIR}/octave-source.sh"
-EOT
-
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
 
 RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache
@@ -927,59 +910,7 @@ WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
-    export OCTAVE_TAR="$(printf 'dir\ncd gnu/octave/\ndir\n' | tnftp 'anonymous@ftp.gnu.org' | gawk -v RS='[[:space:]]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf(\"octave-%d.%d.%d.tar.gz\n\", majorver, minorver, subver); }')"
-
-    if test -z "${OCTAVE_TAR}"; then
-        echo Octave release not found
-        exit 1
-    fi
-
-    echo Found octave release "${OCTAVE_TAR}"
-
-    printf "cd gnu/octave\nget %s\n" "${OCTAVE_TAR}" | tnftp "anonymous@ftp.gnu.org"
-
-    if ! test -f "${OCTAVE_TAR}"; then
-        echo Failed to get "${OCTAVE_TAR}"
-        exit 1
-    fi
-
-    tar -zxvf "${OCTAVE_TAR}"
-
-    pushd `basename -s .tar.gz "${OCTAVE_TAR}"`
-
-    case "${RUN_CONFIGURE}" in
-    *octave*|all)
-      rm -f Makefile
-      ;;
-    none)
-      ;;
-    esac
-
-    if ! test -f Makefile; then
-      ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
-    fi
-
-    if ! make -j${MBD_NUM_TASKS} all; then
-      exit 1
-    fi
-
-    case "${RUN_TESTS}" in
-      *octave*|all)
-      if ! make check; then
-        exit 1
-      fi
-      ;;
-    none)
-      ;;
-    esac
-
-    if ! make install; then
-      exit 1
-    fi
-
-    if make dist-bzip2; then
-      cp octave-*.tar.bz2 ${SRC_DIR}/octave
-    fi
+    "${BUILD_DIR}/octave-source.sh"
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl
