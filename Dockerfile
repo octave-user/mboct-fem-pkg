@@ -714,7 +714,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     wget https://ftp.gnu.org/gnu/octave/
     gawk -f "${BUILD_DIR}/octave-source.awk" index.html
 
-    OCTAVE_TAR=`gawk -f "${BUILD_DIR}/octave-source.awk" index.html`
+    declare OCTAVE_TAR="$(gawk -f "${BUILD_DIR}/octave-source.awk" "index.html")"
 
     if test -z "${OCTAVE_TAR}"; then
         echo Octave release not found
