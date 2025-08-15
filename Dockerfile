@@ -689,6 +689,7 @@ ARG CXX=g++
 ARG CC=gcc
 ARG FC=gfortran
 ARG F77=gfortran
+ARG AWKPATH="${AWKPATH}:${BUILD_DIR}"
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
@@ -696,6 +697,8 @@ WORKDIR ${BUILD_DIR}
 COPY Dockerfile ${SRC_DIR}
 COPY Dockerfile ${BUILD_DIR}
 COPY octave-source.awk ${BUILD_DIR}
+COPY octave-source.sh ${BUILD_DIR}
+
 # RUN <<EOT bash
 #     x="$(ls /)";
 #     if test -z "${x}"; then
@@ -710,19 +713,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked <<EOT bash
     apt-get -yq update
     apt-get -yq install wget gawk
-
-    wget https://ftp.gnu.org/gnu/octave/
-    gawk -f "${BUILD_DIR}/octave-source.awk" index.html
-
-    declare OCTAVE_TAR="$(gawk -f "${BUILD_DIR}/octave-source.awk" "index.html")"
-
-    if test -z "${OCTAVE_TAR}"; then
-        echo Octave release not found
-        exit 1
-    fi
-
-    echo found "${OCTAVE_TAR}"
-    wget "https://ftp.gnu.org/gnu/octave/${OCTAVE_TAR}"
+    "${BUILD_DIR}/octave-source.sh"
 EOT
 
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
