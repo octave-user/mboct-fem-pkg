@@ -697,12 +697,21 @@ COPY Dockerfile ${SRC_DIR}
 COPY Dockerfile ${BUILD_DIR}
 
 RUN <<EOT bash
-    ls /
-    x=$(ls /)
-    printf '%s\n' "${x}"
+    ls /;
+    x="$(ls /)";
+    printf '%s\n' "${x}";
     if test -z "${x}"; then
-      echo x is not defined
-      exit 1
+      echo x is not defined;
+      exit 1;
+    fi
+EOT
+
+RUN <<EOT bash
+    export OCTAVE_TAR="$(printf 'dir\ncd gnu/octave/\ndir\n' | tnftp 'anonymous@ftp.gnu.org' | gawk -v RS='[[:space:]]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf(\"octave-%d.%d.%d.tar.gz\n\", majorver, minorver, subver); }')"
+
+    if test -z "${OCTAVE_TAR}"; then
+        echo Octave release not found
+        exit 1
     fi
 EOT
 
@@ -917,7 +926,7 @@ WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
-    export OCTAVE_TAR=$(printf 'dir\ncd gnu/octave/\ndir\n' | tnftp 'anonymous@ftp.gnu.org' | gawk -v RS='[[:space:]]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }')
+    export OCTAVE_TAR="$(printf 'dir\ncd gnu/octave/\ndir\n' | tnftp 'anonymous@ftp.gnu.org' | gawk -v RS='[[:space:]]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf(\"octave-%d.%d.%d.tar.gz\n\", majorver, minorver, subver); }')"
 
     if test -z "${OCTAVE_TAR}"; then
         echo Octave release not found
