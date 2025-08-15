@@ -919,16 +919,16 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
     rm -f tnftp.log
 
     echo Found octave release "${OCTAVE_TAR}"
-          
+
     printf "cd gnu/octave\nget ${OCTAVE_TAR}\n" | tnftp "anonymous@ftp.gnu.org"
-          
+
     if ! test -f ${OCTAVE_TAR}; then
         echo Failed to get ${OCTAVE_TAR}
         exit 1
     fi
-          
+
     tar -zxvf "${OCTAVE_TAR}"
-          
+
     pushd `basename -s .tar.gz ${OCTAVE_TAR}`
 
     case "${RUN_CONFIGURE}" in

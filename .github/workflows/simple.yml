@@ -62,29 +62,29 @@ jobs:
             cat tnftp.log
             exit 1
           fi
-          
+
           echo Found octave release "${OCTAVE_TAR}"
-          
+
           mkdir "${RUNNER_TEMP}/octave"
           pushd "${RUNNER_TEMP}/octave"
-          
+
           printf "cd gnu/octave\nget ${OCTAVE_TAR}\n" | tnftp "anonymous@ftp.gnu.org"
-          
+
           if ! test -f ${OCTAVE_TAR}; then
             echo Failed to get ${OCTAVE_TAR}
             exit 1
           fi
-          
+
           tar -zxvf "${OCTAVE_TAR}"
-          
+
           pushd `basename -s .tar.gz ${OCTAVE_TAR}`
-          
+
           ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
-          
+
           make -j${MBD_NUM_TASKS}
-          
+
           make check
-          
+
           sudo make install
 
       - name: Install MKL
