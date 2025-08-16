@@ -38,7 +38,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq build-dep octave
-          sudo apt-get -yq install tnftp git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
+          sudo apt-get -yq install wget git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -54,7 +54,14 @@ jobs:
 
       - name: Install GNU-Octave
         run: |
-          OCTAVE_TAR=`printf "dir\ncd gnu/octave/\ndir\n" | tnftp anonymous@ftp.gnu.org | gawk -v RS='[[:space:]]' -v FPAT='([^-.]+)' 'BEGIN{ majorver = -1; minorver = -1; subver = -1}; /^octave-[0-9]+\.[0-9]+\.[0-9]+\.tar\.gz$/{ if ($2 > majorver) { majorver = $2; minorver = $3; subver = $4; } else if ($2 == majorver && $3 > minorver) { minorver = $3; subver = $4; } else if ($2 == majorver && $3 == minorver && $4 > subver) { subver = $4; } }; END { if (majorver >= 0 && minorver >= 0 && subver >= 0) printf("octave-%d.%d.%d.tar.gz\n", majorver, minorver, subver); }'`
+          mkdir "${RUNNER_TEMP}/octave"
+          pushd "${RUNNER_TEMP}/octave"
+          
+          rm -f "index.html"
+
+          wget https://ftp.gnu.org/gnu/octave/
+
+          OCTAVE_TAR=`gawk -f "${GITHUB_WORKSPACE}/octave-source.awk" "index.html"`
 
           if test -z "${OCTAVE_TAR}"; then
             echo Octave release not found
@@ -63,19 +70,16 @@ jobs:
 
           echo Found octave release "${OCTAVE_TAR}"
 
-          mkdir "${RUNNER_TEMP}/octave"
-          pushd "${RUNNER_TEMP}/octave"
+          wget "https://ftp.gnu.org/gnu/octave/${OCTAVE_TAR}"
 
-          printf "cd gnu/octave\nget ${OCTAVE_TAR}\n" | tnftp "anonymous@ftp.gnu.org"
-
-          if ! test -f ${OCTAVE_TAR}; then
-            echo Failed to get ${OCTAVE_TAR}
+          if ! test -f "${OCTAVE_TAR}"; then
+            echo Failed to get "${OCTAVE_TAR}"
             exit 1
           fi
 
           tar -zxvf "${OCTAVE_TAR}"
 
-          pushd `basename -s .tar.gz ${OCTAVE_TAR}`
+          pushd `basename -s .tar.gz "${OCTAVE_TAR}"`
 
           ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
 
