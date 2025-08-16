@@ -38,7 +38,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq build-dep octave
-          sudo apt-get -yq install mercurial git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
+          sudo apt-get -yq install wget git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -54,15 +54,39 @@ jobs:
 
       - name: Install GNU-Octave
         run: |
-          OCTAVE_REPO="https://www.octave.org/hg/octave"
-          OCTAVE_BRANCH="stable"
-          hg clone -b ${OCTAVE_BRANCH} ${OCTAVE_REPO} "${RUNNER_TEMP}/octave"
+          mkdir "${RUNNER_TEMP}/octave"
           pushd "${RUNNER_TEMP}/octave"
-          hg checkout ${OCTAVE_BRANCH}
-          ./bootstrap
+          
+          rm -f "index.html"
+
+          wget https://ftp.gnu.org/gnu/octave/
+
+          OCTAVE_TAR=`gawk -f "${GITHUB_WORKSPACE}/octave-source.awk" "index.html"`
+
+          if test -z "${OCTAVE_TAR}"; then
+            echo Octave release not found
+            exit 1
+          fi
+
+          echo Found octave release "${OCTAVE_TAR}"
+
+          wget "https://ftp.gnu.org/gnu/octave/${OCTAVE_TAR}"
+
+          if ! test -f "${OCTAVE_TAR}"; then
+            echo Failed to get "${OCTAVE_TAR}"
+            exit 1
+          fi
+
+          tar -zxvf "${OCTAVE_TAR}"
+
+          pushd `basename -s .tar.gz "${OCTAVE_TAR}"`
+
           ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
+
           make -j${MBD_NUM_TASKS}
+
           make check
+
           sudo make install
 
       - name: Install MKL

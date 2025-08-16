@@ -689,12 +689,15 @@ ARG CXX=g++
 ARG CC=gcc
 ARG FC=gfortran
 ARG F77=gfortran
+ARG AWKPATH="${AWKPATH}:${BUILD_DIR}"
 
 WORKDIR ${SRC_DIR}
 WORKDIR ${BUILD_DIR}
 
 COPY Dockerfile ${SRC_DIR}
 COPY Dockerfile ${BUILD_DIR}
+COPY octave-source.awk ${BUILD_DIR}
+COPY octave-source.sh ${BUILD_DIR}
 
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
 
@@ -703,7 +706,7 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install mercurial git libopenmpi-dev \
+    apt-get -yq install ftp git libopenmpi-dev \
     libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libmetis-dev \
     libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
@@ -905,57 +908,9 @@ EOT
 
 WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
-ARG OCTAVE_REPO="https://www.octave.org/hg/octave"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/octave/.hg; then
-      if ! hg clone -b stable ${OCTAVE_REPO} ${BUILD_DIR}/octave; then
-        exit 1
-      fi
-    fi
-
-    hg pull
-    hg update
-    hg checkout stable
-    # hg checkout release-9-2-0
-
-    if ! test -x ./configure; then
-      ./bootstrap
-    fi
-
-    case "${RUN_CONFIGURE}" in
-    *octave*|all)
-      rm -f Makefile
-      ;;
-    none)
-      ;;
-    esac
-
-    if ! test -f Makefile; then
-      ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
-    fi
-
-    if ! make -j${MBD_NUM_TASKS} all; then
-      exit 1
-    fi
-
-    case "${RUN_TESTS}" in
-      *octave*|all)
-      if ! make check; then
-        exit 1
-      fi
-      ;;
-    none)
-      ;;
-    esac
-
-    if ! make install; then
-      exit 1
-    fi
-
-    if make dist-bzip2; then
-      cp octave-*.tar.bz2 ${SRC_DIR}/octave
-    fi
+    "${BUILD_DIR}/octave-source.sh"
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl
