@@ -17,6 +17,8 @@ echo found "${OCTAVE_TAR}"
 
 wget "https://ftp.gnu.org/gnu/octave/${OCTAVE_TAR}"
 
+cp "${OCTAVE_TAR}" "${SRC_DIR}/octave"
+
 tar -zxvf "${OCTAVE_TAR}"
 
 pushd $(basename -s .tar.gz "${OCTAVE_TAR}")
@@ -47,8 +49,4 @@ esac
 
 if ! make install; then
     exit 1
-fi
-
-if make dist-bzip2; then
-    cp octave-*.tar.bz2 ${SRC_DIR}/octave
 fi
