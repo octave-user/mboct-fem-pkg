@@ -98,6 +98,8 @@ Copyright<sup>&copy;</sup> 2019-2024
 
   - modal analysis of a plate [deformation](https://youtu.be/e2J_W5Y31VU)
 
+  - modal analysis of an elbow structure [deformation](https://youtu.be/Un6r08ueieM)
+
 # Elasto hydrodynamic lubricated bearings (MBDyn)
   - Deformation of an elasto-hydrodynamic lubricated diaphragm plain bearing by Norman Owen Freund 1995 [deformation](https://www.youtube.com/watch?v=YE0gnTt35WA), [pressure](https://youtu.be/akkelq04mrU), [fractional film content](https://www.youtube.com/watch?v=tipxGDXe1mI)
 
