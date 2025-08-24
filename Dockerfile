@@ -708,37 +708,37 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
     apt-get -yq install git libopenmpi-dev \
     libnlopt-dev libhdf5-dev libginac-dev wget libmetis-dev \
-    libnetcdf-c++4-dev parallel cmake clang++
+    libnetcdf-c++4-dev parallel cmake clang++-19 gmsh
 
-ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
-ARG GMSH_VERSION="stable"
-ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
+# ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
+# ARG GMSH_VERSION="stable"
+# ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
 
-WORKDIR ${SRC_DIR}/gmsh
-WORKDIR ${BUILD_DIR}/gmsh
+# WORKDIR ${SRC_DIR}/gmsh
+# WORKDIR ${BUILD_DIR}/gmsh
 
-RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
-    if ! test -f "${GMSH_TAR}"; then
-      if ! wget "${GMSH_URL}${GMSH_TAR}"; then
-        exit 1
-      fi
-    fi
+# RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
+#     if ! test -f "${GMSH_TAR}"; then
+#       if ! wget "${GMSH_URL}${GMSH_TAR}"; then
+#         exit 1
+#       fi
+#     fi
 
-    if ! test -d gmsh-*.*.*-Linux64/bin; then
-      if ! tar -zxvf "${GMSH_TAR}"; then
-        exit 1
-      fi
-    fi
+#     if ! test -d gmsh-*.*.*-Linux64/bin; then
+#       if ! tar -zxvf "${GMSH_TAR}"; then
+#         exit 1
+#       fi
+#     fi
 
-    if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
-      exit 1
-    fi
+#     if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
+#       exit 1
+#     fi
 
-    if ! gmsh --version; then
-      exit 1
-    fi
-    cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
-EOT
+#     if ! gmsh --version; then
+#       exit 1
+#     fi
+#     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
+# EOT
 
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
@@ -764,7 +764,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      if ! cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang; then
+      if ! cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-19 -DCMAKE_C_COMPILER=clang-19; then
         exit 1
       fi
     fi
@@ -956,7 +956,7 @@ WORKDIR ${SRC_DIR}/Trilinos
 WORKDIR ${BUILD_DIR}/Trilinos
 
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
-ARG TRILINOS_BRANCH="master"
+ARG TRILINOS_BRANCH="trilinos-release-14-4-0"
 ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
 ARG TRILINOS_PREFIX="/usr/local/"
 
@@ -1099,7 +1099,7 @@ EOT
 
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
-ARG MBD_CXXFLAGS="-march=native -mtune=native"
+ARG MBD_CXXFLAGS="-std=c++20"
 ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
 ARG MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
 ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
