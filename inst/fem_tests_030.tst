@@ -1,6 +1,7 @@
 ## fem_tests.m:30
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! close all;
 %! ## TEST 30
 %! ###############################################

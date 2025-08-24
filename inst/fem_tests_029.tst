@@ -1,6 +1,7 @@
 ## fem_tests.m:29
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! ## TEST 29
 %! close all;
 %! a = 40e-3;

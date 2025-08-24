@@ -1,6 +1,7 @@
 ## fem_tests.m:35
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! ## TEST 35
 %! state = rand("state");
 %! unwind_protect

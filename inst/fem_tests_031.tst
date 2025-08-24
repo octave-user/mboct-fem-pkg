@@ -1,6 +1,7 @@
 ## fem_tests.m:31
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! ## TEST 31
 %! close all;
 %! SI_unit_m = 1e-3;

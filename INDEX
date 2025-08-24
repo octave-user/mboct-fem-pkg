@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2022) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2025) Reinhard <octave-user@a1.net>
 
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -20,21 +20,30 @@ Preprocessing
         fem_pre_load_case_create_empty
         fem_pre_load_case_merge
         fem_pre_mat_isotropic
+        fem_pre_mat_rayleigh_damping
         fem_pre_mesh_constr_surf_to_node
         fem_pre_mesh_cube_create
         fem_pre_mesh_elem_angle
         fem_pre_mesh_elem_split
+        fem_pre_mesh_elem_type
+        fem_pre_mesh_elem_type_dim
+        fem_pre_mesh_elem_type_index
         fem_pre_mesh_extrude_surf
         fem_pre_mesh_groups_create
         fem_pre_mesh_import
+        fem_pre_mesh_merge
+        fem_pre_mesh_nodal_pressure_load
+        fem_pre_mesh_rbe2_from_surf
         fem_pre_mesh_rbe3_from_surf
         fem_pre_mesh_reorder
+        fem_pre_mesh_solid_to_surf
         fem_pre_mesh_struct_create
         fem_pre_mesh_unstruct_create
 
 Postprocessing
         fem_post_cms_expand
         fem_post_cms_expand_body
+        fem_post_cms_sol_export
         fem_post_cms_sol_import
         fem_post_cms_sol_merge
         fem_post_def_import
@@ -112,6 +121,7 @@ Assembly of global matrices
         FEM_VEC_STRAIN_TOTAL
         FEM_VEC_STRESS_CAUCH
         FEM_VEC_SURFACE_NORMAL_VECTOR
+        fem_ass_constraint_matrix
         fem_ass_dof_map
         fem_ass_matrix
 
@@ -149,12 +159,22 @@ Solvers
         fem_sol_check_func
         fem_sol_eigs
         fem_sol_eigsd
+        fem_sol_eigsd_post_proc
         fem_sol_factor
+        fem_sol_harmonic_gmres
+        fem_sol_harmonic_modal
+        fem_sol_harmonic_modal2
         fem_sol_linsolve
+        fem_sol_matrix_scale
         fem_sol_modal
         fem_sol_modal_damped
+        fem_sol_modal_fsi
+        fem_sol_modes_scale
+        fem_sol_modes_scale2
+        fem_sol_real_complex
         fem_sol_select
         fem_sol_static
+        fem_sol_static_incr
         fem_sol_transient_init
         fem_sol_transient_step
 
@@ -167,6 +187,7 @@ Substructuring
         fem_cms_export
         fem_cms_matrix_trans
         fem_cms_red_guyan
+        fem_cms_rigid_body_trans_mat
 
 Elastohydrodynamic bearings
         fem_ehd_pre_comp_mat_export
@@ -176,5 +197,5 @@ Elastohydrodynamic bearings
         fem_ehd_pre_comp_mat_struct
         fem_ehd_pre_comp_mat_unstruct
 
-Tests
-        fem_tests
+Other
+        fem_get_software_version

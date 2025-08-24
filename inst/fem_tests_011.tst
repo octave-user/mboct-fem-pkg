@@ -1,6 +1,7 @@
 ## fem_tests.m:11
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! ## TEST 11
 %! tol = eps^0.5;
 %! N = 10;

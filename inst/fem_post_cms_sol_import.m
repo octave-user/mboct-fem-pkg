@@ -31,6 +31,8 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
     print_usage();
   endif
 
+  pkg load mbdyn_util_oct;
+
   log_dat = mbdyn_post_load_log(output_file);
 
   [t, TStep, NIter, ResErr, SolErr, SolConv, OutputFlag] = mbdyn_post_load_output_out(output_file, 1024, false);

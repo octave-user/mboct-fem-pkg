@@ -1,6 +1,7 @@
 ## fem_tests.m:02
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! ## TEST 2
 %! close all;
 %! for iorient=1:10

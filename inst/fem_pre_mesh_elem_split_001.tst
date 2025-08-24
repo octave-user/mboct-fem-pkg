@@ -1,6 +1,7 @@
 ## fem_pre_mesh_elem_split.m:01
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;

@@ -706,8 +706,8 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install ftp git libopenmpi-dev \
-    libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev wget libmetis-dev \
+    apt-get -yq install git libopenmpi-dev \
+    libnlopt-dev libhdf5-dev libginac-dev wget libmetis-dev \
     libnetcdf-c++4-dev parallel cmake clang++-18 gmsh
 
 # ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
@@ -764,7 +764,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/tfel,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      if ! cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_C_COMPILER=clang-18; then
+      if ! cmake -S .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang; then
         exit 1
       fi
     fi

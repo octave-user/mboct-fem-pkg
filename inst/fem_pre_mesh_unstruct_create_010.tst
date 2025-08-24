@@ -1,6 +1,7 @@
 ## fem_pre_mesh_unstruct_create.m:10
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! ## TEST10
 %! close all;
 %! SI_unit_meter = 1e-3;

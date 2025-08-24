@@ -1,6 +1,7 @@
 ## fem_tests.m:05
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! #############################################################
 %! ## TEST 5: Test case for RBE3 element
 %! ## model of two brick elements connected to one rbe3 element at 0.5 * l

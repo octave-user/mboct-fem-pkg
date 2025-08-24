@@ -1,6 +1,7 @@
 ## fem_pre_mesh_elem_angle.m:01
 %!test
 %! try
+%! pkg load mbdyn_util_oct;
 %! a = 70e-3;
 %! b = 20e-3;
 %! c = 10e-3;

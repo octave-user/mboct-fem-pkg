@@ -70,12 +70,12 @@ In addition to that, mboct-fem-pkg has also functions for pre- and post-processi
   - Surface to node constraint elements for coupling of unrelated meshes
   - Lumped force/torque element
 
-Copyright<sup>&copy;</sup> 2019-2024
+Copyright<sup>&copy;</sup> 2019-2025
 
 [Reinhard](mailto:octave-user@a1.net)
 
 # Installation
-  See the workflow file https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml as an example on how to install the package.
+  See the workflow file [simple.yml](https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml) as an example on how to install the package.
 
 # Docker images
   Docker images may be pulled by one of the following commands:
