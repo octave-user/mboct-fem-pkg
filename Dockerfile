@@ -956,7 +956,7 @@ WORKDIR ${SRC_DIR}/Trilinos
 WORKDIR ${BUILD_DIR}/Trilinos
 
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
-ARG TRILINOS_BRANCH="trilinos-release-14-4-0"
+ARG TRILINOS_BRANCH="master"
 ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
 ARG TRILINOS_PREFIX="/usr/local/"
 
@@ -1098,7 +1098,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
 EOT
 
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
-ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
+ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/local/include/trilinos/kokkos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
 ARG MBD_CXXFLAGS="-std=c++20"
 ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
 ARG MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
@@ -1254,19 +1254,6 @@ USER ubuntu
 ENV LANG=C
 
 ## Run on Ubuntu with graphics enabled
-## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg:v2
+## xhost + local:docker; docker run --entrypoint octave --user root -it --network=host --env="HOME=$HOME" --workdir="$HOME" --volume="/run/user:/run/user:rw" --volume="$HOME:$HOME:rw" --rm -v /tmp/.X11-unix:/tmp/.X11-unix:rw -e DISPLAY=${DISPLAY} --env="XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}" --env=LIBGL_ALWAYS_INDIRECT=0 --env=LIBGL_ALWAYS_SOFTWARE=1 -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority octaveuser/mboct-fem-pkg:latest --persist --norc --eval 'pkg("local_list","/home/ubuntu/octave_packages");'; xhost -;
 
-# docker run \
-#   --rm \
-#   --network=host \
-#   --env="DISPLAY" \
-#   --env="HOME=$HOME" \
-#   --env="XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" \
-#   --user $(id -u):$(id -g) \
-#   --volume="$HOME:$HOME:rw" \
-#   --volume="/dev:/dev:rw" \
-#   --volume="/run/user:/run/user:rw" \
-#   --workdir="$HOME" \
-#   ghcr.io/octave-user/mboct-fem-pkg
-
-ENTRYPOINT [ "/usr/local/bin/octave", "--persist", "--eval", "pkg('load','mboct-fem-pkg')" ]
+ENTRYPOINT [ "/usr/local/bin/octave", "--persist", "--norc", "--eval", "pkg('local_list','/home/ubuntu/octave_packages');pkg('load','mboct-fem-pkg');" ]
