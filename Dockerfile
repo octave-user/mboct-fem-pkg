@@ -706,39 +706,39 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install git libopenmpi-dev \
+    apt-get -yq install git libopenmpi-dev libmumps-seq-dev \
     libnlopt-dev libhdf5-dev libginac-dev wget libmetis-dev \
-    libnetcdf-c++4-dev parallel cmake clang++-19 gmsh
+    libnetcdf-c++4-dev parallel cmake clang++-19
 
-# ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
-# ARG GMSH_VERSION="stable"
-# ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
+ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
+ARG GMSH_VERSION="stable"
+ENV GMSH_TAR="gmsh-${GMSH_VERSION}-Linux64.tgz"
 
-# WORKDIR ${SRC_DIR}/gmsh
-# WORKDIR ${BUILD_DIR}/gmsh
+WORKDIR ${SRC_DIR}/gmsh
+WORKDIR ${BUILD_DIR}/gmsh
 
-# RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
-#     if ! test -f "${GMSH_TAR}"; then
-#       if ! wget "${GMSH_URL}${GMSH_TAR}"; then
-#         exit 1
-#       fi
-#     fi
+RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
+    if ! test -f "${GMSH_TAR}"; then
+      if ! wget "${GMSH_URL}${GMSH_TAR}"; then
+        exit 1
+      fi
+    fi
 
-#     if ! test -d gmsh-*.*.*-Linux64/bin; then
-#       if ! tar -zxvf "${GMSH_TAR}"; then
-#         exit 1
-#       fi
-#     fi
+    if ! test -d gmsh-*.*.*-Linux64/bin; then
+      if ! tar -zxvf "${GMSH_TAR}"; then
+        exit 1
+      fi
+    fi
 
-#     if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
-#       exit 1
-#     fi
+    if ! install gmsh-*.*.*-Linux64/bin/gmsh /usr/local/bin; then
+      exit 1
+    fi
 
-#     if ! gmsh --version; then
-#       exit 1
-#     fi
-#     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
-# EOT
+    if ! gmsh --version; then
+      exit 1
+    fi
+    cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
+EOT
 
 WORKDIR ${SRC_DIR}/tfel
 WORKDIR ${BUILD_DIR}/tfel
@@ -956,7 +956,7 @@ WORKDIR ${SRC_DIR}/Trilinos
 WORKDIR ${BUILD_DIR}/Trilinos
 
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
-ARG TRILINOS_BRANCH="trilinos-release-14-4-0"
+ARG TRILINOS_BRANCH="master"
 ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
 ARG TRILINOS_PREFIX="/usr/local/"
 
@@ -1098,8 +1098,8 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
 EOT
 
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
-ARG MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
-ARG MBD_CXXFLAGS="-std=c++20"
+ARG MBD_CPPFLAGS="-I/usr/local/include -I/usr/local/include/kokkos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
+ARG MBD_CXXFLAGS=""
 ARG MBD_ARGS_WITH="--with-mfront --with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
 ARG MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
 ARG MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
@@ -1238,10 +1238,10 @@ WORKDIR ${BUILD_DIR}/octave-pkg
 RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     case "${RUN_TESTS}" in
     *mboct*|all)
-      make -C mboct-octave-pkg check_installed
-      make -C mboct-numerical-pkg check_installed
-      ## MBD_NUM_THREADS=1 make NUM_TASKS=2 -C mboct-mbdyn-pkg check_installed_parallel
-      MBD_NUM_THREADS=2 make -C mboct-fem-pkg check_installed
+      make MBD_NUM_TASKS=2 -C mboct-octave-pkg check_installed_parallel
+      make MBD_NUM_TASKS=2 -C mboct-numerical-pkg check_installed_parallel
+      make MBD_NUM_TASKS=2 -C mboct-mbdyn-pkg check_installed_parallel
+      make MBD_NUM_TASKS=2 -C mboct-fem-pkg check_installed_parallel
       ;;
     none)
       ;;
@@ -1254,19 +1254,6 @@ USER ubuntu
 ENV LANG=C
 
 ## Run on Ubuntu with graphics enabled
-## docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority --name mboct-fem-pkg1 mboct-fem-pkg:v2
+## xhost + local:docker; docker run --entrypoint octave --user root -it --network=host --env="HOME=$HOME" --workdir="$HOME" --volume="/run/user:/run/user:rw" --volume="$HOME:$HOME:rw" --rm -v /tmp/.X11-unix:/tmp/.X11-unix:rw -e DISPLAY=${DISPLAY} --env="XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}" --env=LIBGL_ALWAYS_INDIRECT=0 --env=LIBGL_ALWAYS_SOFTWARE=1 -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority octaveuser/mboct-fem-pkg:latest --persist --norc --eval 'pkg("local_list","/home/ubuntu/octave_packages");'; xhost -;
 
-# docker run \
-#   --rm \
-#   --network=host \
-#   --env="DISPLAY" \
-#   --env="HOME=$HOME" \
-#   --env="XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR" \
-#   --user $(id -u):$(id -g) \
-#   --volume="$HOME:$HOME:rw" \
-#   --volume="/dev:/dev:rw" \
-#   --volume="/run/user:/run/user:rw" \
-#   --workdir="$HOME" \
-#   ghcr.io/octave-user/mboct-fem-pkg
-
-ENTRYPOINT [ "/usr/local/bin/octave", "--persist", "--eval", "pkg('load','mboct-fem-pkg')" ]
+ENTRYPOINT [ "/usr/local/bin/octave", "--persist", "--norc", "--eval", "pkg('local_list','/home/ubuntu/octave_packages');pkg('load','mboct-fem-pkg');" ]

@@ -38,7 +38,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq build-dep octave
-          sudo apt-get -yq install wget git libopenmpi-dev libnlopt-dev libhdf5-dev libginac-dev libatomic-ops-dev libnetcdf-c++4-dev libmetis-dev cmake libgtest-dev
+          sudo apt-get -yq install wget git libopenmpi-dev libnlopt-dev libhdf5-dev libmumps-seq-dev libginac-dev libnetcdf-c++4-dev libmetis-dev cmake libgtest-dev
 
       # Runs a single command using the runners shell
       - name: Install Gmsh
@@ -56,7 +56,7 @@ jobs:
         run: |
           mkdir "${RUNNER_TEMP}/octave"
           pushd "${RUNNER_TEMP}/octave"
-          
+
           rm -f "index.html"
 
           wget https://ftp.gnu.org/gnu/octave/
@@ -96,7 +96,7 @@ jobs:
       - name: Install Trilinos
         run: |
           TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
-          TRILINOS_BRANCH="trilinos-release-14-4-0"
+          TRILINOS_BRANCH="master"
           TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
           TRILINOS_PREFIX="/usr/local/"
           git clone -b ${TRILINOS_BRANCH} ${TRILINOS_REPO} "${RUNNER_TEMP}/trilinos"
@@ -121,7 +121,7 @@ jobs:
 
       - name: Install MBDyn
         run: |
-          MBD_CPPFLAGS="-I/usr/local/include/trilinos -I/usr/include/suitesparse -I/usr/include/mkl"
+          MBD_CPPFLAGS="-I/usr/local/include -I/usr/local/include/kokkos -I/usr/include/suitesparse -I/usr/include/mkl"
           MBD_ARGS_WITH="--with-static-modules --with-arpack --with-umfpack --with-klu --with-arpack --with-lapack --without-metis --without-mpi --with-trilinos --with-pardiso --with-suitesparseqr --with-qrupdate --with-gtest"
           MBD_ARGS_ENABLE="--enable-octave --enable-multithread --disable-Werror --enable-install_test_progs"
           MBD_REPO="https://public.gitlab.polimi.it/DAER/mbdyn.git"
@@ -173,3 +173,10 @@ jobs:
       - name: Check mboct-fem-pkg
         run: |
           make NUM_TASKS=${MBD_NUM_TASKS} -C ${GITHUB_WORKSPACE} check_installed_parallel
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: runner-temp
+          path: ${{ runner.temp }}          

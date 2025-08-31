@@ -74,6 +74,9 @@ Copyright<sup>&copy;</sup> 2019-2025
 
 [Reinhard](mailto:octave-user@a1.net)
 
+# Function reference
+  - The function reference is automatically generated from the source code by means of Octave's [generate_html](https://octave.sourceforge.io/generate_html/index.html) package. See [overview.html](https://octave-user.github.io/mboct-fem-pkg/mboct-fem-pkg/overview.html).
+
 # Installation
   See the workflow file [simple.yml](https://github.com/octave-user/mboct-fem-pkg/blob/master/.github/workflows/simple.yml) as an example on how to install the package.
 
@@ -90,6 +93,9 @@ Copyright<sup>&copy;</sup> 2019-2025
     xhost + local:docker
 
     docker run -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY -h $HOSTNAME -v $HOME/.Xauthority:/home/ubuntu/.Xauthority  -it ghcr.io/octave-user/mboct-fem-pkg:master --gui
+
+# Youtube channel
+  You can find several videos at the [youtube channel](https://www.youtube.com/@nonlinearmultibodydynamics6802) of mboct-fem-pkg.
 
 # Applications
   - modal analysis of a spherical shell [deformation](https://youtu.be/SLhWWGIIvXU)
