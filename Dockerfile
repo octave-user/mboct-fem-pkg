@@ -819,7 +819,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/mgis,sharing=locked <<EOT bash
     cd build_dir
 
     if ! test -f Makefile; then
-      if ! cmake -DCMAKE_BUILD_TYPE=Release -S ..; then
+      if ! cmake -DTFELTests_DIR=/usr/local/share/tfel/cmake -DTFELException_DIR=/usr/local/share/tfel/cmake -DTFELUtilities_DIR=/usr/local/share/tfel/cmake -DTFELMaterial_DIR=/usr/local/share/tfel/cmake -DMTestFileGenerator_DIR=/usr/local/share/tfel/cmake -S ..; then
         exit 1
       fi
     fi
