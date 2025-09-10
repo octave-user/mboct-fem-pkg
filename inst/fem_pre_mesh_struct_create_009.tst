@@ -72,7 +72,7 @@
 %!   shift = sqrt(eps) * max(abs(diag(mat_ass.K))) / max(abs(diag(mat_ass.M)));
 %!   tol = eps^0.4;
 %!   alg = "shift-invert";
-%!   solver = "pastix";
+%!   solver = "pardiso";
 %!   num_threads = mbdyn_solver_num_threads_default();
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, shift, tol, alg, solver, num_threads);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);

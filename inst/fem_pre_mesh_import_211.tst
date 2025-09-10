@@ -200,7 +200,7 @@
 %!                                        load_case);
 %!   mat_ass.Dfs = complex(mat_ass.Dfs_re, mat_ass.Dfs_im);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   opt_sol.solver = "pardiso";
 %!   opt_sol.verbose = int32(0);
 %!   opt_sol.refine_max_iter = int32(250);
 %!   idxPhi = dof_map.ndof(:, 7);

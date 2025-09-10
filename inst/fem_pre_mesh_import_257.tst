@@ -85,7 +85,7 @@
 %!                                        load_case_dof);
 %!   rho = 0;
 %!   alg = "shift-invert";
-%!   solver = "pastix";
+%!   solver = "pardiso";
 %!   num_threads = mbdyn_solver_num_threads_default();
 %!   tol_modes = 1e-3;
 %!   fref = [22.1, 22.1, 25.6, 32.6, 32.6, 68.6, 68.6, 119.2, 119.2, 155.8, 167.8, 167.8, 182.9];

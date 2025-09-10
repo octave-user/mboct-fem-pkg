@@ -316,7 +316,7 @@
 %!   U = zeros(columns(mat_ass.Kk), numel(sol.t));
 %!   U(dof_map.idx_node, 1) = theta0;
 %!   opts.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opts.solver = "pastix";
+%!   opts.solver = "pardiso";
 %!   A = (1 / dt) * mat_ass.C + alpha * mat_ass.Kk;
 %!   Afact = fem_sol_factor(A, opts);
 %!   ti = [0, (2 - sqrt(eps)) * dt, 2 * dt, 3 * dt, (3 + sqrt(eps)) * dt, T];

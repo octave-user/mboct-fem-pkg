@@ -79,7 +79,7 @@
 %!                                 FEM_SCA_TOT_MASS], ...
 %!                                load_case);
 %!   opt_modal.rho = -(max(max(abs(mat_ass.K))) / max(max(abs(mat_ass.M))))^0.5;
-%!   opt_modal.solver = "pastix";
+%!   opt_modal.solver = "pardiso";
 %!   opt_modal.refine_max_iter = int32(250);
 %!   opt_modal.pre_scaling = true;
 %!   opt_modal.verbose = false;

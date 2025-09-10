@@ -183,7 +183,7 @@
 %!                                         FEM_VEC_SURFACE_NORMAL_VECTOR], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   opt_sol.solver = "pardiso";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.verbose = int32(0);
 %!   Keff = -omega^2 * mat_ass.Mfs + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + mat_ass.Kfs;

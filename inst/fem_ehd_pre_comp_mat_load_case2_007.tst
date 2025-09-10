@@ -84,7 +84,7 @@
 %!          mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!          fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!          cms_opt.nodes.modal.number = rows(mesh.nodes) + 1;
-%!          cms_opt.solver = "pastix";
+%!          cms_opt.solver = "pardiso";
 %!          switch (interfaces{j})
 %!            case "flexible"
 %!              cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 2;

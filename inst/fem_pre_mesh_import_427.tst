@@ -114,7 +114,7 @@
 %!                                        [FEM_MAT_STIFFNESS, ...
 %!                                         FEM_MAT_MASS], ...
 %!                                        load_case);
-%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, 0, sqrt(eps), "shift-invert", "pastix", int32(4));
+%!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, N, 0, sqrt(eps), "shift-invert", "pardiso", int32(4));
 %!   tol = 0.05;
 %!   assert_simple(sol_eig.f, fref, tol * max(fref));
 %! unwind_protect_cleanup

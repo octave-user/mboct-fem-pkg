@@ -208,7 +208,7 @@
 %!            + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);
 %!       Reff = complex(mat_ass.Rfs(:, 1), mat_ass.Rfs(:, 2));
 %!       opt_sol.number_of_threads = num_threads;
-%!       opt_sol.solver = "pastix";
+%!       opt_sol.solver = "pardiso";
 %!       opt_sol.compress_when = int32(0);
 %!       opt_sol.compress_min_ratio = 1;
 %!       opt_sol.compress_tolerance = 1e-2;

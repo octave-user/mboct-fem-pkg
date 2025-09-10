@@ -152,7 +152,7 @@
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
 %!   opt_sol.refine_max_iter = int32(250);
-%!   opt_sol.solver = "pastix";
+%!   opt_sol.solver = "pardiso";
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.verbose = int32(0);
 %!   Keff = -omega^2 * complex(mat_ass.Mfs_re, mat_ass.Mfs_im) + 1j * omega * complex(mat_ass.Dfs_re, mat_ass.Dfs_im) + complex(mat_ass.Kfs_re, mat_ass.Kfs_im);

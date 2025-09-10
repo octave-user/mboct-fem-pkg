@@ -74,7 +74,7 @@
 %!   rhosh = (2 * pi)^2;
 %!   tol = sqrt(eps);
 %!   alg = "shift-invert";
-%!   solver = "pastix";
+%!   solver = "pardiso";
 %!   num_threads = mbdyn_solver_num_threads_default();
 %!   [Phi, lambda, err] = fem_sol_eigs(mat_ass.Ka, mat_ass.Ma, N, rhosh, tol, alg, solver, num_threads);
 %!   sol.p = -Phi(dof_map.ndof, :) * diag(imag(lambda));

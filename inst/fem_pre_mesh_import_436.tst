@@ -232,7 +232,7 @@
 %!                                         FEM_VEC_LOAD_ACOUSTICS], ...
 %!                                        load_case);
 %!   opt_sol.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opt_sol.solver = "pastix";
+%!   opt_sol.solver = "pardiso";
 %!   opt_sol.refine_max_iter = int32(50);
 %!   opt_sol.pre_scaling = true;
 %!   opt_sol.verbose = int32(0);

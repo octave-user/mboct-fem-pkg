@@ -105,7 +105,7 @@
 %!   sol.theta(:, 1) = theta0;
 %!   A = (1 / dt) * C11 + alpha * Kk11;
 %!   opts.number_of_threads = mbdyn_solver_num_threads_default();
-%!   opts.solver = "pastix";
+%!   opts.solver = "pardiso";
 %!   Afact = fem_sol_factor(A, opts);
 %!   for i=2:numel(sol.t)
 %!     sol.theta(idx_i, i) = Afact \ (C11 * (sol.theta(idx_i, i - 1) / dt) - Kk11 * (sol.theta(idx_i, i - 1) * (1 - alpha)) - Kk12 * theta_b);
