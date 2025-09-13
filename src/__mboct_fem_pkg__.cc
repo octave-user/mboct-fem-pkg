@@ -1,4 +1,4 @@
-// Copyright (C) 2018(-2024) Reinhard <octave-user@a1.net>
+// Copyright (C) 2018(-2025) Reinhard <octave-user@a1.net>
 //
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -211,7 +211,8 @@ public:
      };
 
      enum ElementType {
-          ELEM_RBE3 = 0,
+          ELEM_RBE2 = 0,
+          ELEM_RBE3,
           ELEM_JOINT,
           ELEM_TYPE_COUNT,
           ELEM_NODOF = -1
@@ -1110,6 +1111,7 @@ public:
           ELEM_TET10,
           ELEM_TET20,
           ELEM_BEAM2,
+          ELEM_RBE2,
           ELEM_RBE3,
           ELEM_JOINT,
           ELEM_SPRING,
@@ -1214,6 +1216,7 @@ private:
           {ElementTypes::ELEM_TET10,                "tet10",          10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET20,                "tet20",          20, 20, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_BEAM2,                "beam2",           2,  2, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_RBE2,                 "rbe2",            2,  2, DofMap::ELEM_RBE2},
           {ElementTypes::ELEM_RBE3,                 "rbe3",            2, -1, DofMap::ELEM_RBE3},
           {ElementTypes::ELEM_JOINT,                "joints",          1, -1, DofMap::ELEM_JOINT},
           {ElementTypes::ELEM_SPRING,               "springs",         1, -1, DofMap::ELEM_NODOF},
@@ -2841,6 +2844,148 @@ public:
      }
 private:
      const RowVector omega;
+};
+
+class ElemRBE2: public Element
+{
+public:
+     ElemRBE2(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& lambda)
+          :Element(eltype, id, X, material, nodes), F(lambda) {
+
+          FEM_ASSERT(X.rows() == 6);
+          FEM_ASSERT(X.columns() == 2);
+          FEM_ASSERT(nodes.numel() == 2);
+          FEM_ASSERT(lambda.columns() == 3);
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+               StiffnessMatrix(mat, info, dof, eMatType);
+               break;
+          case MAT_STIFFNESS_TAU0:
+               StiffnessMatrixLambda0(mat, info, dof, eMatType);
+               break;
+          default:
+               return;
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override {
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+               return 2 * 3 * 9;
+          case MAT_STIFFNESS_TAU0:
+               return 3 * 3;
+          default:
+               return 0;
+          }
+     }
+
+     static constexpr bool bNeedMatrixInfo(Element::FemMatrixType eMatType) {
+          switch (eMatType) {
+          case MAT_STIFFNESS:
+          case MAT_STIFFNESS_FLUID_STRUCT_RE:
+          case MAT_STIFFNESS_SYM:
+          case MAT_STIFFNESS_SYM_L:
+               return true;
+          default:
+               return false;
+          }
+     }
+
+     static void AllocIntegrationRule(Element::FemMatrixType eMatType) {
+     }
+
+private:
+     void StiffnessMatrix(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          FEM_ASSERT(nodes.numel() == 2);
+
+          Array<octave_idx_type> ndofidx(dim_vector(9, 1), -1);
+          const octave_idx_type inode_idx_master = nodes.xelem(0).value() - 1;
+          const octave_idx_type inode_idx_slave = nodes.xelem(1).value() - 1;
+
+          for (octave_idx_type idof = 0; idof < 6; ++idof) {
+               ndofidx.xelem(idof) = dof.GetNodeDofIndex(inode_idx_master, DofMap::NDOF_DISPLACEMENT, idof);
+          }
+
+          for (octave_idx_type idof = 0; idof < 3; ++idof) {
+               ndofidx.xelem(6 + idof) = dof.GetNodeDofIndex(inode_idx_slave, DofMap::NDOF_DISPLACEMENT, idof);
+          }
+
+          Array<octave_idx_type> edofidx(dim_vector(3, 1));
+
+          for (octave_idx_type idof = 0; idof < 3; ++idof) {
+               edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_RBE2, id - 1, idof);
+          }
+
+          const double beta = mat.GetMatrixInfo(eMatType).beta;
+
+          Matrix B(3, 9, 0.);
+
+          // B = [eye(3), -skew(l), -eye(3)]
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               B.xelem(i, i) = 1.;
+               B.xelem(i, i + 6) = -1.;
+          }
+
+          FEM_ASSERT(X.columns() == 2);
+
+          B.xelem(0, 3 + 1) = -(X.xelem(2, 0) - X.xelem(2, 1));
+          B.xelem(0, 3 + 2) =   X.xelem(1, 0) - X.xelem(1, 1);
+          B.xelem(1, 3 + 0) =   X.xelem(2, 0) - X.xelem(2, 1);
+          B.xelem(1, 3 + 2) = -(X.xelem(0, 0) - X.xelem(0, 1));
+          B.xelem(2, 3 + 0) = -(X.xelem(1, 0) - X.xelem(1, 1));
+          B.xelem(2, 3 + 1) =   X.xelem(0, 0) - X.xelem(0, 1);
+
+          for (octave_idx_type j = 0; j < 9; ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    const double Bij = beta * B.xelem(i, j);
+                    mat.Insert(Bij, ndofidx.xelem(j), edofidx.xelem(i));
+                    mat.Insert(Bij, edofidx.xelem(i), ndofidx.xelem(j));
+               }
+          }
+     }
+
+     void StiffnessMatrixLambda0(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          FEM_ASSERT(nodes.numel() == 2);
+
+          Array<octave_idx_type> ndofidx(dim_vector(3, 1), -1);
+          const octave_idx_type inode_idx_master = nodes.xelem(0).value() - 1;
+
+          for (octave_idx_type idof = 0; idof < 3; ++idof) {
+               ndofidx.xelem(idof) = dof.GetNodeDofIndex(inode_idx_master, DofMap::NDOF_DISPLACEMENT, idof + 3);
+          }
+
+          ColumnVector l(3);
+
+          for (octave_idx_type i = 0; i < 3; ++i) {
+               l.xelem(i) = (X.xelem(i, 1) - X.xelem(i, 0));
+          }
+
+          Matrix K(3, 3);
+
+          K.xelem(0,0) = ((-2*F.xelem(2)*l.xelem(2))-2*F.xelem(1)*l.xelem(1))/2.0E+0;
+          K.xelem(1,0) = (F.xelem(0)*l.xelem(1)+l.xelem(0)*F.xelem(1))/2.0E+0;
+          K.xelem(2,0) = (F.xelem(0)*l.xelem(2)+l.xelem(0)*F.xelem(2))/2.0E+0;
+          K.xelem(0,1) = (F.xelem(0)*l.xelem(1)+l.xelem(0)*F.xelem(1))/2.0E+0;
+          K.xelem(1,1) = ((-2*F.xelem(2)*l.xelem(2))-2*F.xelem(0)*l.xelem(0))/2.0E+0;
+          K.xelem(2,1) = (F.xelem(1)*l.xelem(2)+l.xelem(1)*F.xelem(2))/2.0E+0;
+          K.xelem(0,2) = (F.xelem(0)*l.xelem(2)+l.xelem(0)*F.xelem(2))/2.0E+0;
+          K.xelem(1,2) = (F.xelem(1)*l.xelem(2)+l.xelem(1)*F.xelem(2))/2.0E+0;
+          K.xelem(2,2) = ((-2*F.xelem(1)*l.xelem(1))-2*F.xelem(0)*l.xelem(0))/2.0E+0;
+
+          mat.Insert(K, ndofidx, ndofidx);
+     }
+
+     const RowVector F;
 };
 
 struct BeamCrossSection {
@@ -15527,6 +15672,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                               }
                          }
                     } break;
+               case ElementTypes::ELEM_RBE2:
                case ElementTypes::ELEM_RBE3:
                     if (eDomain == DofMap::DO_STRUCTURAL || eDomain == DofMap::DO_FLUID_STRUCT) {
                          const octave_map m_rbe3 = m_elements.contents(iter_elem_type).map_value();
@@ -15560,18 +15706,22 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                                    return retval;
                               }
 
-                              const octave_idx_type idxnode = elnodes(0).value();
+                              for (octave_idx_type k = 0; k < elnodes.numel(); ++k) {
+                                   const octave_idx_type idxnode = elnodes(k).value();
 
-                              if (idxnode < 1 || idxnode > iNumNodes) {
-                                   error("invalid node index for mesh.elements.%s(%Ld).nodes(1)=%Ld",
-                                         oElemType.name,
-                                         static_cast<long long>(j),
-                                         static_cast<long long>(idxnode));
-                                   return retval;
-                              }
+                                   if (idxnode < 1 || idxnode > iNumNodes) {
+                                        error("invalid node index for mesh.elements.%s(%Ld).nodes(1)=%Ld",
+                                              oElemType.name,
+                                              static_cast<long long>(j),
+                                              static_cast<long long>(idxnode));
+                                        return retval;
+                                   }
 
-                              for (octave_idx_type k = 0; k < 6; ++k) {
-                                   dof_in_use.xelem(idxnode - 1, k) = true;
+                                   const octave_idx_type imaxdofnode = (k == 0) ? 6 : 3;
+
+                                   for (octave_idx_type l = 0; l < imaxdofnode; ++l) {
+                                        dof_in_use.xelem(idxnode - 1, l) = true;
+                                   }
                               }
                          }
                     } break;
@@ -15614,8 +15764,9 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
 
           octave_scalar_map m_edof;
 
-          enum {
+          enum ConstraintState {
                CS_JOINT = 0,
+               CS_RBE2,
                CS_RBE3,
                CS_COUNT
           };
@@ -15640,6 +15791,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                     const auto& oElemType = ElementTypes::GetType(i);
 
                     switch (oElemType.type) {
+                    case ElementTypes::ELEM_RBE2:
                     case ElementTypes::ELEM_RBE3:
                     case ElementTypes::ELEM_JOINT:
                     case ElementTypes::ELEM_SFNCON4:
@@ -15799,26 +15951,30 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                               m_edof.assign("joints", edof[CS_JOINT].dof);
                          }
                     } break;
+                    case ElementTypes::ELEM_RBE2:
                     case ElementTypes::ELEM_RBE3:
                          switch (s) {
                          case STAGE_RESERVE:
                               break;
-                         case STAGE_FILL:
-                              edof[CS_RBE3].elem_count = m_etype.numel();
-                              edof[CS_RBE3].maxdof = 6;
+                         case STAGE_FILL: {
+                              const ConstraintState iState = (oElemType.type == ElementTypes::ELEM_RBE2) ? CS_RBE2 : CS_RBE3;
 
-                              edof[CS_RBE3].dof.resize(dim_vector(edof[CS_RBE3].elem_count,
-                                                                  edof[CS_RBE3].maxdof),
+                              edof[iState].elem_count = m_etype.numel();
+                              edof[iState].maxdof = (oElemType.type == ElementTypes::ELEM_RBE2) ? 3 : 6;
+
+                              edof[iState].dof.resize(dim_vector(edof[iState].elem_count,
+                                                                  edof[iState].maxdof),
                                                        0);
 
-                              for (octave_idx_type j = 0; j < edof[CS_RBE3].elem_count; ++j) {
-                                   for (octave_idx_type l = 0; l < edof[CS_RBE3].maxdof; ++l) {
-                                        edof[CS_RBE3].dof.xelem(j + edof[CS_RBE3].elem_count * l) = ++icurrdof;
+                              for (octave_idx_type j = 0; j < edof[iState].elem_count; ++j) {
+                                   for (octave_idx_type l = 0; l < edof[iState].maxdof; ++l) {
+                                        edof[iState].dof.xelem(j + edof[iState].elem_count * l) = ++icurrdof;
                                         ++inumlambda;
                                    }
                               }
 
-                              m_edof.assign("rbe3", edof[CS_RBE3].dof);
+                              m_edof.assign(iState == CS_RBE2 ? "rbe2" : "rbe3", edof[iState].dof);
+                         }
                          } break;
                     default:
                          continue;
@@ -16251,6 +16407,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     char name[7];
                     octave_idx_type col_min, col_max;
                } rgDofEntries[] = {
+                    {DofMap::ELEM_RBE2, "rbe2", 3, 3},
                     {DofMap::ELEM_RBE3, "rbe3", 6, 6},
                     {DofMap::ELEM_JOINT, "joints", 1, -1}
                };
@@ -16324,6 +16481,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                     case Element::MAT_STIFFNESS_OMEGA:
                     case Element::MAT_STIFFNESS_OMEGA_DOT:
                     case Element::MAT_DAMPING_OMEGA:
+                         rgElemUse[ElementTypes::ELEM_RBE2] = true;
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
                          rgElemUse[ElementTypes::ELEM_SPRING] = true;
@@ -16575,6 +16733,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case DofMap::DO_FLUID_STRUCT:
                     switch (eMatType) {
                     case Element::MAT_STIFFNESS_FLUID_STRUCT_RE:
+                         rgElemUse[ElementTypes::ELEM_RBE2] = true;
                          rgElemUse[ElementTypes::ELEM_RBE3] = true;
                          rgElemUse[ElementTypes::ELEM_JOINT] = true;
                          rgElemUse[ElementTypes::ELEM_SPRING] = true;
@@ -16891,6 +17050,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                } break;
                case ElementTypes::ELEM_BEAM2:
                case ElementTypes::ELEM_RIGID_BODY:
+               case ElementTypes::ELEM_RBE2:
                case ElementTypes::ELEM_RBE3:
                case ElementTypes::ELEM_JOINT:
                case ElementTypes::ELEM_SPRING:
@@ -17048,6 +17208,33 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          FEM_ASSERT(ov_A.numel() == s_elem.numel());
                     }
 
+                    NDArray lambda; // Lagrange multipliers
+
+                    if (oElemType.type == ElementTypes::ELEM_RBE2) {
+                         auto iter_lambda = load_case.seek("lambda");
+
+                         if (iter_lambda != load_case.end()) {
+                              Cell ov_lambda = load_case.contents(iter_lambda);
+
+                              if (ov_lambda.isempty()) {
+                                   throw std::runtime_error("fem_ass_matrix: invalid size for load_case.lambda");
+                              }
+
+                              octave_scalar_map ma_lambda = ov_lambda.xelem(0).scalar_map_value();
+                              auto iter_rbe2 = ma_lambda.seek("rbe2");
+
+                              if (iter_rbe2 != ma_lambda.end()) {
+                                   octave_value ov_rbe2 = ma_lambda.contents(iter_rbe2);
+
+                                   if (ov_rbe2.isempty()) {
+                                        throw std::runtime_error("fem_ass_matrix: invalid size for load_case.lambda.rbe2");
+                                   }
+
+                                   lambda = ov_rbe2.array_value();
+                              }
+                         }
+                    }
+
                     Cell ov_weight;
 
                     if (oElemType.type == ElementTypes::ELEM_RBE3) {
@@ -17068,6 +17255,9 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          break;
                     case ElementTypes::ELEM_RIGID_BODY:
                          pElem.reset(new ElementBlock<ElemRigidBody>(oElemType.type, s_elem.numel()));
+                         break;
+                    case ElementTypes::ELEM_RBE2:
+                         pElem.reset(new ElementBlock<ElemRBE2>(oElemType.type, s_elem.numel()));
                          break;
                     case ElementTypes::ELEM_RBE3:
                          pElem.reset(new ElementBlock<ElemRBE3>(oElemType.type, s_elem.numel()));
@@ -17300,6 +17490,23 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                               const ColumnVector lcg = ov_lcg.column_vector_value();
 
                               pElem->Insert<ElemRigidBody>(i + 1, X, nullptr, elem_nodes, m, J, lcg, oElemData.oGravity.g);
+                         } break;
+                         case ElementTypes::ELEM_RBE2: {
+                              octave_idx_type ielem = ++dofelemid[oElemType.dof_type];
+
+                              RowVector lambda_elem(3, 0.);
+
+                              if (!lambda.isempty()) {
+                                   if (lambda.rows() < ielem || lambda.columns() < 3) {
+                                        throw std::runtime_error("invalid size for sol.lambda");
+                                   }
+
+                                   for (octave_idx_type j = 0; j < 3; ++j) {
+                                        lambda_elem.xelem(j) = lambda.xelem(ielem - 1, j);
+                                   }
+                              }
+
+                              pElem->Insert<ElemRBE2>(ielem, X, nullptr, elem_nodes, lambda_elem);
                          } break;
                          case ElementTypes::ELEM_RBE3: {
                               RowVector weight;
@@ -18172,15 +18379,17 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           }
 
           octave_scalar_map mat_info;
+          int32NDArray mat_type(dim_vector(matrix_type.numel(), 1));
           ColumnVector beta(matrix_type.numel());
 
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
                auto eMatType = static_cast<Element::FemMatrixType>(matrix_type.xelem(i).value());
                beta.xelem(i) = oMatAss.bHaveMatrixInfo(eMatType) ? oMatAss.GetMatrixInfo(eMatType).beta : 0.;
+               mat_type.xelem(i) = eMatType;
           }
 
           mat_info.assign("beta", beta);
-
+          mat_info.assign("mat_type", mat_type);
           retval.append(mat_info);
           retval.append(oMeshInfo.Get());
 

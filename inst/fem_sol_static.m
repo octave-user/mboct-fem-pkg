@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2019) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -40,5 +40,5 @@ function [sol, U] = fem_sol_static(mesh, dof_map, mat_ass, options)
 
   U = fem_sol_linsolve(mat_ass.K, mat_ass.R, options);
   sol.def = fem_post_def_nodal(mesh, dof_map, U);
+  sol.lambda = fem_post_lambda_elem(dof_map, mat_ass, U);
 endfunction
-

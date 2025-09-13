@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@ function dof_in_use = fem_cms_dof_active(mesh)
   if (nargin ~= 1 || nargout > 1)
     print_usage();
   endif
-  
+
   dof_in_use = false(rows(mesh.nodes), columns(mesh.nodes));
 
   persistent elem_types = {fem_pre_mesh_elem_type_dim(3).name};
@@ -39,6 +39,13 @@ function dof_in_use = fem_cms_dof_active(mesh)
     endif
   endfor
 
+  if (isfield(mesh.elements, "rbe2"))
+    for i=1:numel(mesh.elements.rbe2)
+      dof_in_use(mesh.elements.rbe2(i).nodes(1), 1:6) = true;
+      dof_in_use(mesh.elements.rbe2(i).nodes(2), 1:3) = true;
+    endfor
+  endif
+
   if (isfield(mesh.elements, "rbe3"))
     for i=1:numel(mesh.elements.rbe3)
       dof_in_use(mesh.elements.rbe3(i).nodes(1), 1:6) = true;
@@ -46,4 +53,3 @@ function dof_in_use = fem_cms_dof_active(mesh)
     endfor
   endif
 endfunction
-

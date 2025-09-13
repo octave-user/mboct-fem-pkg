@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2023) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -111,6 +111,10 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
 
   if (~isfield(options, "maxit"))
     options.maxit = 50000;
+  endif
+
+  if (isfield(options, "p"))
+    opt_eig.p = options.p;
   endif
 
   opt_eig.disp = options.disp;
@@ -228,4 +232,3 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
     error("eigs failed to converge: max(err)=%g > tol=%g", max(err), options.tolerance);
   endif
 endfunction
-

@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -33,6 +33,16 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
 
   if (nargout >= 2)
     dof_map.totdof = int32(0);
+
+    for i=1:numel(mesh_data)
+      if (~isfield(dof_map, "domain"))
+        dof_map.domain = mesh_data(i).dof_map.domain;
+      else
+        if (dof_map.domain ~= mesh_data(i).dof_map.domain)
+          error("dof_map.domain does not match");
+        endif
+      endif
+    endfor
   endif
 
   if (nargin < 2)
@@ -174,6 +184,36 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
     endif
   endfor
 
+  num_rbe2 = int32(0);
+
+  for i=1:numel(mesh_data)
+    if (isfield(mesh_data(i).mesh.elements, "rbe2"))
+      num_rbe2 += numel(mesh_data(i).mesh.elements.rbe2);
+    endif
+  endfor
+
+  if (num_rbe2)
+    mesh.elements.rbe2 = struct("nodes", cell(1, num_rbe2));
+    dof_map.edof.rbe2 = zeros(num_rbe2, 3, "int32");
+    curr_rbe2 = int32(0);
+
+    for i=1:numel(mesh_data)
+      if (isfield(mesh_data(i).mesh.elements, "rbe2"))
+        for j=1:numel(mesh_data(i).mesh.elements.rbe2)
+          ++curr_rbe2;
+          mesh.elements.rbe2(curr_rbe2).nodes = mesh_data(i).mesh.elements.rbe2(j).nodes + dof_map.submesh.offset.nodes(i);
+          if (nargout >= 2)
+            dof_map.edof.rbe2(curr_rbe2, :) = mesh_data(i).dof_map.edof.rbe2(j, :) + dof_map.submesh.offset.dof(i);
+          endif
+        endfor
+      endif
+    endfor
+
+    if (nargout >= 2)
+      dof_map.idx_lambda = [dof_map.idx_lambda(:); dof_map.edof.rbe2(:)];
+    endif
+  endif
+
   num_rbe3 = int32(0);
 
   for i=1:numel(mesh_data)
@@ -183,7 +223,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
   endfor
 
   if (num_rbe3)
-    mesh.elements.rbe3 = repmat(struct("nodes", [], "weight", []), 1, num_rbe3);
+    mesh.elements.rbe3 = struct("nodes", cell(1, num_rbe3), "weight", cell(1, num_rbe3));
     dof_map.edof.rbe3 = zeros(num_rbe3, 6, "int32");
     curr_rbe3 = int32(0);
 
@@ -201,7 +241,7 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
     endfor
 
     if (nargout >= 2)
-      dof_map.idx_lambda = [dof_map.idx_lambda(:), dof_map.edof.rbe3(:)];
+      dof_map.idx_lambda = [dof_map.idx_lambda(:); dof_map.edof.rbe3(:)];
     endif
   endif
 

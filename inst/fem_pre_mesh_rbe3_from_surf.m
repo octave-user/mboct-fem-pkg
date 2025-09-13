@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2023) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -25,7 +25,9 @@
 ##
 ## @var{master_node_idx} @dots{} array of master node indices for rbe3 elements
 ##
-## @var{elem_type} @dots{} the element type addressed by @var{group_id} (e.g. "tria6" or "iso4")
+## @var{elem_type} @dots{} the element type addressed by @var{group_id} (e.g. "tria6", "iso4", "quad8")
+##
+## @var{rbe3} @dots{} rigid body constraints
 ##
 ## @end deftypefn
 
@@ -68,4 +70,3 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     endfor
   endfor
 endfunction
-

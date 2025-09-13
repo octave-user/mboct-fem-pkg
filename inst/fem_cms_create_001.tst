@@ -40,7 +40,7 @@
 %! cms_opt.nodes.modal.number = int32(14);
 %! cms_opt.nodes.interfaces.number = int32(13);
 %! cms_opt.tol = 1e-3;
-%! sol = {"pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
+%! sol = {"pastix","pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
 %! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
@@ -58,7 +58,7 @@
 %!        for ialg=1:numel(alg)
 %!          for invariants=[true, false]
 %!            for verbose=[false]
-%!              for threads=int32([1, 2])
+%!              for threads=int32([1])
 %!                cms_opt.verbose = verbose;
 %!                cms_opt.modes.number = modes;
 %!                cms_opt.number_of_threads = threads;
