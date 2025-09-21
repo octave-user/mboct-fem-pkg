@@ -32,8 +32,8 @@
 %!     [U, lambda] = fem_sol_eigsd(K, D, M, N, opt_linsol, opts);
 %!     lambda_ref = [-d1 / (2 * m1) + [1, -1] * sqrt((d1 / (2 * m1))^2 - k1 / m1), ...
 %!                   -d2 / (2 * m2) + [1, -1] * sqrt((d2 / (2 * m2))^2 - k2 / m2)];
-%!     tol_lambda = eps^0.8;
-%!     tol_U = eps^0.7;
+%!     tol_lambda = eps^0.7;
+%!     tol_U = eps^0.6;
 %!     assert_simple(sort(lambda), sort(lambda_ref), tol_lambda * norm(lambda_ref));
 %!     for i=1:columns(U)
 %!       v1 = lambda(i)^2 * (M * U(:, i)) + lambda(i) * (D * U(:, i));

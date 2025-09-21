@@ -28,7 +28,7 @@
 ##
 ## @var{rho} @dots{} Shift for eigenvalues (e.g. needed if @var{K} is singular)
 ##
-## @var{algorithm} @dots{} Algorithm to use: One of ("generic", "unsymmetric", "shift-invert", "symmetric-inverse").
+## @var{algorithm} @dots{} Algorithm to use: One of ("generic", "unsymmetric", "shift-invert", "symmetric-inverse", "dense").
 ##
 ## @var{solver} @dots{} Linear solver to use: One of ("pastix", "pardiso", "mumps", "umfpack", "chol", "lu", "mldivide").
 ##
@@ -117,6 +117,10 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
     opt_eig.p = options.p;
   endif
 
+  if (N > columns(K))
+    N = columns(K);
+  endif
+
   opt_eig.disp = options.disp;
   opt_eig.maxit = options.maxit;
   opt_eig.isreal = true;
@@ -128,16 +132,18 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
     Ksh = K - options.rho * M;
   endif
 
-  Kfact = fem_sol_factor(Ksh, options);
-
   rndstate = rand("state");
 
   unwind_protect
     rand("seed", 0);
 
     switch (options.algorithm)
+      case "dense"
+        [U, mu] = eig(Ksh, M);
       case {"generic", "unsymmetric"}
         SIGMA = "LM";
+
+        Kfact = fem_sol_factor(Ksh, options);
 
         opt_eig.issym = eigs_sym(Kfact);
 
@@ -168,6 +174,8 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
 
         U = eigs_post(Kfact, U);
       case {"shift-invert", "symmetric-inverse"}
+        Kfact = fem_sol_factor(Ksh, options);
+
         opt_eig.v0 = rand(columns(M), 1);
         op{1} = @(x) M * x;
         op{2} = @(x) Kfact \ x;
@@ -189,7 +197,7 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
   mu = diag(mu).';
 
   switch (options.algorithm)
-    case "shift-invert"
+    case {"shift-invert", "dense"}
     otherwise
       mu = 1 ./ mu;
   endswitch
@@ -207,6 +215,9 @@ function [U, lambda, err] = fem_sol_eigs(K, M, N, varargin)
   endswitch
 
   [lambda, i_lambda] = sort(lambda);
+
+  lambda = lambda(1:N);
+  i_lambda = i_lambda(1:N);
 
   lambda2 = lambda2(i_lambda);
 

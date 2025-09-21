@@ -25,6 +25,10 @@
 ##
 ## @var{cms_opt}.nodes.interfaces @dots{} Struct array containing node numbers and node names for interface nodes accessible to MBDyn. Static mode shapes will be generated for those nodes.
 ##
+## @var{cms_opt}.modes.number @dots{} Number of normal modes to be considered
+##
+## @var{cms_opt}.element.name @dots{} MBDyn element name
+##
 ## @var{cms_opt}.verbose @dots{} Enable verbose output
 ##
 ## @var{cms_opt}.algorithm @dots{} Algorithm used for eigenanalysis

@@ -3,7 +3,6 @@
 %! try
 %! close all;
 %! f_run_post_proc = false;
-%! debug_on_error(true);
 %! SI_unit_m = 1e-3;
 %! SI_unit_kg = 1e3;
 %! SI_unit_s = 1e-1;
@@ -52,7 +51,7 @@
 %! cms_opt.algorithm = "shift-invert";
 %! cms_opt.invariants = true;
 %! cms_opt.refine_max_iter = int32(10);
-%! cms_opt.solver = "pardiso";
+%! cms_opt.solver = "umfpack";
 %! [mesh_cms, ...
 %!  mat_ass_cms, ...
 %!  dof_map_cms, ...

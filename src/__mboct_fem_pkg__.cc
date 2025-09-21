@@ -3458,14 +3458,7 @@ class ElemRigidBody: public Element
 {
 public:
      ElemRigidBody(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, double m, const Matrix& J, const ColumnVector& lcg, const Matrix& g)
-          :Element(eltype, id, X, material, nodes), m(m), J(J), skew_lcg(3, 3, 0.), g(g) {
-
-          skew_lcg.xelem(0 + 3 * 1) = -lcg.xelem(2);
-          skew_lcg.xelem(1 + 3 * 0) = lcg.xelem(2);
-          skew_lcg.xelem(0 + 3 * 2) = lcg.xelem(1);
-          skew_lcg.xelem(2 + 3 * 0) = -lcg.xelem(1);
-          skew_lcg.xelem(1 + 3 * 2) = -lcg.xelem(0);
-          skew_lcg.xelem(2 + 3 * 1) = lcg.xelem(0);
+          :Element(eltype, id, X, material, nodes), m(m), J(J), lcg(lcg), g(g) {
 
           FEM_ASSERT(X.rows() == 6);
           FEM_ASSERT(X.columns() == 1);
@@ -3485,6 +3478,10 @@ public:
           case MAT_MASS_SYM_L:
           case MAT_MASS_FLUID_STRUCT_RE:
                pfn = &ElemRigidBody::GlobalMassMatrix;
+               break;
+
+          case MAT_STIFFNESS_TAU0:
+               pfn = &ElemRigidBody::StiffnessMatrixTau0;
                break;
 
           case VEC_LOAD_CONSISTENT:
@@ -3507,6 +3504,9 @@ public:
           case MAT_MASS_SYM_L:
           case MAT_MASS_FLUID_STRUCT_RE:
                return 6 * 6;
+
+          case MAT_STIFFNESS_TAU0:
+               return 3 * 3;
 
           case VEC_LOAD_CONSISTENT:
           case VEC_LOAD_LUMPED:
@@ -3568,6 +3568,15 @@ public:
           FEM_ASSERT(Me.rows() == Mrows);
           FEM_ASSERT(Me.columns() == Mcols);
 
+          Matrix skew_lcg(3, 3, 0.);
+
+          skew_lcg.xelem(0 + 3 * 1) = -lcg.xelem(2);
+          skew_lcg.xelem(1 + 3 * 0) = lcg.xelem(2);
+          skew_lcg.xelem(0 + 3 * 2) = lcg.xelem(1);
+          skew_lcg.xelem(2 + 3 * 0) = -lcg.xelem(1);
+          skew_lcg.xelem(1 + 3 * 2) = -lcg.xelem(0);
+          skew_lcg.xelem(2 + 3 * 1) = lcg.xelem(0);
+
           for (octave_idx_type i = 0; i < 3; ++i) {
                Me.xelem(i + Mrows * i) = m;
           }
@@ -3595,6 +3604,15 @@ public:
           FEM_ASSERT(Re.rows() == 6);
           FEM_ASSERT(Re.columns() == g.columns());
 
+          Matrix skew_lcg(3, 3, 0.);
+
+          skew_lcg.xelem(0 + 3 * 1) = -lcg.xelem(2);
+          skew_lcg.xelem(1 + 3 * 0) = lcg.xelem(2);
+          skew_lcg.xelem(0 + 3 * 2) = lcg.xelem(1);
+          skew_lcg.xelem(2 + 3 * 0) = -lcg.xelem(1);
+          skew_lcg.xelem(1 + 3 * 2) = -lcg.xelem(0);
+          skew_lcg.xelem(2 + 3 * 1) = lcg.xelem(0);
+
           for (octave_idx_type j = 0; j < g.columns(); ++j) {
                for (octave_idx_type i = 0; i < 3; ++i) {
                     Re.xelem(i + 6 * j) = g.xelem(i + 3 * j) * m;
@@ -3612,12 +3630,37 @@ public:
           }
      }
 
+     void StiffnessMatrixTau0(MatrixAss& mat, const DofMap& dof) const {
+          FEM_ASSERT(nodes.numel() == 2);
+
+          Array<octave_idx_type> ndofidx(dim_vector(3, 1), -1);
+          const octave_idx_type inode_idx_master = nodes.xelem(0).value() - 1;
+
+          for (octave_idx_type idof = 0; idof < 3; ++idof) {
+               ndofidx.xelem(idof) = dof.GetNodeDofIndex(inode_idx_master, DofMap::NDOF_DISPLACEMENT, idof + 3);
+          }
+
+          Matrix K(3, 3); // -1/2*m*(skew(lcg)*skew(g)+skew(g)*skew(lcg))
+
+          K.xelem(0,0) = -m * ((-2*g.xelem(2)*lcg.xelem(2))-2*g.xelem(1)*lcg.xelem(1))/2.0E+0;
+          K.xelem(1,0) = -m * (g.xelem(0)*lcg.xelem(1)+lcg.xelem(0)*g.xelem(1))/2.0E+0;
+          K.xelem(2,0) = -m * (g.xelem(0)*lcg.xelem(2)+lcg.xelem(0)*g.xelem(2))/2.0E+0;
+          K.xelem(0,1) = -m * (g.xelem(0)*lcg.xelem(1)+lcg.xelem(0)*g.xelem(1))/2.0E+0;
+          K.xelem(1,1) = -m * ((-2*g.xelem(2)*lcg.xelem(2))-2*g.xelem(0)*lcg.xelem(0))/2.0E+0;
+          K.xelem(2,1) = -m * (g.xelem(1)*lcg.xelem(2)+lcg.xelem(1)*g.xelem(2))/2.0E+0;
+          K.xelem(0,2) = -m * (g.xelem(0)*lcg.xelem(2)+lcg.xelem(0)*g.xelem(2))/2.0E+0;
+          K.xelem(1,2) = -m * (g.xelem(1)*lcg.xelem(2)+lcg.xelem(1)*g.xelem(2))/2.0E+0;
+          K.xelem(2,2) = -m * ((-2*g.xelem(1)*lcg.xelem(1))-2*g.xelem(0)*lcg.xelem(0))/2.0E+0;
+
+          mat.Insert(K, ndofidx, ndofidx);
+     }
+
      static void AllocIntegrationRule(Element::FemMatrixType) {
      }
 private:
-     double m;
-     Matrix J;
-     Matrix skew_lcg;
+     const double m;
+     const Matrix J;
+     const ColumnVector lcg;
      const Matrix g;
 };
 
