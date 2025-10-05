@@ -706,9 +706,9 @@ RUN rm -f /etc/apt/apt.conf.d/docker-clean; echo 'Binary::apt::APT::Keep-Downloa
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get -yq update && apt-get -yq build-dep octave && \
-    apt-get -yq install git libopenmpi-dev libmumps-seq-dev \
+    apt-get -yq install git libtbb-dev libopenmpi-dev libmumps-seq-dev \
     libnlopt-dev libhdf5-dev libginac-dev wget libmetis-dev \
-    libnetcdf-c++4-dev parallel cmake clang++-19
+    libnetcdf-c++4-dev parallel clang++-19
 
 ARG GMSH_URL="http://www.gmsh.info/bin/Linux/"
 ARG GMSH_VERSION="stable"
@@ -738,6 +738,19 @@ RUN --mount=type=cache,target=${BUILD_DIR}/gmsh,sharing=locked <<EOT bash
       exit 1
     fi
     cp "${GMSH_TAR}" "${SRC_DIR}/gmsh"
+EOT
+
+WORKDIR ${BUILD_DIR}/cmake
+
+ARG CMAKE_PACKAGE=https://github.com/Kitware/CMake/releases/download/v4.1.2/cmake-4.1.2.tar.gz
+
+RUN --mount=type=cache,target=${BUILD_DIR}/cmake,sharing=locked <<EOT bash
+    wget "${CMAKE_PACKAGE}"
+    tar -zxvf cmake-4.1.2.tar.gz
+    cd cmake-4.1.2
+    ./bootstrap
+    make -j${MBD_NUM_TASKS}
+    make install
 EOT
 
 WORKDIR ${SRC_DIR}/tfel
