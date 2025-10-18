@@ -15,6 +15,22 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
+IMAGE="octaveuser/mboct-fem-pkg:latest"
+EXTRA_ARGS=""
+
+while ! test -z "$1"; do
+    case "$1" in
+        --image)
+            IMAGE="$2"
+            shift
+            ;;
+        *)
+            EXTRA_ARGS="${EXTRA_ARGS} $1"
+            ;;
+    esac
+    shift
+done
+
 xhost + local:docker
 
 docker run --entrypoint octave \
@@ -33,12 +49,12 @@ docker run --entrypoint octave \
        --env=LIBGL_ALWAYS_SOFTWARE=1 \
        --hostname=$HOSTNAME \
        --volume $HOME/.Xauthority:/home/ubuntu/.Xauthority \
-       octaveuser/mboct-fem-pkg:latest \
+       "${IMAGE}" \
        --persist \
        --norc \
        --eval 'pkg("local_list","/home/ubuntu/octave_packages");' \
        --eval 'pkg("load","mboct-fem-pkg");' \
-       $*
+       ${EXTRA_ARGS}
 
 rc=$?
 
