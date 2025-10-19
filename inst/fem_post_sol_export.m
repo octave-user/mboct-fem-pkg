@@ -43,7 +43,7 @@ function post_pro_geo = fem_post_sol_export(prefix, mesh, sol, options)
     eltypes = fem_pre_mesh_elem_type();
     ## Do not export surface elements by default
     ## because of issues related to the "Skin" plugin in Gmsh
-    options.elem_types = {eltypes([eltypes.dim] == 3).name, "beam2", "beam3"};
+    options.elem_types = {eltypes([eltypes.dim] == 3).name, "beam2", "beam3", "line2"};
   endif
 
   elem_types = fieldnames(mesh.elements);
