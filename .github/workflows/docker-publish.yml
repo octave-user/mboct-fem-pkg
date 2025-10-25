@@ -80,7 +80,7 @@ jobs:
           provenance: mode=max
           sbom: true
           context: .
-          build-args: MBOCT_FEM_PKG_BRANCH=${{ github.ref_name }}
+          build-args: MBOCT_FEM_PKG_BRANCH=${{ github.head_ref != '' && github.head_ref || github.ref_name }}
           push: ${{ github.event_name != 'pull_request' && github.ref_name == 'master' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
