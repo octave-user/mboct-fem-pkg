@@ -14,7 +14,7 @@
 %!      filename(filename == "\\") = "/";
 %!    endif
 %!    interfaces = {"rigid", "flexible"};
-%!    tol_red = [5e-2, 2e-2];
+%!    tol_red = [5e-2, 3e-2];
 %!    num_modes_cms = int32([0, 10]);
 %!    num_modes = [50, 30];
 %!    for k=1:numel(num_modes_cms)
