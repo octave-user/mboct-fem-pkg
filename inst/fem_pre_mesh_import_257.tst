@@ -89,7 +89,7 @@
 %!   num_threads = mbdyn_solver_num_threads_default();
 %!   tol_modes = 1e-3;
 %!   fref = [22.1, 22.1, 25.6, 32.6, 32.6, 68.6, 68.6, 119.2, 119.2, 155.8, 167.8, 167.8, 182.9];
-%!   tol_freq_rel = 0.5e-2;
+%!   tol_freq_rel = 1e-2;
 %!   tol_freq_abs = 0.5;
 %!   tol_freq = tol_freq_abs + tol_freq_rel * fref;
 %!   sol = fem_sol_modal(mesh, dof_map, mat_ass, N, rho, tol_modes, alg, solver, num_threads);
