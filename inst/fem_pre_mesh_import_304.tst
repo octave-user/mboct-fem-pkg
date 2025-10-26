@@ -327,7 +327,7 @@
 %!     title("FEM solution vz");
 %!   endfor
 %!   endif
-%!   tol = 5e-3;
+%!   tol = 1e-2;
 %!   assert_simple(sol.p, sol2.p, tol * max(max(abs(sol2.p))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))

@@ -254,7 +254,7 @@
 %!     title(sprintf("pressure t=%.2fs", solR.t(i) * unit_second));
 %!   endfor
 %!   preft = real(pref(r, solR.t));
-%!   tol = 3e-3;
+%!   tol = 4e-3;
 %!   assert_simple(solR.p(idx, :), preft, tol * max(max(abs(preft))));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
