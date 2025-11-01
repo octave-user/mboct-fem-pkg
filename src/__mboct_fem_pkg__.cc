@@ -2849,13 +2849,14 @@ private:
 class ElemRBE2: public Element
 {
 public:
-     ElemRBE2(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& lambda)
-          :Element(eltype, id, X, material, nodes), F(lambda) {
+     ElemRBE2(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const RowVector& lambda, const Matrix& U)
+          :Element(eltype, id, X, material, nodes), F(lambda), U(U) {
 
           FEM_ASSERT(X.rows() == 6);
           FEM_ASSERT(X.columns() == 2);
           FEM_ASSERT(nodes.numel() == 2);
           FEM_ASSERT(lambda.columns() == 3);
+          FEM_ASSERT(U.rows() == 3);
      }
 
      virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const override {
@@ -2868,6 +2869,11 @@ public:
                break;
           case MAT_STIFFNESS_TAU0:
                StiffnessMatrixLambda0(mat, info, dof, eMatType);
+               break;
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               LoadVector(mat, info, dof, eMatType);
                break;
           default:
                return;
@@ -2883,6 +2889,10 @@ public:
                return 2 * 3 * 9;
           case MAT_STIFFNESS_TAU0:
                return 3 * 3;
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
+               return 3 * U.columns();
           default:
                return 0;
           }
@@ -2894,6 +2904,9 @@ public:
           case MAT_STIFFNESS_FLUID_STRUCT_RE:
           case MAT_STIFFNESS_SYM:
           case MAT_STIFFNESS_SYM_L:
+          case VEC_LOAD_CONSISTENT:
+          case VEC_LOAD_LUMPED:
+          case VEC_LOAD_FLUID_STRUCT:
                return true;
           default:
                return false;
@@ -2954,6 +2967,22 @@ private:
           }
      }
 
+     void LoadVector(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
+          Array<octave_idx_type> edofidx(dim_vector(3, 1));
+
+          for (octave_idx_type idof = 0; idof < 3; ++idof) {
+               edofidx.xelem(idof) = dof.GetElemDofIndex(DofMap::ELEM_RBE2, id - 1, idof);
+          }
+
+          const double beta = mat.GetMatrixInfo(MAT_STIFFNESS).beta;
+
+          for (octave_idx_type j = 0; j < U.columns(); ++j) {
+               for (octave_idx_type i = 0; i < 3; ++i) {
+                    mat.Insert(beta * U.xelem(j * 3 + i), edofidx.xelem(i), j + 1);
+               }
+          }
+     }
+
      void StiffnessMatrixLambda0(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const {
           FEM_ASSERT(nodes.numel() == 2);
 
@@ -2986,6 +3015,7 @@ private:
      }
 
      const RowVector F;
+     const Matrix U;
 };
 
 struct BeamCrossSection {
@@ -17549,7 +17579,45 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                                    }
                               }
 
-                              pElem->Insert<ElemRBE2>(ielem, X, nullptr, elem_nodes, lambda_elem);
+                              Matrix U(3, iNumLoads, 0.); // By default displacement is set to zero
+
+                              const auto iter_rbe2 = load_case.seek(oElemType.name);
+
+                              if (iter_rbe2 != load_case.end()) {
+                                   const Cell ov_rbe2 = load_case.contents(iter_rbe2);
+
+                                   for (octave_idx_type m = 0; m < iNumLoads; ++m) {
+                                        if (ov_rbe2(m).isempty()) {
+                                             continue;
+                                        }
+
+                                        const octave_map s_rbe2(ov_rbe2(m).map_value());
+
+                                        const auto iter_U = s_rbe2.seek("U");
+
+                                        if (iter_U == s_elem.end()) {
+                                             throw std::runtime_error("fem_ass_matrix: missing field load_case."s + oElemType.name + ".U in argument load case");
+                                        }
+
+                                        const Cell ov_U(s_rbe2.contents(iter_U));
+
+                                        if (ov_U.numel() != s_elem.numel()) {
+                                             throw std::runtime_error("fem_ass_matrix: load_case."s + oElemType.name + " must have the same size like mesh.elements." + oElemType.name + " in argument load case");
+                                        }
+
+                                        const ColumnVector Uk(ov_U(i).column_vector_value());
+
+                                        if (Uk.rows() != 3) {
+                                             throw std::runtime_error("fem_ass_matrix: load_case."s + oElemType.name + ".U must be a real column vector with three rows");
+                                        }
+
+                                        for (octave_idx_type l = 0; l < 3; ++l) {
+                                             U.xelem(l + 3 * m) = Uk.xelem(l);
+                                        }
+                                   }
+                              }
+
+                              pElem->Insert<ElemRBE2>(ielem, X, nullptr, elem_nodes, lambda_elem, U);
                          } break;
                          case ElementTypes::ELEM_RBE3: {
                               RowVector weight;
