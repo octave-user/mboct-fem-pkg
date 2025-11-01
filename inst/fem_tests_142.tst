@@ -1,4 +1,5 @@
 %!test
+%! try
 %! ## double pendulum
 %! m1 = 1.2;
 %! l1 = 2.3;
@@ -77,3 +78,8 @@
 %! assert(sol_eig.f(2), fref(1), tol * fref(1));
 %! assert(sol_eig.f(3), fref(2), tol * fref(2));
 %! assert(sol_eig.f(4), fref(2), tol * fref(2));
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch
