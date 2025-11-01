@@ -1,4 +1,5 @@
 %!test
+%! try
 %! ## simple pendulum
 %! m = 1.2;
 %! l = 2.3;
@@ -35,3 +36,8 @@
 %! assert(sol_eig.f(1:2), repmat(fref, 1, 2), tol * fref);
 %! assert(mat_ass.M(1:2, 1:2), m * l^2 * eye(2), tol * m * l^2);
 %! assert(mat_ass.K(1:2, 1:2), m * g * l * eye(2), tol * m * g * l);
+%! catch
+%!   gtest_error = lasterror();
+%!   gtest_fail(gtest_error, evalin("caller", "__file"));
+%!   rethrow(gtest_error);
+%! end_try_catch
