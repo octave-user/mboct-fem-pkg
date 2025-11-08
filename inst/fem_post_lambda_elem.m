@@ -29,7 +29,7 @@ function lambda_elem = fem_post_lambda_elem(dof_map, mat_ass, U)
         mat_type_beta = [FEM_MAT_STIFFNESS, FEM_MAT_STIFFNESS_SYM, FEM_MAT_STIFFNESS_SYM_L];
       case FEM_DO_THERMAL
         mat_type_beta = FEM_MAT_THERMAL_COND;
-      case FEM_DO_ACOUSTIC
+      case FEM_DO_ACOUSTICS
         mat_type_beta = MAT_DAMPING_ACOUSTICS_RE;
       case FEM_DO_FLUID_STRUCT
         mat_type_beta = FEM_MAT_STIFFNESS_FLUID_STRUCT_RE;

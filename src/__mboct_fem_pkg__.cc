@@ -1176,6 +1176,13 @@ public:
           ELEM_ACOUSTIC_BND_TRIA6,
           ELEM_ACOUSTIC_BND_TRIA6H,
           ELEM_ACOUSTIC_BND_TRIA10,
+          ELEM_STRUCTURAL_BND_ISO4,
+          ELEM_STRUCTURAL_BND_QUAD8,
+          ELEM_STRUCTURAL_BND_QUAD8R,
+          ELEM_STRUCTURAL_BND_QUAD9,
+          ELEM_STRUCTURAL_BND_TRIA6,
+          ELEM_STRUCTURAL_BND_TRIA6H,
+          ELEM_STRUCTURAL_BND_TRIA10,
           ELEM_FLUID_STRUCT_ISO4,
           ELEM_FLUID_STRUCT_QUAD8,
           ELEM_FLUID_STRUCT_QUAD8R,
@@ -1281,6 +1288,13 @@ private:
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ACOUSTIC_BND_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_QUAD8R,  "quad8r",          8,  8, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_QUAD9,   "quad9",           9,  9, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_TRIA6,   "tria6",           6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_TRIA6H,  "tria6h",          6,  6, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_STRUCTURAL_BND_TRIA10,  "tria10",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_ISO4,    "iso4",            4,  4, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_QUAD8,   "quad8",           8,  8, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_FLUID_STRUCT_QUAD8R,  "quad8r",          8,  8, DofMap::ELEM_NODOF},
@@ -1407,6 +1421,7 @@ public:
           MAT_DAMPING_OMEGA              = (42u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
           VEC_SURFACE_AREA               = (43u << MAT_ID_SHIFT) | MAT_TYPE_VECTOR | DofMap::DO_STRUCTURAL,
           MAT_STIFFNESS_IM               = (44u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_STRUCTURAL,
+          SCA_EFFECTIVE_RADIATED_POWER_C = (45u << MAT_ID_SHIFT) | MAT_TYPE_MATRIX | DofMap::DO_FLUID_STRUCT,
           VEC_COLL_MASS                  = MAT_MASS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_STIFFNESS             = MAT_STIFFNESS | MAT_COLL_PNT_OUTPUT,
           VEC_COLL_HEAT_CAPACITY         = MAT_HEAT_CAPACITY | MAT_COLL_PNT_OUTPUT,
@@ -1417,7 +1432,7 @@ public:
           VEC_COLL_STIFF_FLUID_STRUCT    = MAT_STIFFNESS_FLUID_STRUCT_RE | MAT_COLL_PNT_OUTPUT
      };
 
-     static constexpr unsigned MAT_TYPE_COUNT = 44u;
+     static constexpr unsigned MAT_TYPE_COUNT = 45u;
 
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
           unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
@@ -1485,7 +1500,7 @@ protected:
      const ElementTypes::TypeId eltype;
      const octave_idx_type id;
      const Matrix X;
-     const Material* material;
+     const Material* const material;
      const int32NDArray nodes;
      mutable std::atomic<bool> bElemAssDone;
 };
@@ -1515,6 +1530,7 @@ public:
           VEC_EL_SURFACE_NORMAL_VECTOR_RE,   // surface normal vector at elements
           VEC_EL_COLLOC_POINTS_RE,           // Cartesion coordinates of collocation points
           VEC_EL_SURFACE_AREA_RE,            // Surface area needed as weight factors for RBE3 elements
+          SCA_ANGULAR_VELOCITY_RE,           // Angular velocity (e.g. related to complex displacement)
           FIELD_COUNT_RE,
           UNKNOWN_FIELD_RE = ~0u
      };
@@ -1569,7 +1585,8 @@ public:
                {SCA_NO_ACOUSTIC_PART_VEL_POT_RE, DT_REAL, 1, "Phi"},
                {SCA_NO_ACOUSTIC_PART_VEL_POT_C, DT_COMPLEX, 1, "Phi"},
                {SCA_NO_ACOUSTIC_PART_VEL_POT_P_RE, DT_REAL, 1, "PhiP"},
-               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, 1, "PhiP"}
+               {SCA_NO_ACOUSTIC_PART_VEL_POT_P_C, DT_COMPLEX, 1, "PhiP"},
+               {SCA_ANGULAR_VELOCITY_RE, DT_REAL, 1, "omega"}
           };
 
           struct DomainField {
@@ -1611,7 +1628,7 @@ public:
 
                const octave_value ovSol = sol.contents(iterSol);
 
-               if (!(ovSol.is_matrix_type() && (ovSol.isreal() || ovSol.iscomplex()))) {
+               if (!((ovSol.is_matrix_type() || ovSol.is_scalar_type()) && (ovSol.isreal() || ovSol.iscomplex()))) {
                     throw std::runtime_error("post proc data: field sol."s + pSol->name + " must be an real or complex array in argument sol");
                }
 
@@ -1766,6 +1783,8 @@ private:
                                                              "p",
                                                              "v",
                                                              "vn",
+                                                             "I",
+                                                             "P",
                                                              "tau",
                                                              "epsilon",
                                                              "theta",
@@ -1775,7 +1794,11 @@ private:
                                                              "Inv4",
                                                              "Inv5",
                                                              "Inv8",
-                                                             "Inv9"};
+                                                             "Inv9",
+                                                             "n",
+                                                             "colloc",
+                                                             "surface",
+                                                             "omega"}; // FIXME: add missing field names
 };
 
 template <typename T>
@@ -11895,6 +11918,148 @@ public:
      }
 };
 
+class StructuralBoundary: public SurfaceElement {
+public:
+     StructuralBoundary(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes)
+          :SurfaceElement(eltype, id, X, material, nodes) {
+
+          FEM_ASSERT(X.rows() == 3);
+     }
+
+     virtual void Assemble(MatrixAss& mat, MeshInfo& info, const DofMap& dof, const FemMatrixType eMatType) const override final {
+          // unused
+     }
+
+     virtual void PostProcElem(FemMatrixType eMatType, PostProcData& oSolution) const final override {
+          switch (eMatType) {
+          case SCA_EFFECTIVE_RADIATED_POWER_C:
+               EquivalentRadiatedPower<std::complex<double>>(oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE, eltype),
+                                                             oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE, eltype),
+                                                             eMatType,
+                                                             oSolution.GetField(PostProcData::SCA_ANGULAR_VELOCITY_RE, ElementTypes::ELEM_TYPE_UNKNOWN),
+                                                             oSolution.GetField(PostProcData::VEC_NO_STRUCT_DISPLACEMENT_C, ElementTypes::ELEM_TYPE_UNKNOWN));
+               break;
+          default:
+               break;
+          }
+     }
+
+     template <typename T>
+     void EquivalentRadiatedPower(NDArray& I,
+                                  NDArray& P,
+                                  FemMatrixType eMatType,
+                                  const NDArray& omega,
+                                  const typename PostProcTypeTraits<T>::NDArrayType& U) const {
+          typedef typename PostProcTypeTraits<T>::MatrixType TMatrix;
+          typedef typename PostProcTypeTraits<T>::ColumnVectorType TColumnVector;
+
+          using namespace std::complex_literals;
+
+          const octave_idx_type iNumNodes = nodes.numel();
+          const octave_idx_type iNumLoads = U.ndims() >= 3 ? U.dim3() : 1;
+          const octave_idx_type iNumNodesMesh = U.dim1();
+          const octave_idx_type iNumElem = I.dim1();
+
+          FEM_ASSERT(U.ndims() >= 2);
+          FEM_ASSERT(U.dim2() == 6);
+          FEM_ASSERT(omega.ndims() == 2);
+          FEM_ASSERT(omega.dim1() == 1);
+          FEM_ASSERT(omega.dim2() == iNumLoads);
+          FEM_ASSERT(U.ndims() >= 2);
+          FEM_ASSERT(I.ndims() >= 2);
+          FEM_ASSERT(I.dim2() == iNumNodes);
+          FEM_ASSERT(I.ndims() >= 3 ? I.dim3() == iNumLoads : iNumLoads == 1);
+          FEM_ASSERT(P.dim2() == iNumLoads);
+          FEM_ASSERT(P.dim1() == I.dim1());
+
+          TMatrix Ue(iNumNodes, 3 * iNumLoads);
+
+          for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+               for (octave_idx_type j = 0; j < 3; ++j) {
+                    for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                         const octave_idx_type inode = nodes.xelem(i).value() - 1;
+                         Ue.xelem(i + iNumNodes * (k * 3 + j)) = U.xelem(inode + iNumNodesMesh * (j + 6 * k));
+                    }
+               }
+          }
+
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumEvalPoints = oIntegRule.iGetNumEvalPoints();
+
+          ColumnVector rv(iNumDir);
+
+          Matrix HA(iNumEvalPoints, iNumNodes);
+          ColumnVector n1(3), n2(3), n(3);
+          TColumnVector Uik(3);
+          Matrix dHf_dr(3, 3 * iNumNodes), dHf_ds(3, 3 * iNumNodes);
+          Matrix Ig(iNumEvalPoints, iNumLoads);
+          RowVector Pe(iNumLoads, 0.);
+          const double c = material->SpeedOfSound();
+          const double rho = material->Density();
+          constexpr double sigma = 1.;
+
+          for (octave_idx_type i = 0; i < iNumEvalPoints; ++i) {
+               const double alphai = oIntegRule.dGetWeight(i);
+
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               DisplacementInterpMatrixDerR(rv, dHf_dr);
+               DisplacementInterpMatrixDerS(rv, dHf_ds);
+               ScalarInterpMatrix(rv, HA, i);
+
+               SurfaceTangentVector(dHf_dr, n1);
+               SurfaceTangentVector(dHf_ds, n2);
+
+               const double detJA = SurfaceNormalVectorUnit(n1, n2, n);
+
+               for (octave_idx_type k = 0; k < iNumLoads; ++k) {
+                    for (octave_idx_type l = 0; l < 3; ++l) {
+                         T Uikl{};
+
+                         for (octave_idx_type m = 0; m < iNumNodes; ++m) {
+                              Uikl += HA.xelem(i + iNumEvalPoints * m) * Ue.xelem(m + iNumNodes * (k * 3 + l));
+                         }
+
+                         Uik.xelem(l) = Uikl;
+                    }
+
+                    T Unik{};
+
+                    for (octave_idx_type l = 0; l < 3; ++l) {
+                         Unik += n.xelem(l) * Uik.xelem(l);
+                    }
+
+                    const double Iik = 0.5 * rho * c * sigma * std::pow(std::abs(1i * omega.xelem(k) * Unik), 2);
+
+                    Ig.xelem(i + iNumEvalPoints * k) = Iik;
+                    Pe.xelem(k) += Iik * alphai * detJA;
+               }
+          }
+
+          const Matrix Ie = HA.solve(Ig);
+
+          FEM_ASSERT(Ie.rows() == iNumNodes);
+          FEM_ASSERT(Ie.columns() == iNumLoads);
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               for (octave_idx_type i = 0; i < iNumNodes; ++i) {
+                    I.xelem(id - 1 + iNumElem * (i + iNumNodes * j)) = Ie.xelem(i + iNumNodes * j);
+               }
+          }
+
+          for (octave_idx_type j = 0; j < iNumLoads; ++j) {
+               P.xelem(id - 1 + iNumElem * j) = Pe.xelem(j);
+          }
+     }
+
+     virtual octave_idx_type iGetWorkSpaceSize(FemMatrixType eMatType) const override final {
+          return 0;
+     }
+};
+
 class HeatSource: public SurfaceElement {
 public:
      HeatSource(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const Matrix& qe, octave_idx_type colidx)
@@ -12081,6 +12246,14 @@ typedef SurfaceElementImpl<ShapeQuad9, AcousticBoundary> AcousticBoundaryQuad9;
 typedef SurfaceElementImpl<ShapeTria6, AcousticBoundary> AcousticBoundaryTria6;
 typedef SurfaceElementImpl<ShapeTria6H, AcousticBoundary> AcousticBoundaryTria6H;
 typedef SurfaceElementImpl<ShapeTria10, AcousticBoundary> AcousticBoundaryTria10;
+
+typedef SurfaceElementImpl<ShapeIso4, StructuralBoundary> StructuralBoundaryIso4;
+typedef SurfaceElementImpl<ShapeQuad8, StructuralBoundary> StructuralBoundaryQuad8;
+typedef SurfaceElementImpl<ShapeQuad8r, StructuralBoundary> StructuralBoundaryQuad8r;
+typedef SurfaceElementImpl<ShapeQuad9, StructuralBoundary> StructuralBoundaryQuad9;
+typedef SurfaceElementImpl<ShapeTria6, StructuralBoundary> StructuralBoundaryTria6;
+typedef SurfaceElementImpl<ShapeTria6H, StructuralBoundary> StructuralBoundaryTria6H;
+typedef SurfaceElementImpl<ShapeTria10, StructuralBoundary> StructuralBoundaryTria10;
 
 typedef SurfaceElementImpl<ShapeIso4, FluidStructInteract> FluidStructInteractIso4;
 typedef SurfaceElementImpl<ShapeQuad8, FluidStructInteract> FluidStructInteractQuad8;
@@ -13238,6 +13411,113 @@ void InsertAcousticBoundary(const ElementTypes::TypeId eltype, const Matrix& nod
           FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
 
           const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
+
+          if (materialk->GetMaterialType() != Material::MAT_TYPE_FLUID) {
+               throw std::runtime_error("acoustic boundary: invalid material type in matrix mesh.materials.acoustic_boundary."s + pszElemName + " in argument mesh");
+          }
+
+          pElem->Insert(k + 1,
+                        Xk,
+                        materialk,
+                        elnodes.index(idx_vector::make_range(k, 1, 1),
+                                      idx_vector::make_range(0, 1, iNumNodesElem)));
+     }
+
+     rgElemBlocks.emplace_back(std::move(pElem));
+}
+
+template <typename BoundaryElemType>
+void InsertStructuralBoundary(const ElementTypes::TypeId eltype, const Matrix& nodes, const octave_scalar_map& elements, const std::vector<Material>& rgMaterials, const octave_scalar_map& materials, const char* const pszElemName, const octave_idx_type iNumNodesElem, vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks) {
+     const octave_idx_type iNumNodes = nodes.rows();
+     const auto iter_boundary = elements.seek("structural_boundary");
+
+     if (iter_boundary == elements.end()) {
+          return;
+     }
+
+     const octave_value ov_boundary = elements.contents(iter_boundary);
+
+     if (!(ov_boundary.isstruct() && ov_boundary.numel() == 1)) {
+          throw std::runtime_error("structural boundary: mesh.elements.structural_boundary must be a scalar struct");
+     }
+
+     const octave_scalar_map m_boundary = ov_boundary.scalar_map_value();
+
+     const auto iter_elem_type = m_boundary.seek(pszElemName);
+
+     if (iter_elem_type == m_boundary.end()) {
+          return;
+     }
+
+     const octave_value ov_elnodes = m_boundary.contents(iter_elem_type);
+
+     if (!(ov_elnodes.is_matrix_type() && ov_elnodes.isinteger() && ov_elnodes.columns() == iNumNodesElem)) {
+          throw std::runtime_error("structural boundary: mesh.elements.structural_boundary."s + pszElemName + " must be an integer matrix");
+     }
+
+     const int32NDArray elnodes = ov_elnodes.int32_array_value();
+     const octave_idx_type iNumElem = elnodes.rows();
+
+     NDArray X(dim_vector(3, iNumNodesElem, iNumElem));
+
+     for (octave_idx_type k = 0; k < iNumElem; ++k) {
+          for (octave_idx_type l = 0; l < iNumNodesElem; ++l) {
+               const octave_idx_type inode = elnodes.xelem(k + iNumElem * l).value() - 1;
+
+               if (inode < 0 || inode >= nodes.rows()) {
+                    throw std::runtime_error("structural boundary: node index out of range in mesh.elements.structural_boundary."s + pszElemName);
+               }
+
+               for (octave_idx_type m = 0; m < 3; ++m) {
+                    X.xelem(m + 3 * (l + iNumNodesElem * k)) = nodes.xelem(inode + iNumNodes * m);
+               }
+          }
+     }
+
+     const auto iter_bnd_mat = materials.seek("structural_boundary");
+
+     if (iter_bnd_mat == materials.end()) {
+          throw std::runtime_error("structural boundary: mesh.materials.structural_boundary is not defined");
+     }
+
+     const octave_scalar_map m_bnd_mat = materials.contents(iter_bnd_mat).scalar_map_value();
+
+     const auto iter_elem_type_mat = m_bnd_mat.seek(pszElemName);
+
+     if (iter_elem_type_mat == m_bnd_mat.end()) {
+          throw std::runtime_error("structural boundary: mesh.materials.structural_boundary."s + pszElemName + " is not defined");
+     }
+
+     const int32NDArray elem_mat = m_bnd_mat.contents(iter_elem_type_mat).int32_array_value();
+
+     if (elem_mat.numel() != iNumElem) {
+          throw std::runtime_error("structural boundary: invalid number of rows for matrix mesh.materials.structural_boundary."s + pszElemName + " in argument mesh");
+     }
+
+     const octave_idx_type inum_materials = rgMaterials.size();
+
+     for (octave_idx_type i = 0; i < elem_mat.numel(); ++i) {
+          const octave_idx_type imaterial = elem_mat.xelem(i);
+
+          if (imaterial <= 0 || imaterial > inum_materials) {
+               throw std::runtime_error("structural boundary: invalid index in matrix mesh.materials.structural_boundary."s + pszElemName + " in argument mesh");
+          }
+     }
+
+     std::unique_ptr<ElementBlock<BoundaryElemType> > pElem{new ElementBlock<BoundaryElemType>(eltype)};
+
+     pElem->Reserve(iNumElem);
+
+     for (octave_idx_type k = 0; k < iNumElem; ++k) {
+          const Matrix Xk = X.linear_slice(3 * iNumNodesElem * k, 3 * iNumNodesElem * (k + 1)).reshape(dim_vector(3, iNumNodesElem));
+
+          FEM_ASSERT(static_cast<size_t>(elem_mat.xelem(k).value() - 1) < rgMaterials.size());
+
+          const Material* const materialk = &rgMaterials[elem_mat.xelem(k).value() - 1];
+
+          if (materialk->GetMaterialType() != Material::MAT_TYPE_FLUID) {
+               throw std::runtime_error("structural boundary: invalid material type in matrix mesh.materials.structural_boundary."s + pszElemName + " in argument mesh");
+          }
 
           pElem->Insert(k + 1,
                         Xk,
@@ -15113,6 +15393,106 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
      return mapAcoustics;
 }
 
+template <typename T>
+octave_scalar_map StructuralPostProc(const array<bool, ElementTypes::iGetNumTypes()>& rgElemUse,
+                                     const vector<std::unique_ptr<ElementBlockBase> >& rgElemBlocks,
+                                     const octave_scalar_map& elements,
+                                     const Matrix& nodes,
+                                     PostProcData& oSolution,
+                                     const Element::FemMatrixType eMatType,
+                                     const ParallelOptions& oParaOpt) {
+     const octave_idx_type iNumLoads = oSolution.GetNumSteps();
+     octave_scalar_map mapAcoustics;
+
+     const auto iter_bound = elements.seek("structural_boundary");
+
+     if (iter_bound != elements.end()) {
+          octave_scalar_map mapAcousticIntensityElem, mapSoundPowerElem;
+          const octave_scalar_map mapStructuralBoundary = elements.contents(iter_bound).scalar_map_value();
+
+          for (octave_idx_type j = 0; j < ElementTypes::iGetNumTypes(); ++j) {
+               const ElementTypes::TypeInfo& oElemType = ElementTypes::GetType(j);
+
+               if (!rgElemUse[oElemType.type]) {
+                    continue;
+               }
+
+               switch (oElemType.type) {
+               case ElementTypes::ELEM_STRUCTURAL_BND_ISO4:
+               case ElementTypes::ELEM_STRUCTURAL_BND_QUAD8:
+               case ElementTypes::ELEM_STRUCTURAL_BND_QUAD8R:
+               case ElementTypes::ELEM_STRUCTURAL_BND_QUAD9:
+               case ElementTypes::ELEM_STRUCTURAL_BND_TRIA6:
+               case ElementTypes::ELEM_STRUCTURAL_BND_TRIA6H:
+               case ElementTypes::ELEM_STRUCTURAL_BND_TRIA10: {
+                    const auto iter_elem = mapStructuralBoundary.seek(oElemType.name);
+
+                    if (iter_elem == mapStructuralBoundary.end()) {
+                         continue;
+                    }
+
+                    const int32NDArray elem_nodes = mapStructuralBoundary.contents(iter_elem).int32_array_value();
+
+                    const octave_idx_type iNumElem = elem_nodes.rows();
+                    const octave_idx_type iNumNodesElem = elem_nodes.columns();
+
+                    switch (eMatType) {
+                    case Element::SCA_EFFECTIVE_RADIATED_POWER_C:
+                         oSolution.SetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE,
+                                            oElemType.type,
+                                            NDArray(dim_vector(iNumElem,
+                                                               iNumNodesElem,
+                                                               iNumLoads),
+                                                    0.));
+                         oSolution.SetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE,
+                                            oElemType.type,
+                                            NDArray(dim_vector(iNumElem,
+                                                               iNumLoads),
+                                                    0.));
+                         break;
+                    default:
+                         FEM_ASSERT(0);
+                    }
+
+                    for (const auto& pElemBlock: rgElemBlocks) {
+                         if (pElemBlock->GetElementType() == oElemType.type) {
+                              pElemBlock->PostProcElem(eMatType, oSolution, oParaOpt);
+                         }
+                    }
+
+                    switch (eMatType) {
+                    case Element::SCA_EFFECTIVE_RADIATED_POWER_C:
+                         mapAcousticIntensityElem.assign(oElemType.name,
+                                                         oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_INTENSITY_RE,
+                                                                            oElemType.type));
+                         mapSoundPowerElem.assign(oElemType.name,
+                                                  oSolution.GetField(PostProcData::SCA_EL_ACOUSTIC_SOUND_POWER_RE,
+                                                                     oElemType.type));
+                         break;
+                    default:
+                         FEM_ASSERT(0);
+                    };
+
+               } break;
+
+               default:
+                    break;
+               }
+          }
+
+          switch (eMatType) {
+          case Element::SCA_EFFECTIVE_RADIATED_POWER_C:
+                mapAcoustics.assign("I", mapAcousticIntensityElem);
+               mapAcoustics.assign("P", mapSoundPowerElem);
+               break;
+          default:
+               FEM_ASSERT(0);
+          }
+     }
+
+     return mapAcoustics;
+}
+
 // PKG_ADD: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("fem_pre_mesh_constr_surf_to_node", "__mboct_fem_pkg__.oct");
@@ -15181,6 +15561,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_ADD: autoload("FEM_VEC_COLL_STIFF_ACOUSTICS", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_COLL_MASS_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
 // PKG_ADD: autoload("FEM_VEC_COLL_STIFF_FLUID_STRUCT", "__mboct_fem_pkg__.oct");
+// PKG_ADD: autoload("FEM_SCA_EFFECTIVE_RADIATED_POWER_C", "__mboct_fem_pkg__.oct");
 
 // PKG_DEL: autoload("fem_ass_matrix", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("fem_ass_dof_map", "__mboct_fem_pkg__.oct", "remove");
@@ -15249,6 +15630,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
 // PKG_DEL: autoload("FEM_VEC_COLL_STIFF_ACOUSTICS", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_COLL_MASS_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
 // PKG_DEL: autoload("FEM_VEC_COLL_STIFF_FLUID_STRUCT", "__mboct_fem_pkg__.oct", "remove");
+// PKG_DEL: autoload("FEM_SCA_EFFECTIVE_RADIATED_POWER_C", "__mboct_fem_pkg__.oct", "remove");
 
 DEFUN_DLD(fem_ass_dof_map, args, nargout,
           "-*- texinfo -*-\n"
@@ -16937,6 +17319,16 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ACOUSTIC_BND_TRIA10] = true;
                          break;
 
+                    case Element::SCA_EFFECTIVE_RADIATED_POWER_C:
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_ISO4] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_QUAD8] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_QUAD8R] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_QUAD9] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_TRIA6] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_TRIA6H] = true;
+                         rgElemUse[ElementTypes::ELEM_STRUCTURAL_BND_TRIA10] = true;
+                         break;
+
                     default:
                          break;
                     }
@@ -18049,6 +18441,27 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_ACOUSTIC_BND_TRIA10:
                     InsertAcousticBoundary<AcousticBoundaryTria10>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
                     break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_ISO4:
+                    InsertStructuralBoundary<StructuralBoundaryIso4>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_QUAD8:
+                    InsertStructuralBoundary<StructuralBoundaryQuad8>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_QUAD8R:
+                    InsertStructuralBoundary<StructuralBoundaryQuad8r>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_QUAD9:
+                    InsertStructuralBoundary<StructuralBoundaryQuad9>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_TRIA6:
+                    InsertStructuralBoundary<StructuralBoundaryTria6>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_TRIA6H:
+                    InsertStructuralBoundary<StructuralBoundaryTria6H>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
+               case ElementTypes::ELEM_STRUCTURAL_BND_TRIA10:
+                    InsertStructuralBoundary<StructuralBoundaryTria10>(oElemType.type, nodes, elements, rgMaterials, materials, oElemType.name, oElemType.max_nodes, rgElemBlocks);
+                    break;
                default:
                     FEM_ASSERT(false);
                }
@@ -18465,19 +18878,29 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          throw std::runtime_error("fem_ass_matrix: argument sol is not optional for selected matrix type in argument matrix_type");
                     }
 
-                    switch (eMatType) {
-                    case Element::VEC_PARTICLE_VELOCITY:
-                    case Element::SCA_ACOUSTIC_INTENSITY:
-                         retval.append(AcousticPostProc<double>(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
-                         break;
-                    case Element::VEC_PARTICLE_VELOCITY_C:
-                    case Element::SCA_ACOUSTIC_INTENSITY_C:
-                         retval.append(AcousticPostProc<std::complex<double> >(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
+                    switch (eDomain) {
+                    case DofMap::DO_ACOUSTICS:
+                    case DofMap::DO_FLUID_STRUCT:
+                         switch (eMatType) {
+                         case Element::VEC_PARTICLE_VELOCITY:
+                         case Element::SCA_ACOUSTIC_INTENSITY:
+                              retval.append(AcousticPostProc<double>(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
+                              break;
+                         case Element::VEC_PARTICLE_VELOCITY_C:
+                         case Element::SCA_ACOUSTIC_INTENSITY_C:
+                              retval.append(AcousticPostProc<std::complex<double> >(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
+                              break;
+                         default:
+                              FEM_ASSERT(false);
+                         }
                          break;
                     default:
                          FEM_ASSERT(false);
                     }
                } break;
+               case Element::SCA_EFFECTIVE_RADIATED_POWER_C:
+                    retval.append(StructuralPostProc<std::complex<double> >(rgElemUse, rgElemBlocks, elements, nodes, oSolution, eMatType, oParaOpt));
+                    break;
                case Element::VEC_SURFACE_NORMAL_VECTOR:
                     retval.append(SurfaceNormalVectorPostProc(rgElemUse, rgElemBlocks, elements, nodes, oSolution, oParaOpt));
                     break;
@@ -18589,6 +19012,7 @@ DEFINE_GLOBAL_CONSTANT(Element, VEC_COLL_MASS_ACOUSTICS, "collocation points of 
 DEFINE_GLOBAL_CONSTANT(Element, VEC_COLL_STIFF_ACOUSTICS, "collocation points of acoustic stiffness matrix")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_COLL_MASS_FLUID_STRUCT, "collocation points of fluid structure interaction mass matrix")
 DEFINE_GLOBAL_CONSTANT(Element, VEC_COLL_STIFF_FLUID_STRUCT, "collocation points of fluid structure interaction stiffness matrix")
+DEFINE_GLOBAL_CONSTANT(Element, SCA_EFFECTIVE_RADIATED_POWER_C, "acoustic intensity and sound power for complex solutions assuming unity radiation efficiency")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_STRUCTURAL, "structural domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_THERMAL, "thermal domain")
 DEFINE_GLOBAL_CONSTANT(DofMap, DO_ACOUSTICS, "acoustic domain")

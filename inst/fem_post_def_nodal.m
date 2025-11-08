@@ -1,4 +1,4 @@
-## Copyright (C) 2011(-2021) Reinhard <octave-user@a1.net>
+## Copyright (C) 2011(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -14,8 +14,9 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} @var{def} = fem_post_def_nodal(@var{mesh}, @var{dof_map}, @var{U})
-## Map a solution vector or load vector @var{U} back to nodal displacements @var{def}
+## @deftypefn {Function File} @var{X} = fem_post_def_nodal(@var{mesh}, @var{dof_map}, @var{U})
+## @deftypefnx {} [@var{def}, @var{Phi}] = fem_post_def_nodal(@dots{})
+## Map a solution vector or load vector @var{U} back to nodal unknowns @var{X}
 ##
 ## @var{mesh} @dots{} Finite element mesh data structure
 ##
@@ -23,19 +24,52 @@
 ##
 ## @var{U} @dots{} Solution vector or load vector
 ##
+## @var{X} @dots{} Nodal unknowns (e.g. displacement, temperature, pressure)
+##
+## @var{Phi} @dots{} Complex velocity potential for fluid structure interaction problems
+##
 ## @end deftypefn
 
-function def = fem_post_def_nodal(mesh, dof_map, U)
-  if (nargin ~= 3 || nargout > 1)
+function [X, Phi] = fem_post_def_nodal(mesh, dof_map, U)
+  if (nargin ~= 3 || nargout > 2)
     print_usage();
   endif
 
-  def = zeros(rows(dof_map.ndof), columns(dof_map.ndof), columns(U));
+  switch (dof_map.domain)
+    case {FEM_DO_STRUCTURAL, FEM_DO_FLUID_STRUCT}
+      num_cols = 6;
+    case {FEM_DO_THERMAL, FEM_DO_ACOUSTICS}
+      num_cols = 1;
+    otherwise
+      error("unkown value for dof_map.domain");
+  endswitch
+
+  X = fem_post_def_core(dof_map, U, 1, num_cols);
   
-  for i=1:columns(dof_map.ndof)
-    dof_idx = dof_map.ndof(:, i);
-    idx_dof_idx_ne_0 = find(dof_idx > 0);
-    def(idx_dof_idx_ne_0, i, :) = U(dof_idx(idx_dof_idx_ne_0), :);
-  endfor
+  if (nargout >= 2)
+    switch (dof_map.domain)
+      case FEM_DO_FLUID_STRUCT
+        Phi = fem_post_def_core(dof_map, U, 7, 7);
+      otherwise
+        print_usage();
+    endswitch
+  endif
 endfunction
 
+function X = fem_post_def_core(dof_map, U, col_start, col_end)
+  num_cols = col_end - col_start + 1;
+  
+  X = zeros(rows(dof_map.ndof), num_cols, columns(U));
+
+  j = 0;
+  
+  for i=col_start:col_end
+    dof_idx = dof_map.ndof(:, i);
+    idx_dof_idx_ne_0 = find(dof_idx > 0);
+    X(idx_dof_idx_ne_0, ++j, :) = U(dof_idx(idx_dof_idx_ne_0), :);
+  endfor
+
+  if (num_cols == 1)
+    X = reshape(X, [size(X, 1), size(X, 3)]);
+  endif  
+endfunction

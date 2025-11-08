@@ -113,6 +113,8 @@
 %!   mesh.elements.fluid_struct_interface.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_fsi).elements, :);
 %!   mesh.elements.acoustic_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_boundary).elements, :);
 %!   mesh.materials.acoustic_boundary.tria6 = repmat(int32(2), rows(mesh.elements.acoustic_boundary.tria6), 1);
+%!   mesh.elements.structural_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_fsi).elements, :);
+%!   mesh.materials.structural_boundary.tria6 = repmat(int32(2), rows(mesh.elements.structural_boundary.tria6), 1);
 %!   empty_cell = cell(1, 2);
 %!   load_case = struct("loads", empty_cell, "loaded_nodes", empty_cell);
 %!   tol = sqrt(eps) * d1;
@@ -124,7 +126,7 @@
 %!   load_case(1).loads = [zeros(1, 2), real(Fz), zeros(1, 3)];
 %!   load_case(2).loaded_nodes = node_id_load;
 %!   load_case(2).loads = [zeros(1, 2), imag(Fz), zeros(1, 3)];
-%!   P = T = zeros(1, numel(f));
+%!   P = ERP = T = zeros(1, numel(f));
 %!   ITER = repmat(intmax(), 1, 2);
 %!   MAXITER = 20;
 %!   TOL = eps^0.5;
@@ -239,17 +241,17 @@
 %!       KeffPhi = Keff * Phi;
 %!       f1 = norm(KeffPhi - Reff);
 %!       f2 = norm(KeffPhi + Reff);
-%!       sol.Phi = sol.PhiP = zeros(rows(mesh.nodes), 1);
-%!       idx = dof_map.ndof(:, 7);
-%!       iact = find(idx > 0);
-%!       sol.Phi(iact) = Phi(idx(iact));
-%!       sol.PhiP(iact) = 1j * omega * Phi(idx(iact));
+%!       [sol.def, sol.Phi] = fem_post_def_nodal(mesh, dof_map, Phi);
+%!       sol.PhiP = 1j * omega * sol.Phi;
 %!       sol.p = -sol.PhiP;
+%!       sol.omega = omega;
 %!       [sol.particle_velocity, ...
-%!        sol.acoustic_intensity] = fem_ass_matrix(mesh, ...
+%!        sol.acoustic_intensity, ...
+%!        sol.effective_radiated_power] = fem_ass_matrix(mesh, ...
 %!                                                 dof_map, ...
 %!                                                 [FEM_VEC_PARTICLE_VELOCITY_C, ...
-%!                                                  FEM_SCA_ACOUSTIC_INTENSITY_C], ...
+%!                                                  FEM_SCA_ACOUSTIC_INTENSITY_C, ...
+%!                                                  FEM_SCA_EFFECTIVE_RADIATED_POWER_C], ...
 %!                                                 load_case, ...
 %!                                                 sol);
 %!       z = rho2 * c2 * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according Jont Allen equation 5.11.9
@@ -258,7 +260,8 @@
 %!       R = abs(mean(mean((p - z * vx) ./ (p + z * vx))));
 %!       T(i) = 1 ./ (1 - R.^2);
 %!       P(i) = sum(sol.acoustic_intensity.P.tria6);
-%!       fprintf(stderr, "%d/%d %.2fHz P=%.2fdB TL=%.2fdB res=%.2e iter=%d/%d\n", i, numel(f), f(i) * unit_second^-1, 10 * log10(P(i) / P0), 10 * log10(T(i)), f1 / f2, ITER(1), ITER(2));
+%!       ERP(i) = sum(sol.effective_radiated_power.P.tria6);
+%!       fprintf(stderr, "%d/%d %.2fHz P=%.2fdB ERP=%.2fdB TL=%.2fdB res=%.2e iter=%d/%d\n", i, numel(f), f(i) * unit_second^-1, 10 * log10(P(i) / P0), 10 * log10(ERP(i) / P0), 10 * log10(T(i)), f1 / f2, ITER(1), ITER(2));
 %!       solt.t = linspace(0, 2 * pi / omega, 36);
 %!       solt.p = real(-sol.PhiP .* exp(1j * omega * solt.t));
 %!       solt.def = zeros(rows(mesh.nodes), 6, numel(solt.t));
@@ -305,6 +308,7 @@
 %!   figure("visible", "off");
 %!   hold on;
 %!   plot(f * unit_second^-1, 10 * log10(P / P0), "-;P(f);r");
+%!   plot(f * unit_second^-1, 10 * log10(ERP / P0), "-;ERP(f);k");
 %!   xlabel("f [Hz]");
 %!   ylabel("Lw [dB]");
 %!   grid on;
