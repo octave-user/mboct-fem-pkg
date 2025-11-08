@@ -67,6 +67,12 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
       bottom_node_idx = int32([1, 2, 3, 7, 8, 9]);
       top_node_idx = int32([4, 5, 6, 10, 11, 12]);
       interm_node_idx = int32([13, 14, 15]);
+    case {"quad8r"}
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(20);
+      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
+      top_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
+      interm_node_idx = int32([17, 18, 19, 20]);
     otherwise
       error("elem_type \"%s\" not supported", elem_type);
   endswitch
