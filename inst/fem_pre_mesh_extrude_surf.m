@@ -38,6 +38,10 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
 
   grp_idx = find([elem_grp.id] == grp_id);
 
+  if (isempty(grp_idx))
+    error("group id %d not found in mesh", grp_id);
+  endif
+
   elem_idx = [[elem_grp(grp_idx)].elements];
 
   elem_nodes = getfield(mesh.elements, elem_type)(elem_idx, :);
@@ -108,4 +112,3 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
     elem((1:rows(elem_nodes)) + (k - 1) * rows(elem_nodes), bottom_node_idx) = elem((1:rows(elem_nodes)) + (k - 2) * rows(elem_nodes), top_node_idx);
   endfor
 endfunction
-
