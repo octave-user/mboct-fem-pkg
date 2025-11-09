@@ -7418,7 +7418,7 @@ public:
                rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(oIRT.iNumPoints, 3);
 
                for (octave_idx_type i = 0; i < oIRT.iNumPoints; ++i) {
-                    rgIntegRule[oIRT.iIntegRule].SetWeight(i, 0.5 * w[oIRT.iIntegRule][i]);
+                    rgIntegRule[oIRT.iIntegRule].SetWeight(i, w[oIRT.iIntegRule][i]);
                     rgIntegRule[oIRT.iIntegRule].SetPosition(i, 0, r[oIRT.iIntegRule][i]);
                     rgIntegRule[oIRT.iIntegRule].SetPosition(i, 1, s[oIRT.iIntegRule][i]);
                     rgIntegRule[oIRT.iIntegRule].SetPosition(i, 2, t[oIRT.iIntegRule][i]);
