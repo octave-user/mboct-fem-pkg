@@ -7395,7 +7395,7 @@ public:
                                               {1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2}};
           static constexpr double w[3][21] = {{w1, w1, w1, w1, w1, w1},
                                               {w2, w3, w3, w3, w2, w3, w3, w3},
-                                              {c1 * c5, c1 * c3, c1 * c4, c2 * c5, c2 * c3, c2 * c4, c1 * c5, c1 * c3, c1 * c4}};
+                                              {c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4, c2 * c5, c2 * c3, c2 * c3, c2 * c3, c2 * c4, c2 * c4, c2 * c4, c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4}};
           const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           FEM_ASSERT(iIntegRule >= 0);
