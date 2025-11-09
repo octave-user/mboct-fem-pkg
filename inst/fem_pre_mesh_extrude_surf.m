@@ -38,6 +38,10 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
 
   grp_idx = find([elem_grp.id] == grp_id);
 
+  if (isempty(grp_idx))
+    error("group id %d not found in mesh", grp_id);
+  endif
+
   elem_idx = [[elem_grp(grp_idx)].elements];
 
   elem_nodes = getfield(mesh.elements, elem_type)(elem_idx, :);
@@ -61,12 +65,36 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
                              load_case_n);
 
   switch (elem_type)
+    case "iso4"
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(8);
+      bottom_node_idx = int32([5, 6, 7, 8]);
+      top_node_idx = int32([1, 2, 3, 4]);
+      interm_node_idx = [];
     case {"tria6", "tria6h"}
       corner_nodes = int32([1, 2, 3]);
       num_nodes_elem = int32(15);
       bottom_node_idx = int32([1, 2, 3, 7, 8, 9]);
       top_node_idx = int32([4, 5, 6, 10, 11, 12]);
       interm_node_idx = int32([13, 14, 15]);
+    case "quad8r"
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(20);
+      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
+      top_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
+      interm_node_idx = int32([17, 18, 19, 20]);
+    case "quad8"
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(20);
+      bottom_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
+      top_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
+      interm_node_idx = int32([17, 18, 19, 20]);
+    case "quad9"
+      corner_nodes = int32([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      num_nodes_elem = int32(27);
+      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12, 21]);
+      top_node_idx = int32([5, 6, 7, 8, 17, 18, 19, 20, 26]);
+      interm_node_idx = int32([13, 14, 15, 16, 22, 23, 24, 25, 27]);
     otherwise
       error("elem_type \"%s\" not supported", elem_type);
   endswitch
@@ -93,7 +121,9 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
       for j=1:numel(corner_nodes)
         node_idx_ij = find(elem_nodes(i, corner_nodes(j)) == interm_nodes) + rows(mesh.nodes) + numel(top_nodes)  + (k - 1) * (numel(top_nodes) + numel(interm_nodes));
         nodes(node_idx_ij, 1:3) = mesh.nodes(elem_nodes(i, corner_nodes(j)), 1:3) + (sum(h(1:k - 1)) + 0.5 * h(k)) * reshape(elem_n(i, corner_nodes(j), :), 1, 3);
-        elem(i + (k - 1) * rows(elem_nodes), interm_node_idx(j)) = node_idx_ij;
+        if (~isempty(interm_node_idx))
+          elem(i + (k - 1) * rows(elem_nodes), interm_node_idx(j)) = node_idx_ij;
+        endif
       endfor
     endfor
   endfor
@@ -102,4 +132,3 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
     elem((1:rows(elem_nodes)) + (k - 1) * rows(elem_nodes), bottom_node_idx) = elem((1:rows(elem_nodes)) + (k - 2) * rows(elem_nodes), top_node_idx);
   endfor
 endfunction
-
