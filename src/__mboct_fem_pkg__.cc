@@ -7427,7 +7427,7 @@ public:
           }
 
           FEM_TRACE("wsum[" << iIntegRule << "] = " << wsum << "\n");
-          //FEM_ASSERT(fabs(wsum - 1.) < std::pow(std::numeric_limits<double>::epsilon(), 0.9));
+          FEM_ASSERT(fabs(wsum - 1.) < std::pow(std::numeric_limits<double>::epsilon(), 0.9));
 #endif
           return rgIntegRule[iIntegRule];
      }
