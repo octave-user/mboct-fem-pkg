@@ -7560,6 +7560,29 @@ private:
           case VEC_STRAIN_TOTAL:
           case SCA_STRESS_VMIS:
                return 2;
+          case MAT_MASS:
+          case MAT_MASS_SYM:
+          case MAT_MASS_SYM_L:
+          case SCA_TOT_MASS:
+          case VEC_INERTIA_M1:
+          case MAT_INERTIA_J:
+          case MAT_INERTIA_INV3:
+          case MAT_INERTIA_INV4:
+          case MAT_INERTIA_INV5:
+          case MAT_INERTIA_INV8:
+          case MAT_INERTIA_INV9:
+          case MAT_HEAT_CAPACITY:
+          case MAT_MASS_ACOUSTICS_RE:
+          case MAT_MASS_ACOUSTICS_IM:
+          case MAT_MASS_FLUID_STRUCT_RE:
+          case MAT_MASS_FLUID_STRUCT_IM:
+          case VEC_COLL_MASS:
+          case VEC_COLL_HEAT_CAPACITY:
+          case VEC_COLL_MASS_ACOUSTICS:
+          case VEC_COLL_MASS_FLUID_STRUCT:
+               return 2;
+          case MAT_MASS_LUMPED:
+               throw std::runtime_error("not implemented yet");
           default:
                return 1;
           }
