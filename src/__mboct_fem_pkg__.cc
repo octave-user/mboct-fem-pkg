@@ -7562,10 +7562,10 @@ private:
           return IntegRuleType{2, 21};
      }
 
-     static array<IntegrationRule, 2> rgIntegRule;
+     static array<IntegrationRule, 3> rgIntegRule;
 };
 
-array<IntegrationRule, 2> Penta18::rgIntegRule;
+array<IntegrationRule, 3> Penta18::rgIntegRule;
 
 class Tet10h: public Element3D
 {
