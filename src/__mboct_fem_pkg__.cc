@@ -1107,6 +1107,7 @@ public:
           ELEM_ISO20R,
           ELEM_ISO27,
           ELEM_PENTA15,
+          ELEM_PENTA18,
           ELEM_TET10H,
           ELEM_TET10,
           ELEM_TET20,
@@ -1219,6 +1220,7 @@ private:
           {ElementTypes::ELEM_ISO20R,               "iso20r",         20, 20, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_ISO27,                "iso27",          27, 27, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_PENTA15,              "penta15",        15, 15, DofMap::ELEM_NODOF},
+          {ElementTypes::ELEM_PENTA18,              "penta18",        18, 18, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET10H,               "tet10h",         10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET10,                "tet10",          10, 10, DofMap::ELEM_NODOF},
           {ElementTypes::ELEM_TET20,                "tet20",          20, 20, DofMap::ELEM_NODOF},
@@ -7355,6 +7357,215 @@ private:
 };
 
 array<IntegrationRule, 2> Penta15::rgIntegRule;
+
+class Penta18: public Element3D
+{
+public:
+     Penta18(ElementTypes::TypeId eltype, octave_idx_type id, const Matrix& X, const Material* material, const int32NDArray& nodes, const ElementData& data)
+          :Element3D(eltype, id, X, material, nodes, data) {
+          FEM_ASSERT(nodes.numel() == 18);
+     }
+
+     static void AllocIntegrationRule(FemMatrixType eMatType) {
+          constexpr double r1 = -1. / sqrt(3.);
+          constexpr double r2 = 1. / sqrt(3.);
+          constexpr double a1 = 1. / sqrt(3.);
+          constexpr double w1 = 1. / 6.;
+          constexpr double w2 = -27. / 96.;
+          constexpr double w3 = 25. / 96.;
+          constexpr double alpha = sqrt(3. / 5.);
+          constexpr double c1 = 5. / 9.;
+          constexpr double c2 = 8. / 9.;
+          constexpr double c3 = (155. + sqrt(15.)) / 2400.;
+          constexpr double c4 = (155. - sqrt(15.)) / 2400.;
+          constexpr double c5 = 9. / 80.;
+          constexpr double a2 = (6. + sqrt(15)) / 21.;
+          constexpr double b2 = (6. - sqrt(15)) / 21.;
+
+          static constexpr double r[3][21] = {{r1, r1, r1, r2, r2, r2},
+                                              {-a1, -a1, -a1, -a1, a1, a1, a1, a1},
+                                              {-alpha, -alpha, -alpha, -alpha, -alpha, -alpha, -alpha, 0., 0., 0., 0., 0., 0., 0., alpha, alpha, alpha, alpha, alpha, alpha, alpha}};
+          static constexpr double s[3][21] = {{0.5, 0., 0.5, 0.5, 0., 0.5},
+                                              {1./3., 0.6, 0.2, 0.2, 1./3., 0.6, 0.2, 0.2},
+                                              {1./3, a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., b2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2}};
+          static constexpr double t[3][21] = {{0.5, 0.5, 0., 0.5, 0.5, 0.},
+                                              {1./3., 0.2, 0.6, 0.2, 1./3., 0.2, 0.6, 0.2},
+                                              {1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2}};
+          static constexpr double w[3][21] = {{w1, w1, w1, w1, w1, w1},
+                                              {w2, w3, w3, w3, w2, w3, w3, w3},
+                                              {c1 * c5, c1 * c3, c1 * c4, c2 * c5, c2 * c3, c2 * c4, c1 * c5, c1 * c3, c1 * c4}};
+          const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
+
+          if (!rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints()) {
+               rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(oIRT.iNumPoints, 3);
+
+               for (octave_idx_type i = 0; i < oIRT.iNumPoints; ++i) {
+                    rgIntegRule[oIRT.iIntegRule].SetWeight(i, 0.5 * w[oIRT.iIntegRule][i]);
+                    rgIntegRule[oIRT.iIntegRule].SetPosition(i, 0, r[oIRT.iIntegRule][i]);
+                    rgIntegRule[oIRT.iIntegRule].SetPosition(i, 1, s[oIRT.iIntegRule][i]);
+                    rgIntegRule[oIRT.iIntegRule].SetPosition(i, 2, t[oIRT.iIntegRule][i]);
+               }
+          }
+     }
+
+     virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const override final {
+          const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
+
+          FEM_ASSERT(oIRT.iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(oIRT.iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints() > 0);
+
+          return rgIntegRule[oIRT.iIntegRule];
+     }
+
+protected:
+     virtual void ScalarInterpMatrixDer(const ColumnVector& rv, Matrix& Hd) const override final {
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+          const double r2 = r * r;
+
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hd.rows() == 18);
+          FEM_ASSERT(Hd.columns() == 3);
+
+          Hd.xelem(0) = (r*s*(2*s-1))/2.0E+0+((r-1)*s*(2*s-1))/2.0E+0;
+          Hd.xelem(1) = (r*t*(2*t-1))/2.0E+0+((r-1)*t*(2*t-1))/2.0E+0;
+          Hd.xelem(2) = (r*(t+s-1)*(2*t+2*s-1))/2.0E+0+((r-1)*(t+s-1)*(2*t+2*s-1))/2.0E+0;
+          Hd.xelem(3) = ((r+1)*s*(2*s-1))/2.0E+0+(r*s*(2*s-1))/2.0E+0;
+          Hd.xelem(4) = ((r+1)*t*(2*t-1))/2.0E+0+(r*t*(2*t-1))/2.0E+0;
+          Hd.xelem(5) = ((r+1)*(t+s-1)*(2*t+2*s-1))/2.0E+0+(r*(t+s-1)*(2*t+2*s-1))/2.0E+0;
+          Hd.xelem(6) = 2*r*s*t+2*(r-1)*s*t;
+          Hd.xelem(7) = (-2*r*t*(t+s-1))-2*(r-1)*t*(t+s-1);
+          Hd.xelem(8) = (-2*r*s*(t+s-1))-2*(r-1)*s*(t+s-1);
+          Hd.xelem(9) = -2*r*s*(2*s-1);
+          Hd.xelem(10) = -2*r*t*(2*t-1);
+          Hd.xelem(11) = -2*r*(t+s-1)*(2*t+2*s-1);
+          Hd.xelem(12) = 2*(r+1)*s*t+2*r*s*t;
+          Hd.xelem(13) = (-2*(r+1)*t*(t+s-1))-2*r*t*(t+s-1);
+          Hd.xelem(14) = (-2*(r+1)*s*(t+s-1))-2*r*s*(t+s-1);
+          Hd.xelem(15) = -8*r*s*t;
+          Hd.xelem(16) = 8*r*t*(t+s-1);
+          Hd.xelem(17) = 8*r*s*(t+s-1);
+          Hd.xelem(18) = ((r-1)*r*(2*s-1))/2.0E+0+(r-1)*r*s;
+          Hd.xelem(19) = 0;
+          Hd.xelem(20) = ((r-1)*r*(2*t+2*s-1))/2.0E+0+(r-1)*r*(t+s-1);
+          Hd.xelem(21) = (r*(r+1)*(2*s-1))/2.0E+0+r*(r+1)*s;
+          Hd.xelem(22) = 0;
+          Hd.xelem(23) = (r*(r+1)*(2*t+2*s-1))/2.0E+0+r*(r+1)*(t+s-1);
+          Hd.xelem(24) = 2*(r-1)*r*t;
+          Hd.xelem(25) = -2*(r-1)*r*t;
+          Hd.xelem(26) = (-2*(r-1)*r*(t+s-1))-2*(r-1)*r*s;
+          Hd.xelem(27) = (1-r2)*(2*s-1)+2*(1-r2)*s;
+          Hd.xelem(28) = 0;
+          Hd.xelem(29) = (1-r2)*(2*t+2*s-1)+2*(1-r2)*(t+s-1);
+          Hd.xelem(30) = 2*r*(r+1)*t;
+          Hd.xelem(31) = -2*r*(r+1)*t;
+          Hd.xelem(32) = (-2*r*(r+1)*(t+s-1))-2*r*(r+1)*s;
+          Hd.xelem(33) = 4*(1-r2)*t;
+          Hd.xelem(34) = 4*(r2-1)*t;
+          Hd.xelem(35) = 4*(r2-1)*(t+s-1)+4*(r2-1)*s;
+          Hd.xelem(36) = 0;
+          Hd.xelem(37) = ((r-1)*r*(2*t-1))/2.0E+0+(r-1)*r*t;
+          Hd.xelem(38) = ((r-1)*r*(2*t+2*s-1))/2.0E+0+(r-1)*r*(t+s-1);
+          Hd.xelem(39) = 0;
+          Hd.xelem(40) = (r*(r+1)*(2*t-1))/2.0E+0+r*(r+1)*t;
+          Hd.xelem(41) = (r*(r+1)*(2*t+2*s-1))/2.0E+0+r*(r+1)*(t+s-1);
+          Hd.xelem(42) = 2*(r-1)*r*s;
+          Hd.xelem(43) = (-2*(r-1)*r*(t+s-1))-2*(r-1)*r*t;
+          Hd.xelem(44) = -2*(r-1)*r*s;
+          Hd.xelem(45) = 0;
+          Hd.xelem(46) = (1-r2)*(2*t-1)+2*(1-r2)*t;
+          Hd.xelem(47) = (1-r2)*(2*t+2*s-1)+2*(1-r2)*(t+s-1);
+          Hd.xelem(48) = 2*r*(r+1)*s;
+          Hd.xelem(49) = (-2*r*(r+1)*(t+s-1))-2*r*(r+1)*t;
+          Hd.xelem(50) = -2*r*(r+1)*s;
+          Hd.xelem(51) = 4*(1-r2)*s;
+          Hd.xelem(52) = 4*(r2-1)*(t+s-1)+4*(r2-1)*t;
+          Hd.xelem(53) = 4*(r2-1)*s;
+     }
+
+     virtual Matrix InterpGaussToNodal(FemMatrixType eMatType, const Matrix& taug) const override final {
+          return InterpGaussToNodalTpl<double>(eMatType, taug);
+     }
+
+     virtual ComplexMatrix InterpGaussToNodal(FemMatrixType eMatType, const ComplexMatrix& taug) const override final {
+          return InterpGaussToNodalTpl<std::complex<double> >(eMatType, taug);
+     }
+
+private:
+     template <typename T>
+     typename PostProcTypeTraits<T>::MatrixType
+     InterpGaussToNodalTpl(FemMatrixType eMatType, const typename PostProcTypeTraits<T>::MatrixType& taug) const {
+          const IntegrationRule& oIntegRule = GetIntegrationRule(eMatType);
+          const octave_idx_type iNumGauss = oIntegRule.iGetNumEvalPoints();
+          const octave_idx_type iNumDir = oIntegRule.iGetNumDirections();
+          const octave_idx_type iNumNodes = nodes.numel();
+          ColumnVector rv(iNumDir);
+
+          Matrix H(iNumGauss, iNumNodes);
+
+          for (octave_idx_type i = 0; i < iNumGauss; ++i) {
+               for (octave_idx_type j = 0; j < iNumDir; ++j) {
+                    rv.xelem(j) = oIntegRule.dGetPosition(i, j);
+               }
+
+               ScalarInterpMatrix(rv, H, i);
+          }
+
+          return H.solve(taug);
+     }
+
+     void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const override final {
+          FEM_ASSERT(rv.numel() == 3);
+          FEM_ASSERT(Hs.columns() == 15);
+          FEM_ASSERT(irow >= 0);
+          FEM_ASSERT(irow < Hs.rows());
+
+          const double r = rv.xelem(0);
+          const double s = rv.xelem(1);
+          const double t = rv.xelem(2);
+          const double r2 = r * r;
+
+          const octave_idx_type nrows = Hs.rows();
+
+          Hs.xelem(irow + nrows * 0) = ((r-1)*r*s*(2*s-1))/2.0E+0;
+          Hs.xelem(irow + nrows * 1) = ((r-1)*r*t*(2*t-1))/2.0E+0;
+          Hs.xelem(irow + nrows * 2) = ((r-1)*r*(t+s-1)*(2*t+2*s-1))/2.0E+0;
+          Hs.xelem(irow + nrows * 3) = (r*(r+1)*s*(2*s-1))/2.0E+0;
+          Hs.xelem(irow + nrows * 4) = (r*(r+1)*t*(2*t-1))/2.0E+0;
+          Hs.xelem(irow + nrows * 5) = (r*(r+1)*(t+s-1)*(2*t+2*s-1))/2.0E+0;
+          Hs.xelem(irow + nrows * 6) = 2*(r-1)*r*s*t;
+          Hs.xelem(irow + nrows * 7) = -2*(r-1)*r*t*(t+s-1);
+          Hs.xelem(irow + nrows * 8) = -2*(r-1)*r*s*(t+s-1);
+          Hs.xelem(irow + nrows * 9) = (1-r2)*s*(2*s-1);
+          Hs.xelem(irow + nrows * 10) = (1-r2)*t*(2*t-1);
+          Hs.xelem(irow + nrows * 11) = (1-r2)*(t+s-1)*(2*t+2*s-1);
+          Hs.xelem(irow + nrows * 12) = 2*r*(r+1)*s*t;
+          Hs.xelem(irow + nrows * 13) = -2*r*(r+1)*t*(t+s-1);
+          Hs.xelem(irow + nrows * 14) = -2*r*(r+1)*s*(t+s-1);
+          Hs.xelem(irow + nrows * 15) = 4*(1-r2)*s*t;
+          Hs.xelem(irow + nrows * 16) = 4*(r2-1)*t*(t+s-1);
+          Hs.xelem(irow + nrows * 17) = 4*(r2-1)*s*(t+s-1);
+     }
+
+     struct IntegRuleType {
+          IntegRuleType(octave_idx_type iIntegRule, octave_idx_type iNumPoints)
+               :iIntegRule(iIntegRule), iNumPoints(iNumPoints) {
+          }
+
+          octave_idx_type iIntegRule;
+          octave_idx_type iNumPoints;
+     };
+
+     static IntegRuleType SelectIntegrationRule(FemMatrixType eMatType) {
+          return IntegRuleType{2, 21};
+     }
+
+     static array<IntegrationRule, 2> rgIntegRule;
+};
+
+array<IntegrationRule, 2> Penta18::rgIntegRule;
 
 class Tet10h: public Element3D
 {
@@ -15224,6 +15435,7 @@ octave_scalar_map AcousticPostProc(const array<bool, ElementTypes::iGetNumTypes(
           case ElementTypes::ELEM_ISO20R:
           case ElementTypes::ELEM_ISO27:
           case ElementTypes::ELEM_PENTA15:
+          case ElementTypes::ELEM_PENTA18:
           case ElementTypes::ELEM_TET10H:
           case ElementTypes::ELEM_TET10:
           case ElementTypes::ELEM_TET20: {
@@ -15794,6 +16006,7 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                case ElementTypes::ELEM_ISO20R:
                case ElementTypes::ELEM_ISO27:
                case ElementTypes::ELEM_PENTA15:
+               case ElementTypes::ELEM_PENTA18:
                case ElementTypes::ELEM_TET10H:
                case ElementTypes::ELEM_TET10:
                case ElementTypes::ELEM_TET20: {
@@ -16996,6 +17209,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17025,6 +17239,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17063,6 +17278,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17122,6 +17338,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17158,6 +17375,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17207,6 +17425,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17233,6 +17452,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17263,6 +17483,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17307,6 +17528,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          rgElemUse[ElementTypes::ELEM_ISO20R] = true;
                          rgElemUse[ElementTypes::ELEM_ISO27] = true;
                          rgElemUse[ElementTypes::ELEM_PENTA15] = true;
+                         rgElemUse[ElementTypes::ELEM_PENTA18] = true;
                          rgElemUse[ElementTypes::ELEM_TET10H] = true;
                          rgElemUse[ElementTypes::ELEM_TET10] = true;
                          rgElemUse[ElementTypes::ELEM_TET20] = true;
@@ -17356,6 +17578,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                case ElementTypes::ELEM_ISO20R:
                case ElementTypes::ELEM_ISO27:
                case ElementTypes::ELEM_PENTA15:
+               case ElementTypes::ELEM_PENTA18:
                case ElementTypes::ELEM_TET10H:
                case ElementTypes::ELEM_TET10:
                case ElementTypes::ELEM_TET20: {
@@ -17495,6 +17718,10 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     case ElementTypes::ELEM_PENTA15:
                          rgElemBlocks.emplace_back(new ElementBlock<Penta15>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
+                         break;
+
+                    case ElementTypes::ELEM_PENTA18:
+                         rgElemBlocks.emplace_back(new ElementBlock<Penta18>(oElemType.type, elem_nodes, nodes, 3, elem_mat, rgMaterials, oElemData));
                          break;
 
                     case ElementTypes::ELEM_TET10H:
@@ -18732,6 +18959,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
                          case ElementTypes::ELEM_ISO20R:
                          case ElementTypes::ELEM_ISO27:
                          case ElementTypes::ELEM_PENTA15:
+                         case ElementTypes::ELEM_PENTA18:
                          case ElementTypes::ELEM_TET10H:
                          case ElementTypes::ELEM_TET10:
                          case ElementTypes::ELEM_TET20: {
