@@ -7396,6 +7396,24 @@ public:
                                               {c1 * c5, c1 * c3, c1 * c4, c2 * c5, c2 * c3, c2 * c4, c1 * c5, c1 * c3, c1 * c4}};
           const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
 
+          FEM_ASSERT(oIRT.iIntegRule >= 0);
+          FEM_ASSERT(oIRT.iIntegRule < 3);
+
+#ifdef DEBUG
+          switch (oIRT.iIntegRule) {
+          case 0:
+               FEM_ASSERT(oIRT.iNumPoints == 6);
+               break;
+          case 1:
+               FEM_ASSERT(oIRT.iNumPoints == 8);
+               break;
+          case 2:
+               FEM_ASSERT(oIRT.iNumPoints == 21);
+               break;
+          default:
+               FEM_ASSERT(0);
+          }
+#endif
           if (!rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(oIRT.iNumPoints, 3);
 
@@ -7559,7 +7577,7 @@ private:
      };
 
      static IntegRuleType SelectIntegrationRule(FemMatrixType eMatType) {
-          return IntegRuleType{2, 21};
+          return IntegRuleType{1, 8};
      }
 
      static array<IntegrationRule, 3> rgIntegRule;
