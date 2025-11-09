@@ -7563,7 +7563,6 @@ private:
           case MAT_MASS:
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
-          case SCA_TOT_MASS:
           case VEC_INERTIA_M1:
           case MAT_INERTIA_J:
           case MAT_INERTIA_INV3:
@@ -7580,9 +7579,11 @@ private:
           case VEC_COLL_HEAT_CAPACITY:
           case VEC_COLL_MASS_ACOUSTICS:
           case VEC_COLL_MASS_FLUID_STRUCT:
-               return 2;
+               return 0;
           case MAT_MASS_LUMPED:
                throw std::runtime_error("not implemented yet");
+          case SCA_TOT_MASS:
+               return 1;
           default:
                return 1;
           }
