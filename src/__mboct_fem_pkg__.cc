@@ -7536,7 +7536,7 @@ private:
 
      void ScalarInterpMatrix(const ColumnVector& rv, Matrix& Hs, octave_idx_type irow) const override final {
           FEM_ASSERT(rv.numel() == 3);
-          FEM_ASSERT(Hs.columns() == 15);
+          FEM_ASSERT(Hs.columns() == 18);
           FEM_ASSERT(irow >= 0);
           FEM_ASSERT(irow < Hs.rows());
 
