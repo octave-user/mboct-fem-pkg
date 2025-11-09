@@ -7379,9 +7379,11 @@ public:
           constexpr double c3 = (155. + sqrt(15.)) / 2400.;
           constexpr double c4 = (155. - sqrt(15.)) / 2400.;
           constexpr double c5 = 9. / 80.;
-          constexpr double a2 = (6. + sqrt(15)) / 21.;
-          constexpr double b2 = (6. - sqrt(15)) / 21.;
+          constexpr double a2 = (6. + sqrt(15.)) / 21.;
+          constexpr double b2 = (6. - sqrt(15.)) / 21.;
 
+          static constexpr octave_idx_type N[3] = {6, 8, 21};
+          
           static constexpr double r[3][21] = {{r1, r1, r1, r2, r2, r2},
                                               {-a1, -a1, -a1, -a1, a1, a1, a1, a1},
                                               {-alpha, -alpha, -alpha, -alpha, -alpha, -alpha, -alpha, 0., 0., 0., 0., 0., 0., 0., alpha, alpha, alpha, alpha, alpha, alpha, alpha}};
@@ -7394,46 +7396,31 @@ public:
           static constexpr double w[3][21] = {{w1, w1, w1, w1, w1, w1},
                                               {w2, w3, w3, w3, w2, w3, w3, w3},
                                               {c1 * c5, c1 * c3, c1 * c4, c2 * c5, c2 * c3, c2 * c4, c1 * c5, c1 * c3, c1 * c4}};
-          const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
-          FEM_ASSERT(oIRT.iIntegRule >= 0);
-          FEM_ASSERT(oIRT.iIntegRule < 3);
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          
+          if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
+               rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule], 3);
 
-#ifdef DEBUG
-          switch (oIRT.iIntegRule) {
-          case 0:
-               FEM_ASSERT(oIRT.iNumPoints == 6);
-               break;
-          case 1:
-               FEM_ASSERT(oIRT.iNumPoints == 8);
-               break;
-          case 2:
-               FEM_ASSERT(oIRT.iNumPoints == 21);
-               break;
-          default:
-               FEM_ASSERT(0);
-          }
-#endif
-          if (!rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints()) {
-               rgIntegRule[oIRT.iIntegRule].SetNumEvalPoints(oIRT.iNumPoints, 3);
-
-               for (octave_idx_type i = 0; i < oIRT.iNumPoints; ++i) {
-                    rgIntegRule[oIRT.iIntegRule].SetWeight(i, w[oIRT.iIntegRule][i]);
-                    rgIntegRule[oIRT.iIntegRule].SetPosition(i, 0, r[oIRT.iIntegRule][i]);
-                    rgIntegRule[oIRT.iIntegRule].SetPosition(i, 1, s[oIRT.iIntegRule][i]);
-                    rgIntegRule[oIRT.iIntegRule].SetPosition(i, 2, t[oIRT.iIntegRule][i]);
+               for (octave_idx_type i = 0; i < N[iIntegRule]; ++i) {
+                    rgIntegRule[iIntegRule].SetWeight(i, w[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetPosition(i, 0, r[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetPosition(i, 1, s[iIntegRule][i]);
+                    rgIntegRule[iIntegRule].SetPosition(i, 2, t[iIntegRule][i]);
                }
           }
      }
 
      virtual const IntegrationRule& GetIntegrationRule(FemMatrixType eMatType) const override final {
-          const IntegRuleType oIRT = SelectIntegrationRule(eMatType);
+          const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
-          FEM_ASSERT(oIRT.iIntegRule >= 0);
-          FEM_ASSERT(static_cast<size_t>(oIRT.iIntegRule) < rgIntegRule.size());
-          FEM_ASSERT(rgIntegRule[oIRT.iIntegRule].iGetNumEvalPoints() > 0);
+          FEM_ASSERT(iIntegRule >= 0);
+          FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
+          FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 
-          return rgIntegRule[oIRT.iIntegRule];
+          return rgIntegRule[iIntegRule];
      }
 
 protected:
@@ -7567,17 +7554,15 @@ private:
           Hs.xelem(irow + nrows * 17) = 4*(r2-1)*s*(t+s-1);
      }
 
-     struct IntegRuleType {
-          IntegRuleType(octave_idx_type iIntegRule, octave_idx_type iNumPoints)
-               :iIntegRule(iIntegRule), iNumPoints(iNumPoints) {
+     static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
+          switch (eMatType) {
+          case VEC_STRESS_CAUCH:
+          case VEC_STRAIN_TOTAL:
+          case SCA_STRESS_VMIS:
+               return 2;
+          default:
+               return 1;
           }
-
-          octave_idx_type iIntegRule;
-          octave_idx_type iNumPoints;
-     };
-
-     static IntegRuleType SelectIntegrationRule(FemMatrixType eMatType) {
-          return IntegRuleType{1, 8};
      }
 
      static array<IntegrationRule, 3> rgIntegRule;
