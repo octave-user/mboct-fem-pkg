@@ -7419,7 +7419,16 @@ public:
           FEM_ASSERT(iIntegRule >= 0);
           FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
           FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
+#ifdef DEBUG
+          double wsum = 0.;
+          
+          for (octave_idx_type i = 0; i < rgIntegRule[iIntegRule].iGetNumEvalPoints(); ++i) {
+               wsum += rgIntegRule[iIntegRule].dGetWeight(i);
+          }
 
+          FEM_TRACE("wsum = " << wsum << "\n");
+          FEM_ASSERT(fabs(wsum - 4.) < std::pow(std::numeric_limits<double>::epsilon(), 0.9));
+#endif
           return rgIntegRule[iIntegRule];
      }
 
@@ -7579,7 +7588,7 @@ private:
           case VEC_COLL_HEAT_CAPACITY:
           case VEC_COLL_MASS_ACOUSTICS:
           case VEC_COLL_MASS_FLUID_STRUCT:
-               return 0;
+               return 2;
           case MAT_MASS_LUMPED:
                throw std::runtime_error("not implemented yet");
           case SCA_TOT_MASS:
