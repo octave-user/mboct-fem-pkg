@@ -7592,9 +7592,9 @@ private:
           case MAT_MASS_LUMPED:
                throw std::runtime_error("not implemented yet");
           case SCA_TOT_MASS:
-               return 1;
+               return 2;
           default:
-               return 1;
+               return 2;
           }
      }
 
