@@ -7594,7 +7594,7 @@ private:
           case SCA_TOT_MASS:
                return 2;
           default:
-               return 2;
+               return 1;
           }
      }
 
