@@ -30,7 +30,7 @@
 %!     mesh.group.tria6h.nodes = unique(mesh.elements.tria6h);
 %!     h = 2;
 %!     N = 5;
-%!     [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", int32(1), repmat(h / N, 1, N));
+%!     [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "penta15", int32(1), repmat(h / N, 1, N));
 %!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
 %!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!     mesh.material_data.E = 210000e6;

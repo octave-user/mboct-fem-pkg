@@ -79,7 +79,7 @@
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   N = ceil((r2 - r1) / dx);
-%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", 3, [repmat((r2 - r1) / N, 1, N), r3 - r2]);
+%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "penta15", 3, [repmat((r2 - r1) / N, 1, N), r3 - r2]);
 %!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
 %!   mesh.groups.tria6h(end + 1).id = 4;
 %!   mesh.groups.tria6h(end).nodes = find(r >= r3 - deltaPML / 2);

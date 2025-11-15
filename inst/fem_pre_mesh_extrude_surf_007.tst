@@ -67,8 +67,8 @@
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_msh.elem_type = {"tria6h", "quad8"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
-%!   [mesh.nodes, mesh.elements.iso20] = fem_pre_mesh_extrude_surf(mesh, "quad8", 1, t);
-%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", 1, t);
+%!   [mesh.nodes, mesh.elements.iso20] = fem_pre_mesh_extrude_surf(mesh, "iso20", 1, t);
+%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "penta15", 1, t);
 %!   [mesh, dx] = fem_pre_mesh_coherence(mesh, tol_coherence * R);
 %!   mesh = fem_pre_mesh_reorder(mesh);
 %!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
