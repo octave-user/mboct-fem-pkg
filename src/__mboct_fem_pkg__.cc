@@ -7570,13 +7570,13 @@ private:
           case SCA_STRESS_VMIS:
                return 2;
           case MAT_MASS:
-               return 1;
+               return 2;
           case MAT_MASS_SYM:
           case MAT_MASS_SYM_L:
                return 2;
           case VEC_INERTIA_M1:
           case MAT_INERTIA_J:
-               return 1;
+               return 2;
           case MAT_INERTIA_INV3:
           case MAT_INERTIA_INV4:
           case MAT_INERTIA_INV5:
