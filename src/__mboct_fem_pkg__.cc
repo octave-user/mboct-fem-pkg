@@ -7580,7 +7580,7 @@ private:
      static array<IntegrationRule, 4> rgIntegRule;
 };
 
-array<IntegrationRule, 3> Penta18::rgIntegRule;
+array<IntegrationRule, 4> Penta18::rgIntegRule;
 
 class Tet10h: public Element3D
 {
