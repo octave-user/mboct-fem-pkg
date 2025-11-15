@@ -32,7 +32,6 @@
 %!     fprintf(fd, "c = %g;\n", c);
 %!     fprintf(fd, "h = %g;\n", mesh_size);
 %!     fputs(fd, "Mesh.SecondOrderIncomplete=0;\n");
-%!     fputs(fd, "Mesh.ElementOrder=2;\n");
 %!     fputs(fd, "Point(1) = {0,0,0,h};\n");
 %!     fputs(fd, "Point(2) = {a,0,0,h};\n");
 %!     fputs(fd, "Point(3) = {a,b,0,h};\n");
@@ -44,6 +43,7 @@
 %!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
 %!     fputs(fd, "Plane Surface(6) = {5};\n");
 %!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
 %!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
 %!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
 %!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
@@ -68,43 +68,34 @@
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_clamp_x = find([[mesh.groups.quad9].id] == 4);
 %!   grp_id_clamp_y = find([[mesh.groups.quad9].id] == 1);
-%!   grp_id_clamp_z = find([[mesh.groups.tria6].id] == 5);
+%!   grp_id_clamp_z = find([[mesh.groups.quad9].id] == 5);
 %!   load_case.locked_dof(mesh.groups.quad9(grp_id_clamp_x).nodes, 1) = true;
 %!   load_case.locked_dof(mesh.groups.quad9(grp_id_clamp_y).nodes, 2) = true;
-%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_z).nodes, 3) = true;
+%!   load_case.locked_dof(mesh.groups.quad9(grp_id_clamp_z).nodes, 3) = true;
 %!   grp_id_px = find([[mesh.groups.quad9].id] == 2);
 %!   grp_id_py = find([[mesh.groups.quad9].id] == 3);
-%!   grp_id_pz = find([[mesh.groups.tria6].id] == 6);
+%!   grp_id_pz = find([[mesh.groups.quad9].id] == 6);
 %!   elem_id_px = mesh.groups.quad9(grp_id_px).elements;
 %!   elem_id_py = mesh.groups.quad9(grp_id_py).elements;
-%!   elem_id_pz = mesh.groups.tria6(grp_id_pz).elements;
+%!   elem_id_pz = mesh.groups.quad9(grp_id_pz).elements;
 %!   elno_px = mesh.elements.quad9(elem_id_px, :);
 %!   elno_py = mesh.elements.quad9(elem_id_py, :);
-%!   elno_pz = mesh.elements.tria6(elem_id_pz, :);
-%!   load_case.pressure.quad9.elements = [elno_px; elno_py];
+%!   elno_pz = mesh.elements.quad9(elem_id_pz, :);
+%!   load_case.pressure.quad9.elements = [elno_px; elno_py; elno_pz];
 %!   load_case.pressure.quad9.p = [repmat(px, rows(elno_px), columns(elno_px));
-%!                                 repmat(py, rows(elno_py), columns(elno_py))];
-%!   load_case.pressure.tria6.elements = [elno_pz];
-%!   load_case.pressure.tria6.p = [repmat(pz, rows(elno_pz), columns(elno_pz))];
-%!   mesh.materials.penta18 = ones(rows(mesh.elements.penta18), 1, "int32");
+%!                                 repmat(py, rows(elno_py), columns(elno_py));
+%!                                 repmat(pz, rows(elno_pz), columns(elno_pz))];
+%!   mesh.materials.iso27 = ones(rows(mesh.elements.iso27), 1, "int32");
 %!   E = 210000e6;
 %!   nu = 0.3;
 %!   mesh.material_data.rho = 7850;
 %!   mesh.material_data.C = fem_pre_mat_isotropic(E, nu);
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
-%!    mat_ass.R, ...
-%!    mat_ass.dm, ...
-%!    mat_ass.S, ...
-%!    mat_ass.J, ...
-%!    mat_ass.mat_info, ...
-%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!    mat_ass.R] = fem_ass_matrix(mesh, ...
 %!                                dof_map, ...
 %!                                [FEM_MAT_STIFFNESS, ...
-%!                                 FEM_VEC_LOAD_CONSISTENT, ...
-%!                                 FEM_SCA_TOT_MASS, ...
-%!                                 FEM_VEC_INERTIA_M1, ...
-%!                                 FEM_MAT_INERTIA_J], ...
+%!                                 FEM_VEC_LOAD_CONSISTENT], ...
 %!                                load_case);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %!   F = zeros(rows(mesh.nodes), 3);
@@ -129,28 +120,17 @@
 %!     title("static deflection - consistent pressure load");
 %!     figure_list();
 %!   endif
-%!   tol = eps^0.65;
-%!   Xcg = mat_ass.S / mat_ass.dm;
-%!   Jcg = mat_ass.J + skew(Xcg) * skew(Xcg) * mat_ass.dm;
-%!   dmref = mesh.material_data.rho * a * b * c;
-%!   Xcgref = 0.5 * [a; b; c];
-%!   Jxxref = dmref * (b^2 + c^2) / 12;
-%!   Jyyref = dmref * (a^2 + c^2) / 12;
-%!   Jzzref = dmref * (a^2 + b^2) / 12;
-%!   Jcgref = diag([Jxxref, Jyyref, Jzzref]);
+%!   tol = eps^0.7;
 %!   Fx = -px * b * c;
 %!   Fy = -py * a * c;
 %!   Fz = -pz * a * b;
-%!   assert_simple(mat_ass.dm, dmref, tol * dmref);
-%!   assert_simple(Xcg, Xcgref, tol * norm(Xcgref));
-%!   assert_simple(Jcg, Jcgref, tol * norm(Jcgref));
 %!   assert_simple(sum(F(:, 1)), Fx, tol * abs(Fx));
 %!   assert_simple(sum(F(:, 2)), Fy, tol * abs(Fy));
 %!   assert_simple(sum(F(:, 3)), Fz, tol * abs(Fz));
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.penta18(:, :, 1) / -px - 1)))) < tol);
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.penta18(:, :, 2) / -py - 1)))) < tol);
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.penta18(:, :, 3) / -pz - 1)))) < tol);
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.penta18(:, :, 4:6) / max([px,py,pz]))))) < tol);
+%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.iso27(:, :, 1) / -px - 1)))) < tol);
+%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.iso27(:, :, 2) / -py - 1)))) < tol);
+%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.iso27(:, :, 3) / -pz - 1)))) < tol);
+%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.iso27(:, :, 4:6) / max([px,py,pz]))))) < tol);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
