@@ -78,7 +78,7 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type_solid, grp_id
     otherwise
       error("elem_type \"%s\" not supported", elem_type);
   endswitch
-  
+
   layers = numel(h);
 
   elem_grp = getfield(mesh.groups, elem_type);

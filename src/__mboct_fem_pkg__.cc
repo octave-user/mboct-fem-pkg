@@ -7384,7 +7384,7 @@ public:
           constexpr double b2 = (6. - sqrt(15.)) / 21.;
 
           static constexpr octave_idx_type N[4] = {6, 8, 21, 18};
-          
+
           static constexpr double r[4][21] = {{r1, r1, r1, r2, r2, r2},
                                               {-a1, -a1, -a1, -a1, a1, a1, a1, a1},
                                               {-alpha, -alpha, -alpha, -alpha, -alpha, -alpha, -alpha, 0., 0., 0., 0., 0., 0., 0., alpha, alpha, alpha, alpha, alpha, alpha, alpha},
@@ -7405,7 +7405,7 @@ public:
 
           FEM_ASSERT(iIntegRule >= 0);
           FEM_ASSERT(static_cast<size_t>(iIntegRule) < rgIntegRule.size());
-          
+
           if (!rgIntegRule[iIntegRule].iGetNumEvalPoints()) {
                rgIntegRule[iIntegRule].SetNumEvalPoints(N[iIntegRule], 3);
 
@@ -7426,7 +7426,7 @@ public:
           FEM_ASSERT(rgIntegRule[iIntegRule].iGetNumEvalPoints() > 0);
 #ifdef DEBUG
           double wsum = 0.;
-          
+
           for (octave_idx_type i = 0; i < rgIntegRule[iIntegRule].iGetNumEvalPoints(); ++i) {
                wsum += rgIntegRule[iIntegRule].dGetWeight(i);
           }
