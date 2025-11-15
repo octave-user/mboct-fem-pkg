@@ -43,45 +43,50 @@
 %!     fputs(fd, "Plane Surface(6) = {5};\n");
 %!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
 %!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp-y\", 1) = {tmp[2]};\n");
-%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3]};\n");
-%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[4]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp-x\", 4) = {tmp[5]};\n");
-%!     fputs(fd, "Physical Surface(\"clamp-z\", 5) = {6};\n");
-%!     fputs(fd, "Physical Surface(\"load-z\", 6) = {tmp[0]};\n");
+%!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3],tmp[5]};\n");
+%!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[2],tmp[4]};\n");
+%!     fputs(fd, "Physical Surface(\"load-z\", 4) = {6,tmp[0]};\n");
+%!     fputs(fd, "Physical Point(\"A\",1) = {1};\n");
+%!     fputs(fd, "Physical Point(\"B\",2) = {2};\n");
+%!     fputs(fd, "Physical Point(\"C\",3) = {4};\n");
+%!     fputs(fd, "ReorientMesh Volume{tmp[1]};\n");
+%!     fputs(fd, "Mesh.ElementOrder = 2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
 %!     endif
 %!   end_unwind_protect
 %!   [~] = unlink([filename, ".msh"]);
-%!   pid = spawn("gmsh", {"-format", "msh2", "-3", "-order", "2", [filename, ".geo"]});
+%!   pid = spawn("gmsh", {"-format", "msh2", "-3", [filename, ".geo"]});
 %!   status = spawn_wait(pid);
 %!   if (status ~= 0)
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opts.elem_type = {"tet10h", "tria6"};
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opts));
+%!   opt_msh.elem_type = {"tet10h", "tria6h", "point1"};
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
-%!   grp_id_clamp_x = find([[mesh.groups.tria6].id] == 4);
-%!   grp_id_clamp_y = find([[mesh.groups.tria6].id] == 1);
-%!   grp_id_clamp_z = find([[mesh.groups.tria6].id] == 5);
-%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_x).nodes, 1) = true;
-%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_y).nodes, 2) = true;
-%!   load_case.locked_dof(mesh.groups.tria6(grp_id_clamp_z).nodes, 3) = true;
-%!   grp_id_px = find([[mesh.groups.tria6].id] == 2);
-%!   grp_id_py = find([[mesh.groups.tria6].id] == 3);
-%!   grp_id_pz = find([[mesh.groups.tria6].id] == 6);
-%!   elem_id_px = mesh.groups.tria6(grp_id_px).elements;
-%!   elem_id_py = mesh.groups.tria6(grp_id_py).elements;
-%!   elem_id_pz = mesh.groups.tria6(grp_id_pz).elements;
-%!   elno_px = mesh.elements.tria6(elem_id_px, :);
-%!   elno_py = mesh.elements.tria6(elem_id_py, :);
-%!   elno_pz = mesh.elements.tria6(elem_id_pz, :);
-%!   load_case.pressure.tria6.elements = [elno_px; elno_py; elno_pz];
-%!   load_case.pressure.tria6.p = [repmat(px, rows(elno_px), columns(elno_px));
+%!   grp_id_A = find([[mesh.groups.point1].id] == 1);
+%!   grp_id_B = find([[mesh.groups.point1].id] == 2);
+%!   grp_id_C = find([[mesh.groups.point1].id] == 3);
+%!   mesh.elements.joints(1).nodes = mesh.groups.point1(grp_id_A).nodes;
+%!   mesh.elements.joints(1).C = eye(6)(1:3, :);
+%!   mesh.elements.joints(2).nodes = mesh.groups.point1(grp_id_B).nodes;
+%!   mesh.elements.joints(2).C = eye(6)([2, 3], :);
+%!   mesh.elements.joints(3).nodes = mesh.groups.point1(grp_id_C).nodes;
+%!   mesh.elements.joints(3).C = eye(6)(3, :);
+%!   grp_id_px = find([[mesh.groups.tria6h].id] == 2);
+%!   grp_id_py = find([[mesh.groups.tria6h].id] == 3);
+%!   grp_id_pz = find([[mesh.groups.tria6h].id] == 4);
+%!   elem_id_px = mesh.groups.tria6h(grp_id_px).elements;
+%!   elem_id_py = mesh.groups.tria6h(grp_id_py).elements;
+%!   elem_id_pz = mesh.groups.tria6h(grp_id_pz).elements;
+%!   elno_px = mesh.elements.tria6h(elem_id_px, :);
+%!   elno_py = mesh.elements.tria6h(elem_id_py, :);
+%!   elno_pz = mesh.elements.tria6h(elem_id_pz, :);
+%!   load_case.pressure.tria6h.elements = [elno_px; elno_py; elno_pz];
+%!   load_case.pressure.tria6h.p = [repmat(px, rows(elno_px), columns(elno_px));
 %!                                 repmat(py, rows(elno_py), columns(elno_py));
 %!                                 repmat(pz, rows(elno_pz), columns(elno_pz))];
 %!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
@@ -92,17 +97,30 @@
 %!   dof_map = fem_ass_dof_map(mesh, load_case);
 %!   [mat_ass.K, ...
 %!    mat_ass.R, ...
-%!    mat_ass.colloc_mass] = fem_ass_matrix(mesh, ...
-%!                                          dof_map, ...
-%!                                          [FEM_MAT_STIFFNESS, ...
-%!                                           FEM_VEC_LOAD_CONSISTENT, ...
-%!                                           FEM_VEC_COLL_STIFFNESS, ...
-%!                                           FEM_VEC_COLL_MASS], ...
-%!                                          load_case);
+%!    mat_ass.dm, ...
+%!    mat_ass.S, ...
+%!    mat_ass.J, ...
+%!    mat_ass.mat_info, ...
+%!    mat_ass.mesh_info] = fem_ass_matrix(mesh, ...
+%!                                       dof_map, ...
+%!                                       [FEM_MAT_STIFFNESS, ...
+%!                                        FEM_VEC_LOAD_CONSISTENT, ...
+%!                                       FEM_SCA_TOT_MASS, ...
+%!                                       FEM_VEC_INERTIA_M1, ...
+%!                                       FEM_MAT_INERTIA_J], ...
+%!                                       load_case);
 %!   sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
-%!   [sol_stat.stress] = fem_ass_matrix(mesh, ...
+%!   F = zeros(rows(mesh.nodes), 3);
+%!   for i=1:3
+%!     idof = dof_map.ndof(:, i);
+%!     idx = idof > 0;
+%!     F(idx, i) = mat_ass.R(idof(idx));
+%!   endfor
+%!   [sol_stat.stress, ...
+%!    sol_stat.strain] = fem_ass_matrix(mesh, ...
 %!                                      dof_map, ...
-%!                                      [FEM_VEC_STRESS_CAUCH], ...
+%!                                      [FEM_VEC_STRESS_CAUCH, ...
+%!                                       FEM_VEC_STRAIN_TOTAL], ...
 %!                                      load_case, ...
 %!                                      sol_stat);
 %!   if (do_plot)
@@ -117,10 +135,36 @@
 %!     figure_list();
 %!   endif
 %!   tol = eps^0.7;
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 1) / -px - 1)))) < tol);
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 2) / -py - 1)))) < tol);
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 3) / -pz - 1)))) < tol);
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 4:6) / max([px,py,pz]))))) < tol);
+%!   Fref = [-px * b * c;
+%!           -py * a * c;
+%!           -pz * a * b];
+%!   p = [px, py, pz];
+%!   Xcg = mat_ass.S / mat_ass.dm;
+%!   Jcg = mat_ass.J + skew(Xcg) * skew(Xcg) * mat_ass.dm;
+%!   dmref = mesh.material_data.rho * a * b * c;
+%!   Xcgref = 0.5 * [a; b; c];
+%!   Jxxref = dmref * (b^2 + c^2) / 12;
+%!   Jyyref = dmref * (a^2 + c^2) / 12;
+%!   Jzzref = dmref * (a^2 + b^2) / 12;
+%!   Jcgref = diag([Jxxref, Jyyref, Jzzref]);
+%!   assert_simple(mat_ass.dm, dmref, tol * dmref);
+%!   assert_simple(Xcg, Xcgref, tol * norm(Xcgref));
+%!   assert_simple(Jcg, Jcgref, tol * norm(Jcgref));
+%!   epsilon = mesh.material_data.C \ [-px; -py; -pz; zeros(3, 1)];
+%!   for i=1:3
+%!     assert_simple(sum(F(:, i)), 0, tol * abs(Fref(i)));
+%!   endfor
+%!   for i=1:3
+%!     assert(sol_stat.def(:, i), mesh.nodes(:, i) * epsilon(i), tol * a * abs(epsilon(i)));
+%!   endfor
+%!   for i=1:3
+%!     assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, i) / -p(i) - 1)))) < tol);
+%!   endfor
+%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 4:6) / max(abs(p)))))) < tol);
+%!   for i=1:3
+%!     assert_simple(max(max(max(abs(sol_stat.strain.epsilon.tet10h(:, :, i) / epsilon(i) - 1)))) < tol);
+%!   endfor
+%!   assert_simple(max(max(max(abs(sol_stat.strain.epsilon.tet10h(:, :, 4:6) / max(abs(epsilon)))))) < tol);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
