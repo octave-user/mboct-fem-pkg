@@ -7577,7 +7577,7 @@ private:
           }
      }
 
-     static array<IntegrationRule, 3> rgIntegRule;
+     static array<IntegrationRule, 4> rgIntegRule;
 };
 
 array<IntegrationRule, 3> Penta18::rgIntegRule;
