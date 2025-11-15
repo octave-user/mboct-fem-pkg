@@ -7373,6 +7373,7 @@ public:
           constexpr double w1 = 1. / 6.;
           constexpr double w2 = -27. / 96.;
           constexpr double w3 = 25. / 96.;
+          constexpr double w4 = 1. / 18.;
           constexpr double alpha = sqrt(3. / 5.);
           constexpr double c1 = 5. / 9.;
           constexpr double c2 = 8. / 9.;
@@ -7382,20 +7383,24 @@ public:
           constexpr double a2 = (6. + sqrt(15.)) / 21.;
           constexpr double b2 = (6. - sqrt(15.)) / 21.;
 
-          static constexpr octave_idx_type N[3] = {6, 8, 21};
+          static constexpr octave_idx_type N[4] = {6, 8, 21, 18};
           
-          static constexpr double r[3][21] = {{r1, r1, r1, r2, r2, r2},
+          static constexpr double r[4][21] = {{r1, r1, r1, r2, r2, r2},
                                               {-a1, -a1, -a1, -a1, a1, a1, a1, a1},
-                                              {-alpha, -alpha, -alpha, -alpha, -alpha, -alpha, -alpha, 0., 0., 0., 0., 0., 0., 0., alpha, alpha, alpha, alpha, alpha, alpha, alpha}};
-          static constexpr double s[3][21] = {{0.5, 0., 0.5, 0.5, 0., 0.5},
+                                              {-alpha, -alpha, -alpha, -alpha, -alpha, -alpha, -alpha, 0., 0., 0., 0., 0., 0., 0., alpha, alpha, alpha, alpha, alpha, alpha, alpha},
+                                              {-1., -1., -1., 1., 1., 1., -1., -1., -1., 0., 0., 0., 1., 1., 1., 0., 0., 0.}};
+          static constexpr double s[4][21] = {{0.5, 0., 0.5, 0.5, 0., 0.5},
                                               {1./3., 0.6, 0.2, 0.2, 1./3., 0.6, 0.2, 0.2},
-                                              {1./3, a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2}};
-          static constexpr double t[3][21] = {{0.5, 0.5, 0., 0.5, 0.5, 0.},
+                                              {1./3, a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2},
+                                              {1., 0., 0., 1., 0., 0., 0.5, 0., 0.5, 1., 0., 0., 0.5, 0., 0.5, 0.5, 0., 0.5}};
+          static constexpr double t[4][21] = {{0.5, 0.5, 0., 0.5, 0.5, 0.},
                                               {1./3., 0.2, 0.6, 0.2, 1./3., 0.2, 0.6, 0.2},
-                                              {1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2}};
-          static constexpr double w[3][21] = {{w1, w1, w1, w1, w1, w1},
+                                              {1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2},
+                                              {0., 1., 0., 0., 1., 0., 0.5, 0.5, 0., 0., 1., 0., 0.5, 0.5, 0., 0.5, 0.5, 0.}};
+          static constexpr double w[4][21] = {{w1, w1, w1, w1, w1, w1},
                                               {w2, w3, w3, w3, w2, w3, w3, w3},
-                                              {c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4, c2 * c5, c2 * c3, c2 * c3, c2 * c3, c2 * c4, c2 * c4, c2 * c4, c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4}};
+                                              {c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4, c2 * c5, c2 * c3, c2 * c3, c2 * c3, c2 * c4, c2 * c4, c2 * c4, c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4},
+                                              {w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4}};
           const octave_idx_type iIntegRule = SelectIntegrationRule(eMatType);
 
           FEM_ASSERT(iIntegRule >= 0);
@@ -7565,37 +7570,8 @@ private:
 
      static octave_idx_type SelectIntegrationRule(FemMatrixType eMatType) {
           switch (eMatType) {
-          case VEC_STRESS_CAUCH:
-          case VEC_STRAIN_TOTAL:
-          case SCA_STRESS_VMIS:
-               return 2;
-          case MAT_MASS:
-               return 2;
-          case MAT_MASS_SYM:
-          case MAT_MASS_SYM_L:
-               return 2;
-          case VEC_INERTIA_M1:
-          case MAT_INERTIA_J:
-               return 2;
-          case MAT_INERTIA_INV3:
-          case MAT_INERTIA_INV4:
-          case MAT_INERTIA_INV5:
-          case MAT_INERTIA_INV8:
-          case MAT_INERTIA_INV9:
-          case MAT_HEAT_CAPACITY:
-          case MAT_MASS_ACOUSTICS_RE:
-          case MAT_MASS_ACOUSTICS_IM:
-          case MAT_MASS_FLUID_STRUCT_RE:
-          case MAT_MASS_FLUID_STRUCT_IM:
-          case VEC_COLL_MASS:
-          case VEC_COLL_HEAT_CAPACITY:
-          case VEC_COLL_MASS_ACOUSTICS:
-          case VEC_COLL_MASS_FLUID_STRUCT:
-               return 2;
           case MAT_MASS_LUMPED:
-               throw std::runtime_error("not implemented yet");
-          case SCA_TOT_MASS:
-               return 2;
+               return 3;
           default:
                return 2;
           }
