@@ -26,7 +26,7 @@ function eltype_out = fem_pre_mesh_elem_type()
   persistent eltype = [];
 
   if (isempty(eltype))
-    empty_cell = cell(1, 39);
+    empty_cell = cell(1, 40);
 
     eltype = struct("dim", empty_cell, ...
                     "id", empty_cell, ...
