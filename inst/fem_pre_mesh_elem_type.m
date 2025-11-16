@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2024) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ function eltype_out = fem_pre_mesh_elem_type()
   persistent eltype = [];
 
   if (isempty(eltype))
-    empty_cell = cell(1, 40);
+    empty_cell = cell(1, 41);
 
     eltype = struct("dim", empty_cell, ...
                     "id", empty_cell, ...

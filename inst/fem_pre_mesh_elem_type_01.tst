@@ -1,7 +1,7 @@
 %!test
 %! try
 %! eltype = fem_pre_mesh_elem_type();
-%! assert_simple(numel(eltype), 40);
+%! assert_simple(numel(eltype), 41);
 %! for i=1:numel(eltype)
 %!   switch (eltype(i).dim)
 %!   case {0, 1, 2, 3}
