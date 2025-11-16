@@ -84,13 +84,14 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
+%!   opt_msh.elem_type = {"tria6h", "tet10"};
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
 %!   [~] = unlink([filename, ".msh"]);
 %!   grp_idx_v_solid = find([mesh.groups.tet10.id] == 1);
 %!   grp_idx_v_fluid = find([mesh.groups.tet10.id] == 2);
-%!   grp_idx_s_fsi = find([mesh.groups.tria6.id] == 1);
-%!   grp_idx_s_clamp = find([mesh.groups.tria6.id] == 2);
-%!   grp_idx_s_boundary = find([mesh.groups.tria6.id] == 3);
+%!   grp_idx_s_fsi = find([mesh.groups.tria6h.id] == 1);
+%!   grp_idx_s_clamp = find([mesh.groups.tria6h.id] == 2);
+%!   grp_idx_s_boundary = find([mesh.groups.tria6h.id] == 3);
 %!   num_nodes_non_PML = rows(mesh.nodes);
 %!   node_idx_constr_PML = num_nodes_non_PML + 1:rows(mesh.nodes);
 %!   empty_cell = cell(1, 2);
@@ -110,11 +111,11 @@
 %!   mesh.materials.tet10 = zeros(rows(mesh.elements.tet10), 1, "int32");
 %!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_v_solid).elements) = 1;
 %!   mesh.materials.tet10(mesh.groups.tet10(grp_idx_v_fluid).elements) = 2;
-%!   mesh.elements.fluid_struct_interface.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_fsi).elements, :);
-%!   mesh.elements.acoustic_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_boundary).elements, :);
-%!   mesh.materials.acoustic_boundary.tria6 = repmat(int32(2), rows(mesh.elements.acoustic_boundary.tria6), 1);
-%!   mesh.elements.structural_boundary.tria6 = mesh.elements.tria6(mesh.groups.tria6(grp_idx_s_fsi).elements, :);
-%!   mesh.materials.structural_boundary.tria6 = repmat(int32(2), rows(mesh.elements.structural_boundary.tria6), 1);
+%!   mesh.elements.fluid_struct_interface.tria6h = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_s_fsi).elements, :);
+%!   mesh.elements.acoustic_boundary.tria6h = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_s_boundary).elements, :);
+%!   mesh.materials.acoustic_boundary.tria6h = repmat(int32(2), rows(mesh.elements.acoustic_boundary.tria6h), 1);
+%!   mesh.elements.structural_boundary.tria6h = mesh.elements.tria6h(mesh.groups.tria6h(grp_idx_s_fsi).elements, :);
+%!   mesh.materials.structural_boundary.tria6h = repmat(int32(2), rows(mesh.elements.structural_boundary.tria6h), 1);
 %!   empty_cell = cell(1, 2);
 %!   load_case = struct("loads", empty_cell, "loaded_nodes", empty_cell);
 %!   tol = sqrt(eps) * d1;
@@ -149,7 +150,7 @@
 %!         deltaPML = 1 / k;
 %!         h = lambda / 10;
 %!         rPML = r + h * N;
-%!         [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(setfield(mesh, "nodes", mesh.nodes(1:num_nodes_non_PML, :)), "tria6", 3, [repmat(h, 1, N), repmat(deltaPML / NPML, 1, NPML)]);
+%!         [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(setfield(mesh, "nodes", mesh.nodes(1:num_nodes_non_PML, :)), "penta15", 3, [repmat(h, 1, N), repmat(deltaPML / NPML, 1, NPML)]);
 %!         mesh.materials.penta15 = repmat(int32(2), rows(mesh.elements.penta15), 1);
 %!         mesh.elements.perfectly_matched_layers.penta15.f = zeros(3, columns(mesh.elements.penta15), rows(mesh.elements.penta15));
 %!         mesh.elements.perfectly_matched_layers.penta15.e1 = zeros(3, columns(mesh.elements.penta15), rows(mesh.elements.penta15));
@@ -170,7 +171,7 @@
 %!         mesh.elements.perfectly_matched_layers.penta15.f(1, :, idxPML) = 1 ./ (1 - 1j * sigmax / k);
 %!       endif
 %!       load_case_dof.locked_dof = false(rows(mesh.nodes), 7);
-%!       load_case_dof.locked_dof(mesh.groups.tria6(grp_idx_s_clamp).nodes, 1:3) = true;
+%!       load_case_dof.locked_dof(mesh.groups.tria6h(grp_idx_s_clamp).nodes, 1:3) = true;
 %!       if (f_enable_PML)
 %!         load_case_dof.locked_dof(node_idx_constr_PML, 7) = true;
 %!       endif
@@ -255,12 +256,12 @@
 %!                                                 load_case, ...
 %!                                                 sol);
 %!       z = rho2 * c2 * k * r .* exp(1j * acot(k * r)) ./ sqrt(1 + (k * r).^2); ## according Jont Allen equation 5.11.9
-%!       p = sol.p(mesh.elements.acoustic_boundary.tria6);
-%!       vx = sol.particle_velocity.vn.tria6;
+%!       p = sol.p(mesh.elements.acoustic_boundary.tria6h);
+%!       vx = sol.particle_velocity.vn.tria6h;
 %!       R = abs(mean(mean((p - z * vx) ./ (p + z * vx))));
 %!       T(i) = 1 ./ (1 - R.^2);
-%!       P(i) = sum(sol.acoustic_intensity.P.tria6);
-%!       ERP(i) = sum(sol.effective_radiated_power.P.tria6);
+%!       P(i) = sum(sol.acoustic_intensity.P.tria6h);
+%!       ERP(i) = sum(sol.effective_radiated_power.P.tria6h);
 %!       fprintf(stderr, "%d/%d %.2fHz P=%.2fdB ERP=%.2fdB TL=%.2fdB res=%.2e iter=%d/%d\n", i, numel(f), f(i) * unit_second^-1, 10 * log10(P(i) / P0), 10 * log10(ERP(i) / P0), 10 * log10(T(i)), f1 / f2, ITER(1), ITER(2));
 %!       solt.t = linspace(0, 2 * pi / omega, 36);
 %!       solt.p = real(-sol.PhiP .* exp(1j * omega * solt.t));

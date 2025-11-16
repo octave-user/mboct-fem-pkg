@@ -27,10 +27,57 @@
 ##
 ## @end deftypefn
 
-function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
+function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type_solid, grp_id, h)
   if (nargin ~= 4 || nargout ~= 2)
     print_usage();
   endif
+
+  switch (elem_type_solid)
+    case "iso8"
+      elem_type = "iso4";
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(8);
+      bottom_node_idx = int32([5, 6, 7, 8]);
+      top_node_idx = int32([1, 2, 3, 4]);
+      interm_node_idx = [];
+    case "penta15"
+      elem_type = "tria6h";
+      corner_nodes = int32([1, 2, 3]);
+      num_nodes_elem = int32(15);
+      bottom_node_idx = int32([1, 2, 3, 7, 8, 9]);
+      top_node_idx = int32([4, 5, 6, 10, 11, 12]);
+      interm_node_idx = int32([13, 14, 15]);
+    case "iso20r"
+      elem_type = "quad8r";
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(20);
+      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
+      top_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
+      interm_node_idx = int32([17, 18, 19, 20]);
+    case "iso20"
+      elem_type = "quad8";
+      corner_nodes = int32([1, 2, 3, 4]);
+      num_nodes_elem = int32(20);
+      bottom_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
+      top_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
+      interm_node_idx = int32([17, 18, 19, 20]);
+    case "iso27"
+      elem_type = "quad9";
+      corner_nodes = int32([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+      num_nodes_elem = int32(27);
+      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12, 21]);
+      top_node_idx = int32([5, 6, 7, 8, 17, 18, 19, 20, 26]);
+      interm_node_idx = int32([13, 14, 15, 16, 22, 23, 24, 25, 27]);
+    case "penta18"
+      elem_type = "tria6h";
+      corner_nodes = int32([1, 2, 3, 4, 5, 6]);
+      num_nodes_elem = int32(18);
+      bottom_node_idx = int32([1, 2, 3, 7, 8, 9]);
+      top_node_idx = int32([4, 5, 6, 13, 14, 15]);
+      interm_node_idx = int32([10, 11, 12, 16, 17, 18]);
+    otherwise
+      error("elem_type \"%s\" not supported", elem_type);
+  endswitch
 
   layers = numel(h);
 
@@ -63,41 +110,6 @@ function [nodes, elem] = fem_pre_mesh_extrude_surf(mesh, elem_type, grp_id, h)
                              dof_map_n, ...
                              [FEM_VEC_SURFACE_NORMAL_VECTOR], ...
                              load_case_n);
-
-  switch (elem_type)
-    case "iso4"
-      corner_nodes = int32([1, 2, 3, 4]);
-      num_nodes_elem = int32(8);
-      bottom_node_idx = int32([5, 6, 7, 8]);
-      top_node_idx = int32([1, 2, 3, 4]);
-      interm_node_idx = [];
-    case {"tria6", "tria6h"}
-      corner_nodes = int32([1, 2, 3]);
-      num_nodes_elem = int32(15);
-      bottom_node_idx = int32([1, 2, 3, 7, 8, 9]);
-      top_node_idx = int32([4, 5, 6, 10, 11, 12]);
-      interm_node_idx = int32([13, 14, 15]);
-    case "quad8r"
-      corner_nodes = int32([1, 2, 3, 4]);
-      num_nodes_elem = int32(20);
-      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
-      top_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
-      interm_node_idx = int32([17, 18, 19, 20]);
-    case "quad8"
-      corner_nodes = int32([1, 2, 3, 4]);
-      num_nodes_elem = int32(20);
-      bottom_node_idx = int32([5, 6, 7, 8, 13, 14, 15, 16]);
-      top_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12]);
-      interm_node_idx = int32([17, 18, 19, 20]);
-    case "quad9"
-      corner_nodes = int32([1, 2, 3, 4, 5, 6, 7, 8, 9]);
-      num_nodes_elem = int32(27);
-      bottom_node_idx = int32([1, 2, 3, 4, 9, 10, 11, 12, 21]);
-      top_node_idx = int32([5, 6, 7, 8, 17, 18, 19, 20, 26]);
-      interm_node_idx = int32([13, 14, 15, 16, 22, 23, 24, 25, 27]);
-    otherwise
-      error("elem_type \"%s\" not supported", elem_type);
-  endswitch
 
   top_nodes = unique(elem_nodes(:));
   interm_nodes = unique(elem_nodes(:, corner_nodes)(:));

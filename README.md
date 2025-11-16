@@ -8,16 +8,18 @@ In addition to that, mboct-fem-pkg has also functions for pre- and post-processi
   - Assign material properties:
            Structural: isotropic and arbitrary an-isotropic linear elastic constitutive laws
                        Rayleigh damping
+                       Complex damping
                        density
+                       thermal expansion
            Thermal: specific heat capacity
                     thermal conductivity
            Acoustic: speed of propagation of sound
                      fluid density
-                     fluid viscosity
-
+                     shear viscosity
+                     volume viscosity
   - Assign loads and boundary conditions:
            Structural: nodal forces and moments
-                       distributed forces and moments via RBE3
+                       distributed forces and moments via RBE3 and RBE2
                        pressure loads
                        thermal expansion and arbitrary pre-strains
                        prescribed nodal displacements
@@ -49,26 +51,46 @@ In addition to that, mboct-fem-pkg has also functions for pre- and post-processi
   - Solve acoustic eigenmode problems
   - Compute particle velocities, acoustic intensity and acoustic radiation
 
-
-# Supported element types and application
+# Supported meshes
   - 8 node linear hexahedral 3D element
-  - 6 node linear pentahedral 3D element
-  - 4 node linear tetrahedral 3D element
   - 20 node quadratic hexahedral 3D element
+  - 27 node quadratic hexahedral 3D element
+  - 6 node linear pentahedral 3D element
   - 15 node quadratic pentahedral 3D element
-  - 10 node quadratic tetrahedral 3D p-element
-  - 10 node quadratic tetrahedral 3D h-element
-  - 20 node cubic tetrahedral 3D h-element
+  - 18 node quadratic pentahedral 3D element
+  - 4 node linear tetrahedral 3D element
+  - 10 node quadratic tetrahedral 3D element
+  - 20 node cubic tetrahedral 3D element
   - 4 node linear quadrilateral 3D surface element
-  - 3 node linear triangular 3D surface element
   - 8 node quadratic quadrilateral 3D surface element
-  - 6 node quadratic triangular 3D surface p-element
-  - 6 node quadratic triangular 3D surface h-element
-  - 2 node Timoshenko beam element (structural)
+  - 9 node quadratic quadrilateral 3D surface element
+  - 3 node linear triangular 3D surface element
+  - 6 node quadratic triangular 3D surface element
+  - 10 node cubic triangular 3D surface element
+
+# Supported structural elements
+  - 2 node Timoshenko beam element
   - Load distributing Nastran like RBE3 element
+  - Rigid Nastran like RBE2 element
   - Generic joint element
-  - Surface to node constraint elements for coupling of unrelated meshes
+  - Rigid body lumped mass element
+  - Generic spring element
+  - Generic dashpot element
+  - Surface to node constraint elements for coupling unrelated meshes
+  - Pressure load surface element
   - Lumped force/torque element
+
+# Supported thermal elements
+  - Thermal convection element
+  - Thermal constraint element
+  - Heat source element
+
+# Supported acoustic elements
+  - Acoustic particle velocity element
+  - Acoustic impedance element
+  - Acoustic constraint element
+  - Acoustic and structural boundary element
+  - Fluid structure interface element
 
 Copyright<sup>&copy;</sup> 2019-2025
 

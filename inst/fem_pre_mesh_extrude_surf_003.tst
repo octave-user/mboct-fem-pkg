@@ -77,7 +77,7 @@
 %!   opt_mesh.elem_type = {"tet10h", "tria6h"};
 %!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_mesh));
 %!   [~] = unlink([filename, ".msh"]);
-%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", 3, repmat(deltaPML / layersPML, 1, layersPML));
+%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "penta15", 3, repmat(deltaPML / layersPML, 1, layersPML));
 %!   r = sqrt(mesh.nodes(:, 1).^2 + mesh.nodes(:, 2).^2 + mesh.nodes(:, 3).^2);
 %!   mesh.groups.tria6h(end + 1).id = 4;
 %!   mesh.groups.tria6h(end).nodes = find(r > r2 - 0.1 * deltaPML / layersPML);

@@ -29,7 +29,7 @@
 %!     mesh.material_data.E = 210000e6;
 %!     mesh.material_data.nu = 0.3;
 %!     mesh.material_data.rho = 7850;
-%!     [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "tria6h", int32(1), repmat(h / N, 1, N));
+%!     [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "penta15", int32(1), repmat(h / N, 1, N));
 %!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
 %!     mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
 %!     dof_map = fem_ass_dof_map(mesh, load_case_dof);

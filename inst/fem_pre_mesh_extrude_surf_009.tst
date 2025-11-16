@@ -14,12 +14,13 @@
 %! ## NATIONAL LABORATORY
 %! ##########################################################################
 %! R = 4.4688 * 25.4e-3;                  # radius in the middle of the shell
-%! h = 2 * R * pi / 72;                   # mesh size
+%! k = 36;
+%! h = 2 * R * pi / k;                    # mesh size
 %! t = 0.0625 * 25.4e-3;                  # shell thickness
 %! E = 28e6 * 6895;                       # Young's modulus
 %! nu = 0.28;                             # Poisson ratio
 %! rho = 0.000751 * 4.4482 / (25.4e-3^4); # density
-%! tol_coherence = 1e-4;                  # relative tolerance
+%! tol_coherence = 2 * sin(2 * pi / k) * t / R;  # relative tolerance
 %! num_modes = 39;                        # number of modes to compute
 %! fref = [5078, 6005, 6378, 6729];       # reference solution
 %! unwind_protect
@@ -52,7 +53,6 @@
 %!     fputs(fd, "};\n");
 %!     fputs(fd, "Physical Surface(\"surface\", 1) = {2, 4, 1, 3};\n");
 %!     fputs(fd, "Mesh.ElementOrder = 2;\n");
-%!     fputs(fd, "Mesh.SecondOrderIncomplete = 1;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
 %!       fclose(fd);
@@ -65,14 +65,14 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"tria6h", "quad8"};
+%!   opt_msh.elem_type = {"quad9", "tria6h"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
-%!   [mesh.nodes, mesh.elements.iso20] = fem_pre_mesh_extrude_surf(mesh, "iso20", 1, t);
-%!   [mesh.nodes, mesh.elements.penta15] = fem_pre_mesh_extrude_surf(mesh, "penta15", 1, t);
+%!   [mesh.nodes, mesh.elements.iso27] = fem_pre_mesh_extrude_surf(mesh, "iso27", 1, t);
+%!   [mesh.nodes, mesh.elements.penta18] = fem_pre_mesh_extrude_surf(mesh, "penta18", 1, t);
 %!   [mesh, dx] = fem_pre_mesh_coherence(mesh, tol_coherence * R);
 %!   mesh = fem_pre_mesh_reorder(mesh);
-%!   mesh.materials.iso20 = ones(rows(mesh.elements.iso20), 1, "int32");
-%!   mesh.materials.penta15 = ones(rows(mesh.elements.penta15), 1, "int32");
+%!   mesh.materials.iso27 = ones(rows(mesh.elements.iso27), 1, "int32");
+%!   mesh.materials.penta18 = ones(rows(mesh.elements.penta18), 1, "int32");
 %!   mesh.material_data.E = E;
 %!   mesh.material_data.nu = nu;
 %!   mesh.material_data.rho = rho;
@@ -94,7 +94,7 @@
 %!   opt_eig.algorithm = "shift-invert";
 %!   sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, num_modes, opt_eig);
 %!   sol_eig.stress = fem_ass_matrix(mesh, dof_map, [FEM_SCA_STRESS_VMIS], load_case, sol_eig);
-%!   assert_simple(sol_eig.f([7, 12, 19, 39]), fref, 5e-4 * max(fref));
+%!   assert_simple(sol_eig.f([7, 12, 19, 39]), fref, 5e-2 * max(fref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

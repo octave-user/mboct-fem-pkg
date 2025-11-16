@@ -67,7 +67,7 @@
 %!   [~] = unlink([filename, ".geo"]);
 %!   opt_msh.elem_type = {"iso4", "tria3"};
 %!   mesh = fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh);
-%!   [mesh.nodes, mesh.elements.iso8] = fem_pre_mesh_extrude_surf(mesh, "iso4", 1, t);
+%!   [mesh.nodes, mesh.elements.iso8] = fem_pre_mesh_extrude_surf(mesh, "iso8", 1, t);
 %!   [mesh, dx] = fem_pre_mesh_coherence(mesh, tol_coherence * R);
 %!   mesh = fem_pre_mesh_reorder(mesh);
 %!   mesh.materials.iso8 = ones(rows(mesh.elements.iso8), 1, "int32");

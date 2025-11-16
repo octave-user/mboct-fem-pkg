@@ -1,7 +1,7 @@
-## fem_pre_mesh_import.m:30
+## fem_pre_mesh_import.m:454
 %!test
 %! try
-%! ## TEST 30: static patch test of tet10h
+%! ## TEST 454: static patch test of iso27
 %! do_plot = false;
 %! if (do_plot)
 %!   close all;
@@ -41,7 +41,8 @@
 %!     fputs(fd, "Line(4) = {4,1};\n");
 %!     fputs(fd, "Line Loop(5) = {1,2,3,4};\n");
 %!     fputs(fd, "Plane Surface(6) = {5};\n");
-%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; };\n");
+%!     fputs(fd, "tmp[] = Extrude {0, 0, c}{ Surface{6}; Layers{Ceil(c / h)}; Recombine; };\n");
+%!     fputs(fd, "Recombine Surface{6, tmp[0]};\n");
 %!     fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
 %!     fputs(fd, "Physical Surface(\"load-x\", 2) = {tmp[3],tmp[5]};\n");
 %!     fputs(fd, "Physical Surface(\"load-y\", 3) = {tmp[2],tmp[4]};\n");
@@ -50,6 +51,7 @@
 %!     fputs(fd, "Physical Point(\"B\",2) = {2};\n");
 %!     fputs(fd, "Physical Point(\"C\",3) = {4};\n");
 %!     fputs(fd, "ReorientMesh Volume{tmp[1]};\n");
+%!     fputs(fd, "Mesh.SecondOrderIncomplete = 0;\n");
 %!     fputs(fd, "Mesh.ElementOrder = 2;\n");
 %!   unwind_protect_cleanup
 %!     if (fd ~= -1)
@@ -63,8 +65,7 @@
 %!     warning("gmsh failed with status %d", status);
 %!   endif
 %!   [~] = unlink([filename, ".geo"]);
-%!   opt_msh.elem_type = {"tet10h", "tria6h", "point1"};
-%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh", opt_msh));
+%!   mesh = fem_pre_mesh_reorder(fem_pre_mesh_import([filename, ".msh"], "gmsh"));
 %!   [~] = unlink([filename, ".msh"]);
 %!   load_case.locked_dof = false(rows(mesh.nodes), 6);
 %!   grp_id_A = find([[mesh.groups.point1].id] == 1);
@@ -76,20 +77,20 @@
 %!   mesh.elements.joints(2).C = eye(6)([2, 3], :);
 %!   mesh.elements.joints(3).nodes = mesh.groups.point1(grp_id_C).nodes;
 %!   mesh.elements.joints(3).C = eye(6)(3, :);
-%!   grp_id_px = find([[mesh.groups.tria6h].id] == 2);
-%!   grp_id_py = find([[mesh.groups.tria6h].id] == 3);
-%!   grp_id_pz = find([[mesh.groups.tria6h].id] == 4);
-%!   elem_id_px = mesh.groups.tria6h(grp_id_px).elements;
-%!   elem_id_py = mesh.groups.tria6h(grp_id_py).elements;
-%!   elem_id_pz = mesh.groups.tria6h(grp_id_pz).elements;
-%!   elno_px = mesh.elements.tria6h(elem_id_px, :);
-%!   elno_py = mesh.elements.tria6h(elem_id_py, :);
-%!   elno_pz = mesh.elements.tria6h(elem_id_pz, :);
-%!   load_case.pressure.tria6h.elements = [elno_px; elno_py; elno_pz];
-%!   load_case.pressure.tria6h.p = [repmat(px, rows(elno_px), columns(elno_px));
+%!   grp_id_px = find([[mesh.groups.quad9].id] == 2);
+%!   grp_id_py = find([[mesh.groups.quad9].id] == 3);
+%!   grp_id_pz = find([[mesh.groups.quad9].id] == 4);
+%!   elem_id_px = mesh.groups.quad9(grp_id_px).elements;
+%!   elem_id_py = mesh.groups.quad9(grp_id_py).elements;
+%!   elem_id_pz = mesh.groups.quad9(grp_id_pz).elements;
+%!   elno_px = mesh.elements.quad9(elem_id_px, :);
+%!   elno_py = mesh.elements.quad9(elem_id_py, :);
+%!   elno_pz = mesh.elements.quad9(elem_id_pz, :);
+%!   load_case.pressure.quad9.elements = [elno_px; elno_py; elno_pz];
+%!   load_case.pressure.quad9.p = [repmat(px, rows(elno_px), columns(elno_px));
 %!                                 repmat(py, rows(elno_py), columns(elno_py));
 %!                                 repmat(pz, rows(elno_pz), columns(elno_pz))];
-%!   mesh.materials.tet10h = ones(rows(mesh.elements.tet10h), 1, "int32");
+%!   mesh.materials.iso27 = ones(rows(mesh.elements.iso27), 1, "int32");
 %!   E = 210000e6;
 %!   nu = 0.3;
 %!   mesh.material_data.rho = 7850;
@@ -158,13 +159,13 @@
 %!     assert(sol_stat.def(:, i), mesh.nodes(:, i) * epsilon(i), tol * a * abs(epsilon(i)));
 %!   endfor
 %!   for i=1:3
-%!     assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, i) / -p(i) - 1)))) < tol);
+%!     assert_simple(max(max(max(abs(sol_stat.stress.tau.iso27(:, :, i) / -p(i) - 1)))) < tol);
 %!   endfor
-%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.tet10h(:, :, 4:6) / max(abs(p)))))) < tol);
+%!   assert_simple(max(max(max(abs(sol_stat.stress.tau.iso27(:, :, 4:6) / max(abs(p)))))) < tol);
 %!   for i=1:3
-%!     assert_simple(max(max(max(abs(sol_stat.strain.epsilon.tet10h(:, :, i) / epsilon(i) - 1)))) < tol);
+%!     assert_simple(max(max(max(abs(sol_stat.strain.epsilon.iso27(:, :, i) / epsilon(i) - 1)))) < tol);
 %!   endfor
-%!   assert_simple(max(max(max(abs(sol_stat.strain.epsilon.tet10h(:, :, 4:6) / max(abs(epsilon)))))) < tol);
+%!   assert_simple(max(max(max(abs(sol_stat.strain.epsilon.iso27(:, :, 4:6) / max(abs(epsilon)))))) < tol);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);
