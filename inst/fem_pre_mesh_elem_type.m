@@ -162,6 +162,14 @@ function eltype_out = fem_pre_mesh_elem_type()
     ++idx;
 
     eltype(idx).dim = 3;
+    eltype(idx).id = 13;
+    eltype(idx).name = "penta18f";
+    eltype(idx).norder = [1,2,3,4,5,6,7,10,8,9,11,12,13,15,14,16,18,17];
+    eltype(idx).default_import = false;
+
+    ++idx;
+
+    eltype(idx).dim = 3;
     eltype(idx).id = 18;
     eltype(idx).name = "penta15f";
     eltype(idx).norder = [1,2,3,4,5,6,7,10,8,13,15,14,9,11,12];
