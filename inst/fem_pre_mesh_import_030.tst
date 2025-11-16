@@ -134,7 +134,7 @@
 %!     title("static deflection - consistent pressure load");
 %!     figure_list();
 %!   endif
-%!   tol = eps^0.7;
+%!   tol = eps^0.6;
 %!   Fref = [-px * b * c;
 %!           -py * a * c;
 %!           -pz * a * b];
