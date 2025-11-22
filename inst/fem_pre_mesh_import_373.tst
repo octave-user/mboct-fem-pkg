@@ -16,12 +16,12 @@
 %! param.bound_cond = "edge";
 %! param.analysis = "plain strain";
 %! options.verbose = false;
-%! elem_types = {"tet20", "tet10", "tet10h", "iso8", "penta15", "iso20", "iso20r", "iso27"};
+%! elem_types = {"tet20", "tet10", "tet10h", "iso8", "penta15", "iso20", "iso20r", "iso27", "penta18"};
 %! nu_val = [0.3];
 %! for idx_elem_type=1:numel(elem_types)
 %! param.elem_type = elem_types{idx_elem_type};
 %! switch (param.elem_type)
-%! case {"iso8", "penta15", "iso20", "iso20r", "iso27"}
+%! case {"iso8", "penta15", "iso20", "iso20r", "iso27", "penta18"}
 %!   param.transfinite = true;
 %! otherwise
 %!   param.transfinite = false;
@@ -182,7 +182,7 @@
 %!     fprintf(fd, "Transfinite Surface(12) = {PointsOf{Surface{12};}};\n");
 %!     endif
 %!     switch (param.elem_type)
-%!     case {"iso8", "iso20", "iso20r", "iso27", "penta15"}
+%!     case {"iso8", "iso20", "iso20r", "iso27", "penta15", "penta18"}
 %!       extrude_opt = "Layers{1}; Recombine;";
 %!     otherwise
 %!       extrude_opt = "";
@@ -228,6 +228,8 @@
 %!     switch (param.elem_type)
 %!     case {"penta15", "iso20", "iso20r"}
 %!       fprintf(fd, "Mesh.SecondOrderIncomplete = 1;\n");
+%!     otherwise
+%!       fprintf(fd, "Mesh.SecondOrderIncomplete = 0;\n");
 %!     endswitch
 %!     if (~param.transfinite)
 %!     switch (param.elem_type)
@@ -274,6 +276,8 @@
 %!     param.elem_type_surf = {"tria6h"};
 %!   case "tet20"
 %!     param.elem_type_surf = {"tria10"};
+%!   case "penta18"
+%!     param.elem_type_surf = {"quad9", "tria6h"};
 %!   endswitch
 %!   switch (param.elem_type)
 %!   case {"iso8"}
