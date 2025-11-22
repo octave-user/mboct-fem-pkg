@@ -87,7 +87,7 @@
 %! lambdaref = sqrt(-lambdaref);
 %! fref = imag(lambdaref)/(2*pi);
 %! tol = 1e-8;
-%! assert(sol_eig.f(:), fref(1:numel(sol_eig.f)), tol * norm(fref));
+%! assert_simple(sol_eig.f(:), fref(1:numel(sol_eig.f)), tol * norm(fref));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

@@ -33,9 +33,9 @@
 %! sol_eig = fem_sol_modal(mesh, dof_map, mat_ass, 3, opt_sol);
 %! fref = sqrt(g / l) / (2 * pi);
 %! tol = 1e-10;
-%! assert(sol_eig.f(1:2), repmat(fref, 1, 2), tol * fref);
-%! assert(mat_ass.M(1:2, 1:2), m * l^2 * eye(2), tol * m * l^2);
-%! assert(mat_ass.K(1:2, 1:2), m * g * l * eye(2), tol * m * g * l);
+%! assert_simple(sol_eig.f(1:2), repmat(fref, 1, 2), tol * fref);
+%! assert_simple(mat_ass.M(1:2, 1:2), m * l^2 * eye(2), tol * m * l^2);
+%! assert_simple(mat_ass.K(1:2, 1:2), m * g * l * eye(2), tol * m * g * l);
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

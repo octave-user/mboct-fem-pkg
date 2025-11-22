@@ -67,7 +67,7 @@
 %!  lambdaref = sqrt(k / m) * sqrt(1 / (1 + (b / h)^2));
 %!  fref = lambdaref / (2 * pi);
 %!  tol = 1e-10;
-%!  assert(sol_eig.f, fref, tol * abs(fref));
+%!  assert_simple(sol_eig.f, fref, tol * abs(fref));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

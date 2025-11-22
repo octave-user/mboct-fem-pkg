@@ -138,7 +138,7 @@
 %!   K = sqrt(E * Iz * G * It * (Iy - Iz) / Iy);
 %!   FKref = 4.013 / l^2 * K * (1 - zf / l * sqrt(E * Iz / (G * It)));
 %!   tol = 4.5e-2;
-%!   assert(sol_eig.lambda(2), FKref, tol * FKref);
+%!   assert_simple(sol_eig.lambda(2), FKref, tol * FKref);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

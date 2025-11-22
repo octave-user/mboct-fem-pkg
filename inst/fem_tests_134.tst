@@ -52,7 +52,7 @@
 %! Fref = -r * k * cos(Phi0);
 %! tol = 1e-10;
 %! opt_post.elem_types = {"point1", "line2"};
-%! assert(sol_eig.lambda(1), Fref, tol * abs(Fref));
+%! assert_simple(sol_eig.lambda(1), Fref, tol * abs(Fref));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

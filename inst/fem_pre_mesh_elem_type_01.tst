@@ -6,7 +6,7 @@
 %!   switch (eltype(i).dim)
 %!   case {0, 1, 2, 3}
 %!   otherwise
-%!     assert(false);
+%!     assert_simple(false);
 %!   endswitch
 %!   if (eltype(i).default_import)
 %!     default_flag = "*";
@@ -14,21 +14,21 @@
 %!     default_flag = " ";
 %!   endif
 %!   printf("%2d(%2d)%-1s%-10s->", i, eltype(i).id, default_flag, eltype(i).name);
-%!   assert(~isempty(eltype(i).promote));
+%!   assert_simple(~isempty(eltype(i).promote));
 %!   elem_name_promote = "";
 %!   if (eltype(i).promote ~= -1)
-%!     assert(eltype(i).promote >= 1 && eltype(i).promote <= numel(eltype));
+%!     assert_simple(eltype(i).promote >= 1 && eltype(i).promote <= numel(eltype));
 %!     elem_name_promote = eltype(eltype(i).promote).name;
 %!   else
-%!     assert(isempty(eltype(i).nordernonp));
+%!     assert_simple(isempty(eltype(i).nordernonp));
 %!   endif
 %!   printf("%-10s", elem_name_promote);
 %!   printf(" %d", eltype(i).norder);
 %!   printf("\n");
-%!   assert(~isempty(eltype(i).id));
-%!   assert(~isempty(eltype(i).name));
-%!   assert(~isempty(eltype(i).dim));
-%!   assert(~isempty(eltype(i).norder));
+%!   assert_simple(~isempty(eltype(i).id));
+%!   assert_simple(~isempty(eltype(i).name));
+%!   assert_simple(~isempty(eltype(i).dim));
+%!   assert_simple(~isempty(eltype(i).norder));
 %! endfor
 %! catch
 %!   gtest_error = lasterror();

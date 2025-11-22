@@ -155,7 +155,7 @@
 %!     assert_simple(sum(F(:, i)), 0, tol * abs(Fref(i)));
 %!   endfor
 %!   for i=1:3
-%!     assert(sol_stat.def(:, i), mesh.nodes(:, i) * epsilon(i), tol * a * abs(epsilon(i)));
+%!     assert_simple(sol_stat.def(:, i), mesh.nodes(:, i) * epsilon(i), tol * a * abs(epsilon(i)));
 %!   endfor
 %!   for i=1:3
 %!     assert_simple(max(max(max(abs(sol_stat.stress.tau.iso8(:, :, i) / -p(i) - 1)))) < tol);

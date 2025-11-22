@@ -17,7 +17,7 @@
 %! try
 %! eltype = fem_pre_mesh_elem_type_dim([2, 3]);
 %! for i=1:numel(eltype)
-%!   assert(eltype(i).dim == 2 || eltype(i).dim == 3);
+%!   assert_simple(eltype(i).dim == 2 || eltype(i).dim == 3);
 %! endfor
 %! catch
 %!   gtest_error = lasterror();
@@ -29,7 +29,7 @@
 %! try
 %! eltype = fem_pre_mesh_elem_type_dim([1, 2]);
 %! for i=1:numel(eltype)
-%!   assert(eltype(i).dim == 1 || eltype(i).dim == 2);
+%!   assert_simple(eltype(i).dim == 1 || eltype(i).dim == 2);
 %! endfor
 %! catch
 %!   gtest_error = lasterror();
