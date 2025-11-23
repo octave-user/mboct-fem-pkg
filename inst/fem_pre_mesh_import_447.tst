@@ -157,8 +157,8 @@
 %!   endfor
 %!   taumax = max(tau(mesh.groups.quad8r(grp_idx_clamp).nodes, 3));
 %!   tol = 0.5e-2;
-%!   assert(u, uref, tol * abs(uref));
-%!   assert(taumax, tauref, 0.2 * abs(tauref));
+%!   assert_simple(u, uref, tol * abs(uref));
+%!   assert_simple(taumax, tauref, 0.2 * abs(tauref));
 %! unwind_protect_cleanup
 %!   if (numel(filename))
 %!     fn = dir([filename, "*"]);

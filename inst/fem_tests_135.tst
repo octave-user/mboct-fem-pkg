@@ -61,7 +61,7 @@
 %!      -1,  2];
 %! [lambdaref] = eig(A, B);
 %! tol = 1e-10;
-%! assert(sol_eig.lambda(:), lambdaref(:), tol * norm(lambdaref));
+%! assert_simple(sol_eig.lambda(:), lambdaref(:), tol * norm(lambdaref));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

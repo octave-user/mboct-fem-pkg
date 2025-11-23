@@ -74,10 +74,10 @@
 %! lambdaref = eig(K, M);
 %! fref = sqrt(lambdaref) / (2 * pi);
 %! tol = 1e-10;
-%! assert(sol_eig.f(1), fref(1), tol * fref(1));
-%! assert(sol_eig.f(2), fref(1), tol * fref(1));
-%! assert(sol_eig.f(3), fref(2), tol * fref(2));
-%! assert(sol_eig.f(4), fref(2), tol * fref(2));
+%! assert_simple(sol_eig.f(1), fref(1), tol * fref(1));
+%! assert_simple(sol_eig.f(2), fref(1), tol * fref(1));
+%! assert_simple(sol_eig.f(3), fref(2), tol * fref(2));
+%! assert_simple(sol_eig.f(4), fref(2), tol * fref(2));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

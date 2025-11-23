@@ -22,8 +22,8 @@
 %!                                      load_case);
 %! sol_stat = fem_sol_static(mesh, dof_map, mat_ass);
 %! tol = eps^0.9;
-%! assert(sol_stat.def(2, 1:3, 1).', U_pre, tol * norm(U_pre));
-%! assert(sol_stat.def(2, 1:3, 2).', 2 * U_pre, tol * norm(U_pre));
+%! assert_simple(sol_stat.def(2, 1:3, 1).', U_pre, tol * norm(U_pre));
+%! assert_simple(sol_stat.def(2, 1:3, 2).', 2 * U_pre, tol * norm(U_pre));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

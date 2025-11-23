@@ -65,10 +65,10 @@
 %! [mesh, offset] = fem_pre_mesh_merge(mesh_data);
 
 %! grp_idx_1000 = find([mesh.groups.iso8.id] == 1000);
-%! assert(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_1000).elements) == 1000));
+%! assert_simple(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_1000).elements) == 1000));
 %! grp_idx_2000 = find([mesh.groups.iso8.id] == 2000);
-%! assert(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_2000).elements) == 2000 + rows(mesh_data(1).mesh.nodes)));
+%! assert_simple(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_2000).elements) == 2000 + rows(mesh_data(1).mesh.nodes)));
 %! grp_idx_3000 = find([mesh.groups.iso8.id] == 3000);
-%! assert(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_3000).elements) == 3000 + rows(mesh_data(1).mesh.nodes) + rows(mesh_data(2).mesh.nodes)));
+%! assert_simple(all(mesh.elements.iso8(mesh.groups.iso8(grp_idx_3000).elements) == 3000 + rows(mesh_data(1).mesh.nodes) + rows(mesh_data(2).mesh.nodes)));
 %! grp_idx_4000 = find([mesh.groups.iso20.id] == 4000);
-%! assert(all(mesh.elements.iso20(mesh.groups.iso8(grp_idx_4000).elements) == 4000 + rows(mesh_data(1).mesh.nodes) + rows(mesh_data(2).mesh.nodes) + rows(mesh_data(3).mesh.nodes)));
+%! assert_simple(all(mesh.elements.iso20(mesh.groups.iso8(grp_idx_4000).elements) == 4000 + rows(mesh_data(1).mesh.nodes) + rows(mesh_data(2).mesh.nodes) + rows(mesh_data(3).mesh.nodes)));

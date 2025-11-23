@@ -42,7 +42,7 @@
 %! opt_post.elem_types = {"point1", "line2"};
 %! Pref = k / L;
 %! tol = 1e-10;
-%! assert(sol_eig.lambda, Pref, tol * abs(Pref));
+%! assert_simple(sol_eig.lambda, Pref, tol * abs(Pref));
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));

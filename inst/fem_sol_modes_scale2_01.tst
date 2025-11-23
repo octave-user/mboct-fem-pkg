@@ -7,7 +7,7 @@
 %! R = 1;
 %! zeta_ref = 1 / 2 * D / sqrt(K * M);
 %! [dgen, kgen, rgen, lambda, zeta] = fem_sol_modes_scale2(M, D, K, Phi, R);
-%! assert(zeta, zeta_ref);
+%! assert_simple(zeta, zeta_ref);
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));
@@ -23,7 +23,7 @@
 %! Phi = 1;
 %! R = 1;
 %! [dgen, kgen, rgen, lambda, zeta] = fem_sol_modes_scale2(M, D, K, Phi, R);
-%! assert(2 * zeta, tan_delta, sqrt(eps) * zeta);
+%! assert_simple(2 * zeta, tan_delta, sqrt(eps) * zeta);
 %! catch
 %!   gtest_error = lasterror();
 %!   gtest_fail(gtest_error, evalin("caller", "__file"));
