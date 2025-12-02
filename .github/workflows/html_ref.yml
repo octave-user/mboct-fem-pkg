@@ -29,7 +29,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Install octave
         run: |
-          sudo apt-get install octave octave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev libmkl-full-dev libgtest-dev libnetcdf-dev libnlopt-dev
+          sudo apt-get -yq update
+          sudo apt-get install -yq octave octave-dev libsuitesparse-dev libarpack2-dev libmumps-seq-dev libmetis-dev libmkl-full-dev libgtest-dev libnetcdf-dev libnlopt-dev
       - name: Install generate_html
         run: |
           octave-cli --eval "pkg install -verbose -forge generate_html"
