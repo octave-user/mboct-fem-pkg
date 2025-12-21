@@ -338,7 +338,13 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     for i=1:numel(group_types)
       switch (group_types{i})
         case options.elem_types
-          inumgroups += numel(getfield(mesh.groups, group_types{i}));
+          mesh_grp_types = getfield(mesh.groups, group_types{i});
+          for j=1:numel(mesh_grp_types)
+            if (isempty(mesh_grp_types(j).id))
+              continue;
+            endif
+            ++inumgroups;
+          endfor
       endswitch
     endfor
   else
@@ -366,8 +372,12 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
     group_dim = eltypes(idx_elem_type).dim;
 
     for j=1:numel(groups)
+      if (isempty(groups(j).id))
+        continue;
+      endif
       grp_name = groups(j).name;
       grp_name(isspace(grp_name)) = "_"; ## spaces in group names are not allowed for gmsh format
+
       fprintf(fd, "%d %d \"%s\"\n", group_dim, groups(j).id, grp_name);
     endfor
   endfor
@@ -390,6 +400,12 @@ function fem_export_gmsh(fd, filename, mesh, options, load_case, dof_map)
         elname = "line3";
       otherwise
         elname = elem_types{i};
+    endswitch
+
+    switch (elname)
+      case options.elem_types
+      otherwise
+        continue;
     endswitch
 
     idx_elem_type = fem_pre_mesh_elem_type_index({eltypes.name}, elname);

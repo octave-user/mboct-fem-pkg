@@ -16408,6 +16408,101 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                               }
                          }
                     } break;
+               case ElementTypes::ELEM_SFNCON4:
+               case ElementTypes::ELEM_SFNCON6:
+               case ElementTypes::ELEM_SFNCON6H:
+               case ElementTypes::ELEM_SFNCON8:
+               case ElementTypes::ELEM_SFNCON8R:
+               case ElementTypes::ELEM_SFNCON9:
+               case ElementTypes::ELEM_SFNCON10:
+               case ElementTypes::ELEM_SFNCON4S:
+               case ElementTypes::ELEM_SFNCON6S:
+               case ElementTypes::ELEM_SFNCON6HS:
+               case ElementTypes::ELEM_SFNCON8S:
+               case ElementTypes::ELEM_SFNCON8RS:
+               case ElementTypes::ELEM_SFNCON9S:
+               case ElementTypes::ELEM_SFNCON10S: {
+                    const octave_map m_sfncon = m_elements.contents(iter_elem_type).map_value();
+                    const auto iter_master = m_sfncon.seek("master");
+
+                    if (iter_master == m_sfncon.end()) {
+                         error("missing field mesh.elements.%s.master", oElemType.name);
+                         return retval;
+                    }
+
+                    const auto iter_slave = m_sfncon.seek("slave");
+
+                    if (iter_slave == m_sfncon.end()) {
+                         error("missing field mesh.elements.%s.slave", oElemType.name);
+                         return retval;
+                    }
+
+                    const Cell ov_master = m_sfncon.contents(iter_master);
+                    const Cell ov_slave = m_sfncon.contents(iter_slave);
+
+                    octave_idx_type iNodeDofMin = 1, iNodeDofMax = -1;
+
+                    switch (eDomain) {
+                    case DofMap::DO_STRUCTURAL:
+                    case DofMap::DO_FLUID_STRUCT:
+                         iNodeDofMin = 0;
+                         iNodeDofMax = 2;
+                         break;
+                    case DofMap::DO_THERMAL:
+                    case DofMap::DO_ACOUSTICS:
+                         iNodeDofMin = iNodeDofMax = 0;
+                         break;
+                    default:
+                         throw std::runtime_error("fem_ass_dof_map: unknown value for dof_map.domain");
+                    }
+
+                    for (octave_idx_type l = 0; l < ov_master.numel(); ++l) {
+                         const int32NDArray elem_master = ov_master.xelem(l).int32_array_value();
+
+                         for (octave_idx_type j = 0; j < elem_master.rows(); ++j) {
+                              for (octave_idx_type k = 0; k < elem_master.columns(); ++k) {
+                                   const octave_idx_type idxnode = elem_master.xelem(j, k).value();
+
+                                   if (idxnode < 1 || idxnode > iNumNodes) {
+                                        error("node index %Ld of element mesh.elements.%s.master(%Ld, %Ld) out of range %Ld:%Ld",
+                                              static_cast<long long>(idxnode),
+                                              oElemType.name,
+                                              static_cast<long long>(j),
+                                              static_cast<long long>(k),
+                                              1LL,
+                                              static_cast<long long>(iNumNodes));
+                                        return retval;
+                                   }
+
+                                   for (octave_idx_type l = iNodeDofMin; l <= iNodeDofMax; ++l) {
+                                        dof_in_use.xelem(idxnode - 1, l) = true;
+                                   }
+                              }
+                         }
+                    }
+
+                    for (octave_idx_type l = 0; l < ov_slave.numel(); ++l) {
+                         const int32NDArray elem_slave = ov_slave.xelem(l).int32_array_value();
+
+                         for (octave_idx_type j = 0; j < elem_slave.numel(); ++j) {
+                              const octave_idx_type idxnode = elem_slave.xelem(j).value();
+
+                              if (idxnode < 1 || idxnode > iNumNodes) {
+                                   error("node index %Ld of element mesh.elements.%s.slave(%Ld) out of range %Ld:%Ld",
+                                         static_cast<long long>(idxnode),
+                                         oElemType.name,
+                                         static_cast<long long>(j),
+                                         1LL,
+                                         static_cast<long long>(iNumNodes));
+                                   return retval;
+                              }
+
+                              for (octave_idx_type l = iNodeDofMin; l <= iNodeDofMax; ++l) {
+                                   dof_in_use.xelem(idxnode - 1, l) = true;
+                              }
+                         }
+                    }
+               } break;
                default:
                     continue;
                }
