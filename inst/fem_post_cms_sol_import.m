@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2023) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2025) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -33,13 +33,20 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
 
   pkg load mbdyn_util_oct;
 
-  log_dat = mbdyn_post_load_log(output_file);
+  opt_log_dat.dof_info = false;
+  opt_log_dat.hydrodynamic_bearings = false;
+  opt_log_dat.beams2 = false;
+  opt_log_dat.beams3 = false;
+  opt_log_dat.modal = false;
+  opt_log_dat.joints = false;
+
+  log_dat = mbdyn_post_load_log(output_file, opt_log_dat);
 
   [t, TStep, NIter, ResErr, SolErr, SolConv, OutputFlag] = mbdyn_post_load_output_out(output_file, 1024, false);
 
   t = t(find(OutputFlag));
 
-  [elem_id, q] = mbdyn_post_load_output_mod(output_file, numel(t));
+  [elem_id, q, qdot, qddot] = mbdyn_post_load_output_mod(output_file, numel(t));
 
   istr_node_idx_o = zeros(1, numel(cms_data), "int32");
   istr_node_idx_l = zeros(1, numel(cms_data), "int32");
@@ -79,7 +86,7 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
     istr_node_idx_l(i) = istr_node_idx_l_tmp;
   endfor
 
-  [str_node_id, trajectory] = mbdyn_post_load_output_mov(output_file, imodal_node_label, numel(t));
+  [str_node_id, trajectory, velocity, acceleration] = mbdyn_post_load_output_mov(output_file, imodal_node_label, numel(t));
 
   for i=1:numel(cms_data)
     istr_node_idx_o_tmp = find(imodal_node_label(i) == str_node_id);
@@ -103,6 +110,16 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
     sol_dyn.bodies(i).X0 = log_dat.nodes(istr_node_idx_l(i)).X0;
     sol_dyn.bodies(i).R0 = log_dat.nodes(istr_node_idx_l(i)).R0;
     sol_dyn.bodies(i).X = trajectory{istr_node_idx_o(i)}(:, 1:3).';
+    sol_dyn.bodies(i).XP = velocity{istr_node_idx_o(i)}(:, 1:3).';
+    sol_dyn.bodies(i).W = velocity{istr_node_idx_o(i)}(:, 4:6).';
+
+    if (~isempty(acceleration{istr_node_idx_o(i)}))
+      sol_dyn.bodies(i).XPP = acceleration{istr_node_idx_o(i)}(:, 1:3).';
+      sol_dyn.bodies(i).WP = acceleration{istr_node_idx_o(i)}(:, 4:6).';
+    else
+      sol_dyn.bodies(i).XPP = [];
+      sol_dyn.bodies(i).WP = [];
+    endif
 
     switch (log_dat.nodes(istr_node_idx_l(i)).orientation_description)
       case "euler123"
@@ -120,5 +137,7 @@ function sol_dyn = fem_post_cms_sol_import(output_file, cms_data)
 
     sol_dyn.bodies(i).R = feval(rotfunc, trajectory{istr_node_idx_o(i)}(:, 4:6).');
     sol_dyn.bodies(i).q = q{ielem_idx(i)};
+    sol_dyn.bodies(i).qdot = qdot{ielem_idx(i)};
+    sol_dyn.bodies(i).qddot = qddot{ielem_idx(i)};
   endfor
 endfunction
