@@ -33,7 +33,7 @@
 ##
 ## @var{bearing_surf}.R @dots{} Orientation of the bearing surface. R(:, 3) represents the axis of the journal bearing.
 ##
-## @var{bearing_surf}.X0 @dots{} Location of the bearing centre.
+## @var{bearing_surf}.X0 @dots{} Location of the bearing center.
 ##
 ## @var{bearing_surf}.r @dots{} Radius of the cylindrical bearing surface.
 ##
@@ -109,9 +109,15 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, load_case_p, bearin
   Phi_p = Phi_p(dof_map_eig_p.idx_node, :);
   Phi_n = Phi_n(dof_map_itf.idx_node, :);
   Phi_s = Phi_s(dof_map_itf.idx_node, :);
+  Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
+  Phi_ns = [Phi_n, Phi_s];
+  Phi_p -= Phi_ns * ((Phi_ns.' * (Msym * Phi_ns)) \ (Phi_ns.' * (Msym * Phi_p)));
 
-  Afilt = [Phi_n, Phi_s];
-  Phi_p -= Afilt * (Afilt \ Phi_p);
+  G = Phi_p.' * (Msym * Phi_p);
+
+  L = chol(G, "upper");
+
+  Phi_p = Phi_p / L;
 
   mat_ass_itf.Tred = [Phi_n, Phi_s, Phi_p];
 
