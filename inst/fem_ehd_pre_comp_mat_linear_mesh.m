@@ -1,4 +1,4 @@
-## Copyright (C) 2025(-2025) Reinhard <octave-user@a1.net>
+## Copyright (C) 2025(-2026) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -113,20 +113,20 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, load_case_p, bearin
   Phi_ns = [Phi_n, Phi_s];
   Phi_p -= Phi_ns * ((Phi_ns.' * (Msym * Phi_ns)) \ (Phi_ns.' * (Msym * Phi_p)));
 
-  G = Phi_p.' * (Msym * Phi_p);
-
-  L = chol(G, "upper");
-
-  Phi_p = Phi_p / L;
-
   mat_ass_itf.Tred = [Phi_n, Phi_s, Phi_p];
-
-  clear Afilt Phi_n Phi_s Phi_p;
 
   if (cms_opt.floating_frame)
     Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map_itf, cms_opt.nodes.modal.number);
     mat_ass_itf.Tred -= Phi_rb * (Phi_rb \ mat_ass_itf.Tred);
   endif
+
+  clear Phi_ns Phi_n Phi_s Phi_p;
+
+  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
+
+  L = chol(Mred, "upper");
+
+  mat_ass_itf.Tred = mat_ass_itf.Tred / L;
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, dof_map_p, mat_ass_p, lambda_n, kappa_p, cms_opt);
 
@@ -134,8 +134,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, load_case_p, bearin
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, dof_map_p, mat_ass_p, lambda_n, kappa_p, cms_opt)
-  mat_ass_itf.Tred *= diag(1 ./ norm(mat_ass_itf.Tred, "cols"));
-
   Msym = fem_mat_sym(mat_ass_itf.M);
 
   switch (mat_ass_itf.mat_info.mat_type(3))
