@@ -89,16 +89,11 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, load_case_p, bearin
 
   options.interpolate_interface = [[bearing_surf.options].interpolate_interface];
 
-  [load_case_p, bearing_surf, idx_group] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf, options);
+  [bearing_surf] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options);
 
   [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mesh, load_case_dof, bearing_surf);
 
   mesh = fem_ehd_pre_comp_mat_gen_constr(mesh, bearing_surf, options);
-
-  dof_map_p = fem_ass_dof_map(mesh, load_case_dof);
-  dof_map_p.parallel.threads_ass = cms_opt.number_of_threads;
-
-  [~, mat_ass_p.R, mat_ass_p.mat_info, mat_ass_p.mesh_info] = fem_ass_matrix(mesh, dof_map_p, [FEM_MAT_STIFFNESS_SYM_L, FEM_VEC_LOAD_CONSISTENT], load_case_p);
 
   [mesh, load_case_itf] = fem_ehd_pre_comp_mat_gen_loads_cms(mesh, load_case_dof, cms_opt);
 
@@ -128,12 +123,12 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, load_case_p, bearin
 
   mat_ass_itf.Tred = mat_ass_itf.Tred / L;
 
-  [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, dof_map_p, mat_ass_p, lambda_n, kappa_p, cms_opt);
+  [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
-  comp_mat = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
+  [comp_mat, load_case_p] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 endfunction
 
-function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, dof_map_p, mat_ass_p, lambda_n, kappa_p, cms_opt)
+function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
   Msym = fem_mat_sym(mat_ass_itf.M);
 
   switch (mat_ass_itf.mat_info.mat_type(3))
@@ -150,7 +145,6 @@ function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, ma
   mat_ass_itf.Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
   mat_ass_itf.Kred = fem_cms_matrix_trans(mat_ass_itf.Tred, Ksym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
   mat_ass_itf.Dred = fem_cms_matrix_trans(mat_ass_itf.Tred, Dsym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
-  mat_ass_itf.Rred = mat_ass_itf.Tred.' * mat_ass_p.R(dof_map_p.idx_node, :);
 
   Phi = zeros(dof_map_itf.totdof, columns(mat_ass_itf.Tred));
 
@@ -177,7 +171,32 @@ function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, ma
                                       sol_eig);
 endfunction
 
-function comp_mat = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf)
+function [comp_mat, load_case_p] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf)
+  load_case_p = fem_pre_load_case_create_empty(numel(bearing_surf));
+
+  for i=1:numel(bearing_surf)
+    load_case_p(i).pressure.iso4.elements = mesh.elements.iso4(mesh.groups.iso4(bearing_surf(i).group_idx_interface).elements, :);
+    load_case_p(i).pressure.iso4.p = repmat(bearing_surf(i).options.reference_pressure, size(load_case_p(i).pressure.iso4.elements));
+  endfor
+
+  [~, ...
+   mat_ass_p.R, ...
+   mat_ass_p.mat_info, ...
+   mat_ass_p.mesh_info] = fem_ass_matrix(mesh, ...
+                                         dof_map_itf, ...
+                                         [FEM_MAT_STIFFNESS_SYM, ...
+                                          FEM_VEC_LOAD_LUMPED], ...
+                                         load_case_p);
+
+  diagA = zeros(rows(mesh.nodes), numel(bearing_surf));
+
+  for j=1:3
+    idx_active_dof = dof_map_itf.ndof(:, j) > 0;
+    diagA(idx_active_dof, :) += mat_ass_p.R(dof_map_itf.ndof(idx_active_dof, j), :).^2;
+  endfor
+
+  diagA = sqrt(diagA);
+
   empty_cell = cell(1, numel(bearing_surf));
 
   comp_mat = struct("C", empty_cell, ...
@@ -221,11 +240,6 @@ function comp_mat = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, loa
     comp_mat(i).zi = X(3, :);
 
     comp_mat(i).D = zeros(numel(bs_nodes), columns(mat_ass_itf.Tred));
-    comp_mat(i).E = mat_ass_itf.Rred(:, bearing_surf(i).idx_load_case);
-
-    Nxz = [numel(comp_mat(i).bearing_surf.grid_x), numel(comp_mat(i).bearing_surf.grid_z)];
-
-    comp_mat(i).E = [comp_mat(i).E, comp_mat(i).E(:, 1:Nxz(2))];
 
     dof_idx = dof_map_itf.ndof(bs_nodes, 1:3);
 
@@ -240,6 +254,10 @@ function comp_mat = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, loa
         comp_mat(i).D += diag(n(k, :)) * Ustatn(:, :, l) * bearing_surf(i).R(l, k);
       endfor
     endfor
+
+    Ai = diagA(bs_nodes, i);
+
+    comp_mat(i).E = comp_mat(i).D.' * diag(Ai);
   endfor
 endfunction
 
@@ -288,7 +306,7 @@ function [Phi, kappa, mat_ass_eig_p, dof_map_eig_p, load_case_eig_p, bearing_sur
    mat_ass_eig_p.mesh_info] = fem_ass_matrix(mesh, ...
                                              dof_map_eig_p, ...
                                              [mat_type_stiffness, ...
-                                              FEM_VEC_LOAD_CONSISTENT], ...
+                                              FEM_VEC_LOAD_LUMPED], ...
                                              load_case_eig_p);
 
   diagA = zeros(rows(mesh.nodes), numel(bearing_surf));
@@ -298,6 +316,8 @@ function [Phi, kappa, mat_ass_eig_p, dof_map_eig_p, load_case_eig_p, bearing_sur
     idx_act_dof = find(dof_idx > 0);
     diagA(idx_act_dof, :) += mat_ass_eig_p.R(dof_idx(idx_act_dof), :).^2;
   endfor
+
+  diagA = sqrt(diagA);
 
   num_modes = int32(0);
 
@@ -318,7 +338,7 @@ function [Phi, kappa, mat_ass_eig_p, dof_map_eig_p, load_case_eig_p, bearing_sur
       for j=1:columns(dof_map_eig_p.ndof)
         dof_idx = dof_map_eig_p.ndof(:, j);
         idx_act_dof = find(dof_idx > 0);
-        Ap(dof_idx(idx_act_dof)) = sqrt(diagA(idx_act_dof, i));
+        Ap(dof_idx(idx_act_dof)) = diagA(idx_act_dof, i);
       endfor
 
       Ap = diag(Ap);
