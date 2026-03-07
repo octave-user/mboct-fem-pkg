@@ -122,15 +122,19 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   clear Phi_ns Phi_n Phi_s Phi_p;
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf, num_modes_ns);
+  [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
-  ## Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_ns);
 
-  ## L = chol(Mred, "upper");
+  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
 
-  ## mat_ass_itf.Tred = mat_ass_itf.Tred / L;
+  L = chol(Mred, "upper");
+
+  mat_ass_itf.Tred = mat_ass_itf.Tred / L;
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
+
+  [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -176,7 +180,7 @@ function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, ma
                                       sol_eig);
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf, num_modes_ns)
+function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf)
   empty_cell = cell(1, numel(bearing_surf));
 
   comp_mat = struct("C", empty_cell, ...
@@ -188,7 +192,8 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, m
                     "dR", empty_cell, ...
                     "bearing_surf", empty_cell, ...
                     "bearing_dimensions", empty_cell, ...
-                    "reference_pressure", empty_cell);
+                    "reference_pressure", empty_cell, ...
+                    "A", empty_cell);
 
   for i=1:numel(bearing_surf)
     switch (bearing_surf(i).options.bearing_type)
@@ -244,7 +249,9 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, m
     comp_mat(i).E = comp_mat(i).D.' * diag(Ai) * bearing_surf(i).options.reference_pressure;
     comp_mat(i).A = Ai;
   endfor
+endfunction
 
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_ns)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
