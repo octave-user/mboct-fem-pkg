@@ -122,13 +122,13 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   clear Phi_ns Phi_n Phi_s Phi_p;
 
-  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
-
-  L = chol(Mred, "upper");
-
-  mat_ass_itf.Tred = mat_ass_itf.Tred / L;
-
   [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf, num_modes_ns);
+
+  ## Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
+
+  ## L = chol(Mred, "upper");
+
+  ## mat_ass_itf.Tred = mat_ass_itf.Tred / L;
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 endfunction
