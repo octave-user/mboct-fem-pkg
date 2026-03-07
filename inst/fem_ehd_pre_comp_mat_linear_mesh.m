@@ -74,7 +74,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "svd_threshold"))
-    cms_opt.svd_threshold = sqrt(eps);
+    cms_opt.svd_threshold = 1e-10;
   endif
 
   if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
@@ -110,6 +110,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   Phi_s = Phi_s(dof_map_itf.idx_node, :);
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
   Phi_ns = [Phi_n, Phi_s];
+  num_modes_ns = columns(Phi_ns);
   Phi_p -= Phi_ns * ((Phi_ns.' * (Msym * Phi_ns)) \ (Phi_ns.' * (Msym * Phi_p)));
 
   mat_ass_itf.Tred = [Phi_n, Phi_s, Phi_p];
@@ -127,7 +128,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   mat_ass_itf.Tred = mat_ass_itf.Tred / L;
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf, num_modes_ns);
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 endfunction
@@ -175,7 +176,7 @@ function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, ma
                                       sol_eig);
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf)
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf, num_modes_ns)
   empty_cell = cell(1, numel(bearing_surf));
 
   comp_mat = struct("C", empty_cell, ...
@@ -244,12 +245,21 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, m
     comp_mat(i).A = Ai;
   endfor
 
-  D = [];
+  num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
     nz = numel(comp_mat(i).bearing_surf.grid_z);
-    D = [D;
-         diag(comp_mat(i).A(1:end - nz).^(1/2)) * comp_mat(i).D(1:end - nz, :)];
+    num_rows_D += rows(comp_mat(i).D) - nz;
+  endfor
+
+  D = zeros(num_rows_D, columns(mat_ass_itf.Tred) - num_modes_ns);
+
+  num_rows_D = int32(0);
+
+  for i=1:numel(comp_mat)
+    nz = numel(comp_mat(i).bearing_surf.grid_z);
+    D(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = diag(comp_mat(i).A(1:end - nz).^(1/2)) * comp_mat(i).D(1:end - nz, num_modes_ns + 1:end);
+    num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
 
   [U, S, V] = svd(D);
@@ -258,11 +268,11 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, m
 
   V = V(:, idx_keep);
 
-  mat_ass_itf.Tred *= V;
+  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_ns), mat_ass_itf.Tred(:, num_modes_ns + 1:end) * V];
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D *= V;
-    comp_mat(i).E = V.' * comp_mat(i).E;
+    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_ns), comp_mat(i).D(:, num_modes_ns + 1:end) * V];
+    comp_mat(i).E = [comp_mat(i).E(1:num_modes_ns, :); V.' * comp_mat(i).E(num_modes_ns + 1:end, :)];
   endfor
 endfunction
 
