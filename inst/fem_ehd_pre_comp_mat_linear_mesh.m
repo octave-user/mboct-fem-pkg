@@ -73,6 +73,10 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.floating_frame = false;
   endif
 
+  if (~isfield(cms_opt, "svd_threshold"))
+    cms_opt.svd_threshold = sqrt(eps);
+  endif
+
   if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
     for i=1:numel(cms_opt.nodes.interfaces)
       cms_opt.nodes.interfaces(i).include_rigid_body_modes = true;
@@ -123,9 +127,9 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   mat_ass_itf.Tred = mat_ass_itf.Tred / L;
 
-  [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
-  [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
+  [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -171,7 +175,7 @@ function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, ma
                                       sol_eig);
 endfunction
 
-function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf)
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf)
   empty_cell = cell(1, numel(bearing_surf));
 
   comp_mat = struct("C", empty_cell, ...
@@ -231,12 +235,34 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
     endfor
 
     Ai = repmat((bearing_surf(i).grid_x(2) - bearing_surf(i).grid_x(1)) * (bearing_surf(i).grid_z(2) - bearing_surf(i).grid_z(1)), numel(bs_nodes), 1);
-    
+
     Ai(1:numel(bearing_surf(i).grid_z):end) /= 2;
     Ai(numel(bearing_surf(i).grid_z):numel(bearing_surf(i).grid_z):end) /= 2;
     Ai((numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z) + 1:end) = 0;
-    
+
     comp_mat(i).E = comp_mat(i).D.' * diag(Ai) * bearing_surf(i).options.reference_pressure;
+    comp_mat(i).A = Ai;
+  endfor
+
+  D = [];
+
+  for i=1:numel(comp_mat)
+    nz = numel(comp_mat(i).bearing_surf.grid_z);
+    D = [D;
+         diag(comp_mat(i).A(1:end - nz).^(1/2)) * comp_mat(i).D(1:end - nz, :)];
+  endfor
+
+  [U, S, V] = svd(D);
+
+  idx_keep = find(diag(S) > cms_opt.svd_threshold * max(diag(S)));
+
+  V = V(:, idx_keep);
+
+  mat_ass_itf.Tred *= V;
+
+  for i=1:numel(comp_mat)
+    comp_mat(i).D *= V;
+    comp_mat(i).E = V.' * comp_mat(i).E;
   endfor
 endfunction
 
