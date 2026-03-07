@@ -937,7 +937,8 @@ endfunction
 %!     bearing_surf(1).material_id_interface = int32(2);
 %!     bearing_surf(1).name = "p1";
 %!     bearing_surf(1).options.reference_pressure = 1e9;
-%!     bearing_surf(1).options.mesh_size = 1e-3;
+%!     bearing_surf(1).options.number_of_nodes_x = 60;
+%!     bearing_surf(1).options.number_of_nodes_z = 20;
 %!     bearing_surf(1).options.bearing_type = "shell";
 %!     bearing_surf(1).options.matrix_type = "modal substruct total";
 %!     bearing_surf(1).options.interpolate_interface = true;
@@ -954,7 +955,8 @@ endfunction
 %!     bearing_surf(2).material_id_interface = int32(2);
 %!     bearing_surf(2).name = "p2";
 %!     bearing_surf(2).options.reference_pressure = 1e9;
-%!     bearing_surf(2).options.mesh_size = 1e-3;
+%!     bearing_surf(2).options.number_of_nodes_x = 60;
+%!     bearing_surf(2).options.number_of_nodes_z = 20;
 %!     bearing_surf(2).options.bearing_type = "shell";
 %!     bearing_surf(2).options.matrix_type = "modal substruct total";
 %!     bearing_surf(2).options.interpolate_interface = true;
@@ -2035,7 +2037,8 @@ endfunction
 %!     bearing_surf(1).material_id_interface = int32(2);
 %!     bearing_surf(1).name = "p1";
 %!     bearing_surf(1).options.reference_pressure = 1e9;
-%!     bearing_surf(1).options.mesh_size = 1e-3;
+%!     bearing_surf(1).options.number_of_nodes_x = 60;
+%!     bearing_surf(1).options.number_of_nodes_z = 20;
 %!     bearing_surf(1).options.bearing_type = "shell";
 %!     bearing_surf(1).options.matrix_type = "modal substruct total";
 %!     bearing_surf(1).r = 0.5 * d;
@@ -2052,7 +2055,8 @@ endfunction
 %!     bearing_surf(2).material_id_interface = int32(2);
 %!     bearing_surf(2).name = "p2";
 %!     bearing_surf(2).options.reference_pressure = 1e9;
-%!     bearing_surf(2).options.mesh_size = 1e-3;
+%!     bearing_surf(2).options.number_of_nodes_x = 60;
+%!     bearing_surf(2).options.number_of_nodes_z = 20;
 %!     bearing_surf(2).options.bearing_type = "shell";
 %!     bearing_surf(2).options.matrix_type = "modal substruct total";
 %!     bearing_surf(2).options.interpolate_interface = false;
@@ -2332,7 +2336,8 @@ endfunction
 %!     bearing_surf(1).material_id_interface = int32(2);
 %!     bearing_surf(1).name = "p1";
 %!     bearing_surf(1).options.reference_pressure = 1e9;
-%!     bearing_surf(1).options.mesh_size = 1e-3;
+%!     bearing_surf(1).options.number_of_nodes_x = 60;
+%!     bearing_surf(1).options.number_of_nodes_z = 20;
 %!     bearing_surf(1).options.bearing_type = "shell";
 %!     bearing_surf(1).options.matrix_type = "modal substruct total";
 %!     bearing_surf(1).r = 0.5 * d;
@@ -2349,7 +2354,8 @@ endfunction
 %!     bearing_surf(2).material_id_interface = int32(2);
 %!     bearing_surf(2).name = "p2";
 %!     bearing_surf(2).options.reference_pressure = 1e9;
-%!     bearing_surf(2).options.mesh_size = 1e-3;
+%!     bearing_surf(2).options.number_of_nodes_x = 60;
+%!     bearing_surf(2).options.number_of_nodes_z = 20;
 %!     bearing_surf(2).options.bearing_type = "shell";
 %!     bearing_surf(2).options.matrix_type = "modal substruct total";
 %!     bearing_surf(2).options.interpolate_interface = true;
