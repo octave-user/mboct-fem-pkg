@@ -74,7 +74,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "svd_threshold"))
-    cms_opt.svd_threshold = 1e-10;
+    cms_opt.svd_threshold = 1e-3;
   endif
 
   if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
@@ -110,7 +110,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   Phi_s = Phi_s(dof_map_itf.idx_node, :);
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
   Phi_ns = [Phi_n, Phi_s];
-  num_modes_ns = columns(Phi_ns);
+  num_modes_cb = columns(Phi_ns);
   Phi_p -= Phi_ns * ((Phi_ns.' * (Msym * Phi_ns)) \ (Phi_ns.' * (Msym * Phi_p)));
 
   mat_ass_itf.Tred = [Phi_n, Phi_s, Phi_p];
@@ -124,7 +124,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_ns);
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
 
   Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
 
@@ -134,7 +134,10 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
-  [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
+  for i=1:numel(comp_mat)
+    comp_mat(i).D /= L;
+    comp_mat(i).E = L.' \ comp_mat(i).E;
+  endfor
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -251,7 +254,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_ns)
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
@@ -259,27 +262,34 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp
     num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
 
-  D = zeros(num_rows_D, columns(mat_ass_itf.Tred) - num_modes_ns);
+  Dcb = zeros(num_rows_D, num_modes_cb);
+  Dp = zeros(num_rows_D, columns(mat_ass_itf.Tred) - num_modes_cb);
 
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
     nz = numel(comp_mat(i).bearing_surf.grid_z);
-    D(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = diag(comp_mat(i).A(1:end - nz).^(1/2)) * comp_mat(i).D(1:end - nz, num_modes_ns + 1:end);
+    Dcb(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = diag(comp_mat(i).A(1:end - nz).^(1/2)) * comp_mat(i).D(1:end - nz, 1:num_modes_cb);
+    Dp(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = diag(comp_mat(i).A(1:end - nz).^(1/2)) * comp_mat(i).D(1:end - nz, num_modes_cb + 1:end);
     num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
 
-  [U, S, V] = svd(D);
+  Pcb = Dcb * pinv(Dcb);
+  Dp_tilde = (eye(size(Dcb, 1)) - Pcb) * Dp;
 
-  idx_keep = find(diag(S) > cms_opt.svd_threshold * max(diag(S)));
+  [U, S, V] = svd(Dp_tilde, 'econ');
 
-  V = V(:, idx_keep);
+  idx_keep = sum(diag(S) > cms_opt.svd_threshold * max(abs(diag(S))));
 
-  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_ns), mat_ass_itf.Tred(:, num_modes_ns + 1:end) * V];
+  fprintf(stderr, "keeping %d of %d modes\n", idx_keep, columns(V));
+
+  V = V(:, 1:idx_keep);
+
+  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_cb), mat_ass_itf.Tred(:, num_modes_cb + 1:end) * V];
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_ns), comp_mat(i).D(:, num_modes_ns + 1:end) * V];
-    comp_mat(i).E = [comp_mat(i).E(1:num_modes_ns, :); V.' * comp_mat(i).E(num_modes_ns + 1:end, :)];
+    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_cb), comp_mat(i).D(:, num_modes_cb + 1:end) * V];
+    comp_mat(i).E = [comp_mat(i).E(1:num_modes_cb, :); V.' * comp_mat(i).E(num_modes_cb + 1:end, :)];
   endfor
 endfunction
 
