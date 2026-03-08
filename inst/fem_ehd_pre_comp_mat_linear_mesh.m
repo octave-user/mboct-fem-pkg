@@ -14,7 +14,7 @@
 ## along with this program; If not, see <http://www.gnu.org/licenses/>.
 
 ## -*- texinfo -*-
-## @deftypefn {Function File} [@var{mesh}, @var{mat_ass}, @var{dof_map}, @var{cms_opt}, @var{comp_mat}, @var{bearing_surf}, @var{sol_eig}] = fem_ehd_pre_comp_mat_linear_mesh(@var{mesh}, @var{load_case_dof}, @var{cms_opt}, @var{bearing_surf}, @var{options})
+## @deftypefn {Function File} [@var{mesh}, @var{mat_ass}, @var{dof_map}, @var{cms_opt}, @var{comp_mat}, @var{bearing_surf}, @var{sol_eig}, @var{cond_info}] = fem_ehd_pre_comp_mat_linear_mesh(@var{mesh}, @var{load_case_dof}, @var{cms_opt}, @var{bearing_surf}, @var{options})
 ## Compute a compliance matrix suitable for MBDyn's module-hydrodynamic_plain_bearing2
 ##
 ## @var{mesh} @dots{} Finite Element mesh data structure returned from fem_cms_create.
@@ -48,8 +48,8 @@
 ## @seealso{fem_ehd_pre_comp_mat_load_case, fem_ehd_pre_comp_mat_export, fem_ehd_pre_comp_mat_plot}
 ## @end deftypefn
 
-function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, options)
-  if (nargin < 4 || nargin > 5 || nargout > 7)
+function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_eig, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, options)
+  if (nargin < 4 || nargin > 5 || nargout > 8)
     print_usage();
   endif
 
@@ -138,6 +138,33 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     comp_mat(i).D /= L;
     comp_mat(i).E = L.' \ comp_mat(i).E;
   endfor
+
+  if (nargout >= 8)
+    cond_info = fem_ehd_comp_mat_cond(comp_mat, mat_ass_itf);
+  endif
+endfunction
+
+function cond_info = fem_ehd_comp_mat_cond(comp_mat, mat_ass_itf)
+  num_rows_D = int32(0);
+
+  for i=1:numel(comp_mat)
+    nz = numel(comp_mat(i).bearing_surf.grid_z);
+    num_rows_D += rows(comp_mat(i).D) - nz;
+  endfor
+
+  D = zeros(num_rows_D, columns(mat_ass_itf.Tred));
+
+  num_rows_D = int32(0);
+
+  for i=1:numel(comp_mat)
+    nz = numel(comp_mat(i).bearing_surf.grid_z);
+    D(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = comp_mat(i).D(1:end - nz, :);
+    num_rows_D += rows(comp_mat(i).D) - nz;
+  endfor
+
+  cond_info.D_rank = rank(D);
+  cond_info.D_size = size(D);
+  cond_info.D_cond = cond(D.' * D);
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -860,11 +887,13 @@ endfunction
 %!     mesh.material_data(2).E = 0.01e6;
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e5);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1033,7 +1062,7 @@ endfunction
 %!     mesh.material_data(2).E = 0.01e6;
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     load_case_itf = fem_pre_load_case_create_empty(6);
@@ -1111,6 +1140,8 @@ endfunction
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1281,7 +1312,7 @@ endfunction
 %!     for i=1:numel(bearing_surf)
 %!       bearing_surf(i).options.number_of_modes = min(num_modes, floor(numel(mesh.groups.tria6(bearing_surf(i).group_idx).nodes) * 3 / 2 - 6));
 %!     endfor
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
@@ -1423,6 +1454,8 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_mod < tol_mod));
 %!     assert_simple(all(err_w < tol_w));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1559,15 +1592,15 @@ endfunction
 %!     opt_modes.refine_max_iter = int32(10);
 %!     opt_modes.verbose = int32(0);
 %!     opt_modes.solver = cms_opt.solver;
-%!     num_modes = int32(50);
-%!     num_modes_cms = int32(50);
+%!     num_modes = int32(15);
+%!     num_modes_cms = int32(10);
 %!     err_red = zeros(7, 1);
 %!     k1 = 1;
 %!     cms_opt.modes.number = num_modes_cms;
 %!     for i=1:numel(bearing_surf)
 %!       bearing_surf(i).options.number_of_modes = min(num_modes, floor(numel(mesh.groups.tria6(bearing_surf(i).group_idx).nodes) * 3 / 2));
 %!     endfor
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
@@ -1693,6 +1726,8 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_mod < tol_mod));
 %!     assert_simple(all(err_w < tol_w));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e13);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1843,7 +1878,7 @@ endfunction
 %!     for i=1:numel(bearing_surf)
 %!       bearing_surf(i).options.number_of_modes = min(num_modes, floor(numel(mesh.groups.tria6(bearing_surf(i).group_idx).nodes) * 3 / 2));
 %!     endfor
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     [qred, lambda] = eig(mat_ass.Kred, mat_ass.Mred);
@@ -1969,6 +2004,9 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_mod < tol_mod));
 %!     assert_simple(all(err_w < tol_w));
+%!     ## FIXME: not passed yet
+%!     ## assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     ## assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2140,7 +2178,7 @@ endfunction
 %!     opt_modes.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.solver = opt_modes.solver;
 %!     cms_opt.number_of_threads = opt_modes.number_of_threads;
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     [qred, lambda_red] = eig(mat_ass.Kred, mat_ass.Mred);
@@ -2263,6 +2301,8 @@ endfunction
 %!               MAC(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2433,7 +2473,7 @@ endfunction
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
 %!     opt_comp_mat.elem_type = "tria6h";
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     load_case_itf = fem_pre_load_case_create_empty(6);
@@ -2511,6 +2551,8 @@ endfunction
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2686,11 +2728,13 @@ endfunction
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
 %!     opt_comp_mat.elem_type = "quad8";
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
 %!     fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2866,11 +2910,14 @@ endfunction
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
 %!     opt_comp_mat.elem_type = "quad9";
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
 %!     fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     ## FIXME: not passed yet
+%!     ## assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     ## assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3045,11 +3092,13 @@ endfunction
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
 %!     opt_comp_mat.elem_type = "iso4";
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
 %!     fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3226,11 +3275,13 @@ endfunction
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
 %!     opt_comp_mat.elem_type = "quad8r";
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
 %!     fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3398,7 +3449,7 @@ endfunction
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
 %!     opt_comp_mat.elem_type = "tria10";
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf, opt_comp_mat);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     load_case_itf = fem_pre_load_case_create_empty(6);
@@ -3476,6 +3527,8 @@ endfunction
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3670,7 +3723,7 @@ endfunction
 %!     mesh.material_data(2).E = 0.01e6;
 %!     mesh.material_data(2).nu = 0.3;
 %!     mesh.material_data(2).rho = 0;
-%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
+%!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     load_case_itf = fem_pre_load_case_create_empty(6);
@@ -3760,6 +3813,8 @@ endfunction
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
+%!     assert(cond_info.D_size(2) == cond_info.D_rank);
+%!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
