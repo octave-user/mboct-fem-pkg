@@ -44,7 +44,7 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
     if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
       switch (bearing_surf(i).options.bearing_model)
         case "EHD/FE"
-          if (mod(N(1), 2) == 1)
+          if (mod(N(1), 2) == 0)
             ++N(1);
           endif
           if (mod(N(2), 2) == 0)
