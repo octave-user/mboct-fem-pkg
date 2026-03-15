@@ -77,6 +77,10 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.svd_threshold = 1e-3;
   endif
 
+  if (~isfield(cms_opt, "eig_threshold"))
+    cms_opt.eig_threshold = 1e-10;
+  endif
+  
   if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
     for i=1:numel(cms_opt.nodes.interfaces)
       cms_opt.nodes.interfaces(i).include_rigid_body_modes = true;
@@ -126,25 +130,39 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
 
+  [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
+
+  G = fem_cms_matrix_trans(D, diag(A), "Lower");
+
   Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
 
-  L = chol(Mred, "upper");
+  [V, lambda] = eig(G, Mred, "vector", "chol");
 
-  mat_ass_itf.Tred = mat_ass_itf.Tred / L;
+  idx = lambda > cms_opt.eig_threshold;
+
+  printf("keeping %d of %d modes (lambda > %e)\n", sum(idx), numel(idx), cms_opt.eig_threshold);
+  
+  V = V(:, idx);
+
+  lambda = lambda(idx);
+  
+  V *= diag(lambda.^(-1/2));
+
+  mat_ass_itf.Tred *= V;
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D /= L;
+    comp_mat(i).D *= V;
     comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
   endfor
 
   if (nargout >= 8)
-    cond_info = fem_ehd_comp_mat_cond(comp_mat, mat_ass_itf);
+    cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat);
   endif
 endfunction
 
-function cond_info = fem_ehd_comp_mat_cond(comp_mat, mat_ass_itf)
+function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
@@ -162,10 +180,14 @@ function cond_info = fem_ehd_comp_mat_cond(comp_mat, mat_ass_itf)
     A(num_rows_D + (1:rows(comp_mat(i).D) - nz)) = comp_mat(i).A(1:end - nz);
     num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
+endfunction
+
+function cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat)
+  [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
   cond_info.D_rank = rank(D);
   cond_info.D_size = size(D);
-  cond_info.D_cond = cond(D.' * D);
+  cond_info.D_cond = cond(D.' * diag(A) * D);
   cond_info.eta = zeros(1, size(D, 2));
 
   for k=1:size(D, 2)
@@ -308,7 +330,7 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp
     num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
 
-  [Q, ~] = qr(Dcb, 0);
+  [Q, ~] = qr(Dcb, "econ");
 
   Pcb = Q * Q.';
 
@@ -318,7 +340,7 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp
 
   idx_keep = sum(diag(S) > cms_opt.svd_threshold * max(abs(diag(S))));
 
-  fprintf(stderr, "keeping %d of %d modes\n", idx_keep, columns(V));
+  fprintf(stderr, "keeping %d of %d modes (S > %e)\n", idx_keep, columns(V), cms_opt.svd_threshold);
 
   V = V(:, 1:idx_keep);
 
@@ -1877,6 +1899,7 @@ endfunction
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
+%!     cms_opt.eig_threshold = 0;
 %!     load_case = fem_pre_load_case_create_empty(6);
 %!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
 %!     mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
