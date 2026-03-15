@@ -1,6 +1,6 @@
-function [D, E] = fem_ehd_pre_comp_mat_load(filename)
-  D = E = [];
-  
+function comp_mat = fem_ehd_pre_comp_mat_load(filename)
+  comp_mat.D = comp_mat.E = [];
+
   fd = -1;
   unwind_protect
     [fd, msg] = fopen(filename);
@@ -16,17 +16,47 @@ function [D, E] = fem_ehd_pre_comp_mat_load(filename)
         break;
       endif
 
+      [d, count] = sscanf(line, "bearing diameter: %g", "C");
+
+      if (count == 1)
+        comp_mat.bearing_dimensions.bearing_diameter = d;
+        continue;
+      endif
+
+      [w, count] = sscanf(line, "bearing width: %g", "C");
+
+      if (count == 1)
+        comp_mat.bearing_dimensions.bearing_width = w;
+        continue;
+      endif
+
+      [n, count] = sscanf(line, "circumferential grid: %d", "C");
+
+      if (count == 1)
+        x = fscanf(fd, "%g", [n, 2]);
+        comp_mat.bearing_surf.grid_x = x(:, 2);
+        continue;
+      endif
+
+      [n, count] = sscanf(line, "axial grid: %d", "C");
+
+      if (count == 1)
+        z = fscanf(fd, "%g", [n, 2]);
+        comp_mat.bearing_surf.grid_z = z(:, 2);
+        continue;
+      endif
+
       [rows, cols, count] = sscanf(line, "substruct total contrib matrix: %d %d", "C");
 
       if (count == 2)
-        D = fscanf(fd, "%g", [rows, cols]);
+        comp_mat.D = fscanf(fd, "%g", [rows, cols]);
         continue;
       endif
 
       [rows, cols, count] = sscanf(line, "substruct total residual matrix: %d %d", "C");
 
       if (count == 2)
-        E = fscanf(fd, "%g", [rows, cols]);
+        comp_mat.E = fscanf(fd, "%g", [rows, cols]);
         continue;
       endif
     endwhile
