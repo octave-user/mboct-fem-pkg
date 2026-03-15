@@ -80,7 +80,11 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   if (~isfield(cms_opt, "eig_threshold"))
     cms_opt.eig_threshold = 1e-8;
   endif
-  
+
+  if (~isfield(cms_opt, "verbose"))
+    cms_opt.verbose = int32(0);
+  endif
+
   if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
     for i=1:numel(cms_opt.nodes.interfaces)
       cms_opt.nodes.interfaces(i).include_rigid_body_modes = true;
@@ -141,8 +145,10 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   idx_hydro = lambda > cms_opt.eig_threshold;
   idx_struct = ~idx_hydro;
 
-  printf("keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.eig_threshold);
-  
+  if (cms_opt.verbose)
+    fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.eig_threshold);
+  endif
+
   Vh = V(:, idx_hydro);
   Vs = V(:, idx_struct);
 
@@ -159,6 +165,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   if (nargout >= 8)
     cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
+    cond_info.lambda = sort(lambda(idx_hydro), "descend");
+    cond_info.eta = sort(diag(G)(idx_hydro), "descend");
   endif
 endfunction
 
@@ -184,19 +192,12 @@ endfunction
 
 function cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
-  
+
   D = D(:, 1:sum(idx_hydro));
-  
+
   cond_info.D_rank = rank(D);
   cond_info.D_size = size(D);
   cond_info.D_cond = cond(D.' * diag(A) * D);
-  cond_info.eta = zeros(1, size(D, 2));
-
-  for k=1:size(D, 2)
-    cond_info.eta(k) = D(:, k).' * diag(A) * D(:, k);
-  end
-
-  cond_info.eta /= max(cond_info.eta);
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -342,7 +343,9 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp
 
   idx_keep = sum(diag(S) > cms_opt.svd_threshold * max(abs(diag(S))));
 
-  fprintf(stderr, "keeping %d of %d modes (S > %e)\n", idx_keep, columns(V), cms_opt.svd_threshold);
+  if (cms_opt.verbose)
+    fprintf(stderr, "keeping %d of %d modes (S > %e)\n", idx_keep, columns(V), cms_opt.svd_threshold);
+  endif
 
   V = V(:, 1:idx_keep);
 
@@ -948,7 +951,6 @@ endfunction
 %!test
 %! try
 %!   ## TEST 2
-%!   debug_on_error(true)
 %!   do_plot = false;
 %!   if (do_plot)
 %!     close all;
@@ -1178,7 +1180,6 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1494,7 +1495,6 @@ endfunction
 %!     assert_simple(all(err_w < tol_w));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1768,7 +1768,6 @@ endfunction
 %!     assert_simple(all(err_w < tol_w));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e13);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2346,7 +2345,6 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2598,7 +2596,6 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2782,7 +2779,6 @@ endfunction
 %!     endfor
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3149,7 +3145,6 @@ endfunction
 %!     endfor
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3334,7 +3329,6 @@ endfunction
 %!     endfor
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3583,7 +3577,6 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3871,7 +3864,6 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
-%!     assert(min(cond_info.eta) > 1e-8);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);

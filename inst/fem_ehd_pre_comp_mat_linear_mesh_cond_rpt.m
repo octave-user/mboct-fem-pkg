@@ -41,8 +41,8 @@ function fem_ehd_pre_comp_mat_linear_mesh_cond_rpt(cond_info)
   endif
 
   printf("min(eta)=%.2e\n", min(cond_info.eta));
-  
-  for i=1:numel(cond_info.eta)
-    printf("eta(%d)=%.2e\n", i, cond_info.eta(i));
-  endfor
+
+  printf("eta=[");
+  printf("%.2e ", cond_info.eta);
+  printf("]\n");
 endfunction
