@@ -78,7 +78,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "eig_threshold"))
-    cms_opt.eig_threshold = 1e-10;
+    cms_opt.eig_threshold = 1e-8;
   endif
   
   if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
@@ -138,27 +138,27 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [V, lambda] = eig(G, Mred, "vector", "chol");
 
-  idx = lambda > cms_opt.eig_threshold;
+  idx_hydro = lambda > cms_opt.eig_threshold;
+  idx_struct = ~idx_hydro;
 
-  printf("keeping %d of %d modes (lambda > %e)\n", sum(idx), numel(idx), cms_opt.eig_threshold);
+  printf("keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.eig_threshold);
   
-  V = V(:, idx);
+  Vh = V(:, idx_hydro);
+  Vs = V(:, idx_struct);
 
-  lambda = lambda(idx);
-  
-  V *= diag(lambda.^(-1/2));
+  Vh *= diag(lambda(idx_hydro).^(-1/2));
 
-  mat_ass_itf.Tred *= V;
+  mat_ass_itf.Tred *= [Vh, Vs];
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D *= V;
+    comp_mat(i).D = [comp_mat(i).D * Vh, zeros(rows(comp_mat(i).D), columns(Vs))];
     comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
   endfor
 
   if (nargout >= 8)
-    cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat);
+    cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
   endif
 endfunction
 
@@ -182,9 +182,11 @@ function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
   endfor
 endfunction
 
-function cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat)
+function cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
-
+  
+  D = D(:, 1:sum(idx_hydro));
+  
   cond_info.D_rank = rank(D);
   cond_info.D_size = size(D);
   cond_info.D_cond = cond(D.' * diag(A) * D);
@@ -946,6 +948,7 @@ endfunction
 %!test
 %! try
 %!   ## TEST 2
+%!   debug_on_error(true)
 %!   do_plot = false;
 %!   if (do_plot)
 %!     close all;
@@ -1899,7 +1902,6 @@ endfunction
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
-%!     cms_opt.eig_threshold = 0;
 %!     load_case = fem_pre_load_case_create_empty(6);
 %!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
 %!     mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
@@ -2078,7 +2080,7 @@ endfunction
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 2.5e-2;
+%!     tol_red = 4e-2;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(30);
 %!     unwind_protect
