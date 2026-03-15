@@ -154,19 +154,24 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   Vh *= diag(lambda(idx_hydro).^(-1/2));
 
-  mat_ass_itf.Tred *= [Vh, Vs];
+  V = [Vh, Vs];
+
+  Mred = V.' * Mred * V;
+
+  S = diag(sqrt(diag(Mred)));
+
+  mat_ass_itf.Tred *= V / S;
 
   [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D = [comp_mat(i).D * Vh, zeros(rows(comp_mat(i).D), columns(Vs))];
+    comp_mat(i).D = [comp_mat(i).D * Vh, zeros(rows(comp_mat(i).D), columns(Vs))] / S;
     comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
   endfor
 
   if (nargout >= 8)
     cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
     cond_info.lambda = sort(lambda(idx_hydro), "descend");
-    cond_info.eta = sort(diag(G)(idx_hydro), "descend");
   endif
 endfunction
 
@@ -195,9 +200,14 @@ function cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro)
 
   D = D(:, 1:sum(idx_hydro));
 
+  G = D.' * diag(A) * D;
+
   cond_info.D_rank = rank(D);
   cond_info.D_size = size(D);
-  cond_info.D_cond = cond(D.' * diag(A) * D);
+  cond_info.D_cond = cond(G);
+  cond_info.eta = diag(G);
+  cond_info.eta /= max(cond_info.eta);
+  cond_info.eta = sort(cond_info.eta, "descend");
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)

@@ -32,11 +32,11 @@ function fem_ehd_pre_comp_mat_linear_mesh_cond_rpt(cond_info)
     printf("warning: D matrix does not have full rank!\n");
   endif
 
-  if (cond_info.D_cond < 1e10)
+  if (cond_info.D_cond < 1e6)
     printf("info: The condition number of D'*D is good!\n");
   endif
 
-  if (cond_info.D_cond > 1e16)
+  if (cond_info.D_cond > 1e10)
     printf("warning: The condition number of D'*D is bad!\n");
   endif
 
