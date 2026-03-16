@@ -78,7 +78,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "eig_threshold"))
-    cms_opt.eig_threshold = 1e-8;
+    cms_opt.eig_threshold = 1e-2;
   endif
 
   if (~isfield(cms_opt, "verbose"))
