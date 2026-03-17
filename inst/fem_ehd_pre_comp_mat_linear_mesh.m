@@ -78,7 +78,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "eig_threshold"))
-    cms_opt.eig_threshold = 1e-2;
+    cms_opt.eig_threshold = 1e-8;
   endif
 
   if (~isfield(cms_opt, "verbose"))
@@ -142,8 +142,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [V, lambda] = eig(G, Mred, "vector", "chol");
 
-  idx_hydro = lambda > cms_opt.eig_threshold;
-  idx_struct = ~idx_hydro;
+  idx_hydro = lambda > cms_opt.eig_threshold * max(abs(lambda));
+  idx_struct = ~idx_hydro & ((1:rows(lambda)).' <= num_modes_cb);
 
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.eig_threshold);
