@@ -169,63 +169,60 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   V = [Vh, Vs];
 
-  ## Mred = V.' * Mred * V;
-
-  ## S = diag(sqrt(diag(Mred)));
-
   mat_ass_itf.Tred *= V;
 
   for i=1:numel(comp_mat)
     comp_mat(i).D = [comp_mat(i).D * Vh, zeros(rows(comp_mat(i).D), columns(Vs))];
   endfor
-  
-  ## [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
-  ## switch (mat_ass_itf.mat_info.mat_type(3))
-  ##   case FEM_MAT_STIFFNESS
-  ##     Ksym = mat_ass_itf.K;
-  ##   case {FEM_MAT_STIFFNESS_SYM, FEM_MAT_STIFFNESS_SYM_L}
-  ##     Ksym = fem_mat_sym(mat_ass_itf.K);
-  ##   otherwise
-  ##     error("unknown matrix type for mat_ass_itf.K");
-  ## endswitch
-
-  ## Kred = fem_cms_matrix_trans(mat_ass_itf.Tred, Ksym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
-
-  ## [U, S, V] = svd(D, 'econ');
-
-  ## sigma = diag(S);
-
-  ## K_svd = V.' * Kred * V;
-
-  ## k_svd = diag(K_svd);
-
-  ## eta_svd = sigma.^2 ./ k_svd;
-
-  ## sigma_norm = sigma / max(sigma);
-  ## k_norm     = k_svd / max(k_svd);
-
-  ## eta_norm   = eta_svd / max(eta_svd);
-
-  ## keep_svd = ~((eta_norm > cms_opt.eta_threshold) & (k_norm < cms_opt.k_threshold));
-  ## V = V(:, keep_svd);
-
-  ## if (cms_opt.verbose)
-  ##   fprintf(stderr, "keeping %d of %d modes\n", sum(keep_svd), numel(keep_svd));
-  ## endif
-
-  ## mat_ass_itf.Tred *= V;
-
-  [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
-
-  for i=1:numel(comp_mat)
-##    comp_mat(i).D *= V;
-    comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
-  endfor
+  D = [D * Vh, zeros(rows(D), columns(Vs))];
 
   if (nargout >= 8)
     cond_info = fem_ehd_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
   endif
+
+  switch (mat_ass_itf.mat_info.mat_type(3))
+    case FEM_MAT_STIFFNESS
+      Ksym = mat_ass_itf.K;
+    case {FEM_MAT_STIFFNESS_SYM, FEM_MAT_STIFFNESS_SYM_L}
+      Ksym = fem_mat_sym(mat_ass_itf.K);
+    otherwise
+      error("unknown matrix type for mat_ass_itf.K");
+  endswitch
+
+  Kred = fem_cms_matrix_trans(mat_ass_itf.Tred, Ksym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
+
+  [U, S, V] = svd(D, 'econ');
+
+  sigma = diag(S);
+
+  K_svd = V.' * Kred * V;
+
+  k_svd = diag(K_svd);
+
+  eta_svd = sigma.^2 ./ k_svd;
+
+  sigma_norm = sigma / max(sigma);
+  k_norm     = k_svd / max(k_svd);
+
+  eta_norm   = eta_svd / max(eta_svd);
+
+  keep_svd = ~((eta_norm > cms_opt.eta_threshold) & (k_norm < cms_opt.k_threshold));
+  
+  V = V(:, keep_svd);
+
+  if (cms_opt.verbose)
+    fprintf(stderr, "keeping %d of %d modes (eta > %e & k < %e)\n", sum(keep_svd), numel(keep_svd), cms_opt.eta_threshold, cms_opt.k_threshold);
+  endif
+
+  mat_ass_itf.Tred *= V;
+
+  [mat_ass_itf, sol_eig] = fem_ehd_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
+
+  for i=1:numel(comp_mat)
+    comp_mat(i).D *= V;
+    comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
+  endfor
 endfunction
 
 function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
@@ -1113,6 +1110,7 @@ endfunction
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
+%!     cms_opt.eig_threshold = 1e-6;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);

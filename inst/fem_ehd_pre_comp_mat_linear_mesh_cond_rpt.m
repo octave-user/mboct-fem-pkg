@@ -24,7 +24,7 @@
 function fem_ehd_pre_comp_mat_linear_mesh_cond_rpt(cond_info)
   printf("size(D)=[%d,%d]\n", cond_info.D_size(1), cond_info.D_size(2));
   printf("rank(D)=%d\n", cond_info.D_rank);
-  printf("cond(D'*D)=%.2e\n", cond_info.D_cond);
+  printf("cond(D'*diag(A)*D)=%.2e\n", cond_info.D_cond);
   
   if (cond_info.D_size(2) == cond_info.D_rank)
     printf("info: D matrix has full rank.\n");
@@ -33,11 +33,11 @@ function fem_ehd_pre_comp_mat_linear_mesh_cond_rpt(cond_info)
   endif
 
   if (cond_info.D_cond < 1e6)
-    printf("info: The condition number of D'*D is good!\n");
+    printf("info: The condition number of D'*diag(A)*D is good!\n");
   endif
 
   if (cond_info.D_cond > 1e10)
-    printf("warning: The condition number of D'*D is bad!\n");
+    printf("warning: The condition number of D'*diag(A)*D is bad!\n");
   endif
 
   printf("min(eta)=%.2e\n", min(cond_info.eta));
