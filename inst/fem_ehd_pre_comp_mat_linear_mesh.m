@@ -125,33 +125,17 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [Phi_s, Phi_n, lambda_n, mat_ass_itf, dof_map_itf] = fem_ehd_pre_comp_mat_modes_itf(mesh, load_case_dof, load_case_itf, cms_opt);
 
-  Phi_p = Phi_p(dof_map_eig_p.idx_node, :);
-  Phi_n = Phi_n(dof_map_itf.idx_node, :);
-  Phi_s = Phi_s(dof_map_itf.idx_node, :);
-  Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
-  Phi_ns = [Phi_n, Phi_s];
-  num_modes_cb = columns(Phi_ns);
-  num_modes_stat = columns(Phi_s);
-  Phi_p -= Phi_ns * ((Phi_ns.' * (Msym * Phi_ns)) \ (Phi_ns.' * (Msym * Phi_p)));
-
-  mat_ass_itf.Tred = [Phi_n, Phi_s, Phi_p];
-
-  if (cms_opt.floating_frame)
-    Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map_itf, cms_opt.nodes.modal.number);
-    mat_ass_itf.Tred -= Phi_rb * (Phi_rb \ mat_ass_itf.Tred);
-  endif
-
-  clear Phi_ns Phi_n Phi_s Phi_p;
-
+  [mat_ass_itf] = fem_ehd_pre_comp_mat_modes_combine(mesh, dof_map_itf, dof_map_eig_p, mat_ass_itf, cms_opt, Phi_s, Phi_n, Phi_p);
+  
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, columns(Phi_n) + columns(Phi_s));
 
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
   G = fem_cms_matrix_trans(D, diag(A), "Lower");
 
-  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
+  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
 
   [V, lambda] = eig(G, Mred, "vector", "chol");
 
@@ -207,6 +191,32 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   eta_norm   = eta_svd / max(eta_svd);
 
+  ## H = convhull(sigma_norm, k_norm);
+
+  ## keep_svd = false(columns(V), 1);
+  ## keep_svd(H) = true;
+
+##   n = length(sigma_norm);
+##   keep_svd = true(n, 1);
+
+##   for i = 1:n
+##     for j = 1:n
+##       if (sigma_norm(j) >= sigma_norm(i)) && (k_norm(j) >= k_norm(i)) && ...
+##          (sigma_norm(j) > sigma_norm(i) || k_norm(j) > k_norm(i))
+##         keep_svd(i) = false;
+##         break;
+##       end
+##     end
+##   end
+
+## figure;
+## scatter(sigma_norm, k_norm, 'bo'); hold on;
+## scatter(sigma_norm(keep_svd), k_norm(keep_svd), 'ro');
+## xlabel('\sigma (fluid relevance)');
+## ylabel('k (structural stiffness)');
+## legend('all modes', 'Pareto front');
+## grid on;
+  
   keep_svd = ~((eta_norm > cms_opt.eta_threshold) & (k_norm < cms_opt.k_threshold));
   
   V = V(:, keep_svd);
@@ -223,6 +233,25 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     comp_mat(i).D *= V;
     comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
   endfor
+endfunction
+
+function [mat_ass_itf] = fem_ehd_pre_comp_mat_modes_combine(mesh, dof_map_itf, dof_map_eig_p, mat_ass_itf, cms_opt, Phi_s, Phi_n, Phi_p)
+  Phi_p = Phi_p(dof_map_eig_p.idx_node, :);
+  Phi_n = Phi_n(dof_map_itf.idx_node, :);
+  Phi_s = Phi_s(dof_map_itf.idx_node, :);
+  
+  Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
+  
+  Phi_ns = [Phi_n, Phi_s];
+  
+  Phi_p -= Phi_ns * ((Phi_ns.' * (Msym * Phi_ns)) \ (Phi_ns.' * (Msym * Phi_p)));
+
+  mat_ass_itf.Tred = [Phi_n, Phi_s, Phi_p];
+
+  if (cms_opt.floating_frame)
+    Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map_itf, cms_opt.nodes.modal.number);
+    mat_ass_itf.Tred -= Phi_rb * (Phi_rb \ mat_ass_itf.Tred);
+  endif
 endfunction
 
 function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
@@ -371,7 +400,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
