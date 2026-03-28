@@ -78,25 +78,17 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "eig_threshold"))
-    cms_opt.eig_threshold = 1e-8;
-  endif
-
-  if (~isfield(cms_opt, "eta_threshold"))
-    cms_opt.eta_threshold = 1e-2;
-  endif
-
-  if (~isfield(cms_opt, "k_threshold"))
-    cms_opt.k_threshold   = 1e-6;
+    cms_opt.lambda_threshold = 1e-10;
   endif
 
   if (~isfield(cms_opt, "max_cond_D"))
     cms_opt.max_cond_D = 1e8;
   endif
-  
+
   if (~isfield(cms_opt, "sigma_threshold"))
     cms_opt.sigma_threshold = 1e-6;
   endif
-  
+
   if (~isfield(cms_opt, "verbose"))
     cms_opt.verbose = int32(1);
   endif
@@ -129,20 +121,22 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [Phi_s, Phi_n, lambda_n, mat_ass_itf, dof_map_itf] = fem_ehd_pre_comp_mat_modes_itf(mesh, load_case_dof, load_case_itf, cms_opt);
 
+  num_modes_cb = columns(Phi_s) + columns(Phi_n);
+
   [mat_ass_itf] = fem_ehd_pre_comp_mat_modes_combine(mesh, dof_map_itf, dof_map_eig_p, mat_ass_itf, cms_opt, Phi_s, Phi_n, Phi_p);
-  
+
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, columns(Phi_s) + columns(Phi_n));
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, columns(Phi_s) + columns(Phi_n));
-  
-  [mat_ass_itf, comp_mat, idx_hydro] = fem_ehd_comp_mat_filter_eig(mat_ass_itf, dof_map_itf, comp_mat, cms_opt);
+  [mat_ass_itf, comp_mat, idx_hydro] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
 
   if (nargout >= 8)
     cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
   endif
-  
+
+  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, cond_info, num_modes_cb);
+
   [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
@@ -150,7 +144,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, min_modes)
+function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, cond_info, num_modes_cb)
   switch (mat_ass_itf.mat_info.mat_type(3))
     case FEM_MAT_STIFFNESS
       Ksym = mat_ass_itf.K;
@@ -161,19 +155,21 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, 
   endswitch
 
   Ksym = Ksym(dof_map_itf.idx_node, dof_map_itf.idx_node);
-  
-  Kred = fem_cms_matrix_trans(mat_ass_itf.Tred, Ksym, "Lower");
+
+  Kred = fem_cms_matrix_trans(mat_ass_itf.Tred(:, num_modes_cb + 1:end), Ksym, "Lower");
 
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
-  D_sn = D(:, 1:min_modes);
-  D_p = D(:, min_modes + 1:end);
-  
-  [U, S, V] = svd(D_p, 'econ');
+  D_sn = D(:, 1:num_modes_cb);
+  D_p = D(:, num_modes_cb + 1:end);
+
+  P = eye(size(D, 1)) - D_sn * pinv(D_sn);
+
+  [U, S, V] = svd(P * D_p, 'econ');
 
   sigma = diag(S);
 
-  K_svd = V.' * Kred(min_modes + 1:end, min_modes + 1:end) * V;
+  K_svd = V.' * Kred * V;
 
   k_svd = diag(K_svd);
 
@@ -190,50 +186,51 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, 
 
   V = V(:, idx);
 
-  best_n = numel(score); % fallback
+  best_n = 0; % fallback
+  cond_info.cond_val = inf(numel(score), 1);
 
   for n=1:numel(score)
     Vtest = V(:, 1:n);
     Dtest = [D_sn, D_p * Vtest];
 
-    cond_val = cond(Dtest.' * diag(A) * Dtest);
+    cond_info.cond_val(n) = cond(Dtest.' * diag(A) * Dtest);
 
-    if (cond_val > cms_opt.max_cond_D)
+    if (cond_info.cond_val(n) > cms_opt.max_cond_D)
       break
     endif
-    
+
     best_n = n;
   endfor
 
   V = V(:, 1:best_n);
-  
+
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (cond < %e)\n", best_n, numel(score), cms_opt.max_cond_D);
   endif
 
-  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:min_modes), mat_ass_itf.Tred(:, min_modes+1:end) * V];
+  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_cb), mat_ass_itf.Tred(:, num_modes_cb + 1:end) * V];
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D = [comp_mat(i).D(:, 1:min_modes), comp_mat(i).D(:, min_modes+1:end) * V];
+    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_cb), comp_mat(i).D(:, num_modes_cb + 1:end) * V];
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat, idx_hydro] = fem_ehd_comp_mat_filter_eig(mat_ass_itf, dof_map_itf, comp_mat, cms_opt)
+function [mat_ass_itf, comp_mat, idx_hydro] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
-  G = fem_cms_matrix_trans(D, diag(A), "Lower");
+  G = fem_cms_matrix_trans(D(:, num_modes_cb + 1:end), diag(A), "Lower");
 
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
-  
-  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
+
+  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred(:, num_modes_cb + 1:end), Msym, "Lower");
 
   [V, lambda] = eig(G, Mred, "vector", "chol");
 
-  idx_hydro = lambda > cms_opt.eig_threshold * max(abs(lambda));
+  idx_hydro = lambda > cms_opt.lambda_threshold * max(lambda);
   idx_struct = ~idx_hydro;
 
   if (cms_opt.verbose)
-    fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.eig_threshold);
+    fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.lambda_threshold);
   endif
 
   Vh = V(:, idx_hydro);
@@ -243,22 +240,26 @@ function [mat_ass_itf, comp_mat, idx_hydro] = fem_ehd_comp_mat_filter_eig(mat_as
 
   V = [Vh, Vs];
 
-  mat_ass_itf.Tred *= V;
+  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_cb), mat_ass_itf.Tred(:, num_modes_cb + 1:end) * V];
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D = [comp_mat(i).D * Vh, zeros(rows(comp_mat(i).D), columns(Vs))];
+    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_cb), ...
+                     comp_mat(i).D(:, num_modes_cb + 1:end) * Vh, ...
+                     zeros(rows(comp_mat(i).D), columns(Vs))];
   endfor
+
+  idx_hydro = find(idx_hydro) + num_modes_cb;
 endfunction
 
 function [mat_ass_itf] = fem_ehd_pre_comp_mat_modes_combine(mesh, dof_map_itf, dof_map_eig_p, mat_ass_itf, cms_opt, Phi_s, Phi_n, Phi_p)
   Phi_p = Phi_p(dof_map_eig_p.idx_node, :);
   Phi_n = Phi_n(dof_map_itf.idx_node, :);
   Phi_s = Phi_s(dof_map_itf.idx_node, :);
-  
+
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
-  
+
   Phi_sn = [Phi_s, Phi_n];
-  
+
   Phi_p -= Phi_sn * ((Phi_sn.' * (Msym * Phi_sn)) \ (Phi_sn.' * (Msym * Phi_p)));
 
   mat_ass_itf.Tred = [Phi_sn, Phi_p];
@@ -291,7 +292,7 @@ endfunction
 
 function cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
-  D = D(:, 1:sum(idx_hydro));
+  D = D(:, idx_hydro);
   G = D.' * diag(A) * D;
 
   cond_info.D_rank = rank(D);
@@ -1154,9 +1155,8 @@ endfunction
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
-%!     cms_opt.eig_threshold = 1e-6;
-%!     cms_opt.k_threshold = 1e-6;
-%!     cms_opt.max_cond_D = 1e2;
+%!     cms_opt.lambda_threshold = 1e-6;
+%!     cms_opt.max_cond_D = 1e11;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -3189,7 +3189,9 @@ endfunction
 %!     cms_opt.element.name = "elem_id_modal";
 %!     cms_opt.nodes.modal.name = "node_id_modal";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.k_threshold = 1e-5;
+%!     cms_opt.max_cond_D = 1.827e13;
+%!     cms_opt.verbose = int32(1);
+%!    
 %!     grp_id_clamp = find([[mesh.groups.iso4].id] == 1);
 %!     grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
 %!     grp_id_p2 = find([[mesh.groups.iso4].id] == 2);
@@ -3250,6 +3252,8 @@ endfunction
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
+%!     assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
