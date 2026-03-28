@@ -77,16 +77,12 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.svd_threshold = 1e-3;
   endif
 
-  if (~isfield(cms_opt, "eig_threshold"))
+  if (~isfield(cms_opt, "lambda_threshold"))
     cms_opt.lambda_threshold = 1e-10;
   endif
 
   if (~isfield(cms_opt, "max_cond_D"))
     cms_opt.max_cond_D = 1e8;
-  endif
-
-  if (~isfield(cms_opt, "sigma_threshold"))
-    cms_opt.sigma_threshold = 1e-6;
   endif
 
   if (~isfield(cms_opt, "verbose"))
@@ -135,8 +131,20 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
   endif
 
-  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, cond_info, num_modes_cb);
+  #[mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, cond_info, num_modes_cb);
 
+  Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
+  
+  Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
+  
+  L = chol(Mred, "lower");
+
+  mat_ass_itf.Tred /= L.';
+
+  for i=1:numel(comp_mat)
+    comp_mat(i).D /= L.';
+  endfor
+  
   [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
@@ -227,25 +235,19 @@ function [mat_ass_itf, comp_mat, idx_hydro] = fem_ehd_comp_mat_filter_lambda(mat
   [V, lambda] = eig(G, Mred, "vector", "chol");
 
   idx_hydro = lambda > cms_opt.lambda_threshold * max(lambda);
-  idx_struct = ~idx_hydro;
 
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.lambda_threshold);
   endif
 
-  Vh = V(:, idx_hydro);
-  Vs = V(:, idx_struct);
+  V = V(:, idx_hydro);
 
-  Vh *= diag(lambda(idx_hydro).^(-1/2));
-
-  V = [Vh, Vs];
+  V *= diag(lambda(idx_hydro).^(-1/2));
 
   mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_cb), mat_ass_itf.Tred(:, num_modes_cb + 1:end) * V];
 
   for i=1:numel(comp_mat)
-    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_cb), ...
-                     comp_mat(i).D(:, num_modes_cb + 1:end) * Vh, ...
-                     zeros(rows(comp_mat(i).D), columns(Vs))];
+    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_cb), comp_mat(i).D(:, num_modes_cb + 1:end) * V];
   endfor
 
   idx_hydro = find(idx_hydro) + num_modes_cb;
@@ -317,7 +319,7 @@ function [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf
 
   Dsym = fem_mat_sym(mat_ass_itf.D);
 
-  mat_ass_itf.Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
+  mat_ass_itf.Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");  
   mat_ass_itf.Kred = fem_cms_matrix_trans(mat_ass_itf.Tred, Ksym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
   mat_ass_itf.Dred = fem_cms_matrix_trans(mat_ass_itf.Tred, Dsym(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
 
