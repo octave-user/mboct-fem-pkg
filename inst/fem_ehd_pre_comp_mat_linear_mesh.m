@@ -177,6 +177,8 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, 
 
   eta_norm   = eta_svd / max(eta_svd);
 
+  score = sigma_norm .* k_norm;
+  
   ## H = convhull(sigma_norm, k_norm);
 
   ## keep_svd = false(columns(V), 1);
@@ -1155,6 +1157,7 @@ endfunction
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
 %!     cms_opt.eig_threshold = 1e-6;
+%!     cms_opt.k_threshold = 1e-6;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -3187,6 +3190,7 @@ endfunction
 %!     cms_opt.element.name = "elem_id_modal";
 %!     cms_opt.nodes.modal.name = "node_id_modal";
 %!     cms_opt.refine_max_iter = int32(10);
+%!     cms_opt.k_threshold = 1e-5;
 %!     grp_id_clamp = find([[mesh.groups.iso4].id] == 1);
 %!     grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
 %!     grp_id_p2 = find([[mesh.groups.iso4].id] == 2);
