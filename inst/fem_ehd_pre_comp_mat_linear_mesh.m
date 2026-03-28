@@ -89,6 +89,10 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.k_threshold   = 1e-6;
   endif
 
+  if (~isfield(cms_opt, "max_cond_D"))
+    cms_opt.max_cond_D = 1e8;
+  endif
+  
   if (~isfield(cms_opt, "sigma_threshold"))
     cms_opt.sigma_threshold = 1e-6;
   endif
@@ -137,7 +141,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
   endif
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt);
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, columns(Phi_n) + columns(Phi_s));
   
   [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
@@ -146,7 +150,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt)
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, min_modes)
   switch (mat_ass_itf.mat_info.mat_type(3))
     case FEM_MAT_STIFFNESS
       Ksym = mat_ass_itf.K;
@@ -178,39 +182,30 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, 
   eta_norm   = eta_svd / max(eta_svd);
 
   score = sigma_norm .* k_norm;
+
+  [score, idx] = sort(score, 'descend');
+
+  V = V(:, idx);
+
+  best_n = numel(score); % fallback
+
+  for n=min_modes:numel(score)
+    Vtest = V(:, 1:n);
+    Dtest = D * Vtest;
+
+    cond_val = cond(Dtest.' * diag(A) * Dtest);
+
+    if (cond_val < cms_opt.max_cond_D)
+      best_n = n;
+    else
+      break;
+    endif
+  endfor
+
+  V = V(:, 1:best_n);
   
-  ## H = convhull(sigma_norm, k_norm);
-
-  ## keep_svd = false(columns(V), 1);
-  ## keep_svd(H) = true;
-
-##   n = length(sigma_norm);
-##   keep_svd = true(n, 1);
-
-##   for i = 1:n
-##     for j = 1:n
-##       if (sigma_norm(j) >= sigma_norm(i)) && (k_norm(j) >= k_norm(i)) && ...
-##          (sigma_norm(j) > sigma_norm(i) || k_norm(j) > k_norm(i))
-##         keep_svd(i) = false;
-##         break;
-##       end
-##     end
-##   end
-
-## figure;
-## scatter(sigma_norm, k_norm, 'bo'); hold on;
-## scatter(sigma_norm(keep_svd), k_norm(keep_svd), 'ro');
-## xlabel('\sigma (fluid relevance)');
-## ylabel('k (structural stiffness)');
-## legend('all modes', 'Pareto front');
-## grid on;
-  
-  keep_svd = ~((eta_norm > cms_opt.eta_threshold) & (k_norm < cms_opt.k_threshold));
-  
-  V = V(:, keep_svd);
-
   if (cms_opt.verbose)
-    fprintf(stderr, "keeping %d of %d modes (eta > %e & k < %e)\n", sum(keep_svd), numel(keep_svd), cms_opt.eta_threshold, cms_opt.k_threshold);
+    fprintf(stderr, "keeping %d of %d modes (cond < %e)\n", best_n, numel(score), cms_opt.max_cond_D);
   endif
 
   mat_ass_itf.Tred *= V;
