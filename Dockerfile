@@ -969,8 +969,8 @@ WORKDIR ${SRC_DIR}/Trilinos
 WORKDIR ${BUILD_DIR}/Trilinos
 
 ARG TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
-ARG TRILINOS_BRANCH="trilinos-release-16-1-0"
-ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX=ON -DTrilinos_ENABLE_Epetra=ON -DTrilinos_ENABLE_EpetraExt=ON -DTrilinos_ENABLE_Amesos=ON -DTrilinos_ENABLE_AztecOO=ON -DEpetra_ENABLE_MPI=OFF -DNOX_ENABLE_Epetra=ON -DNOX_ENABLE_EpetraExt=ON -DNOX_ENABLE_ABSTRACT_IMPLEMENTATION_EPETRA=ON -DNOX_ENABLE_AztecOO=ON -DNOX_ENABLE_Ifpack=ON -DTrilinos_ENABLE_TESTS=OFF"
+ARG TRILINOS_BRANCH="master"
+ARG TRILINOS_CONFIG="-DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release -DTrilinos_ENABLE_NOX:BOOL=ON -DTrilinos_ENABLE_Tpetra:BOOL=ON -DTrilinos_ENABLE_Amesos2:BOOL=ON -DTpetra_ENABLE_MPI:BOOL=OFF -DTrilinos_ENABLE_Belos:BOOL=ON -DTrilinos_ENABLE_Ifpack2:BOOL=ON -DTrilinos_ENABLE_Kokkos:BOOL=ON -DTrilinos_ENABLE_KokkosKernels:BOOL=ON -DTrilinos_ENABLE_Teuchos:BOOL=ON -DTrilinos_ENABLE_TESTS:BOOL=OFF"
 ARG TRILINOS_PREFIX="/usr/local/"
 
 RUN --mount=type=cache,target=${BUILD_DIR}/Trilinos,sharing=locked <<EOT bash
