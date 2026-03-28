@@ -166,14 +166,20 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(ma
 
   Kred = fem_cms_matrix_trans(mat_ass_itf.Tred(:, num_modes_cb + 1:end), Ksym, "Lower");
 
-  [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
+  [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
   D_sn = D(:, 1:num_modes_cb);
   D_p = D(:, num_modes_cb + 1:end);
 
   P = eye(size(D, 1)) - D_sn * pinv(D_sn);
 
-  [U, S, V] = svd(P * D_p, 'econ');
+  D_stack = zeros(size(D_p));
+
+  for i=1:numel(comp_mat)
+    D_stack(idx(i, 1):idx(i, 2), :) = w(i) * P(idx(i, 1):idx(i, 2), :) * D_p;
+  endfor
+
+  [U, S, V] = svd(D_stack, 'econ');
 
   sigma = diag(S);
 
@@ -186,30 +192,39 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(ma
 
   score = sigma_norm .* k_norm;
 
-  [score, idx] = sort(score, 'descend');
+  [score, idxsc] = sort(score, 'descend');
 
-  V = V(:, idx);
+  cond_info.cond_val = inf(1, numel(score));
 
-  best_n = 0; % fallback
-  cond_info.cond_val = inf(numel(score), 1);
+  Nkeep = int32(0);
 
-  for n=1:numel(score)
-    Vtest = V(:, 1:n);
-    Dtest = [D_sn, D_p * Vtest];
+  for N=1:numel(idxsc)
+    Vtest = V(:, idxsc(1:N));
+    D_new = D_p * Vtest;
 
-    cond_info.cond_val(n) = cond(Dtest.' * diag(A) * Dtest);
+    cond_max = 0;
 
-    if (cond_info.cond_val(n) > cms_opt.max_cond_D)
-      break
+    for i=1:rows(idx)
+      Di = [D_sn(idx(i, 1):idx(i, 2), :), D_new(idx(i, 1):idx(i, 2), :)];
+      Ai = A(idx(i, 1):idx(i, 2));
+
+      cond_i = cond(Di.' * diag(Ai) * Di);
+      cond_max = max(cond_max, cond_i);
+    endfor
+
+    cond_info.cond_val(N) = cond_max;
+
+    if (cond_max > cms_opt.max_cond_D)
+      break;
     endif
 
-    best_n = n;
+    Nkeep = N;
   endfor
 
-  V = V(:, 1:best_n);
+  V = V(:, idxsc(1:Nkeep));
 
   if (cms_opt.verbose)
-    fprintf(stderr, "keeping %d of %d modes (cond < %e)\n", best_n, numel(score), cms_opt.max_cond_D);
+    fprintf(stderr, "keeping %d of %d modes (cond < %e)\n", Nkeep, numel(score), cms_opt.max_cond_D);
   endif
 
   mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_cb), mat_ass_itf.Tred(:, num_modes_cb + 1:end) * V];
@@ -266,7 +281,7 @@ function [mat_ass_itf] = fem_ehd_pre_comp_mat_modes_combine(mesh, dof_map_itf, d
   endif
 endfunction
 
-function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
+function [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
@@ -274,15 +289,21 @@ function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
     num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
 
+  idx = zeros(numel(comp_mat), 2, "int32");
   D = zeros(num_rows_D, columns(mat_ass_itf.Tred));
   A = zeros(1, num_rows_D);
+  w = zeros(numel(comp_mat), 1);
+
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
     nz = numel(comp_mat(i).bearing_surf.grid_z);
     D(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = comp_mat(i).D(1:end - nz, :);
     A(num_rows_D + (1:rows(comp_mat(i).D) - nz)) = comp_mat(i).A(1:end - nz);
+    w(i) = sqrt(sum(comp_mat(i).A(1:end - nz)));
+    idx(i, 1) = num_rows_D + 1;
     num_rows_D += rows(comp_mat(i).D) - nz;
+    idx(i, 2) = num_rows_D;
   endfor
 endfunction
 
@@ -1149,10 +1170,10 @@ endfunction
 %!     cms_opt.modes.number = num_modes_cms;
 %!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.solver = "umfpack";
+%!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(1);
 %!     cms_opt.lambda_threshold = 1e-6;
-%!     cms_opt.max_cond_D = 1e16;
+%!     cms_opt.max_cond_D = inf;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -3185,9 +3206,8 @@ endfunction
 %!     cms_opt.element.name = "elem_id_modal";
 %!     cms_opt.nodes.modal.name = "node_id_modal";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.max_cond_D = 1.827e13;
+%!     cms_opt.max_cond_D = 1.1e15;
 %!     cms_opt.verbose = int32(1);
-%!
 %!     grp_id_clamp = find([[mesh.groups.iso4].id] == 1);
 %!     grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
 %!     grp_id_p2 = find([[mesh.groups.iso4].id] == 2);
