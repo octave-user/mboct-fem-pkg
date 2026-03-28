@@ -131,7 +131,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, idx_hydro);
   endif
 
-  #[mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, cond_info, num_modes_cb);
+  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, cond_info, num_modes_cb);
 
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
   
@@ -181,12 +181,8 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(ma
 
   k_svd = diag(K_svd);
 
-  eta_svd = sigma.^2 ./ k_svd;
-
   sigma_norm = sigma / max(sigma);
   k_norm     = k_svd / max(k_svd);
-
-  eta_norm   = eta_svd / max(eta_svd);
 
   score = sigma_norm .* k_norm;
 
@@ -1158,7 +1154,7 @@ endfunction
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
 %!     cms_opt.lambda_threshold = 1e-6;
-%!     cms_opt.max_cond_D = 1e11;
+%!     cms_opt.max_cond_D = 1e16;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
