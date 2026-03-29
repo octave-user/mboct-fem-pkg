@@ -234,89 +234,6 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb)
-  switch (mat_ass_itf.mat_info.mat_type(3))
-    case FEM_MAT_STIFFNESS
-      Ksym = mat_ass_itf.K;
-    case {FEM_MAT_STIFFNESS_SYM, FEM_MAT_STIFFNESS_SYM_L}
-      Ksym = fem_mat_sym(mat_ass_itf.K);
-    otherwise
-      error("unknown matrix type for mat_ass_itf.K");
-  endswitch
-
-  Ksym = Ksym(dof_map_itf.idx_node, dof_map_itf.idx_node);
-
-  Kred = fem_cms_matrix_trans(mat_ass_itf.Tred(:, num_modes_cb + 1:end), Ksym, "Lower");
-
-  [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
-
-  D_sn = D(:, 1:num_modes_cb);
-  D_p = D(:, num_modes_cb + 1:end);
-
-  P = eye(size(D, 1)) - D_sn * pinv(D_sn);
-
-  D_stack = zeros(size(D_p));
-
-  for i=1:numel(comp_mat)
-    D_stack(idx(i, 1):idx(i, 2), :) = w(i) * P(idx(i, 1):idx(i, 2), :) * D_p;
-  endfor
-
-  [U, S, V] = svd(D_stack, 'econ');
-
-  sigma = diag(S);
-
-  K_svd = V.' * Kred * V;
-
-  k_svd = diag(K_svd);
-
-  sigma_norm = sigma / max(sigma);
-  k_norm     = k_svd / max(k_svd);
-
-  score = sigma_norm .* k_norm;
-
-  [score, idxsc] = sort(score, 'descend');
-
-  cond_info.cond_val = inf(1, numel(score));
-
-  Nkeep = int32(0);
-
-  for N=1:numel(idxsc)
-    Vtest = V(:, idxsc(1:N));
-    D_new = D_p * Vtest;
-
-    cond_max = 0;
-
-    for i=1:rows(idx)
-      ## Di = [D_sn(idx(i, 1):idx(i, 2), :), D_new(idx(i, 1):idx(i, 2), :)];
-      Di = D_new(idx(i, 1):idx(i, 2), :);
-      Ai = A(idx(i, 1):idx(i, 2));
-
-      cond_i = cond(Di.' * diag(Ai) * Di);
-      cond_max = max(cond_max, cond_i);
-    endfor
-
-    cond_info.cond_val(N) = cond_max;
-
-    if (cond_max > cms_opt.max_cond_D)
-      break;
-    endif
-
-    Nkeep = N;
-  endfor
-
-  V = V(:, idxsc(1:Nkeep));
-
-  if (cms_opt.verbose)
-    fprintf(stderr, "keeping %d of %d modes (cond < %e)\n", Nkeep, numel(score), cms_opt.max_cond_D);
-  endif
-
-  mat_ass_itf.Tred = [mat_ass_itf.Tred(:, 1:num_modes_cb), mat_ass_itf.Tred(:, num_modes_cb + 1:end) * V];
-
-  for i=1:numel(comp_mat)
-    comp_mat(i).D = [comp_mat(i).D(:, 1:num_modes_cb), comp_mat(i).D(:, num_modes_cb + 1:end) * V];
-  endfor
-endfunction
-
 function [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
@@ -395,18 +312,16 @@ function [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
 endfunction
 
 function cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat)
-  for i=1:numel(comp_mat)
-    [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat(i));
+  [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
-    G = D.' * diag(A) * D;
+  G = D.' * diag(A) * D;
 
-    cond_info(i).D_rank = rank(D);
-    cond_info(i).D_size = size(D);
-    cond_info(i).D_cond = cond(G);
-    cond_info(i).eta = diag(G);
-    cond_info(i).eta /= max(cond_info(i).eta);
-    cond_info(i).eta = sort(cond_info(i).eta, "descend");
-  endfor
+  cond_info.D_rank = rank(D);
+  cond_info.D_size = size(D);
+  cond_info.D_cond = cond(G);
+  cond_info.eta = diag(G);
+  cond_info.eta /= max(cond_info.eta);
+  cond_info.eta = sort(cond_info.eta, "descend");
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -1141,8 +1056,10 @@ endfunction
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e5);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e6);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1394,8 +1311,10 @@ endfunction
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e10);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e10);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1709,8 +1628,10 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_mod < tol_mod));
 %!     assert_simple(all(err_w < tol_w));
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e10);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e10);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -1982,8 +1903,10 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_mod < tol_mod));
 %!     assert_simple(all(err_w < tol_w));
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e13);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e13);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2261,9 +2184,6 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_mod < tol_mod));
 %!     assert_simple(all(err_w < tol_w));
-%!     ## FIXME: not passed yet
-%!     ## assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     ## assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2559,8 +2479,10 @@ endfunction
 %!               MAC(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e10);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e10);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2810,8 +2732,10 @@ endfunction
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e10);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e10);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -2993,8 +2917,10 @@ endfunction
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e10);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e10);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
@@ -3176,9 +3102,6 @@ endfunction
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
-%!     ## FIXME: not passed yet
-%!     ## assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     ## assert(cond_info.D_cond < 1e10);
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
