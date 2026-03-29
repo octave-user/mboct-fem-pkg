@@ -85,6 +85,10 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.max_cond_D = 1e8;
   endif
 
+  if (~isfield(cms_opt, "tol_gamma"))
+    cms_opt.tol_gamma = 1e-8;
+  endif
+  
   if (~isfield(cms_opt, "verbose"))
     cms_opt.verbose = int32(1);
   endif
@@ -164,10 +168,37 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
     [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat(i));
     
     comp_mat(i).cond_value = inf(1, numel(comp_mat(i).mode_idx));
-    
+
+    selected = [];
+    gamma = [];
+
     for j=1:numel(comp_mat(i).mode_idx)
-      ## Dj = [D(:, 1:num_modes_cb), D(:, comp_mat(i).mode_idx(1):comp_mat(i).mode_idx(j))];
-      Dj = D(:, comp_mat(i).mode_idx(1):comp_mat(i).mode_idx(j));
+      d_j = D(:, comp_mat(i).mode_idx(j));
+
+      if (isempty(selected))
+        selected = [selected, j];
+        gamma = [gamma, realmax()];
+        continue;
+      endif
+
+      D_old = D(:, selected);
+      
+      ## orthogonalize
+      d_j_orth = d_j - D_old * (pinv(D_old) * d_j);
+
+      gamma_j = d_j_orth' * diag(A) * d_j_orth;
+
+      if (gamma_j > cms_opt.tol_gamma)
+        selected = [selected, j];
+        gamma = [gamma, gamma_j];
+      endif
+    endfor
+
+    ## [gamma, idx] = sort(gamma, "descend");
+    ## selected = selected(idx);
+    
+    for j=1:numel(selected)
+      Dj = D(:, comp_mat(i).mode_idx(selected(1:j)));
       cond_j = cond(Dj.' * diag(A) * Dj);
 
       comp_mat(i).cond_value(j) = cond_j;
@@ -176,10 +207,16 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
         break;
       endif
 
-      keep_modes(comp_mat(i).mode_idx(j)) = true;
+      keep_modes(comp_mat(i).mode_idx(selected(j))) = true;
     endfor
+
+    comp_mat(i).gamma = gamma;
   endfor
 
+  if (cms_opt.verbose)
+    printf("keeping %d of %d modes (gamma > %e)\n", sum(keep_modes), numel(keep_modes), cms_opt.tol_gamma);
+  endif
+  
   mat_ass_itf.Tred = mat_ass_itf.Tred(:, keep_modes);
 
   mode_idx_new = zeros(size(keep_modes), "int32");
@@ -1222,6 +1259,7 @@ endfunction
 %!     cms_opt.verbose = int32(1);
 %!     cms_opt.lambda_threshold = 1e-6;
 %!     cms_opt.max_cond_D = 1e5;
+%!     cms_opt.tol_gamma = 1e-8;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
