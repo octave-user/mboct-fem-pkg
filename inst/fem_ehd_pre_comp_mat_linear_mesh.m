@@ -85,10 +85,14 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.max_cond_D = 1e8;
   endif
 
-  if (~isfield(cms_opt, "tol_gamma"))
-    cms_opt.tol_gamma = 1e-6;
+  if (~isfield(cms_opt, "tol_gamma_rel"))
+    cms_opt.tol_gamma_rel = 1e-6;
   endif
-  
+
+  if (~isfield(cms_opt, "tol_gamma_abs"))
+    cms_opt.tol_gamma_abs = 1e-12;
+  endif
+
   if (~isfield(cms_opt, "verbose"))
     cms_opt.verbose = int32(1);
   endif
@@ -128,9 +132,9 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
   [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
-  
+
   [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
-  
+
   [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
 
   ## [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
@@ -161,13 +165,11 @@ endfunction
 
 function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
   keep_modes = false(1, columns(mat_ass_itf.Tred));
-  
+
   keep_modes(1:num_modes_cb) = true;
 
   for i=1:numel(comp_mat)
     [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat(i));
-    
-    comp_mat(i).cond_value = inf(1, numel(comp_mat(i).mode_idx));
 
     selected = [];
     gamma = [];
@@ -177,47 +179,56 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
 
       if (isempty(selected))
         selected = [selected, j];
-        gamma = [gamma, 0];
+        gamma_j = (d_j.' * diag(A) * d_j) / (d_j.' * d_j);
+        gamma = [gamma, gamma_j];
         continue;
       endif
 
       D_old = D(:, selected);
-      
-      d_j_orth = d_j - D_old * (pinv(D_old) * d_j);
+
+      ## A-weighted projection
+      G   = D_old.' * diag(A) * D_old;
+      rhs = D_old.' * diag(A) * d_j;
+
+      coeff = pinv(G) * rhs;
+
+      d_j_orth = d_j - D_old * coeff;
 
       gamma_j = (d_j_orth.' * diag(A) * d_j_orth) / (d_j.' * d_j);
-      
-      if (gamma_j > cms_opt.tol_gamma * max(gamma))
+
+      if (gamma_j > cms_opt.tol_gamma_rel * median(gamma) && gamma_j > cms_opt.tol_gamma_abs)
         selected = [selected, j];
         gamma = [gamma, gamma_j];
       endif
     endfor
+
+    comp_mat(i).gamma = gamma;
+
+    comp_mat(i).cond_value = inf(1, numel(comp_mat(i).mode_idx));
 
     for j=1:numel(selected)
       Dj = D(:, comp_mat(i).mode_idx(selected(1:j)));
       cond_j = cond(Dj.' * diag(A) * Dj);
 
       comp_mat(i).cond_value(j) = cond_j;
-      
+
       if (cond_j > cms_opt.max_cond_D)
         break;
       endif
 
       keep_modes(comp_mat(i).mode_idx(selected(j))) = true;
     endfor
-
-    comp_mat(i).gamma = gamma;
   endfor
 
   if (cms_opt.verbose)
-    printf("keeping %d of %d modes (gamma > %e)\n", sum(keep_modes), numel(keep_modes) - num_modes_cb, cms_opt.tol_gamma);
+    printf("keeping %d of %d modes (gamma > %e)\n", sum(keep_modes) - num_modes_cb, numel(keep_modes) - num_modes_cb, cms_opt.tol_gamma_rel);
   endif
-  
+
   mat_ass_itf.Tred = mat_ass_itf.Tred(:, keep_modes);
 
   mode_idx_new = zeros(size(keep_modes), "int32");
   mode_idx_new(find(keep_modes)) = (1:sum(keep_modes))(:);
-  
+
   for i=1:numel(comp_mat)
     comp_mat(i).D = comp_mat(i).D(:, keep_modes);
     comp_mat(i).mode_idx = mode_idx_new(comp_mat(i).mode_idx);
@@ -352,7 +363,7 @@ function [mat_ass_itf, bearing_surf] = fem_ehd_pre_comp_mat_modes_combine(mesh, 
   for i=1:numel(bearing_surf)
     bearing_surf(i).options.mode_idx += columns(Phi_sn);
   endfor
-  
+
   if (cms_opt.floating_frame)
     Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map_itf, cms_opt.nodes.modal.number);
     mat_ass_itf.Tred -= Phi_rb * (Phi_rb \ mat_ass_itf.Tred);
@@ -475,7 +486,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
     comp_mat(i).dX = bearing_surf(i).X0 - mesh.nodes(cms_opt.nodes.modal.number, 1:3).';
     comp_mat(i).dR = bearing_surf(i).R;
     comp_mat(i).mode_idx = bearing_surf(i).options.mode_idx;
-    
+
     bs_nodes = bearing_surf(i).nodes;
 
     X = bearing_surf(i).R.' * (mesh.nodes(bs_nodes, 1:3).' - bearing_surf(i).X0);
@@ -1255,7 +1266,7 @@ endfunction
 %!     cms_opt.verbose = int32(1);
 %!     cms_opt.lambda_threshold = 1e-6;
 %!     cms_opt.max_cond_D = 1e5;
-%!     cms_opt.tol_gamma = 1e-6;
+%!     cms_opt.tol_gamma_rel = 1e-6;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
