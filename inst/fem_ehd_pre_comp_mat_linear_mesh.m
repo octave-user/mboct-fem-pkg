@@ -124,7 +124,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
   [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
-
+  
   [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
 
   [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
@@ -205,7 +205,8 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(ma
     cond_max = 0;
 
     for i=1:rows(idx)
-      Di = [D_sn(idx(i, 1):idx(i, 2), :), D_new(idx(i, 1):idx(i, 2), :)];
+      ## Di = [D_sn(idx(i, 1):idx(i, 2), :), D_new(idx(i, 1):idx(i, 2), :)];
+      Di = D_new(idx(i, 1):idx(i, 2), :);
       Ai = A(idx(i, 1):idx(i, 2));
 
       cond_i = cond(Di.' * diag(Ai) * Di);
@@ -1100,7 +1101,7 @@ endfunction
 %!       p1 = 1;
 %!       p2 = 2;
 %!       scale_def = 5e-3;
-%!       mesh_size = 8e-3;
+%!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
 %!       fprintf(fd, "D = %g;\n", D);
@@ -1173,7 +1174,7 @@ endfunction
 %!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(1);
 %!     cms_opt.lambda_threshold = 1e-6;
-%!     cms_opt.max_cond_D = inf;
+%!     cms_opt.max_cond_D = 1e19;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
