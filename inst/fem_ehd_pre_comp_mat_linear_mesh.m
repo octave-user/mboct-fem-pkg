@@ -137,9 +137,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
 
-  ## [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_eta(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
-  cond_info = struct();
-
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
 
   Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
@@ -159,7 +156,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endfor
 
   if (nargout >= 8)
-    cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, cond_info);
+    cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat);
   endif
 endfunction
 
@@ -204,10 +201,11 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
 
     comp_mat(i).gamma = gamma;
 
-    comp_mat(i).cond_value = inf(1, numel(comp_mat(i).mode_idx));
+    comp_mat(i).cond_value = inf(size(selected));
 
     for j=1:numel(selected)
       Dj = D(:, comp_mat(i).mode_idx(selected(1:j)));
+
       cond_j = cond(Dj.' * diag(A) * Dj);
 
       comp_mat(i).cond_value(j) = cond_j;
@@ -396,17 +394,19 @@ function [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
   endfor
 endfunction
 
-function cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, cond_info)
-  [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
+function cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat)
+  for i=1:numel(comp_mat)
+    [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat(i));
 
-  G = D.' * diag(A) * D;
+    G = D.' * diag(A) * D;
 
-  cond_info.D_rank = rank(D);
-  cond_info.D_size = size(D);
-  cond_info.D_cond = cond(G);
-  cond_info.eta = diag(G);
-  cond_info.eta /= max(cond_info.eta);
-  cond_info.eta = sort(cond_info.eta, "descend");
+    cond_info(i).D_rank = rank(D);
+    cond_info(i).D_size = size(D);
+    cond_info(i).D_cond = cond(G);
+    cond_info(i).eta = diag(G);
+    cond_info(i).eta /= max(cond_info(i).eta);
+    cond_info(i).eta = sort(cond_info(i).eta, "descend");
+  endfor
 endfunction
 
 function [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt)
@@ -3299,7 +3299,7 @@ endfunction
 %!     cms_opt.element.name = "elem_id_modal";
 %!     cms_opt.nodes.modal.name = "node_id_modal";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.max_cond_D = 1.1e15;
+%!     cms_opt.max_cond_D = 1e8;
 %!     cms_opt.verbose = int32(1);
 %!     grp_id_clamp = find([[mesh.groups.iso4].id] == 1);
 %!     grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
@@ -3363,8 +3363,10 @@ endfunction
 %!     endfor
 %!     assert(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert(rank(mat_ass.Mred), columns(mat_ass.Mred));
-%!     assert(cond_info.D_size(2) == cond_info.D_rank);
-%!     assert(cond_info.D_cond < 1e10);
+%!     for i=1:numel(cond_info)
+%!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
+%!       assert(cond_info(i).D_cond < 1e10);
+%!     endfor
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);
