@@ -1177,9 +1177,6 @@ endfunction
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(1);
-%!     cms_opt.lambda_threshold = 1e-6;
-%!     cms_opt.max_cond_D = 1e5;
-%!     cms_opt.tol_gamma_rel = 1e-6;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -3218,7 +3215,6 @@ endfunction
 %!     cms_opt.element.name = "elem_id_modal";
 %!     cms_opt.nodes.modal.name = "node_id_modal";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.max_cond_D = 1e8;
 %!     cms_opt.verbose = int32(1);
 %!     grp_id_clamp = find([[mesh.groups.iso4].id] == 1);
 %!     grp_id_p1 = find([[mesh.groups.iso4].id] == 3);
@@ -4036,7 +4032,7 @@ endfunction
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 3e-2;
+%!     tol_red = 4e-2;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(60);
 %!     unwind_protect
@@ -4049,12 +4045,13 @@ endfunction
 %!       w = 5e-3;
 %!       l = 47e-3;
 %!       h = 5e-3;
+%!       grp_id_volume = 1;
 %!       grp_id_p1 = 2;
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
 %!       scale_def = 5e-3;
-%!       mesh_size = 4e-3;
+%!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
 %!       fprintf(fd, "D = %g;\n", D);
@@ -4098,7 +4095,7 @@ endfunction
 %!       fputs(fd, "Plane Surface(18) = {15, 16, 17};\n");
 %!       fputs(fd, "tmp[] = Extrude {0, 0, w} { Surface{18}; Layers{Round(w/m + 1)};Recombine;};\n");
 %!       fputs(fd, "Recombine Surface{tmp[0],18};\n");
-%!       fputs(fd, "Physical Volume(\"volume\", 1) = {tmp[1]};\n");
+%!       fprintf(fd, "Physical Volume(\"volume\", %d) = {tmp[1]};\n", grp_id_volume);
 %!       fputs(fd, "ReorientMesh Volume{tmp[1]};\n");
 %!       fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %!       fprintf(fd, "Physical Surface(\"small-end\", %d) = {tmp[8],tmp[9],tmp[10],tmp[11]};\n", grp_id_p1);
@@ -4120,6 +4117,7 @@ endfunction
 %!     fprintf(stderr, "%d nodes\n", rows(mesh.nodes));
 %!     grp_idx_p1 = find([[mesh.groups.iso4].id] == grp_id_p1);
 %!     grp_idx_p2 = find([[mesh.groups.iso4].id] == grp_id_p2);
+%!     grp_idx_volume = find([[mesh.groups.iso8.id] == grp_id_volume]);
 %!     cms_opt.nodes.modal.number = rows(mesh.nodes) + 2;
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
@@ -4128,9 +4126,6 @@ endfunction
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
-%!     cms_opt.lambda_threshold = 1e-6;
-%!     cms_opt.max_cond_D = 1e8;
-%!     cms_opt.svd_threshold = 1e-4;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -4140,13 +4135,13 @@ endfunction
 %!     bearing_surf(1).options.number_of_nodes_z = 20;
 %!     bearing_surf(1).options.bearing_type = "shell";
 %!     bearing_surf(1).options.matrix_type = "modal substruct total";
-%!     bearing_surf(1).options.interpolate_interface = true;
+%!     bearing_surf(1).options.interpolate_interface = false;
 %!     bearing_surf(1).r = 0.5 * d;
 %!     bearing_surf(1).w = w;
 %!     bearing_surf(1).X0 = [l; 0; 0];
 %!     bearing_surf(1).R = eye(3);
 %!     bearing_surf(1).relative_tolerance = 0;
-%!     bearing_surf(1).absolute_tolerance = 1e-3 * 0.5 * d;
+%!     bearing_surf(1).absolute_tolerance = 1e-2 * 0.5 * d;
 %!     bearing_surf(1).options.number_of_modes = num_modes;
 %!     bearing_surf(1).master_node_no = cms_opt.nodes.interfaces.number;
 %!     bearing_surf(2).group_idx = grp_idx_p2;
@@ -4158,13 +4153,13 @@ endfunction
 %!     bearing_surf(2).options.number_of_nodes_z = 20;
 %!     bearing_surf(2).options.bearing_type = "shell";
 %!     bearing_surf(2).options.matrix_type = "modal substruct total";
-%!     bearing_surf(2).options.interpolate_interface = true;
+%!     bearing_surf(2).options.interpolate_interface = false;
 %!     bearing_surf(2).r = 0.5 * d;
 %!     bearing_surf(2).w = w;
 %!     bearing_surf(2).X0 = [0; 0; 0];
 %!     bearing_surf(2).R = eye(3);
 %!     bearing_surf(2).relative_tolerance = 0;
-%!     bearing_surf(2).absolute_tolerance = 1e-3 * 0.5 * d;
+%!     bearing_surf(2).absolute_tolerance = 1e-2 * 0.5 * d;
 %!     bearing_surf(2).options.number_of_modes = num_modes;
 %!     bearing_surf(2).master_node_no = cms_opt.nodes.modal.number;
 %!     mesh.nodes(cms_opt.nodes.modal.number, 1:3) = bearing_surf(2).X0.';
@@ -4251,7 +4246,7 @@ endfunction
 %!       sol_comb.def(:, :, i) *= 10e-3 / max(max(abs(sol_comb.def(:, 1:3, i))));
 %!     endfor
 %!     err_red = zeros(1, size(sol_post.def, 3));
-%!     idx_node = [[mesh.groups.iso8].nodes, cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number];
+%!     idx_node = [mesh.groups.iso8(grp_idx_volume).nodes, cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number];
 %!     for i=1:size(sol_post.def, 3)
 %!       err_red(i) = max(max(abs(sol_post.def(idx_node, :, i) - sol_red.def(idx_node, :, i)))) / max(max(abs(sol_post.def(idx_node, :, i))));
 %!     endfor
