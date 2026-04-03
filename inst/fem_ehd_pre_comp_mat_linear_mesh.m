@@ -109,6 +109,9 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     endif
   endfor
 
+  ## Needed for FEM_MAT_INERTIA_INV4 and FEM_MAT_INERTIA_INV8
+  mesh.nodes -= mesh.nodes(cms_opt.nodes.modal.number, :);
+
   cms_opt.solver = fem_sol_select(true, cms_opt.solver);
 
   options.interpolate_interface = [[bearing_surf.options].interpolate_interface];
@@ -285,7 +288,7 @@ function [mat_ass_itf, bearing_surf] = fem_ehd_pre_comp_mat_modes_combine(mesh, 
   endif
 endfunction
 
-function [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
+function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
@@ -293,10 +296,8 @@ function [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
     num_rows_D += rows(comp_mat(i).D) - nz;
   endfor
 
-  idx = zeros(numel(comp_mat), 2, "int32");
   D = zeros(num_rows_D, columns(mat_ass_itf.Tred));
   A = zeros(1, num_rows_D);
-  w = zeros(numel(comp_mat), 1);
 
   num_rows_D = int32(0);
 
@@ -304,10 +305,7 @@ function [D, A, w, idx] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
     nz = numel(comp_mat(i).bearing_surf.grid_z);
     D(num_rows_D + (1:rows(comp_mat(i).D) - nz), :) = comp_mat(i).D(1:end - nz, :);
     A(num_rows_D + (1:rows(comp_mat(i).D) - nz)) = comp_mat(i).A(1:end - nz);
-    w(i) = sqrt(sum(comp_mat(i).A(1:end - nz)));
-    idx(i, 1) = num_rows_D + 1;
     num_rows_D += rows(comp_mat(i).D) - nz;
-    idx(i, 2) = num_rows_D;
   endfor
 endfunction
 
@@ -347,8 +345,6 @@ function [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf
   Phi(dof_map_itf.idx_node, :) = mat_ass_itf.Tred;
 
   sol_eig.def = fem_post_def_nodal(mesh, dof_map_itf, Phi);
-  sol_eig.lambda = [lambda_n, inf(1, columns(Phi) - columns(lambda_n) - columns(kappa_p)), kappa_p];
-  sol_eig.f = [imag(lambda_n) / (2 * pi), inf(1, columns(Phi) - columns(lambda_n) - columns(kappa_p)), kappa_p];
 
   clear Phi;
 
