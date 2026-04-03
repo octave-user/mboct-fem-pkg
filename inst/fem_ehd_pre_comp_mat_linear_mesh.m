@@ -127,16 +127,35 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   num_modes_cb = columns(Phi_s) + columns(Phi_n);
 
+  if (cms_opt.verbose)
+    printf("%d Craig Bampton modes in total\n", num_modes_cb);
+    printf("%d pressure modes in total\n", columns(Phi_p));
+  endif
+
   [mat_ass_itf, bearing_surf] = fem_ehd_pre_comp_mat_modes_combine(mesh, dof_map_itf, dof_map_eig_p, mat_ass_itf, cms_opt, bearing_surf, Phi_s, Phi_n, Phi_p);
 
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
   [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
+  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb);
+  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb, cond_info);
 
+  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_chol(mat_ass_itf, dof_map_itf, comp_mat);
+
+  [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
+
+  for i=1:numel(comp_mat)
+    comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
+  endfor
+
+  if (nargout >= 8)
+    cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, cond_info);
+  endif
+endfunction
+
+function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_chol(mat_ass_itf, dof_map_itf, comp_mat);
   Msym = fem_mat_sym(mat_ass_itf.M)(dof_map_itf.idx_node, dof_map_itf.idx_node);
 
   Mred = fem_cms_matrix_trans(mat_ass_itf.Tred, Msym, "Lower");
@@ -148,22 +167,15 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   for i=1:numel(comp_mat)
     comp_mat(i).D /= L.';
   endfor
-
-  [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
-
-  for i=1:numel(comp_mat)
-    comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
-  endfor
-
-  if (nargout >= 8)
-    cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat);
-  endif
 endfunction
 
 function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
   keep_modes = false(1, columns(mat_ass_itf.Tred));
 
   keep_modes(1:num_modes_cb) = true;
+
+  num_modes_rejected_gamma = int32(0);
+  num_modes_rejected_cond = int32(0);
 
   for i=1:numel(comp_mat)
     [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat(i));
@@ -196,12 +208,14 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
       if (gamma_j > cms_opt.tol_gamma_rel * median(gamma) && gamma_j > cms_opt.tol_gamma_abs)
         selected = [selected, j];
         gamma = [gamma, gamma_j];
+      else
+        ++num_modes_rejected_gamma;
       endif
     endfor
 
     comp_mat(i).gamma = gamma;
 
-    comp_mat(i).cond_value = inf(size(selected));
+    comp_mat(i).cond_value = zeros(size(selected));
 
     for j=1:numel(selected)
       Dj = D(:, comp_mat(i).mode_idx(selected(1:j)));
@@ -211,15 +225,16 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
       comp_mat(i).cond_value(j) = cond_j;
 
       if (cond_j > cms_opt.max_cond_D)
-        break;
+        ++num_modes_rejected_cond;
+      else
+        keep_modes(comp_mat(i).mode_idx(selected(j))) = true;
       endif
-
-      keep_modes(comp_mat(i).mode_idx(selected(j))) = true;
     endfor
   endfor
 
   if (cms_opt.verbose)
-    printf("keeping %d of %d modes (gamma > %e)\n", sum(keep_modes) - num_modes_cb, numel(keep_modes) - num_modes_cb, cms_opt.tol_gamma_rel);
+    printf("keeping %d of %d modes (gamma > %.2e)\n", numel(keep_modes) - num_modes_cb - num_modes_rejected_gamma, numel(keep_modes) - num_modes_cb, cms_opt.tol_gamma_rel);
+    printf("keeping %d of %d modes (cond < %.2e)\n", numel(keep_modes) - num_modes_cb - num_modes_rejected_gamma - num_modes_rejected_cond, numel(keep_modes) - num_modes_cb - num_modes_rejected_gamma, cms_opt.max_cond_D);
   endif
 
   mat_ass_itf.Tred = mat_ass_itf.Tred(:, keep_modes);
@@ -234,7 +249,7 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb)
+function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb, cond_info)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
   G = fem_cms_matrix_trans(D(:, num_modes_cb + 1:end), diag(A), "Lower");
@@ -247,6 +262,8 @@ function [mat_ass_itf, comp_mat] = fem_ehd_comp_mat_filter_lambda(mat_ass_itf, d
 
   idx_hydro = lambda > cms_opt.lambda_threshold * max(lambda);
 
+  cond_info.lambda = lambda;
+  
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.lambda_threshold);
   endif
@@ -306,7 +323,7 @@ function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
   endfor
 endfunction
 
-function cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat)
+function cond_info = fem_ehd_pre_comp_mat_cond(mat_ass_itf, comp_mat, cond_info)
   [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat);
 
   G = D.' * diag(A) * D;
@@ -435,7 +452,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
+function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
@@ -463,6 +480,8 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, 
 
   [U, S, V] = svd(Dp_tilde, 'econ');
 
+  cond_info.S = diag(S);
+  
   idx_keep = sum(diag(S) > cms_opt.svd_threshold * max(abs(diag(S))));
 
   if (cms_opt.verbose)
@@ -4126,6 +4145,9 @@ endfunction
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
+%!     cms_opt.max_cond_D = 1e5;
+%!     cms_opt.lambda_threshold = 1e-3;
+%!     cms_opt.tol_gamma_rel = 1e-1;
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
