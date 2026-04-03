@@ -74,7 +74,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "svd_threshold"))
-    cms_opt.svd_threshold = 1e-3;
+    cms_opt.svd_threshold = 1e-10;
   endif
 
   if (~isfield(cms_opt, "lambda_threshold"))
