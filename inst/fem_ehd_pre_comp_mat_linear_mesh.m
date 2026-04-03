@@ -136,9 +136,9 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, load_case_itf, cms_opt, bearing_surf);
 
-  [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
+  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
 
-  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb);
+  [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb, cond_info);
 
   [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_lambda(mat_ass_itf, dof_map_itf, comp_mat, cms_opt, num_modes_cb, cond_info);
 
@@ -169,7 +169,7 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_chol(mat_ass_itf,
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
+function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
   keep_modes = false(1, columns(mat_ass_itf.Tred));
 
   keep_modes(1:num_modes_cb) = true;
@@ -211,25 +211,26 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
       endif
     endfor
 
-    comp_mat(i).gamma = gamma;
-
     selected = find(selected);
 
-    comp_mat(i).cond_value = zeros(size(selected));
+    cond_info.comp_mat(i).gamma = gamma;
+    cond_info.comp_mat(i).gamma_range = selected;
+
+    cond_info.comp_mat(i).cond_value = zeros(size(selected));
 
     for j=1:numel(selected)
       Dj = D(:, comp_mat(i).mode_idx(selected(1:j)));
 
-      cond_j = cond(Dj.' * diag(A) * Dj);
+      cond_info.comp_mat(i).cond_value(j) = cond(Dj.' * diag(A) * Dj);
 
-      comp_mat(i).cond_value(j) = cond_j;
-
-      if (cond_j > cms_opt.max_cond_D)
+      if (cond_info.comp_mat(i).cond_value(j) > cms_opt.max_cond_D)
         ++num_modes_rejected_cond;
       else
         keep_modes(comp_mat(i).mode_idx(selected(j))) = true;
       endif
     endfor
+
+    cond_info.comp_mat(i).cond_range = find(keep_modes(comp_mat(i).mode_idx(selected)));
   endfor
 
   if (cms_opt.verbose)
@@ -263,6 +264,7 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_lambda
   idx_hydro = lambda > cms_opt.lambda_threshold * max(lambda);
 
   cond_info.lambda = lambda;
+  cond_info.lambda_range = find(idx_hydro);
 
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.lambda_threshold);
@@ -452,7 +454,7 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
   endfor
 endfunction
 
-function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb)
+function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(mat_ass_itf, comp_mat, cms_opt, num_modes_cb, cond_info)
   num_rows_D = int32(0);
 
   for i=1:numel(comp_mat)
@@ -483,6 +485,8 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(ma
   cond_info.S = diag(S);
 
   idx_keep = sum(diag(S) > cms_opt.svd_threshold * max(abs(diag(S))));
+
+  cond_info.S_range = find(idx_keep);
 
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (S > %e)\n", idx_keep, columns(V), cms_opt.svd_threshold);
@@ -4278,6 +4282,33 @@ endfunction
 %!     assert_simple(all(err_red < tol_red));
 %!     assert(cond_info.D_size(2) == cond_info.D_rank);
 %!     assert(cond_info.D_cond < 1e10);
+%!     if (do_plot)
+%!       figure("visible", "off");
+%!       semilogy(cond_info.eta);
+%!       xlabel("mode #");
+%!       ylabel("eta");
+%!       grid minor on;
+%!       figure("visible", "off");
+%!       semilogy(cond_info.S);
+%!       xlabel("mode #");
+%!       ylabel("S");
+%!       grid on;
+%!       figure("visible", "off");
+%!       semilogy(cond_info.lambda);
+%!       xlabel("mode #");
+%!       ylabel("lambda");
+%!       for i=1:numel(cond_info.comp_mat)
+%!        figure("visible", "off");
+%!        semilogy(cond_info.comp_mat(i).cond_value);
+%!        xlabel("mode #");
+%!        ylabel("cond");
+%!        grid minor on;
+%!        figure("visible", "off");
+%!        semilogy(cond_info.comp_mat(i).gamma);
+%!        xlabel("mode #");
+%!        ylabel("gamma");
+%!       endfor
+%!     endif
 %!   unwind_protect_cleanup
 %!     if (numel(filename))
 %!       fn = dir([filename, "*"]);

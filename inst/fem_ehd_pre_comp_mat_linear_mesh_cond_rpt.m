@@ -41,4 +41,13 @@ function fem_ehd_pre_comp_mat_linear_mesh_cond_rpt(cond_info)
   endif
 
   printf("min(eta)=%.2e\n", min(cond_info.eta));
+
+  printf("min(lambda)=%.2e (%.2e)\n", min(cond_info.lambda(cond_info.lambda_range)), min(cond_info.lambda));
+
+  printf("min(S)=%.2e (%.2e)\n", min(cond_info.S(cond_info.S_range)), min(cond_info.S));
+
+  for i=1:numel(cond_info.comp_mat)
+    printf("min(gamma(%d))=%.2e (%.2e)\n", i, min(cond_info.comp_mat(i).gamma(cond_info.comp_mat(i).gamma_range)), min(cond_info.comp_mat(i).gamma));
+    printf("max(cond_value(%d))=%.2e (%.2e)\n", i, max(cond_info.comp_mat(i).cond_value(cond_info.comp_mat(i).cond_range)), max(cond_info.comp_mat(i).cond_value));
+  endfor
 endfunction
