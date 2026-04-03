@@ -82,11 +82,11 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   endif
 
   if (~isfield(cms_opt, "max_cond_D"))
-    cms_opt.max_cond_D = 1e4;
+    cms_opt.max_cond_D = 1e8;
   endif
 
   if (~isfield(cms_opt, "tol_gamma_rel"))
-    cms_opt.tol_gamma_rel = 1e-4;
+    cms_opt.tol_gamma_rel = 1e-6;
   endif
 
   if (~isfield(cms_opt, "tol_gamma_abs"))
