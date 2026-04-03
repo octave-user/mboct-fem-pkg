@@ -109,9 +109,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     endif
   endfor
 
-  ## Needed for FEM_MAT_INERTIA_INV4 and FEM_MAT_INERTIA_INV8
-  mesh.nodes -= mesh.nodes(cms_opt.nodes.modal.number, :);
-
   cms_opt.solver = fem_sol_select(true, cms_opt.solver);
 
   options.interpolate_interface = [[bearing_surf.options].interpolate_interface];
@@ -347,6 +344,9 @@ function [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf
   sol_eig.def = fem_post_def_nodal(mesh, dof_map_itf, Phi);
 
   clear Phi;
+
+  ## Needed for FEM_MAT_INERTIA_INV4 and FEM_MAT_INERTIA_INV8
+  mesh.nodes -= mesh.nodes(cms_opt.nodes.modal.number, :);
 
   [mat_ass_itf.Inv3, ...
    mat_ass_itf.Inv4, ...
