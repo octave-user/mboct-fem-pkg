@@ -180,16 +180,15 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
   for i=1:numel(comp_mat)
     [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat(i));
 
-    selected = [];
-    gamma = [];
+    selected = false(1, numel(comp_mat(i).mode_idx));
+    gamma = zeros(1, numel(comp_mat(i).mode_idx));
 
     for j=1:numel(comp_mat(i).mode_idx)
       d_j = D(:, comp_mat(i).mode_idx(j));
 
       if (isempty(selected))
-        selected = [selected, j];
-        gamma_j = (d_j.' * diag(A) * d_j) / (d_j.' * d_j);
-        gamma = [gamma, gamma_j];
+        selected(j) = true;
+        gamma(j) = (d_j.' * diag(A) * d_j) / (d_j.' * d_j);
         continue;
       endif
 
@@ -203,17 +202,18 @@ function [mat_ass_itf, comp_mat] = fem_ehd_pre_comp_mat_filter_cond(mat_ass_itf,
 
       d_j_orth = d_j - D_old * coeff;
 
-      gamma_j = (d_j_orth.' * diag(A) * d_j_orth) / (d_j.' * d_j);
+      gamma(j) = (d_j_orth.' * diag(A) * d_j_orth) / (d_j.' * d_j);
 
-      if (gamma_j > cms_opt.tol_gamma_rel * median(gamma) && gamma_j > cms_opt.tol_gamma_abs)
-        selected = [selected, j];
-        gamma = [gamma, gamma_j];
+      if (gamma(j) > cms_opt.tol_gamma_rel * median(gamma(1:j - 1)) && gamma(j) > cms_opt.tol_gamma_abs)
+        selected(j) = true;
       else
         ++num_modes_rejected_gamma;
       endif
     endfor
 
     comp_mat(i).gamma = gamma;
+
+    selected = find(selected);
 
     comp_mat(i).cond_value = zeros(size(selected));
 
@@ -263,7 +263,7 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_lambda
   idx_hydro = lambda > cms_opt.lambda_threshold * max(lambda);
 
   cond_info.lambda = lambda;
-  
+
   if (cms_opt.verbose)
     fprintf(stderr, "keeping %d of %d modes (lambda > %e)\n", sum(idx_hydro), numel(idx_hydro), cms_opt.lambda_threshold);
   endif
@@ -481,7 +481,7 @@ function [mat_ass_itf, comp_mat, cond_info] = fem_ehd_pre_comp_mat_filter_svd(ma
   [U, S, V] = svd(Dp_tilde, 'econ');
 
   cond_info.S = diag(S);
-  
+
   idx_keep = sum(diag(S) > cms_opt.svd_threshold * max(abs(diag(S))));
 
   if (cms_opt.verbose)
