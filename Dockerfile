@@ -933,7 +933,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
 
     make check
 
-    sudo make install
+    make install
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl
