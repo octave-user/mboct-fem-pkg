@@ -696,8 +696,6 @@ WORKDIR ${BUILD_DIR}
 
 COPY Dockerfile ${SRC_DIR}
 COPY Dockerfile ${BUILD_DIR}
-COPY octave-source.awk ${BUILD_DIR}
-COPY octave-source.sh ${BUILD_DIR}
 
 RUN sed 's/Types: deb/Types: deb deb-src/g' -i /etc/apt/sources.list.d/ubuntu.sources
 
@@ -923,7 +921,19 @@ WORKDIR ${SRC_DIR}/octave
 WORKDIR ${BUILD_DIR}/octave
 
 RUN --mount=type=cache,target=${BUILD_DIR}/octave,sharing=locked <<EOT bash
-    "${BUILD_DIR}/octave-source.sh"
+    git clone -b stable https://github.com/gnu-octave/octave.git
+
+    cd octave
+
+    ./bootstrap
+
+    ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
+
+    make -j${MBD_NUM_TASKS}
+
+    make check
+
+    make install
 EOT
 
 WORKDIR ${LICENSE_DIR}/mkl

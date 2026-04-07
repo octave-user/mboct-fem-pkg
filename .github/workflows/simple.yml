@@ -57,29 +57,11 @@ jobs:
           mkdir "${RUNNER_TEMP}/octave"
           pushd "${RUNNER_TEMP}/octave"
 
-          rm -f "index.html"
+          git clone -b stable https://github.com/gnu-octave/octave.git
 
-          wget https://ftp.gnu.org/gnu/octave/
+          cd octave
 
-          OCTAVE_TAR=`gawk -f "${GITHUB_WORKSPACE}/octave-source.awk" "index.html"`
-
-          if test -z "${OCTAVE_TAR}"; then
-            echo Octave release not found
-            exit 1
-          fi
-
-          echo Found octave release "${OCTAVE_TAR}"
-
-          wget "https://ftp.gnu.org/gnu/octave/${OCTAVE_TAR}"
-
-          if ! test -f "${OCTAVE_TAR}"; then
-            echo Failed to get "${OCTAVE_TAR}"
-            exit 1
-          fi
-
-          tar -zxvf "${OCTAVE_TAR}"
-
-          pushd `basename -s .tar.gz "${OCTAVE_TAR}"`
+          ./bootstrap
 
           ./configure CXXFLAGS="-O3 -Wall -march=native" --with-hdf5-includedir=`pkg-config --cflags-only-I hdf5-serial | sed 's/^-I//'` --with-hdf5-libdir=`pkg-config --libs-only-L hdf5-serial | sed 's/^-L//'`
 
