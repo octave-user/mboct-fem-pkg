@@ -75,6 +75,18 @@ jobs:
         run: |
           sudo apt-get -yq install libmkl-full-dev
 
+      - name: Install gtest
+        run: |
+          GTEST_REPO="https://github.com/google/googletest.git"
+          GTEST_BRANCH="main"
+          git clone -b ${GTEST_BRANCH} ${GTEST_REPO} "${RUNNER_TEMP}/googletest"
+          pushd "${RUNNER_TEMP}/googletest"
+          mkdir build_dir
+          pushd build_dir
+          cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+          make -j${MBD_NUM_TASKS}
+          sudo make install
+
       - name: Install Trilinos
         run: |
           TRILINOS_REPO="https://github.com/trilinos/Trilinos.git"
@@ -86,18 +98,6 @@ jobs:
           mkdir build_dir
           pushd build_dir
           cmake .. -DCMAKE_INSTALL_PREFIX="${TRILINOS_PREFIX}" ${TRILINOS_CONFIG}
-          make -j${MBD_NUM_TASKS}
-          sudo make install
-
-      - name: Install gtest
-        run: |
-          GTEST_REPO="https://github.com/google/googletest.git"
-          GTEST_BRANCH="main"
-          git clone -b ${GTEST_BRANCH} ${GTEST_REPO} "${RUNNER_TEMP}/googletest"
-          pushd "${RUNNER_TEMP}/googletest"
-          mkdir build_dir
-          pushd build_dir
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
           make -j${MBD_NUM_TASKS}
           sudo make install
 
@@ -161,4 +161,4 @@ jobs:
         if: always()
         with:
           name: runner-temp
-          path: ${{ runner.temp }}          
+          path: ${{ runner.temp }}

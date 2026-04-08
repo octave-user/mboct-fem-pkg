@@ -975,6 +975,46 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 #     make install
 # EOT
 
+WORKDIR ${SRC_DIR}/gtest
+WORKDIR ${BUILD_DIR}/gtest
+
+ARG GTEST_REPO="https://github.com/google/googletest.git"
+ARG GTEST_BRANCH="main"
+
+RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
+    if ! test -d ${BUILD_DIR}/gtest/.git; then
+      git clone -b ${GTEST_BRANCH} ${GTEST_REPO} ${BUILD_DIR}/gtest
+    fi
+
+    cd ${BUILD_DIR}/gtest
+
+    if ! test -d build_dir; then
+      mkdir build_dir
+    fi
+
+    cd build_dir
+
+    case "${RUN_CONFIGURE}" in
+    *gtest*|all)
+      rm -f Makefile
+      ;;
+    none)
+      ;;
+    esac
+
+    if ! test -f Makefile; then
+      cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
+    fi
+
+    make -j${MBD_NUM_TASKS}
+
+    make package_source
+
+    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/gtest ';'
+
+    make install
+EOT
+
 WORKDIR ${SRC_DIR}/Trilinos
 WORKDIR ${BUILD_DIR}/Trilinos
 
@@ -1079,46 +1119,6 @@ EOT
 
 #     make install
 # EOT
-
-WORKDIR ${SRC_DIR}/gtest
-WORKDIR ${BUILD_DIR}/gtest
-
-ARG GTEST_REPO="https://github.com/google/googletest.git"
-ARG GTEST_BRANCH="main"
-
-RUN --mount=type=cache,target=${BUILD_DIR}/gtest,sharing=locked <<EOT bash
-    if ! test -d ${BUILD_DIR}/gtest/.git; then
-      git clone -b ${GTEST_BRANCH} ${GTEST_REPO} ${BUILD_DIR}/gtest
-    fi
-
-    cd ${BUILD_DIR}/gtest
-
-    if ! test -d build_dir; then
-      mkdir build_dir
-    fi
-
-    cd build_dir
-
-    case "${RUN_CONFIGURE}" in
-    *gtest*|all)
-      rm -f Makefile
-      ;;
-    none)
-      ;;
-    esac
-
-    if ! test -f Makefile; then
-      cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON
-    fi
-
-    make -j${MBD_NUM_TASKS}
-
-    make package_source
-
-    find . -name '*-Source.tar.gz' -exec cp '{}' ${SRC_DIR}/gtest ';'
-
-    make install
-EOT
 
 ARG MBD_FLAGS="-Ofast -Wall -march=native -mtune=native"
 ARG MBD_CPPFLAGS="-I/usr/local/include -I/usr/local/include/kokkos -I/usr/include/suitesparse -I/usr/include/mkl -I/usr/local/include/MGIS -I/usr/local/include/MFront"
