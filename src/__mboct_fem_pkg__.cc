@@ -7367,37 +7367,37 @@ public:
      }
 
      static void AllocIntegrationRule(FemMatrixType eMatType) {
-          constexpr double r1 = -1. / sqrt(3.);
-          constexpr double r2 = 1. / sqrt(3.);
-          constexpr double a1 = 1. / sqrt(3.);
-          constexpr double w1 = 1. / 6.;
-          constexpr double w2 = -27. / 96.;
-          constexpr double w3 = 25. / 96.;
-          constexpr double w4 = 1. / 18.;
-          constexpr double alpha = sqrt(3. / 5.);
-          constexpr double c1 = 5. / 9.;
-          constexpr double c2 = 8. / 9.;
-          constexpr double c3 = (155. + sqrt(15.)) / 2400.;
-          constexpr double c4 = (155. - sqrt(15.)) / 2400.;
-          constexpr double c5 = 9. / 80.;
-          constexpr double a2 = (6. + sqrt(15.)) / 21.;
-          constexpr double b2 = (6. - sqrt(15.)) / 21.;
+          const double r1 = -1. / sqrt(3.);
+          const double r2 = 1. / sqrt(3.);
+          const double a1 = 1. / sqrt(3.);
+          const double w1 = 1. / 6.;
+          const double w2 = -27. / 96.;
+          const double w3 = 25. / 96.;
+          const double w4 = 1. / 18.;
+          const double alpha = sqrt(3. / 5.);
+          const double c1 = 5. / 9.;
+          const double c2 = 8. / 9.;
+          const double c3 = (155. + sqrt(15.)) / 2400.;
+          const double c4 = (155. - sqrt(15.)) / 2400.;
+          const double c5 = 9. / 80.;
+          const double a2 = (6. + sqrt(15.)) / 21.;
+          const double b2 = (6. - sqrt(15.)) / 21.;
 
-          static constexpr octave_idx_type N[4] = {6, 8, 21, 18};
+          static const octave_idx_type N[4] = {6, 8, 21, 18};
 
-          static constexpr double r[4][21] = {{r1, r1, r1, r2, r2, r2},
+          static const double r[4][21] = {{r1, r1, r1, r2, r2, r2},
                                               {-a1, -a1, -a1, -a1, a1, a1, a1, a1},
                                               {-alpha, -alpha, -alpha, -alpha, -alpha, -alpha, -alpha, 0., 0., 0., 0., 0., 0., 0., alpha, alpha, alpha, alpha, alpha, alpha, alpha},
                                               {-1., -1., -1., 1., 1., 1., -1., -1., -1., 0., 0., 0., 1., 1., 1., 0., 0., 0.}};
-          static constexpr double s[4][21] = {{0.5, 0., 0.5, 0.5, 0., 0.5},
+          static const double s[4][21] = {{0.5, 0., 0.5, 0.5, 0., 0.5},
                                               {1./3., 0.6, 0.2, 0.2, 1./3., 0.6, 0.2, 0.2},
                                               {1./3, a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2, 1. / 3., a2, 1. - 2. * a2, a2, b2, 1. - 2. * b2, b2},
                                               {1., 0., 0., 1., 0., 0., 0.5, 0., 0.5, 1., 0., 0., 0.5, 0., 0.5, 0.5, 0., 0.5}};
-          static constexpr double t[4][21] = {{0.5, 0.5, 0., 0.5, 0.5, 0.},
+          static const double t[4][21] = {{0.5, 0.5, 0., 0.5, 0.5, 0.},
                                               {1./3., 0.2, 0.6, 0.2, 1./3., 0.2, 0.6, 0.2},
                                               {1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2, 1./3., a2, a2, 1. - 2. * a2, b2, b2, 1. - 2. * b2},
                                               {0., 1., 0., 0., 1., 0., 0.5, 0.5, 0., 0., 1., 0., 0.5, 0.5, 0., 0.5, 0.5, 0.}};
-          static constexpr double w[4][21] = {{w1, w1, w1, w1, w1, w1},
+          static const double w[4][21] = {{w1, w1, w1, w1, w1, w1},
                                               {w2, w3, w3, w3, w2, w3, w3, w3},
                                               {c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4, c2 * c5, c2 * c3, c2 * c3, c2 * c3, c2 * c4, c2 * c4, c2 * c4, c1 * c5, c1 * c3, c1 * c3, c1 * c3, c1 * c4, c1 * c4, c1 * c4},
                                               {w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4, w4}};
@@ -7616,36 +7616,36 @@ public:
           static constexpr double t1[N1] = {a1, b1, c1, b1, b1};
           static constexpr double w1[N1] = {d1, e1, e1, e1, e1};
 
-          constexpr double a2 = 0.25;
-          constexpr double b2_1 = (7. + sqrt(15.)) / 34.;
-          constexpr double b2_2 = (7. - sqrt(15.)) / 34.;
-          constexpr double c2_1 = (13. - 3. * sqrt(15.)) / 34.;
-          constexpr double c2_2 = (13. + 3. * sqrt(15.)) / 34.;
-          constexpr double d2 = (5. - sqrt(15.)) / 20.;
-          constexpr double e2 = (5. + sqrt(15.)) / 20.;
-          constexpr double f2 = 8. / 405.;
-          constexpr double g2 = (2665. - 14. * sqrt(15.)) / 226800.;
-          constexpr double h2 = (2665. + 14. * sqrt(15.)) / 226800.;
-          constexpr double i2 = 5. / 567.;
+          const double a2 = 0.25;
+          const double b2_1 = (7. + sqrt(15.)) / 34.;
+          const double b2_2 = (7. - sqrt(15.)) / 34.;
+          const double c2_1 = (13. - 3. * sqrt(15.)) / 34.;
+          const double c2_2 = (13. + 3. * sqrt(15.)) / 34.;
+          const double d2 = (5. - sqrt(15.)) / 20.;
+          const double e2 = (5. + sqrt(15.)) / 20.;
+          const double f2 = 8. / 405.;
+          const double g2 = (2665. - 14. * sqrt(15.)) / 226800.;
+          const double h2 = (2665. + 14. * sqrt(15.)) / 226800.;
+          const double i2 = 5. / 567.;
           constexpr octave_idx_type N2 = 15;
 
-          static constexpr double t2[N2] = {a2, b2_1, b2_1, b2_1, c2_1, b2_2, b2_2, b2_2, c2_2, d2, d2, e2, d2, e2, e2};
+          static const double t2[N2] = {a2, b2_1, b2_1, b2_1, c2_1, b2_2, b2_2, b2_2, c2_2, d2, d2, e2, d2, e2, e2};
 
-          static constexpr double r2[N2] = {a2, b2_1, b2_1, c2_1, b2_1, b2_2, b2_2, c2_2, b2_2, d2, e2, d2, e2, d2, e2};
+          static const double r2[N2] = {a2, b2_1, b2_1, c2_1, b2_1, b2_2, b2_2, c2_2, b2_2, d2, e2, d2, e2, d2, e2};
 
-          static constexpr double s2[N2] = {a2, b2_1, c2_1, b2_1, b2_1, b2_2, c2_2, b2_2, b2_2, e2, d2, d2, e2, e2, d2};
+          static const double s2[N2] = {a2, b2_1, c2_1, b2_1, b2_1, b2_2, c2_2, b2_2, b2_2, e2, d2, d2, e2, e2, d2};
 
-          static constexpr double w2[N2] = {f2, g2, g2, g2, g2, h2, h2, h2, h2, i2, i2, i2, i2, i2, i2};
+          static const double w2[N2] = {f2, g2, g2, g2, g2, h2, h2, h2, h2, i2, i2, i2, i2, i2, i2};
 
-          constexpr double a3 = (5. - sqrt(5.)) / 20.;
-          constexpr double b3 = (5. + 3. * sqrt(5)) / 20.;
-          constexpr double c3 = 1. / 24.;
+          const double a3 = (5. - sqrt(5.)) / 20.;
+          const double b3 = (5. + 3. * sqrt(5)) / 20.;
+          const double c3 = 1. / 24.;
           constexpr octave_idx_type N3 = 4;
 
-          static constexpr double r3[N3] = {a3, a3, a3, b3};
-          static constexpr double s3[N3] = {a3, a3, b3, a3};
-          static constexpr double t3[N3] = {a3, b3, a3, a3};
-          static constexpr double w3[N3] = {c3, c3, c3, c3};
+          static const double r3[N3] = {a3, a3, a3, b3};
+          static const double s3[N3] = {a3, a3, b3, a3};
+          static const double t3[N3] = {a3, b3, a3, a3};
+          static const double w3[N3] = {c3, c3, c3, c3};
 
           static constexpr octave_idx_type Ni[RNUM] = {N1, N2, N3};
           static constexpr const double* ri[RNUM] = {r1, r2, r3};
@@ -7918,8 +7918,8 @@ public:
           case VEC_PARTICLE_VELOCITY:
           case VEC_PARTICLE_VELOCITY_C:
                if (!oIntegStiff.iGetNumEvalPoints()) {
-                    constexpr double alpha = (5. + 3. * sqrt(5.)) / 20.;
-                    constexpr double beta = (5. - sqrt(5.)) / 20.;
+                    const double alpha = (5. + 3. * sqrt(5.)) / 20.;
+                    const double beta = (5. - sqrt(5.)) / 20.;
 
                     oIntegStiff.SetNumEvalPoints(4, 4);
 
@@ -8499,8 +8499,8 @@ public:
                break;
           }
 
-          constexpr double a1 = (1 + sqrt(5./14.)) / 4.;
-          constexpr double b1 = (1 - sqrt(5./14.)) / 4.;
+          const double a1 = (1 + sqrt(5./14.)) / 4.;
+          const double b1 = (1 - sqrt(5./14.)) / 4.;
           constexpr double c1 = 1. / 4.;
           constexpr double d1 = 1. / 14.;
           constexpr double e1 = 11. / 14.;
@@ -8509,10 +8509,10 @@ public:
           constexpr double w3 = 56. / 2250.;
 
           constexpr octave_idx_type N1 = 11;
-          static constexpr double ri1[N1] = {c1, e1, d1, d1, d1, a1, a1, a1, b1, b1, b1};
-          static constexpr double si1[N1] = {c1, d1, e1, d1, d1, a1, b1, b1, a1, a1, b1};
-          static constexpr double ti1[N1] = {c1, d1, d1, e1, d1, b1, a1, b1, a1, b1, a1};
-          static constexpr double wi1[N1] = {w1, w2, w2, w2, w2, w3, w3, w3, w3, w3, w3};
+          static const double ri1[N1] = {c1, e1, d1, d1, d1, a1, a1, a1, b1, b1, b1};
+          static const double si1[N1] = {c1, d1, e1, d1, d1, a1, b1, b1, a1, a1, b1};
+          static const double ti1[N1] = {c1, d1, d1, e1, d1, b1, a1, b1, a1, b1, a1};
+          static const double wi1[N1] = {w1, w2, w2, w2, w2, w3, w3, w3, w3, w3, w3};
 
           constexpr octave_idx_type N2 = 27;
           static constexpr double ri2[N2] = {1.431498841332000e-03, 1.127016653792600e-02, 6.350832689629000e-03, 6.350832689629000e-03, 5.000000000000000e-02, 2.817541634481500e-02, 1.127016653792600e-02, 8.872983346207400e-02, 5.000000000000000e-02, 6.350832689629000e-03, 5.000000000000000e-02, 2.817541634481500e-02, 2.817541634481500e-02, 2.218245836551850e-01, 1.250000000000000e-01, 5.000000000000000e-02, 3.936491673103710e-01, 2.218245836551850e-01, 1.127016653792600e-02, 8.872983346207400e-02, 5.000000000000000e-02, 5.000000000000000e-02, 3.936491673103710e-01, 2.218245836551850e-01, 8.872983346207400e-02, 6.985685011586670e-01, 3.936491673103710e-01};
@@ -8526,15 +8526,15 @@ public:
           static constexpr double ti3[N3] = {6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 4.820780989426000e-03, 4.820780989426000e-03, 4.820780989426000e-03, 4.820780989426000e-03, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 1.089062557068340e-01, 1.089062557068340e-01, 1.089062557068340e-01, 1.089062557068340e-01, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 2.291316667641300e-02, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 4.488872992916900e-01, 4.488872992916900e-01, 4.488872992916900e-01, 4.488872992916900e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 2.211032225007380e-01, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 4.651867752656100e-02, 8.659570925834790e-01, 8.659570925834790e-01, 8.659570925834790e-01, 8.659570925834790e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 6.234718442658670e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 3.070963115311590e-01, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02, 6.461106321354800e-02};
           static constexpr double wi3[N3] = {1.761084870822600e-06, 1.761084870822600e-06, 3.301615549885100e-06, 3.301615549885100e-06, 1.569257503335800e-05, 1.569257503335800e-05, 2.941984830275260e-05, 2.941984830275260e-05, 3.185931686560010e-05, 3.185931686560010e-05, 5.972864665122530e-05, 5.972864665122530e-05, 2.360313944207820e-05, 2.360313944207820e-05, 4.425027634907300e-05, 4.425027634907300e-05, 7.458679166511140e-05, 7.458679166511140e-05, 1.398325062338110e-04, 1.398325062338110e-04, 6.646237464725280e-04, 6.646237464725280e-04, 1.246011553748000e-03, 1.246011553748000e-03, 1.349329762022000e-03, 1.349329762022000e-03, 2.529672588768000e-03, 2.529672588768000e-03, 9.996579230088670e-04, 9.996579230088670e-04, 1.874121002261000e-03, 1.874121002261000e-03, 3.074301219528830e-04, 3.074301219528830e-04, 5.763584072291740e-04, 5.763584072291740e-04, 2.739430867978000e-03, 2.739430867978000e-03, 5.135781756688000e-03, 5.135781756688000e-03, 5.561636370626000e-03, 5.561636370626000e-03, 1.042674627912200e-02, 1.042674627912200e-02, 4.120367029080000e-03, 4.120367029080000e-03, 7.724708831375000e-03, 7.724708831375000e-03, 3.163437496694650e-04, 3.163437496694650e-04, 5.930693405649470e-04, 5.930693405649470e-04, 2.818857915521000e-03, 2.818857915521000e-03, 5.284688592238000e-03, 5.284688592238000e-03, 5.722890433136000e-03, 5.722890433136000e-03, 1.072905931870600e-02, 1.072905931870600e-02, 4.239832934111000e-03, 4.239832934111000e-03, 7.948679008091999e-03, 7.948679008091999e-03};
 
-          constexpr double a4 = (5. + 3. * sqrt(5)) / 20.;
-          constexpr double b4 = (5. - sqrt(5.)) / 20.;
+          const double a4 = (5. + 3. * sqrt(5)) / 20.;
+          const double b4 = (5. - sqrt(5.)) / 20.;
           constexpr double c4 = 1. / 24.;
           constexpr octave_idx_type N4 = 4;
 
-          static constexpr double ri4[N4] = {b4, a4, b4, b4};
-          static constexpr double si4[N4] = {b4, b4, a4, b4};
-          static constexpr double ti4[N4] = {b4, b4, b4, a4};
-          static constexpr double wi4[N4] = {c4, c4, c4, c4};
+          static const double ri4[N4] = {b4, a4, b4, b4};
+          static const double si4[N4] = {b4, b4, a4, b4};
+          static const double ti4[N4] = {b4, b4, b4, a4};
+          static const double wi4[N4] = {c4, c4, c4, c4};
 
           constexpr octave_idx_type N5 = 20;
 
@@ -9105,12 +9105,12 @@ public:
                break;
           default:
                if (!oIntegConsistent.iGetNumEvalPoints()) {
-                    constexpr double g1 = (6. - sqrt(15.)) / 21.;
-                    constexpr double g2 = (6. + sqrt(15.)) / 21.;
-                    constexpr double g3 = 1. / 3.;
-                    constexpr double w1 = (155. - sqrt(15.)) / 1200.;
-                    constexpr double w2 = (155. + sqrt(15.)) / 1200.;
-                    constexpr double w3 = 9. / 40.;
+                    const double g1 = (6. - sqrt(15.)) / 21.;
+                    const double g2 = (6. + sqrt(15.)) / 21.;
+                    const double g3 = 1. / 3.;
+                    const double w1 = (155. - sqrt(15.)) / 1200.;
+                    const double w2 = (155. + sqrt(15.)) / 1200.;
+                    const double w3 = 9. / 40.;
 
                     oIntegConsistent.SetNumEvalPoints(7, 3);
 
@@ -14466,7 +14466,7 @@ private:
            ColumnVector& rv,
            double& f) {
 
-          constexpr double dTolX = std::pow(std::numeric_limits<double>::epsilon(), 0.8);
+          const double dTolX = std::pow(std::numeric_limits<double>::epsilon(), 0.8);
 
           FuncData oFuncData(Xm, Xs);
 
@@ -14552,9 +14552,9 @@ private:
           const double f0 = oSNCO.Objective(rv, F, Hf);
 
           if (gradient) {
-               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
+               const double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
                constexpr octave_idx_type M = 4;
-               static constexpr double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
+               static const double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
                std::array<double, M> fi;
 
                for (octave_idx_type i = 0; i < N; ++i) {
@@ -14587,9 +14587,9 @@ private:
           const double f0 = oSNCO.EqualityConstr(rv);
 
           if (gradient) {
-               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
+               const double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
                constexpr octave_idx_type M = 4;
-               static constexpr double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
+               static const double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
                std::array<double, M> fi;
 
                for (octave_idx_type i = 0; i < N; ++i) {
@@ -14622,9 +14622,9 @@ private:
           const double f0 = oSNCO.InequalityConstr(rv);
 
           if (gradient) {
-               constexpr double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
+               const double delta = std::pow(std::numeric_limits<double>::epsilon(), 0.5);
                constexpr octave_idx_type M = 4;
-               static constexpr double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
+               static const double dx[M] = {-2. * delta, -delta, delta, 2. * delta};
                std::array<double, M> fi;
 
                for (octave_idx_type i = 0; i < N; ++i) {

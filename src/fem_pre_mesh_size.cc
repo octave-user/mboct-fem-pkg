@@ -60,10 +60,10 @@ int diaphragm(int argc, char* argv[])
                 return 3;
         }
         
-        union {
-                struct {
+        union Parameters {
+                struct Values {
                         double Wo, Di, Do, d1, d2, d3, d4, d7, h1, h2, ht;
-                };
+                } v;
 
                 double vars[nvars];
         } par;
@@ -119,36 +119,36 @@ int diaphragm(int argc, char* argv[])
         constexpr int N = 3;
         array<double, N> X;
 
-        array<double, 4> x1 = {0.5 * par.Di,
-                               0.5 * par.Di + par.d1,
-                               0.5 * par.Di + par.d1 + par.ht,
-                               0.5 * par.Do};
+        array<double, 4> x1 = {0.5 * par.v.Di,
+                               0.5 * par.v.Di + par.v.d1,
+                               0.5 * par.v.Di + par.v.d1 + par.v.ht,
+                               0.5 * par.v.Do};
 
         array<double, 4> y1 = {0, 0, 1, 1};
 
         array<double, 5> x2 = {0,
-                               par.d3 + 0.5 * par.d7,
-                               par.d3 + 0.5 * par.d7 + par.ht,
-                               par.Di * M_PI - 0.5 * par.d7 - par.ht,
-                               par.Di * M_PI};
+                               par.v.d3 + 0.5 * par.v.d7,
+                               par.v.d3 + 0.5 * par.v.d7 + par.v.ht,
+                               par.v.Di * M_PI - 0.5 * par.v.d7 - par.v.ht,
+                               par.v.Di * M_PI};
 
         array<double, 5> y2 = {0, 0, 1, 1, 0};
         array<double, 6> x3;
         array<double, 6> y3 = {1, 1, 0, 0, 1, 1};
         array<double, 6> x4 = {0,
-                               0.5 * par.d7,
-                               0.5 * par.d7 + par.d3,
-                               0.5 * par.d7 + par.d3 + par.ht,
-                               par.Di * M_PI - par.ht,
-                               par.Di * M_PI};
-        array<double, 6> y4 = {par.d2,
-                               par.d2,
-                               par.d4,
+                               0.5 * par.v.d7,
+                               0.5 * par.v.d7 + par.v.d3,
+                               0.5 * par.v.d7 + par.v.d3 + par.v.ht,
+                               par.v.Di * M_PI - par.v.ht,
+                               par.v.Di * M_PI};
+        array<double, 6> y4 = {par.v.d2,
+                               par.v.d2,
+                               par.v.d4,
                                0,
                                0,
-                               par.d2};
+                               par.v.d2};
         array<double, 2> xh = {0, 1};
-        array<double, 2> yh = {par.h1, par.h2};
+        array<double, 2> yh = {par.v.h1, par.v.h2};
         array<double, 3> f;
         
         while (read(fileno(stdin), &X[0], sizeof(X)) == sizeof(X)) {                
@@ -179,10 +179,10 @@ int diaphragm(int argc, char* argv[])
                 fprintf(stderr, "Phi=%g\n", Phi * 180 / M_PI);
 #endif
                 
-                double x = 0.5 * par.Di * Phi;
+                double x = 0.5 * par.v.Di * Phi;
 
                 assert(x >= 0);
-                assert(x <= par.Di * M_PI);
+                assert(x <= par.v.Di * M_PI);
 #ifndef NDEBUG
                 fprintf(stderr, "x=%g\n", x);
 #endif  
@@ -198,12 +198,12 @@ int diaphragm(int argc, char* argv[])
                 f[0] = interp1(x1, y1, r);
                 f[1] = interp1(x2, y2, x);
 
-                x3 = {-0.5 * par.Wo,
-                      -w - par.ht,
+                x3 = {-0.5 * par.v.Wo,
+                      -w - par.v.ht,
                       -w,
                       w,
-                      w + par.ht,
-                      0.5 * par.Wo};
+                      w + par.v.ht,
+                      0.5 * par.v.Wo};
 
                 f[2] = interp1(x3, y3, z);
 
