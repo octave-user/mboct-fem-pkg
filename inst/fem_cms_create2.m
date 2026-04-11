@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2025) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2026) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -63,6 +63,10 @@ function [mesh, mat_ass_itf, dof_map_itf, sol_eig_itf, cms_opt, sol_tau] = fem_c
 
   if (~isfield(cms_opt, "algorithm"))
     cms_opt.algorithm = "shift-invert";
+  endif
+
+  if (~isfield(cms_opt, "scaling"))
+    cms_opt.scaling = "chol";
   endif
 
   if (~isfield(cms_opt, "enable_KTAU0W"))
@@ -404,16 +408,30 @@ function [mesh, mat_ass_itf, dof_map_itf, sol_eig_itf, cms_opt, sol_tau] = fem_c
     mat_ass_itf.KTAU0red(:, :, i) = fem_cms_matrix_trans(mat_ass_itf.Tred, KTAU0{i}(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
   endfor
 
-  S = diag(1 ./ sqrt(abs(diag(mat_ass_itf.Mred))));
+  switch (cms_opt.scaling)
+    case "chol"
+      L = chol(mat_ass_itf.Mred, "lower");
 
-  mat_ass_itf.Mred = S * mat_ass_itf.Mred * S;
-  mat_ass_itf.Kred = S * mat_ass_itf.Kred * S;
-  mat_ass_itf.Dred = S * mat_ass_itf.Dred * S;
-  mat_ass_itf.Tred *= S;
+      mat_ass_itf.Mred = L \ mat_ass_itf.Mred / L.';
+      mat_ass_itf.Kred = L \ mat_ass_itf.Kred / L.';
+      mat_ass_itf.Dred = L \ mat_ass_itf.Dred / L.';
+      mat_ass_itf.Tred /= L.';
 
-  for i=1:numel(KTAU0)
-    mat_ass_itf.KTAU0red(:, :, i) = S * mat_ass_itf.KTAU0red(:, :, i) * S;
-  endfor
+      for i=1:numel(KTAU0)
+        mat_ass_itf.KTAU0red(:, :, i) = L \ mat_ass_itf.KTAU0red(:, :, i) / L.';
+      endfor
+    otherwise
+      S = diag(1 ./ sqrt(abs(diag(mat_ass_itf.Mred))));
+
+      mat_ass_itf.Mred = S * mat_ass_itf.Mred * S;
+      mat_ass_itf.Kred = S * mat_ass_itf.Kred * S;
+      mat_ass_itf.Dred = S * mat_ass_itf.Dred * S;
+      mat_ass_itf.Tred *= S;
+
+      for i=1:numel(KTAU0)
+        mat_ass_itf.KTAU0red(:, :, i) = S * mat_ass_itf.KTAU0red(:, :, i) * S;
+      endfor
+  endswitch
 
   if (nargout >= 4)
     sol_eig_itf.def = zeros(rows(mesh.nodes), columns(mesh.nodes), columns(mat_ass_itf.Tred));

@@ -42,7 +42,7 @@
 %! cms_opt.tol = 1e-3;
 %! sol = {"pastix","pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
-%! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
+%! scaling = {"none", "chol", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
 %! tol = 1e-6;
 %! for stat_modes=use_static_modes
