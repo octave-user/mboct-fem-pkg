@@ -47,7 +47,7 @@
 %! cms_opt.modes.number = int32(30);
 %! cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %! cms_opt.algorithm = "shift-invert";
-%! cms_opt.scaling = "mean K,M";
+%! cms_opt.mat_scaling = "mean K,M";
 %! cms_opt.invariants = true;
 %! cms_opt.refine_max_iter = int32(250);
 %! cms_opt.epsilon_refinement = eps^0.8;

@@ -52,7 +52,7 @@
 %!       lambda_ref = [];
 %!       Phi_ref = [];
 %!       for iscal=1:numel(scaling)
-%!      cms_opt.scaling=scaling{iscal};
+%!      cms_opt.mat_scaling=scaling{iscal};
 %!      for isol=1:numel(sol)
 %!        cms_opt.solver = sol{isol};
 %!        for ialg=1:numel(alg)

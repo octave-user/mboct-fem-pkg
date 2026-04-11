@@ -37,6 +37,8 @@
 ##
 ## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver
 ##
+## @var{cms_opt}.mat_scaling @dots{} Various options for scaling mode shapes
+##
 ## @seealso{fem_cms_export}
 ## @end deftypefn
 
@@ -65,8 +67,8 @@ function [mesh, mat_ass_itf, dof_map_itf, sol_eig_itf, cms_opt, sol_tau] = fem_c
     cms_opt.algorithm = "shift-invert";
   endif
 
-  if (~isfield(cms_opt, "scaling"))
-    cms_opt.scaling = "chol";
+  if (~isfield(cms_opt, "mat_scaling"))
+    cms_opt.mat_scaling = "chol";
   endif
 
   if (~isfield(cms_opt, "enable_KTAU0W"))
@@ -408,7 +410,7 @@ function [mesh, mat_ass_itf, dof_map_itf, sol_eig_itf, cms_opt, sol_tau] = fem_c
     mat_ass_itf.KTAU0red(:, :, i) = fem_cms_matrix_trans(mat_ass_itf.Tred, KTAU0{i}(dof_map_itf.idx_node, dof_map_itf.idx_node), "Lower");
   endfor
 
-  switch (cms_opt.scaling)
+  switch (cms_opt.mat_scaling)
     case "chol"
       L = chol(mat_ass_itf.Mred, "lower");
 
