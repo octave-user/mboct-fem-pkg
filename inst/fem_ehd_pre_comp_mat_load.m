@@ -1,3 +1,29 @@
+## Copyright (C) 2026(-2026) Reinhard <octave-user@a1.net>
+##
+## This program is free software; you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation; either version 3 of the License, or
+## (at your option) any later version.
+##
+## This program is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
+##
+## You should have received a copy of the GNU General Public License
+## along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+## -*- texinfo -*-
+## @deftypefn {Function File} [@var{comp_mat}] = fem_ehd_pre_comp_load(@var{filename})
+## Load a compliance matrix from an input file, suitable for MBDyn's module-hydrodynamic_plain_bearing2
+##
+## @var{filename} @dots{} Path of the file to be loaded
+##
+## @var{comp_mat} @dots{} Compliance matrix data
+##
+## @seealso{fem_ehd_pre_comp_mat_export}
+## @end deftypefn
+
 function comp_mat = fem_ehd_pre_comp_mat_load(filename)
   comp_mat.D = comp_mat.E = [];
 

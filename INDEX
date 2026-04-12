@@ -1,4 +1,4 @@
-## Copyright (C) 2018(-2025) Reinhard <octave-user@a1.net>
+## Copyright (C) 2018(-2026) Reinhard <octave-user@a1.net>
 
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ Preprocessing
         fem_pre_load_case_merge
         fem_pre_mat_isotropic
         fem_pre_mat_rayleigh_damping
+        fem_pre_mesh_coherence
         fem_pre_mesh_constr_surf_to_node
         fem_pre_mesh_cube_create
         fem_pre_mesh_elem_angle
@@ -46,8 +47,10 @@ Postprocessing
         fem_post_cms_sol_export
         fem_post_cms_sol_import
         fem_post_cms_sol_merge
+        fem_post_cms_sol_nodal
         fem_post_def_import
         fem_post_def_nodal
+        fem_post_lambda_elem
         fem_post_mesh_export
         fem_post_mesh_merge
         fem_post_sol_export
@@ -191,6 +194,10 @@ Substructuring
 
 Elastohydrodynamic bearings
         fem_ehd_pre_comp_mat_export
+        fem_ehd_pre_comp_mat_grid
+        fem_ehd_pre_comp_mat_linear_mesh
+        fem_ehd_pre_comp_mat_linear_mesh_cond_rpt
+        fem_ehd_pre_comp_mat_load
         fem_ehd_pre_comp_mat_load_case
         fem_ehd_pre_comp_mat_load_case2
         fem_ehd_pre_comp_mat_plot

@@ -42,7 +42,7 @@
 %! cms_opt.tol = 1e-3;
 %! sol = {"pastix","pardiso", "mumps", "umfpack", "chol", "lu", "mldivide"};
 %! alg = {"shift-invert", "diag-shift-invert", "unsymmetric", "eliminate"};
-%! scaling = {"none", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
+%! scaling = {"none", "chol", "max K", "max M", "max K,M", "norm K", "norm M", "norm K,M", "diag K", "diag M", "lambda", "Tred", "mean M,K", "mean K,M"};
 %! use_static_modes = [true, false];
 %! tol = 1e-6;
 %! for stat_modes=use_static_modes
@@ -52,7 +52,7 @@
 %!       lambda_ref = [];
 %!       Phi_ref = [];
 %!       for iscal=1:numel(scaling)
-%!      cms_opt.scaling=scaling{iscal};
+%!      cms_opt.mat_scaling=scaling{iscal};
 %!      for isol=1:numel(sol)
 %!        cms_opt.solver = sol{isol};
 %!        for ialg=1:numel(alg)

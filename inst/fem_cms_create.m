@@ -1,4 +1,4 @@
-## Copyright (C) 2019(-2025) Reinhard <octave-user@a1.net>
+## Copyright (C) 2019(-2026) Reinhard <octave-user@a1.net>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 ##
 ## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the linear solver
 ##
-## @var{cms_opt}.scaling @dots{} Various options for scaling mode shapes
+## @var{cms_opt}.mat_scaling @dots{} Various options for scaling mode shapes
 ##
 ## @var{cms_opt}.load_cases @dots{} Define if static mode shapes will be generated for all load cases, or for interface nodes only.
 ##
@@ -80,8 +80,8 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     cms_opt.solver = fem_sol_select(true);
   endif
 
-  if (~isfield(cms_opt, "scaling"))
-    cms_opt.scaling = "diag M";
+  if (~isfield(cms_opt, "mat_scaling"))
+    cms_opt.mat_scaling = "chol";
   endif
 
   if (~isfield(cms_opt, "load_cases"))
@@ -503,10 +503,18 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
       clear PHI_diag lambda_diag;
   endswitch
 
-  switch (cms_opt.scaling)
+  switch (cms_opt.mat_scaling)
     case "none"
+    case "chol"
+      L = chol(mat_ass.Mred, "lower");
+
+      mat_ass.Tred /= L.';
+
+      mat_ass.Kred = L \ mat_ass.Kred / L.';
+      mat_ass.Mred = L \ mat_ass.Mred / L.';
+      mat_ass.Dred = L \ mat_ass.Dred / L.';
     otherwise
-      switch (cms_opt.scaling)
+      switch (cms_opt.mat_scaling)
         case "max K"
           s = max(abs(mat_ass.Kred), [], 2);
         case "max M"
@@ -532,7 +540,7 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
         case "mean K,M"
           s = diag(mat_ass.Mred) * mean(abs(diag(mat_ass.Kred)) ./ abs(diag(mat_ass.Mred)));
         otherwise
-          error("invalid option cms_opt.scaling=\"%s\"", cms_opt.scaling);
+          error("invalid option cms_opt.mat_scaling=\"%s\"", cms_opt.mat_scaling);
       endswitch
 
       s = 1 ./ sqrt(s);
