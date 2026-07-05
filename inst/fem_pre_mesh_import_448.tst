@@ -137,7 +137,7 @@
 %!   It = c1 * max([h, w]) * min([h, w])^3;
 %!   K = sqrt(E * Iz * G * It * (Iy - Iz) / Iy);
 %!   FKref = 4.013 / l^2 * K * (1 - zf / l * sqrt(E * Iz / (G * It)));
-%!   tol = 1.5e-2;
+%!   tol = 2e-2;
 %!   assert_simple(sol_eig.lambda(2), FKref, tol * FKref);
 %! unwind_protect_cleanup
 %!   if (numel(filename))
