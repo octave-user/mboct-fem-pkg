@@ -13,8 +13,8 @@ dnl GNU General Public License for more details.
 dnl You should have received a copy of the GNU General Public License
 dnl along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-AC_PREREQ([2.69])
-AC_INIT([mboct-fem-pkg], [0.1.0])
+AC_PREREQ([2.71])
+AC_INIT([mboct-fem-pkg],[0.1.0])
 AC_CONFIG_HEADERS([config.h])
 
 AC_CONFIG_MACRO_DIRS([m4])
@@ -158,12 +158,12 @@ LIBS="${OCTLIBS} ${LIBS}"
 
 dnl Force mkoctfile to link to Octave's libraries in order to avoid unresolved symbols at runtime
 AC_MSG_CHECKING([for octave libraries])
-AC_TRY_LINK([
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[
   #include <octave/oct.h>
-],[
+]], [[
   octave_value_list ovl;
   ovl.append(octave_value(1.5));
-],[use_octlibs=yes],[use_octlibs=no])
+]])],[use_octlibs=yes],[use_octlibs=no])
 
 AC_MSG_RESULT([${use_octlibs}])
 
