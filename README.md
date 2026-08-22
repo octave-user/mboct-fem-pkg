@@ -1,7 +1,7 @@
 # mboct-fem-pkg<sup>&copy;</sup>
 **mboct-fem-pkg** belongs to a suite of packages which can be used for pre- and post-processing of flexible bodies in MBDyn (https://www.mbdyn.org) with GNU-Octave (http://www.gnu.org/software/octave/) and Gmsh (http://www.gmsh.info/).
 It contains a general purpose Finite Element toolkit for linear structural, linear thermal, linear acoustic and fluid structure interaction problems. It is supporting also nonlinear multibody dynamics via MBDyn and can be used to generate flexible body data for MBDyn's builtin modal element. Modal elements are based on the assumption of linear elastic material, small elastic deformations but arbitrary superimposed rigid body motions. In case of nonlinear material and/or large deformations, mboct-fem-pkg can be used to create input data and to load output data for MBDyn's builtin 3D solid elements.
-In addition to that, mboct-fem-pkg has also functions for pre- and post-processing of MBDyn's builtin elastohydrodynamic journal- and slider- plain bearings.
+In addition to that, mboct-fem-pkg has also functions for pre- and post-processing of MBDyn's builtin elastohydrodynamic journal- and slider- plain bearings. The associated fluid structure interaction procedure is described in this article: [doi:10.1007/s11044-026-10193-2](https://doi.org/10.1007/s11044-026-10193-2). See also this [link](https://rdcu.be/fA4qb).
 
 # List of features
   - Import and export meshes from and to Gmsh

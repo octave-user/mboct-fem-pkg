@@ -1263,7 +1263,7 @@ RUN --mount=type=cache,target=${BUILD_DIR}/octave-pkg,sharing=locked <<EOT bash
     *mboct*|all)
       make MBD_NUM_TASKS=2 -C mboct-octave-pkg check_installed_parallel
       make MBD_NUM_TASKS=2 -C mboct-numerical-pkg check_installed_parallel
-      make MBD_NUM_TASKS=2 -C mboct-mbdyn-pkg check_installed_parallel
+      MBD_TEST_TYPE=full make MBD_NUM_TASKS=2 -C mboct-mbdyn-pkg check_installed_parallel
       make MBD_NUM_TASKS=2 -C mboct-fem-pkg check_installed_parallel
       ;;
     none)
