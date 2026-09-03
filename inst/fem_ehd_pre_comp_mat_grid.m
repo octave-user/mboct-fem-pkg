@@ -30,7 +30,8 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
   idx = int32(0);
 
   for i=1:numel(bearing_surf)
-    if (~(isfield(bearings_surf(i), "grid_x") && isfield(bearings_surf(i), "grid_z")))
+    if (~(isfield(bearings_surf(i), "grid_x") && isfield(bearings_surf(i), "grid_z") && ...
+         ~isempty(bearing_surf(i).grid_x) && ~isempty(bearing_surf(i).grid_z)))
       if (isfield(bearing_surf(i).options, "mesh_size"))
         dx = bearing_surf(i).options.mesh_size;
         Nx = round(2 * pi * bearing_surf(i).r / dx);
