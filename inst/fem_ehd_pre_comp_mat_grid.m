@@ -6,7 +6,7 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
   if (~isfield(options, "interpolate_interface"))
     options.interpolate_interface = false(size(bearing_surf));
   endif
-  
+
   for i=1:numel(bearing_surf)
     nodes = getfield(mesh.groups, options.elem_type)(bearing_surf(i).group_idx).nodes;
     elements = getfield(mesh.elements, options.elem_type)(getfield(mesh.groups, options.elem_type)(bearing_surf(i).group_idx).elements, :);
@@ -30,31 +30,35 @@ function [bearing_surf, idx] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, opt
   idx = int32(0);
 
   for i=1:numel(bearing_surf)
-    if (isfield(bearing_surf(i).options, "mesh_size"))
-      dx = bearing_surf(i).options.mesh_size;
-      Nx = round(2 * pi * bearing_surf(i).r / dx);
-      Nz = round(bearing_surf(i).w / dx);
-    else
-      Nx = bearing_surf(i).options.number_of_nodes_x;
-      Nz = bearing_surf(i).options.number_of_nodes_z;
+    if (~(isfield(bearing_surf(i), "grid_x") && isfield(bearing_surf(i), "grid_z") && ...
+         ~isempty(bearing_surf(i).grid_x) && ~isempty(bearing_surf(i).grid_z)))
+      if (isfield(bearing_surf(i).options, "mesh_size") && ~isempty(bearing_surf(i).options.mesh_size))
+        dx = bearing_surf(i).options.mesh_size;
+        Nx = round(2 * pi * bearing_surf(i).r / dx);
+        Nz = round(bearing_surf(i).w / dx);
+      else
+        Nx = bearing_surf(i).options.number_of_nodes_x;
+        Nz = bearing_surf(i).options.number_of_nodes_z;
+      endif
+
+      N = [max(4, Nx), max(3, Nz)];
+
+      if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
+        switch (bearing_surf(i).options.bearing_model)
+          case "EHD/FE"
+            if (mod(N(1), 2) == 0)
+              ++N(1);
+            endif
+            if (mod(N(2), 2) == 0)
+              ++N(2);
+            endif
+        endswitch
+      endif
+
+      bearing_surf(i).grid_x = linspace(0, 2 * pi * bearing_surf(i).r, N(1));
+      bearing_surf(i).grid_z = linspace(-0.5 * bearing_surf(i).w, 0.5 * bearing_surf(i).w, N(2));
     endif
 
-    N = [max(4, Nx), max(3, Nz)];
-
-    if (isfield(bearing_surf(i).options, "bearing_model") && ischar(bearing_surf(i).options.bearing_model))
-      switch (bearing_surf(i).options.bearing_model)
-        case "EHD/FE"
-          if (mod(N(1), 2) == 0)
-            ++N(1);
-          endif
-          if (mod(N(2), 2) == 0)
-            ++N(2);
-          endif
-      endswitch
-    endif
-
-    bearing_surf(i).grid_x = linspace(0, 2 * pi * bearing_surf(i).r, N(1));
-    bearing_surf(i).grid_z = linspace(-0.5 * bearing_surf(i).w, 0.5 * bearing_surf(i).w, N(2));
     idx += (numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z);
     clear dx N Nx Nz;
   endfor
