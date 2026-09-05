@@ -1365,7 +1365,7 @@ public:
 
      static_assert(((MAT_SYM_MASK | MAT_TYPE_MASK | MAT_UPDATE_INFO_ALWAYS) & MAT_ID_MASK) == 0u);
      static_assert(((MAT_SYM_MASK | MAT_TYPE_MASK | MAT_UPDATE_INFO_ALWAYS) & DofMap::DO_MASK) == 0u);
-     static_assert((MAT_ID_MASK & DofMap::DO_MASK) == 0u);
+     static_assert((MAT_ID_MASK & static_cast<unsigned>(DofMap::DO_MASK)) == 0u);
      static_assert((MAT_SYM_MASK & MAT_TYPE_MASK) == 0u);
      static_assert((MAT_SYM_MASK & MAT_UPDATE_INFO_ALWAYS) == 0u);
      static_assert((MAT_TYPE_MASK & MAT_UPDATE_INFO_ALWAYS) == 0u);
@@ -1437,7 +1437,7 @@ public:
      static constexpr unsigned MAT_TYPE_COUNT = 45u;
 
      static unsigned GetMatTypeIndex(FemMatrixType eMatType) {
-          unsigned i = ((eMatType & MAT_ID_MASK) >> MAT_ID_SHIFT) - 1u;
+          unsigned i = ((eMatType & static_cast<unsigned>(MAT_ID_MASK)) >> MAT_ID_SHIFT) - 1u;
 
           FEM_ASSERT(i < MAT_TYPE_COUNT);
 
@@ -1965,7 +1965,7 @@ private:
                return false;
           }
 
-          switch (eMatType & Element::MAT_SYM_MASK) {
+          switch (eMatType & static_cast<unsigned>(Element::MAT_SYM_MASK)) {
           case Element::MAT_SYM_UPPER:
                if (c < r) {
                     return false;
@@ -4243,7 +4243,7 @@ public:
                break;
           }
 
-          if (eMatType & MAT_COLL_PNT_OUTPUT) {
+          if (eMatType & static_cast<unsigned>(MAT_COLL_PNT_OUTPUT)) {
                auto eMatTypeColloc = static_cast<FemMatrixType>(eMatType & ~MAT_COLL_PNT_OUTPUT);
                CollocationPoints(oSolution.GetField(PostProcData::VEC_EL_COLLOC_POINTS_RE, eltype), eMatTypeColloc);
           }
@@ -4628,7 +4628,7 @@ protected:
           const double alpha = material->AlphaDamping();
 
           if (alpha) {
-               MassMatrix(De, info, static_cast<FemMatrixType>(MAT_MASS | (eMatType & MAT_SYM_MASK)));
+               MassMatrix(De, info, static_cast<FemMatrixType>(MAT_MASS | (eMatType & static_cast<unsigned>(MAT_SYM_MASK))));
 
                for (octave_idx_type j = 0; j < iNumDof; ++j) {
                     for (octave_idx_type i = 0; i < iNumDof; ++i) {
@@ -4642,7 +4642,7 @@ protected:
           if (beta) {
                Matrix Ke(iNumDof, iNumDof, 0.);
 
-               StiffnessMatrix(Ke, info, static_cast<FemMatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
+               StiffnessMatrix(Ke, info, static_cast<FemMatrixType>(MAT_STIFFNESS | (eMatType & static_cast<unsigned>(MAT_SYM_MASK))));
 
                for (octave_idx_type j = 0; j < iNumDof; ++j) {
                     for (octave_idx_type i = 0; i < iNumDof; ++i) {
@@ -4661,7 +4661,7 @@ protected:
           const double tan_delta = material->TanDeltaDamping();
 
           if (tan_delta) {
-               StiffnessMatrix(Ke_im, info, static_cast<FemMatrixType>(MAT_STIFFNESS | (eMatType & MAT_SYM_MASK)));
+               StiffnessMatrix(Ke_im, info, static_cast<FemMatrixType>(MAT_STIFFNESS | (eMatType & static_cast<unsigned>(MAT_SYM_MASK))));
 
                for (octave_idx_type j = 0; j < iNumDof; ++j) {
                     for (octave_idx_type i = 0; i < iNumDof; ++i) {
@@ -17245,7 +17245,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
           for (octave_idx_type i = 0; i < matrix_type.numel(); ++i) {
                const auto eMatType = static_cast<Element::FemMatrixType>(matrix_type(i).value());
 
-               if (!(eMatType & eDomain)) {
+               if (!(eMatType & static_cast<unsigned>(eDomain))) {
                     throw std::runtime_error("fem_ass_matrix: matrix type is not valid for selected dof_map.domain");
                }
 
@@ -18886,7 +18886,7 @@ DEFUN_DLD(fem_ass_matrix, args, nargout,
 
                     retval.append(oMatAss.Assemble(oDof, iNumLoads));
 
-                    if (eMatType & Element::MAT_UPDATE_INFO_ALWAYS) {
+                    if (eMatType & static_cast<unsigned>(Element::MAT_UPDATE_INFO_ALWAYS)) {
                          oMatAss.UpdateMatrixInfo(oDof);
                     }
                } break;
