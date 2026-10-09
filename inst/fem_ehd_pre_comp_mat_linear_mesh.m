@@ -139,7 +139,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   options.interpolate_interface = [[bearing_surf.options].interpolate_interface];
 
-  ## [bearing_surf] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options);
   [load_case_p, bearing_surf] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf, options);
 
   [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mesh, load_case_dof, bearing_surf);
@@ -176,7 +175,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
-    comp_mat(i).E = mat_ass_itf.Tred.' * mat_ass_p.R(dof_map_itf.idx_node, bearing_surf(i).idx_load_case),
+    comp_mat(i).E = mat_ass_itf.Tred.' * mat_ass_p.R(dof_map_itf.idx_node, bearing_surf(i).idx_load_case);
     comp_mat(i).E = [comp_mat(i).E, comp_mat(i).E(:, 1:numel(comp_mat(i).bearing_surf.grid_z))];
   endfor
 
@@ -491,28 +490,28 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
     for k=2:numel(bearing_surf(i).grid_z)
       Ai((numel(bearing_surf(i).grid_x) - 2) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
     endfor
-    
+
     for j=1:numel(bearing_surf(i).grid_x) - 2
       for k=1:numel(bearing_surf(i).grid_z) - 1
-	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
       endfor
     endfor
 
     for j=2:numel(bearing_surf(i).grid_x) - 1
       for k=2:numel(bearing_surf(i).grid_z)
-	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
       endfor
     endfor
 
     for j=2:numel(bearing_surf(i).grid_x) - 1
       for k=1:numel(bearing_surf(i).grid_z) - 1
-	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
       endfor
     endfor
 
     for j=1:numel(bearing_surf(i).grid_x) - 2
       for k=2:numel(bearing_surf(i).grid_z)
-	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
       endfor
     endfor
 
