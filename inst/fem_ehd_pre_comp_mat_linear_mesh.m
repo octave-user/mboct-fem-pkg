@@ -23,13 +23,33 @@
 ##
 ## @var{dof_map} @dots{} Degree of freedom mapping returned from fem_cms_create.
 ##
-## @var{cms_opt} @dots{} Component mode synthesis options returned from fem_cms_create.
+## @var{cms_opt}.nodes.interfaces.number @dots{} Node numbers of the interface nodes
+##
+## @var{cms_opt}.nodes.interfaces.name @dots{} Node names of the interface nodes
+##
+## @var{cms_opt}.nodes.modal.number @dots{} Node number of the modal node
+##
+## @var{cms_opt}.nodes.modal.name @dots{} Node name of the modal node
+##
+## @var{cms_opt}.element.name @dots{} Name of the modal element
+##
+## @var{cms_opt}.modes.number @dots{} Number of dynamic mode shapes
+##
+## @var{cms_opt}.solver @dots{} Name of the linear solver
+##
+## @var{cms_opt}.number_of_threads @dots{} Number of threads to use for assembly and solver
+##
+## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the solver
 ##
 ## @var{bearing_surf} @dots{} Struct array describing all hydrodynamic bearings of this mesh.
 ##
 ## @var{bearing_surf}.options.bearing_type @dots{} One of "journal", "shell".
 ##
 ## @var{bearing_surf}.options.interpolate_interface @dots{} Generate a layer of iso8 elements in order to interpolate between nodes
+##
+## @var{bearing_surf}.options.number_of_nodes_x @dots{} Number of hydrodynamic nodes in x-direction
+##
+## @var{bearing_surf}.options.number_of_nodes_z @dots{} Number of hydroynamic nodes in z-direction
 ##
 ## @var{bearing_surf}.R @dots{} Orientation of the bearing surface. R(:, 3) represents the axis of the journal bearing.
 ##
@@ -39,9 +59,15 @@
 ##
 ## @var{bearing_surf}.w @dots{} Width of the cylindrical bearing surface.
 ##
-## @var{bearing_surf}.nodes @dots{} Node numbers of all Finite Element nodes at the bearing surface.
+## @var{bearing_surf}.group_idx @dots{} Group index of the bearing surface
 ##
-## @var{bearing_surf}.idx_load_case @dots{} Column indices of all load cases in @var{mat_ass}.R related to this bearing surface.
+## @var{bearing_surf}.group_id_interface @dots{} group id of the interface mesh of iso4 elements
+##
+## @var{bearing_surf}.name @dots{} Group name of the interface mesh of iso4 elements
+##
+## @var{bearing_surf}.absolute_tolerance @dots{} Absolute tolerance for projecting the nodes of the interface mesh to the surface mesh of the bearing
+##
+## @var{bearing_surf}.relative_tolerance @dots{} Relative tolerance for projecting the nodes of the interface mesh to the surface mesh of the bearing
 ##
 ## @var{options}.elem_type @dots{} Element type for the surface mesh at the bearing
 ##

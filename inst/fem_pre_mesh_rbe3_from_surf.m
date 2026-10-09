@@ -52,8 +52,6 @@ function rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, group_id, master_node_idx, ele
     error("numel(group_id) does not match numel(master_node_idx)");
   endif
 
-  ##msh_groups = getfield(mesh.groups, elem_type);
-
   [F, group_idx, weight, node_id] = fem_pre_mesh_nodal_pressure_load(mesh, group_id, elem_type);
 
   for i=1:numel(node_id)
