@@ -139,7 +139,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   options.interpolate_interface = [[bearing_surf.options].interpolate_interface];
 
-  [bearing_surf] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options);
+  ## [bearing_surf] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options);
+  [load_case_p, bearing_surf] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf, options);
 
   [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mesh, load_case_dof, bearing_surf);
 
@@ -150,6 +151,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [Phi_p, kappa_p, mat_ass_eig_p, dof_map_eig_p, load_case_eig_p, bearing_surf] = fem_ehd_pre_comp_mat_eig_p(mesh, load_case_dof, bearing_surf, cms_opt, options);
 
   [Phi_s, Phi_n, lambda_n, mat_ass_itf, dof_map_itf] = fem_ehd_pre_comp_mat_modes_itf(mesh, load_case_dof, load_case_itf, cms_opt);
+
+  [~, mat_ass_p.R, mat_ass_p.mat_info, mat_ass_p.mesh_info] = fem_ass_matrix(mesh, dof_map_itf, [FEM_MAT_STIFFNESS_SYM_L, FEM_VEC_LOAD_CONSISTENT], load_case_p);
 
   num_modes_cb = columns(Phi_s) + columns(Phi_n);
 
@@ -173,7 +176,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
-    comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
+    comp_mat(i).E = mat_ass_itf.Tred.' * mat_ass_p.R(dof_map_itf.idx_node, bearing_surf(i).idx_load_case),
+    comp_mat(i).E = [comp_mat(i).E, comp_mat(i).E(:, 1:numel(comp_mat(i).bearing_surf.grid_z))];
   endfor
 
   if (nargout >= 8)
