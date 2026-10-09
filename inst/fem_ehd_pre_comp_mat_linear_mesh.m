@@ -444,11 +444,47 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
       endfor
     endfor
 
-    Ai = repmat((bearing_surf(i).grid_x(2) - bearing_surf(i).grid_x(1)) * (bearing_surf(i).grid_z(2) - bearing_surf(i).grid_z(1)), numel(bs_nodes), 1);
+    Ai = zeros(numel(bs_nodes), 1);
 
-    Ai(1:numel(bearing_surf(i).grid_z):end) /= 2;
-    Ai(numel(bearing_surf(i).grid_z):numel(bearing_surf(i).grid_z):end) /= 2;
-    Ai((numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z) + 1:end) = 0;
+    for k=1:numel(bearing_surf(i).grid_z) - 1
+      Ai(k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+    endfor
+
+    for k=2:numel(bearing_surf(i).grid_z)
+      Ai(k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+    endfor
+
+    for k=1:numel(bearing_surf(i).grid_z) - 1
+      Ai((numel(bearing_surf(i).grid_x) - 2) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+    endfor
+
+    for k=2:numel(bearing_surf(i).grid_z)
+      Ai((numel(bearing_surf(i).grid_x) - 2) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+    endfor
+    
+    for j=1:numel(bearing_surf(i).grid_x) - 2
+      for k=1:numel(bearing_surf(i).grid_z) - 1
+	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+      endfor
+    endfor
+
+    for j=2:numel(bearing_surf(i).grid_x) - 1
+      for k=2:numel(bearing_surf(i).grid_z)
+	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+      endfor
+    endfor
+
+    for j=2:numel(bearing_surf(i).grid_x) - 1
+      for k=1:numel(bearing_surf(i).grid_z) - 1
+	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+      endfor
+    endfor
+
+    for j=1:numel(bearing_surf(i).grid_x) - 2
+      for k=2:numel(bearing_surf(i).grid_z)
+	Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+      endfor
+    endfor
 
     comp_mat(i).A = Ai;
   endfor
@@ -1205,8 +1241,16 @@ endfunction
 %!     bearing_surf(1).material_id_interface = int32(2);
 %!     bearing_surf(1).name = "p1";
 %!     bearing_surf(1).options.reference_pressure = 1e9;
-%!     bearing_surf(1).options.number_of_nodes_x = 60;
-%!     bearing_surf(1).options.number_of_nodes_z = 20;
+%!     bearing_surf(1).options.number_of_nodes_x = [];
+%!     bearing_surf(1).options.number_of_nodes_z = [];
+%!     x = linspace(0, 2 * pi, 60);
+%!     z = linspace(-0.5, 0.5, 20);
+%!     dx = 2 + cos(x);
+%!     dz = 2 + cos(2 * pi * z);
+%!     dx *= d * pi / sum(dx);
+%!     dz *= w / sum(dz);
+%!     bearing_surf(1).grid_x = [0, cumsum(dx)];
+%!     bearing_surf(1).grid_z = [0, cumsum(dz)] - 0.5 * w;
 %!     bearing_surf(1).options.bearing_type = "shell";
 %!     bearing_surf(1).options.matrix_type = "modal substruct total";
 %!     bearing_surf(1).options.interpolate_interface = true;
@@ -1225,6 +1269,8 @@ endfunction
 %!     bearing_surf(2).options.reference_pressure = 1e9;
 %!     bearing_surf(2).options.number_of_nodes_x = 60;
 %!     bearing_surf(2).options.number_of_nodes_z = 20;
+%!     bearing_surf(2).grid_x = [];
+%!     bearing_surf(2).grid_z = [];
 %!     bearing_surf(2).options.bearing_type = "shell";
 %!     bearing_surf(2).options.matrix_type = "modal substruct total";
 %!     bearing_surf(2).options.interpolate_interface = true;
