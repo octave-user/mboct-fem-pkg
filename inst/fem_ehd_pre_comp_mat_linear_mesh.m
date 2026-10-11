@@ -895,25 +895,27 @@ function [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mes
     Phi_i = x_S / bearing_surf(i).r;
     x_i = cos(Phi_i) * bearing_surf(i).r;
     y_i = sin(Phi_i) * bearing_surf(i).r;
-    X_i = zeros(rows(x_S) * columns(x_S), 3);
+    X_i = zeros((columns(x_S) - 1) * rows(x_S), 3);
 
-    for j=1:rows(x_S)
-      X_i((j - 1) * columns(x_S) + (1:columns(x_S)), :) = (X0_i + R_i * [x_i(j, :); y_i(j, :); z_S(j, :)]).';
+    for j=1:columns(x_S) - 1
+      X_i((j - 1) * rows(x_S) + (1:rows(x_S)), :) = (X0_i + R_i * [x_i(:, j).'; y_i(:, j).'; z_S(:, j).']).';
     endfor
 
     node_idx = zeros(rows(x_S), columns(x_S), "int32");
 
-    for j=1:rows(x_S)
-      node_idx(j, :) = (j - 1) * columns(x_S) + [1:columns(x_S) - 1, 1];
+    for j=1:columns(x_S) - 1
+      node_idx(:, j) = (j - 1) * rows(x_S) + (1:rows(x_S));
     endfor
 
-    elem_iso4 = zeros((columns(x_S) - 1) * (rows(x_S) - 1), 4, "int32");
+    node_idx(:, end) = node_idx(:, 1);
 
-    for j=1:rows(x_S) - 1
-      elem_iso4((j - 1) * (columns(x_S) - 1) + (1:columns(x_S) - 1), :) = [node_idx(j + 1, (1:end - 1) + 1);
-                                                                           node_idx(j + 1, (1:end - 1));
-                                                                           node_idx(j, (1:end - 1));
-                                                                           node_idx(j, (1:end - 1) + 1)].';
+    elem_iso4 = zeros((rows(node_idx) - 1) * (columns(node_idx) - 1), 4, "int32");
+
+    for j=1:columns(node_idx) - 1
+      elem_iso4((j - 1) * (rows(node_idx) - 1) + (1:rows(node_idx) - 1), :) = [node_idx(2:end, j + 1), ...
+                                                                               node_idx(2:end, j), ...
+                                                                               node_idx(1:end - 1, j), ...
+                                                                               node_idx(1:end - 1, j + 1)];
     endfor
 
     switch (bearing_surf(i).options.bearing_type)
