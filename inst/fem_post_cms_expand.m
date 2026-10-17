@@ -120,6 +120,7 @@ function sol_tot = fem_post_cms_expand(sol_dyn, cms_data, idx_t, options)
         sol_tot.bodies(i).def = zeros(size(Xn, 1), 6, numel(idx_t));
 
         for j=1:3
+          ## FIXME: nodal rotations are not considered yet.
           sol_tot.bodies(i).def(:, j, :) = -Xn(:, j) + sol_dyn.bodies(i).X(j, idx_t);
 
           for k=1:3
