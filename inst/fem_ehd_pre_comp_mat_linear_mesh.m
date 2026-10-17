@@ -1177,7 +1177,7 @@ endfunction
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 3e-2;
+%!     tol_red = 0.5e-2;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(60);
 %!     unwind_protect
@@ -1356,7 +1356,7 @@ endfunction
 %!     qred = mat_ass.Kred \ Fred;
 %!     sol_red.def = fem_post_cms_expand_body(mesh, dof_map, mat_ass, qred);
 %!     mesh_post = mesh;
-%!     mesh_post.elements = rmfield(mesh_post.elements, "joints");
+%!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 2);
 %!     load_case_post = fem_pre_load_case_create_empty(10);
 %!     load_case_post_dof.locked_dof = false(size(mesh_post.nodes));
 %!     for i=1:6
@@ -1380,8 +1380,8 @@ endfunction
 %!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
 %!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
 %!     load_case_post(10).pressure.tria6.p = cos(Phi2).^2 * p2 .* z2 / w * bearing_surf(2).options.reference_pressure;
-%!     mesh_post.elements.joints.C = eye(6);
-%!     mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
+%!     mesh_post.elements.joints(end + 1).C = eye(6);
+%!     mesh_post.elements.joints(end).nodes = cms_opt.nodes.modal.number;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
 %!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
 %!     sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
@@ -1398,9 +1398,8 @@ endfunction
 %!       sol_comb.def(:, :, i) *= 10e-3 / max(max(abs(sol_comb.def(:, 1:3, i))));
 %!     endfor
 %!     err_red = zeros(1, size(sol_post.def, 3));
-%!     idx_node = [[mesh.groups.tet10].nodes, cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number];
 %!     for i=1:size(sol_post.def, 3)
-%!       err_red(i) = max(max(abs(sol_post.def(idx_node, :, i) - sol_red.def(idx_node, :, i)))) / max(max(abs(sol_post.def(idx_node, :, i))));
+%!       err_red(i) = max(max(abs(sol_post.def(:, :, i) - sol_red.def(:, :, i)))) / max(max(abs(sol_post.def(:, :, i))));
 %!     endfor
 %!     for i=1:size(sol_post.def, 3)
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
