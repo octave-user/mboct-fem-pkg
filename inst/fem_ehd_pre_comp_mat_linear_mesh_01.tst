@@ -12,9 +12,10 @@
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 3e-2;
+%!     tol_red = 1e-2;
+%!     tol_red2 = 1e-5;
 %!     num_modes_cms = int32(10);
-%!     num_modes = int32(20);
+%!     num_modes = int32(40);
 %!     unwind_protect
 %!       [fd, msg] = fopen([filename, ".geo"], "w");
 %!       if (fd == -1)
@@ -199,7 +200,7 @@
 %!         fputs(fd, " begin: initial value;\n");
 %!         fputs(fd, "     initial time: 0;\n");
 %!         fputs(fd, "     final time: 1;\n");
-%!         fputs(fd, "     time step: 0.01;\n");
+%!         fputs(fd, "     time step: 0.2;\n");
 %!         fputs(fd, "     max iterations: 100;\n");
 %!         fputs(fd, "   linear solver: umfpack, grad, scale, row max column max, always, max iterations, 10;\n");
 %!         fputs(fd, "   method: implicit euler;\n");
@@ -450,7 +451,6 @@
 %!         fd = -1;
 %!       end_unwind_protect
 %!       opt_mbd.output_file = sprintf("%s_%d_mbdyn", filename, k);
-%!       shell(sprintf("nl \"%s\"", sprintf("%s_%d.mbdyn", filename, k)));
 %!       info = mbdyn_solver_run(sprintf("%s_%d.mbdyn", filename, k), opt_mbd);
 %!       log_dat(k) = mbdyn_post_load_log(opt_mbd.output_file);
 %!       bearings(k, :) = mbdyn_post_ehd_load_output(opt_mbd.output_file, log_dat(k));
@@ -542,7 +542,7 @@
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red2(i));
 %!     endfor
 %!     assert_simple(all(err_red < tol_red));
-%!     assert_simple(all(err_red2 < tol_red));
+%!     assert_simple(all(err_red2 < tol_red2));
 %!     for i=1:numel(cond_info)
 %!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
 %!       assert(cond_info(i).D_cond < 1e10);
