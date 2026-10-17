@@ -1027,7 +1027,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -1194,7 +1193,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -1263,7 +1261,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(1);
@@ -1454,7 +1451,6 @@ endfunction
 %!       h = 5e-3;
 %!       grp_id_p1 = 2;
 %!       grp_id_p2 = 3;
-%!       scale_def = 5e-3;
 %!       mesh_size = 1.5e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d1 = %g;\n", d1);
@@ -1769,7 +1765,6 @@ endfunction
 %!       h = 5e-3;
 %!       grp_id_p1 = 2;
 %!       grp_id_clamp = 3;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2.5e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d1 = %g;\n", d1);
@@ -1846,7 +1841,6 @@ endfunction
 %!     cms_opt.inveriants = true;
 %!     cms_opt.static_modes = false;
 %!     cms_opt.modal_node_constraint = false;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
@@ -2045,7 +2039,6 @@ endfunction
 %!       grp_id_p1 = 2;
 %!       grp_id_clamp = 3;
 %!       grp_id_itf2 = 4;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d1 = %g;\n", d1);
@@ -2326,7 +2319,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 1.5e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -2625,7 +2617,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -2695,7 +2686,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     bearing_surf(1).group_idx = grp_idx_p1;
@@ -2872,7 +2862,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3057,7 +3046,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3238,7 +3226,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3425,7 +3412,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3615,7 +3601,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 4e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -3684,7 +3669,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     bearing_surf(1).group_idx = grp_idx_p1;
@@ -3885,7 +3869,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -3958,9 +3941,8 @@ endfunction
 %!     cms_opt.nodes.modal.number = rows(mesh.nodes) + 3;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.solver = "umfpack";
+%!     cms_opt.solver = "pardiso";
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -4032,10 +4014,10 @@ endfunction
 %!     p1red2 = zeros((nx1 - 1) * nz1, 1);
 %!     p2red2 = zeros((nx2 - 1) * nz2, 1);
 %!     for i=1:nx1 - 1
-%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * sin(2 * bearing_surf(1).grid_x(i) / bearing_surf(1).r) * bearing_surf(1).options.reference_pressure;
+%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * (sin(2 * bearing_surf(1).grid_x(i) / bearing_surf(1).r) .* bearing_surf(1).grid_z / w + 1) * bearing_surf(1).options.reference_pressure;
 %!     endfor
 %!     for i=1:nx2 - 1
-%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 * bearing_surf(2).options.reference_pressure;
+%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 .* bearing_surf(2).grid_z / w + 1) * bearing_surf(2).options.reference_pressure;
 %!     endfor
 %!     Fred = [comp_mat(1).E(:, 1:end -  nz1) * [p1red1, p1red2] / bearing_surf(1).options.reference_pressure, ...
 %!             comp_mat(2).E(:, 1:end - nz2) * [p2red1, p2red2] / bearing_surf(2).options.reference_pressure];
@@ -4047,7 +4029,7 @@ endfunction
 %!     Ured(dof_map.idx_node, :) -= Phi_rb * (Phi_rb \ Ured(dof_map.idx_node, :));
 %!     sol_red.def = fem_post_def_nodal(mesh, dof_map, Ured);
 %!     mesh_post = mesh;
-%!     mesh_post.elements = rmfield(mesh_post.elements, "joints");
+%!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 2);
 %!     load_case_post = fem_pre_load_case_create_empty(10);
 %!     load_case_post_dof.locked_dof = false(size(mesh_post.nodes));
 %!     load_case_post_dof.locked_dof(cms_opt.nodes.modal.number, 1:6) = true;
@@ -4058,20 +4040,22 @@ endfunction
 %!     endfor
 %!     x1 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(1);
 %!     y1 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(2);
+%!     z1 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(3);
 %!     x2 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(1);
 %!     y2 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(2);
+%!     z2 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(3);
 %!     Phi1 = atan2(y1, x1);
 %!     Phi2 = atan2(y2, x2);
 %!     load_case_post(7).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
 %!     load_case_post(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
 %!     load_case_post(8).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(8).pressure.tria6.p = sin(2 * Phi1) * p1 * bearing_surf(1).options.reference_pressure;
+%!     load_case_post(8).pressure.tria6.p = p1 * (sin(2 * Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
 %!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
 %!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
 %!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(10).pressure.tria6.p = cos(Phi2).^2 * p2 * bearing_surf(2).options.reference_pressure;
-%!     mesh_post.elements.joints.C = eye(6);
-%!     mesh_post.elements.joints.nodes = cms_opt.nodes.interfaces(2).number;
+%!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi2).^2 .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
+%!     mesh_post.elements.joints(end + 1).C = eye(6);
+%!     mesh_post.elements.joints(end).nodes = cms_opt.nodes.interfaces(2).number;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
 %!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
 %!     Phi_rb_post = gen_rigid_body_modes(mesh_post, dof_map_post, cms_opt.nodes.interfaces(2).number);
@@ -4092,9 +4076,8 @@ endfunction
 %!       sol_comb.def(:, :, i) *= 10e-3 / max(max(abs(sol_comb.def(:, 1:3, i))));
 %!     endfor
 %!     err_red = zeros(1, size(sol_post.def, 3));
-%!     idx_node = [[mesh.groups.tet10].nodes];
 %!     for i=1:size(sol_post.def, 3)
-%!       err_red(i) = max(max(abs(sol_post.def(idx_node, :, i) - sol_red.def(idx_node, :, i)))) / max(max(abs(sol_post.def(idx_node, :, i))));
+%!       err_red(i) = max(max(abs(sol_post.def(:, :, i) - sol_red.def(:, :, i)))) / max(max(abs(sol_post.def(:, :, i))));
 %!     endfor
 %!     for i=1:size(sol_post.def, 3)
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
@@ -4151,7 +4134,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -4223,7 +4205,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);

@@ -180,7 +180,6 @@
 %!         fputs(fd, " set: integer elem_id_crank_pin_bearing = 2006;\n");
 %!         fputs(fd, " set: integer ref_id_conrod_big_end = 3001;\n");
 %!         fputs(fd, " set: integer ref_id_conrod_small_end = 3002;\n");
-%!         fputs(fd, " set: integer ref_id_conrod_modal = 3003;\n");
 %!         fprintf(fd, " set: real piston_pin_bearing_width = %g;\n", w);
 %!         fprintf(fd, " set: real piston_pin_bearing_journal_diameter = %g;\n", d * (1 - Psi));
 %!         fprintf(fd, " set: real piston_pin_bearing_shell_diameter = %g;\n", d);
