@@ -459,13 +459,6 @@
 %!     endfor
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
-%!     load_case_itf = fem_pre_load_case_create_empty(6);
-%!     for i=1:6
-%!       load_case_itf(i).loaded_nodes = cms_opt.nodes.interfaces.number;
-%!       load_case_itf(i).loads = zeros(1, 6);
-%!       load_case_itf(i).loads(i) = 1;
-%!     endfor
-%!     [~, Ritf] = fem_ass_matrix(mesh, dof_map, [FEM_MAT_STIFFNESS_SYM, FEM_VEC_LOAD_CONSISTENT], load_case_itf);
 %!     nx1 = numel(comp_mat(1).bearing_surf.grid_x);
 %!     nz1 = numel(comp_mat(1).bearing_surf.grid_z);
 %!     nx2 = numel(comp_mat(2).bearing_surf.grid_x);
