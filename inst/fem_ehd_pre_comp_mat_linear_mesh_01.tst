@@ -110,7 +110,7 @@
 %!     bearing_surf(1).material_id_interface = int32(2);
 %!     bearing_surf(1).name = "p1";
 %!     bearing_surf(1).bearing = "elem_id_piston_pin_bearing";
-%!     bearing_surf(1).options.reference_pressure = 1e9;
+%!     bearing_surf(1).options.reference_pressure = 1e6;
 %!     bearing_surf(1).options.number_of_nodes_x = 40;
 %!     bearing_surf(1).options.number_of_nodes_z = 10;
 %!     bearing_surf(1).options.bearing_type = "shell";
@@ -129,7 +129,7 @@
 %!     bearing_surf(2).material_id_interface = int32(2);
 %!     bearing_surf(2).name = "p2";
 %!     bearing_surf(2).bearing = "elem_id_crank_pin_bearing";
-%!     bearing_surf(2).options.reference_pressure = 1e9;
+%!     bearing_surf(2).options.reference_pressure = 1e6;
 %!     bearing_surf(2).options.number_of_nodes_x = 40;
 %!     bearing_surf(2).options.number_of_nodes_z = 10;
 %!     bearing_surf(2).options.bearing_type = "shell";
@@ -206,7 +206,7 @@
 %!         fputs(fd, "     threads: disable;\n");
 %!         fputs(fd, "   nonlinear solver: linesearch, default solver options, heavy nonlinear, divergence check, no;\n");
 %!         fputs(fd, "   derivatives max iterations: 10;\n");
-%!         fputs(fd, "   tolerance: 1e-6, 1e-6;\n");
+%!         fputs(fd, "   tolerance: 1e-8, 1e-8;\n");
 %!         fputs(fd, "   output: iterations;\n");
 %!         fputs(fd, " end: initial value;\n");
 %!         fputs(fd, " begin: control data;\n");
@@ -576,8 +576,17 @@
 %!     for i=1:size(sol_post.def, 3)
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red2(i));
 %!     endfor
+%!     err_mbd = zeros(1, numel(res));
+%!     for i=1:numel(res)
+%!       err_mbd(i) = max(abs(sol_post.def(cms_opt.nodes.interfaces(1).number, :, i) - res(i).deformation{res(i).node_id == res(i).log_dat.vars.node_id_conrod_small_end})) / norm(sol_post.def(cms_opt.nodes.interfaces(1).number, :, i));
+%!     endfor
+%!     printf("difference between MBDyn and FEM conrod small end:\n");
+%!     for i=1:size(sol_post.def, 3)
+%!       fprintf(stderr, "load case %d: %.1f%%\n", i, 100 * err_mbd(i));
+%!     endfor
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_red2 < tol_red2));
+%!     assert_simple(all(err_mbd < tol_red));
 %!     for i=1:numel(cond_info)
 %!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
 %!       assert(cond_info(i).D_cond < 1e10);
