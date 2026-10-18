@@ -14,6 +14,7 @@
 %!     endif
 %!     tol_red = 1e-2;
 %!     tol_red2 = 1e-5;
+%!     tol_red3 = 1e-8;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(30);
 %!     unwind_protect
@@ -169,6 +170,20 @@
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
+%!     n1 = zeros(3, rows(bearing_surf(1).nodes), columns(bearing_surf(1).nodes));
+%!     n2 = zeros(3, rows(bearing_surf(2).nodes), columns(bearing_surf(2).nodes));
+%!     for i=1:size(n1, 2)
+%!       for j=1:size(n1, 3)
+%!         n1(1:2, i, j) = mesh.nodes(bearing_surf(1).nodes(i, j), 1:2).' - bearing_surf(1).X0(1:2);
+%!         n1(:, i, j) /= norm(n1(:, i, j));
+%!       endfor
+%!     endfor
+%!     for i=1:size(n2, 2)
+%!       for j=1:size(n2, 3)
+%!         n2(1:2, i, j) = mesh.nodes(bearing_surf(2).nodes(i, j), 1:2).' - bearing_surf(2).X0(1:2);
+%!         n2(:, i, j) /= norm(n2(:, i, j));
+%!       endfor
+%!     endfor
 %!     for k=1:4
 %!       unwind_protect
 %!         fd = fopen(sprintf("%s_%d.mbdyn", filename, k), "wt");
@@ -219,6 +234,7 @@
 %!         fputs(fd, "   output: iterations;\n");
 %!         fputs(fd, " end: initial value;\n");
 %!         fputs(fd, " begin: control data;\n");
+%!         fputs(fd, "        output precision: 16;\n");
 %!         fputs(fd, "        use automatic differentiation;\n");
 %!         fputs(fd, "        max iterations: 1;\n");
 %!         fputs(fd, "        structural nodes: 5;\n");
@@ -486,6 +502,20 @@
 %!       sol_mbd(k) = fem_post_cms_sol_import(opt_mbd.output_file, struct("cms_opt", cms_opt));
 %!       sol_mbd_exp.def(:, :, k) = fem_post_cms_expand_body(mesh, dof_map, mat_ass, sol_mbd(k).bodies(1).q);
 %!     endfor
+%!     w1 = zeros(rows(bearing_surf(1).nodes), columns(bearing_surf(1).nodes), size(sol_mbd_exp.def, 3));
+%!     w2 = zeros(rows(bearing_surf(2).nodes), columns(bearing_surf(2).nodes), size(sol_mbd_exp.def, 3));
+%!     for k=1:size(sol_mbd_exp.def, 3)
+%!       for i=1:rows(w1)
+%!         for j=1:columns(w1)
+%!           w1(i, j, k) = sol_mbd_exp.def(bearing_surf(1).nodes(i, j), 1:3, k) * n1(:, i, j);
+%!         endfor
+%!       endfor
+%!       for i=1:rows(w2)
+%!         for j=1:columns(w2)
+%!           w2(i, j, k) = sol_mbd_exp.def(bearing_surf(2).nodes(i, j), 1:3, k) * n2(:, i, j);
+%!         endfor
+%!       endfor
+%!     endfor
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
 %!     nx1 = numel(comp_mat(1).bearing_surf.grid_x);
@@ -563,8 +593,42 @@
 %!     for i=1:size(sol_post.def, 3)
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red2(i));
 %!     endfor
+%!     for j=1:columns(bearings)
+%!       for i=1:rows(bearings)
+%!         figure("visible", "off");
+%!         surf(bearings(i, j).xi, bearings(i, j).zi, bearings(i, j).columns.wtot);
+%!         xlabel("x [m]");
+%!         ylabel("z [m]");
+%!         zlabel("w [m]");
+%!         title(sprintf("bearing deformation case %d bearing %d", i, j));
+%!       endfor
+%!     endfor
+%!     if (do_plot)
+%!     for i=1:size(w1, 3)
+%!       figure("visible", "off");
+%!       surf(comp_mat(1).bearing_surf.grid_x, comp_mat(1).bearing_surf.grid_z, w1(:, :, i));
+%!       xlabel("x [m]");
+%!       ylabel("y [m]");
+%!       zlabel("w [m]");
+%!       title(sprintf("bearing deformation case %d bearing 1", i));
+%!     endfor
+%!     for i=1:size(w2, 3)
+%!       figure("visible", "off");
+%!       surf(comp_mat(2).bearing_surf.grid_x, comp_mat(2).bearing_surf.grid_z, w2(:, :, i));
+%!       xlabel("x [m]");
+%!       ylabel("y [m]");
+%!       zlabel("w [m]");
+%!       title(sprintf("bearing deformation case %d bearing 2", i));
+%!     endfor
+%!     endif
 %!     assert_simple(all(err_red < tol_red));
 %!     assert_simple(all(err_red2 < tol_red2));
+%!     for i=1:size(w1, 3)
+%!       assert_simple(w1(:, :, i), bearings(i, 1).columns.wtot(:, 2:end), tol_red3 * norm(w1(:, :, i)));
+%!     endfor
+%!     for i=1:size(w2, 3)
+%!       assert_simple(w2(:, :, i), bearings(i, 2).columns.wtot(:, 2:end), tol_red3 * norm(w2(:, :, i)));
+%!     endfor
 %!     for i=1:numel(cond_info)
 %!       assert(cond_info(i).D_size(2) == cond_info(i).D_rank);
 %!       assert(cond_info(i).D_cond < 1e10);
