@@ -102,7 +102,6 @@
 %!     cms_opt.element.name = "elem_id_conrod_modal";
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(0);
@@ -162,7 +161,7 @@
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
 %!     endfor
-%!     for k=1:4
+%!     for k=1:10
 %!       unwind_protect
 %!         fd = fopen(sprintf("%s_%d.mbdyn", filename, k), "wt");
 %!         if (fd == -1)
@@ -180,6 +179,7 @@
 %!         fputs(fd, " set: integer elem_id_crank_pin_bearing = 2006;\n");
 %!         fputs(fd, " set: integer ref_id_conrod_big_end = 3001;\n");
 %!         fputs(fd, " set: integer ref_id_conrod_small_end = 3002;\n");
+%!         fputs(fd, " set: integer force_id_conrod_small_end = 4001;\n");
 %!         fprintf(fd, " set: real piston_pin_bearing_width = %g;\n", w);
 %!         fprintf(fd, " set: real piston_pin_bearing_journal_diameter = %g;\n", d * (1 - Psi));
 %!         fprintf(fd, " set: real piston_pin_bearing_shell_diameter = %g;\n", d);
@@ -215,6 +215,10 @@
 %!         fputs(fd, "        structural nodes: 4;\n");
 %!         fputs(fd, "        joints: 4;\n");
 %!         fputs(fd, "        loadable elements: 2;\n");
+%!         switch (k)
+%!         case {1,2,3,4,5,6}
+%!           fputs(fd, "       forces: 1;\n");
+%!         endswitch
 %!         fputs(fd, "        default output: all;\n");
 %!         fputs(fd, "        default output: reference frames;\n");
 %!         fputs(fd, "        output meter: closest next, 1., forever, const, 0.1;\n");
@@ -280,6 +284,26 @@
 %!         fputs(fd, " end: nodes;\n");
 %!         fputs(fd, " begin: elements;\n");
 %!         fprintf(fd, " include: \"%s_cms.elm\";\n", filename);
+%!         switch (k)
+%!         case {1,2,3}
+%!           fputs(fd, "force: force_id_conrod_small_end, absolute,\n");
+%!           fputs(fd, "       node_id_conrod_small_end,\n");
+%!           fputs(fd, "       position, reference, ref_id_conrod_small_end, null,\n");
+%!           fputs(fd, "       component");
+%!           F1 = zeros(3, 1);
+%!           F1(k) = 1;
+%!           fprintf(fd, ",\n       mult, time, const, %g", F1);
+%!           fputs(fd, ";\n\n");
+%!         case {4,5,6}
+%!           fputs(fd, "couple: force_id_conrod_small_end, absolute,\n");
+%!           fputs(fd, "       node_id_conrod_small_end,\n");
+%!           fputs(fd, "       position, reference, ref_id_conrod_small_end, null,\n");
+%!           fputs(fd, "       component");
+%!           M1 = zeros(3, 1);
+%!           M1(k - 3) = 1;
+%!           fprintf(fd, ",\n       mult, time, const, %g", M1);
+%!           fputs(fd, ";\n\n");
+%!         endswitch
 %!         fputs(fd, "  joint: joint_id_conrod_big_end, total pin joint,\n");
 %!         fputs(fd, "       node_id_conrod_big_end,\n");
 %!         fputs(fd, "       position, reference, ref_id_conrod_big_end, null,\n");
@@ -357,13 +381,13 @@
 %!         fputs(fd, "                                     pressure, const, 0.,\n");
 %!         fputs(fd, "                                     pressure, const, 0.,\n");
 %!         switch (k)
-%!           case 1
+%!           case 7
 %!             fputs(fd, "                  lubrication grooves, 1,\n");
 %!             fputs(fd, "                     at bearing,\n");
 %!             fprintf(fd, "                     pressure, mult, time, const, %g,\n", p1 * bearing_surf(1).options.reference_pressure);
 %!             fputs(fd, "                       position, 0., 0.,\n");
 %!             fputs(fd, "                       complete surface,\n");
-%!           case 2
+%!           case 8
 %!             fprintf(fd, "                       lubrication grooves, %d,\n", (numel(comp_mat(1).bearing_surf.grid_x) - 1) * numel(comp_mat(1).bearing_surf.grid_z));
 %!             for i=1:numel(comp_mat(1).bearing_surf.grid_x) - 1
 %!               for j=1:numel(comp_mat(1).bearing_surf.grid_z)
@@ -411,13 +435,13 @@
 %!         fputs(fd, "                                     pressure, const, 0.,\n");
 %!         fputs(fd, "                                     pressure, const, 0.,\n");
 %!         switch (k)
-%!           case 3
+%!           case 9
 %!             fputs(fd, "                  lubrication grooves, 1,\n");
 %!             fputs(fd, "                     at bearing,\n");
 %!             fprintf(fd, "                     pressure, mult, time, const, %g,\n", p2 * bearing_surf(2).options.reference_pressure);
 %!             fputs(fd, "                       position, 0., 0.,\n");
 %!             fputs(fd, "                       complete surface,\n");
-%!           case 4
+%!           case 10
 %!             fprintf(fd, "                       lubrication grooves, %d,\n", (numel(comp_mat(2).bearing_surf.grid_x) - 1) * numel(comp_mat(2).bearing_surf.grid_z));
 %!             for i=1:numel(comp_mat(2).bearing_surf.grid_x) - 1
 %!               for j=1:numel(comp_mat(2).bearing_surf.grid_z)
@@ -450,9 +474,15 @@
 %!         fd = -1;
 %!       end_unwind_protect
 %!       opt_mbd.output_file = sprintf("%s_%d_mbdyn", filename, k);
-%!       info = mbdyn_solver_run(sprintf("%s_%d.mbdyn", filename, k), opt_mbd);
-%!       log_dat(k) = mbdyn_post_load_log(opt_mbd.output_file);
-%!       bearings(k, :) = mbdyn_post_ehd_load_output(opt_mbd.output_file, log_dat(k));
+%!       mbdyn_solver_run(sprintf("%s_%d.mbdyn", filename, k), opt_mbd);
+%!       res(k).log_dat = mbdyn_post_load_log(opt_mbd.output_file);
+%!       res(k).bearings = mbdyn_post_ehd_load_output(opt_mbd.output_file, res(k).log_dat);
+%!       [res(k).t, ...
+%!        res(k).trajectory, ...
+%!        res(k).deformation, ...
+%!        res(k).velocity, ...
+%!        res(k).acceleration, ...
+%!        res(k).node_id] = mbdyn_post_load_output_struct(opt_mbd.output_file);
 %!       sol_mbd(k) = fem_post_cms_sol_import(opt_mbd.output_file, struct("cms_opt", cms_opt));
 %!       sol_mbd_exp.def(:, :, k) = fem_post_cms_expand_body(mesh, dof_map, mat_ass, sol_mbd(k).bodies(1).q);
 %!     endfor
@@ -472,13 +502,26 @@
 %!     for i=1:nx2 - 1
 %!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r).^2 * bearing_surf(2).grid_z / w + 1) * bearing_surf(2).options.reference_pressure;
 %!     endfor
-%!     Fred = [comp_mat(1).E(:, 1:end - nz1) * [p1red1, p1red2] / bearing_surf(1).options.reference_pressure, ...
+%!     load_case_itf = fem_pre_load_case_create_empty(6);
+%!     for i=1:numel(load_case_itf)
+%!       load_case_itf(i).loaded_nodes = cms_opt.nodes.interfaces.number;
+%!       load_case_itf(i).loads = zeros(1, 6);
+%!       load_case_itf(i).loads(i) = 1;
+%!     endfor
+%!     [~, mat_ass_itf.R] = fem_ass_matrix(mesh, dof_map, [FEM_MAT_STIFFNESS_SYM, FEM_VEC_LOAD_CONSISTENT], load_case_itf);
+%!     Fred = [mat_ass.Tred.' * mat_ass_itf.R(dof_map.idx_node, :), ...
+%!             comp_mat(1).E(:, 1:end - nz1) * [p1red1, p1red2] / bearing_surf(1).options.reference_pressure, ...
 %!             comp_mat(2).E(:, 1:end - nz2) * [p2red1, p2red2] / bearing_surf(2).options.reference_pressure];
 %!     qred = mat_ass.Kred \ Fred;
 %!     sol_red.def = fem_post_cms_expand_body(mesh, dof_map, mat_ass, qred);
 %!     mesh_post = mesh;
 %!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 2);
-%!     load_case_post = fem_pre_load_case_create_empty(4);
+%!     load_case_post = fem_pre_load_case_create_empty(10);
+%!     for i=1:6
+%!       load_case_post(i).loaded_nodes = cms_opt.nodes.interfaces.number;
+%!       load_case_post(i).loads = zeros(1, 6);
+%!       load_case_post(i).loads(i) = 1;
+%!     endfor
 %!     load_case_post_dof.locked_dof = false(size(mesh_post.nodes));
 %!     x1 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(1);
 %!     y1 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(2);
@@ -488,14 +531,14 @@
 %!     y2 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(2);
 %!     z2 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(3);
 %!     Phi2 = atan2(y2, x2);
-%!     load_case_post(1).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(1).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
-%!     load_case_post(2).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(2).pressure.tria6.p = p1 * (sin(Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
-%!     load_case_post(3).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(3).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
-%!     load_case_post(4).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(4).pressure.tria6.p = p2 * (cos(Phi1).^2 .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
+%!     load_case_post(7).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
+%!     load_case_post(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
+%!     load_case_post(8).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
+%!     load_case_post(8).pressure.tria6.p = p1 * (sin(Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
+%!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
+%!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
+%!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
+%!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi1).^2 .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
 %!     mesh_post.elements.joints(end + 1).C = eye(6);
 %!     mesh_post.elements.joints(end).nodes = cms_opt.nodes.modal.number;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
