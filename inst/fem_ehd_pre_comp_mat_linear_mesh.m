@@ -4024,7 +4024,11 @@ endfunction
 %!             comp_mat(2).E(:, 1:end - nz2) * [p2red1, p2red2] / bearing_surf(2).options.reference_pressure];
 %!     Fred = [full(mat_ass.Tred.' * Ritf(dof_map.idx_node, :)), Fred];
 %!     qred = mat_ass.Kred \ Fred;
-%!     sol_red.def = fem_post_cms_expand_body(mesh, dof_map, mat_ass, qred);
+%!     Phi_rb = gen_rigid_body_modes(mesh, dof_map, cms_opt.nodes.interfaces(2).number);
+%!     Ured = zeros(dof_map.totdof, columns(qred));
+%!     Ured(dof_map.idx_node, :) = mat_ass.Tred * qred;
+%!     Ured(dof_map.idx_node, :) -= Phi_rb * (Phi_rb \ Ured(dof_map.idx_node, :));
+%!     sol_red.def = fem_post_def_nodal(mesh, dof_map, Ured);
 %!     mesh_post = mesh;
 %!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 3);
 %!     mesh_post.elements.joints(end + 1).C = eye(6);
@@ -4057,7 +4061,10 @@ endfunction
 %!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi2).^2 .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
 %!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
-%!     sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post);
+%!     Phi_rb_post = gen_rigid_body_modes(mesh_post, dof_map_post, cms_opt.nodes.interfaces(2).number);
+%!     U_post = fem_sol_linsolve(mat_ass_post.K, mat_ass_post.R, cms_opt);
+%!     U_post(dof_map_post.idx_node, :) -= Phi_rb_post * (Phi_rb_post \ U_post(dof_map_post.idx_node, :));
+%!     sol_post.def = fem_post_def_nodal(mesh_post, dof_map_post, U_post);
 %!     mesh_data(1).mesh = mesh;
 %!     mesh_data(1).dof_map = dof_map;
 %!     mesh_data(1).mesh.nodes(:, 2) += 25e-3;
