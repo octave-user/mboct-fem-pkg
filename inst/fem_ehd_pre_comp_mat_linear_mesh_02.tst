@@ -16,7 +16,7 @@
 %!     tol_red2 = 1e-5;
 %!     tol_red3 = 1e-8;
 %!     num_modes_cms = int32(10);
-%!     num_modes = int32(30);
+%!     num_modes = int32(40);
 %!     unwind_protect
 %!       [fd, msg] = fopen([filename, ".geo"], "w");
 %!       if (fd == -1)
@@ -102,18 +102,15 @@
 %!     grp_idx_rod = find([[mesh.groups.tria6].id] == grp_id_rod);
 %!     cms_opt.nodes.interfaces(1).number = rows(mesh.nodes) + 1;
 %!     cms_opt.nodes.interfaces(1).name = "node_id_conrod_small_end";
-%!     cms_opt.nodes.interfaces(1).include_rigid_body_modes = true;
 %!     cms_opt.nodes.interfaces(2).number = rows(mesh.nodes) + 2;
 %!     cms_opt.nodes.interfaces(2).name = "node_id_conrod_big_end";
-%!     cms_opt.nodes.interfaces(2).include_rigid_body_modes = true;
 %!     cms_opt.nodes.modal.number = rows(mesh.nodes) + 3;
 %!     cms_opt.nodes.modal.name = "node_id_conrod_center_modal";
 %!     cms_opt.element.name = "elem_id_conrod_modal";
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.floating_frame = false;
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.solver = "umfpack";
+%!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(0);
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
