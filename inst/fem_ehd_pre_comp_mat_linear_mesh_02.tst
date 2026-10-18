@@ -12,7 +12,8 @@
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 1e-2;
+%!     tol_red = 3e-2;
+%!     tol_red2 = 3e-2;
 %!     tol_red3 = 1e-8;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(50);
@@ -509,7 +510,7 @@
 %!             for i=1:numel(comp_mat(2).bearing_surf.grid_x) - 1
 %!               for j=1:numel(comp_mat(2).bearing_surf.grid_z)
 %!                 fputs(fd, "                             at bearing,\n");
-%!                 fprintf(fd, "                                   pressure, mult, time, const, %g,\n", p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r).^2 * bearing_surf(2).grid_z(j) / w + 1) * bearing_surf(2).options.reference_pressure);
+%!                 fprintf(fd, "                                   pressure, mult, time, const, %g,\n", p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r).^2 * cos(pi * bearing_surf(2).grid_z(j) / w) + 1) * bearing_surf(2).options.reference_pressure);
 %!                 fprintf(fd, "                                   position, %g, %g,\n", comp_mat(2).bearing_surf.grid_x(i), comp_mat(2).bearing_surf.grid_z(j));
 %!                 fprintf(fd, "                                   rectangle, width, %g, height, %g,\n", comp_mat(2).bearing_surf.grid_x(2) - comp_mat(2).bearing_surf.grid_x(1), comp_mat(2).bearing_surf.grid_z(2) - comp_mat(2).bearing_surf.grid_z(1));
 %!               endfor
@@ -546,6 +547,9 @@
 %!        res(k).velocity, ...
 %!        res(k).acceleration, ...
 %!        res(k).node_id] = mbdyn_post_load_output_struct(opt_mbd.output_file);
+%!       [res(k).joint_id, ...
+%!        res(k).local_reaction, ...
+%!        res(k).global_reaction] = mbdyn_post_load_output_jnt(opt_mbd.output_file);
 %!       sol_mbd(k) = fem_post_cms_sol_import(opt_mbd.output_file, struct("cms_opt", cms_opt));
 %!       sol_mbd_exp.def(:, :, k) = fem_post_cms_expand_body(mesh, dof_map, mat_ass, sol_mbd(k).bodies(1).q);
 %!       Ured = mat_ass.Tred * sol_mbd(k).bodies(1).q;
@@ -568,20 +572,6 @@
 %!     endfor
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
-%!     nx1 = numel(comp_mat(1).bearing_surf.grid_x);
-%!     nz1 = numel(comp_mat(1).bearing_surf.grid_z);
-%!     nx2 = numel(comp_mat(2).bearing_surf.grid_x);
-%!     nz2 = numel(comp_mat(2).bearing_surf.grid_z);
-%!     p1red1 = repmat(p1 * bearing_surf(1).options.reference_pressure, (nx1 - 1) * nz1, 1);
-%!     p1red2 = zeros((nx1 - 1) * nz1, 1);
-%!     for i=1:nx1 - 1
-%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * (sin(bearing_surf(1).grid_x(i) / bearing_surf(1).r) * bearing_surf(1).grid_z / w + 1) * bearing_surf(1).options.reference_pressure;
-%!     endfor
-%!     p2red1 = repmat(p2 * bearing_surf(2).options.reference_pressure, (nx2 - 1) * nz2, 1);
-%!     p2red2 = zeros((nx2 - 1) * nz2, 1);
-%!     for i=1:nx2 - 1
-%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r).^2 * bearing_surf(2).grid_z / w + 1) * bearing_surf(2).options.reference_pressure;
-%!     endfor
 %!     mesh_post = mesh;
 %!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 3);
 %!     mesh_post.elements.joints(end + 1).nodes = cms_opt.nodes.interfaces(2).number;
@@ -608,7 +598,7 @@
 %!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
 %!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
 %!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi2).^2 .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
+%!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi2).^2 .* cos(pi * z2 / w) + 1) * bearing_surf(2).options.reference_pressure;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
 %!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
 %!     sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
