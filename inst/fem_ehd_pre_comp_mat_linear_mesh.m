@@ -4015,7 +4015,7 @@ endfunction
 %!     p1red2 = zeros((nx1 - 1) * nz1, 1);
 %!     p2red2 = zeros((nx2 - 1) * nz2, 1);
 %!     for i=1:nx1 - 1
-%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * (sin(2 * bearing_surf(1).grid_x(i) / bearing_surf(1).r) .* bearing_surf(1).grid_z / w + 1) * bearing_surf(1).options.reference_pressure;
+%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * (sin(bearing_surf(1).grid_x(i) / bearing_surf(1).r) .* bearing_surf(1).grid_z / w + 1) * bearing_surf(1).options.reference_pressure;
 %!     endfor
 %!     for i=1:nx2 - 1
 %!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 .* bearing_surf(2).grid_z / w + 1) * bearing_surf(2).options.reference_pressure;
@@ -4050,7 +4050,7 @@ endfunction
 %!     load_case_post(7).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
 %!     load_case_post(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
 %!     load_case_post(8).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(8).pressure.tria6.p = p1 * (sin(2 * Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
+%!     load_case_post(8).pressure.tria6.p = p1 * (sin(Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
 %!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
 %!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
 %!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
