@@ -219,6 +219,7 @@
 %!         case {1,2,3,4,5,6}
 %!           fputs(fd, "       forces: 1;\n");
 %!         endswitch
+%!         fputs(fd, "        output precision: 16;\n");
 %!         fputs(fd, "        default output: all;\n");
 %!         fputs(fd, "        default output: reference frames;\n");
 %!         fputs(fd, "        output meter: closest next, 1., forever, const, 0.1;\n");
