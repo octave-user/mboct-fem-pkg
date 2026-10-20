@@ -12,8 +12,8 @@
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 3e-2;
-%!     tol_red2 = 3e-2;
+%!     tol_red = 1e-2;
+%!     tol_red2 = 1e-2;
 %!     tol_red3 = 1e-8;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(50);
@@ -163,26 +163,6 @@
 %!     mesh.material_data(2).rho = 0;
 %!     [mesh, mat_ass, dof_map, cms_opt, comp_mat, bearing_surf, sol_eig_cms, cond_info] = fem_ehd_pre_comp_mat_linear_mesh(mesh, load_case_dof, cms_opt, bearing_surf);
 %!     fem_ehd_pre_comp_mat_linear_mesh_cond_rpt(cond_info);
-%!     Arb = repmat(eye(6), rows(mesh.nodes), 1);
-%!     lrb = mesh.nodes(:, 1:3) - mesh.nodes(cms_opt.nodes.interfaces(2).number, 1:3);
-%!     ir = int32([3, 2;
-%!                 1, 3;
-%!                 2, 1]);
-%!     ic = int32([2, 3;
-%!                 3, 1;
-%!                 1, 2]);
-%!     dc = [1, -1];
-%!     for j=1:3
-%!       for k=1:2
-%!         Arb(ir(j, k):6:end, ic(j, k) + 3) = -dc(k) * lrb(:, j);
-%!       endfor
-%!     endfor
-%!     Phi_rb = zeros(dof_map.totdof, columns(Arb));
-%!     for j=1:columns(dof_map.ndof)
-%!       idx_act_dof = find(dof_map.ndof(:, j) > 0);
-%!       Phi_rb(dof_map.ndof(idx_act_dof, j), :) = Arb(6 * (idx_act_dof - 1) + j, :);
-%!     endfor
-%!     Phi_rb = Phi_rb(dof_map.idx_node, :);
 %!     fem_cms_export([filename, "_cms"], mesh, dof_map, mat_ass, cms_opt);
 %!     for i=1:numel(comp_mat)
 %!       fem_ehd_pre_comp_mat_export(comp_mat(i), bearing_surf(i).options, sprintf("%s_ehd_%d.dat", filename, i));
@@ -201,7 +181,7 @@
 %!         n2(:, i, j) /= norm(n2(:, i, j));
 %!       endfor
 %!     endfor
-%!     for k=1:10
+%!     for k=1:16
 %!       unwind_protect
 %!         fd = fopen(sprintf("%s_%d.mbdyn", filename, k), "wt");
 %!         if (fd == -1)
@@ -213,7 +193,12 @@
 %!         fputs(fd, " set: integer node_id_piston = 1004;\n");
 %!         fputs(fd, " set: integer node_id_crank_pin = 1005;\n");
 %!         fputs(fd, " set: integer elem_id_conrod_modal = 2001;\n");
+%!         switch (k)
+%!         case {1, 2, 3, 4, 5, 6, 7, 8}
 %!         fputs(fd, " set: integer joint_id_conrod_big_end = 2002;\n");
+%!         case {9, 10, 11, 12, 13, 14, 15, 16}
+%!         fputs(fd, " set: integer joint_id_conrod_small_end = 2002;\n");
+%!         endswitch
 %!         fputs(fd, " set: integer joint_id_piston = 2003;\n");
 %!         fputs(fd, " set: integer joint_id_crank_pin = 2004;\n");
 %!         fputs(fd, " set: integer elem_id_piston_pin_bearing = 2005;\n");
@@ -221,7 +206,12 @@
 %!         fputs(fd, " set: integer ref_id_conrod_big_end = 3001;\n");
 %!         fputs(fd, " set: integer ref_id_conrod_small_end = 3002;\n");
 %!         fputs(fd, " set: integer ref_id_conrod_center_modal = 3003;\n");
+%!         switch (k)
+%!         case {1, 2, 3, 4, 5, 6}
 %!         fputs(fd, " set: integer force_id_conrod_small_end = 4001;\n");
+%!         case {9, 10, 11, 12, 13, 14}
+%!         fputs(fd, " set: integer force_id_conrod_big_end = 4001;\n");
+%!         endswitch
 %!         fprintf(fd, " set: real piston_pin_bearing_width = %g;\n", w);
 %!         fprintf(fd, " set: real piston_pin_bearing_journal_diameter = %g;\n", d * (1 - Psi));
 %!         fprintf(fd, " set: real piston_pin_bearing_shell_diameter = %g;\n", d);
@@ -259,7 +249,7 @@
 %!         fputs(fd, "        joints: 4;\n");
 %!         fputs(fd, "        loadable elements: 2;\n");
 %!         switch (k)
-%!         case {1,2,3,4,5,6}
+%!         case {1, 2, 3, 4, 5, 6, 9, 10, 11, 12, 13, 14}
 %!           fputs(fd, "       forces: 1;\n");
 %!         endswitch
 %!         fputs(fd, "        default output: all;\n");
@@ -367,7 +357,27 @@
 %!           M1(k - 3) = 1;
 %!           fprintf(fd, ",\n       mult, time, const, %g", M1);
 %!           fputs(fd, ";\n\n");
+%!         case {9,10,11}
+%!           fputs(fd, "force: force_id_conrod_big_end, absolute,\n");
+%!           fputs(fd, "       node_id_conrod_big_end,\n");
+%!           fputs(fd, "       position, reference, ref_id_conrod_big_end, null,\n");
+%!           fputs(fd, "       component");
+%!           F2 = zeros(3, 1);
+%!           F2(k - 8) = 1;
+%!           fprintf(fd, ",\n       mult, time, const, %g", F2);
+%!           fputs(fd, ";\n\n");
+%!         case {12,13,14}
+%!           fputs(fd, "couple: force_id_conrod_big_end, absolute,\n");
+%!           fputs(fd, "       node_id_conrod_big_end,\n");
+%!           fputs(fd, "       position, reference, ref_id_conrod_big_end, null,\n");
+%!           fputs(fd, "       component");
+%!           M2 = zeros(3, 1);
+%!           M2(k - 11) = 1;
+%!           fprintf(fd, ",\n       mult, time, const, %g", M2);
+%!           fputs(fd, ";\n\n");
 %!         endswitch
+%!         switch (k)
+%!         case {1, 2, 3, 4, 5, 6, 7, 8}
 %!         fputs(fd, "  joint: joint_id_conrod_big_end, total pin joint,\n");
 %!         fputs(fd, "       node_id_conrod_big_end,\n");
 %!         fputs(fd, "       position, reference, ref_id_conrod_big_end, null,\n");
@@ -386,6 +396,26 @@
 %!         fputs(fd, "         active,\n");
 %!         fputs(fd, "         active,\n");
 %!         fputs(fd, "         null;\n");
+%!         case {9, 10, 11, 12, 13, 14, 15, 16}
+%!         fputs(fd, "  joint: joint_id_conrod_small_end, total pin joint,\n");
+%!         fputs(fd, "       node_id_conrod_small_end,\n");
+%!         fputs(fd, "       position, reference, ref_id_conrod_small_end, null,\n");
+%!         fputs(fd, "       position orientation, reference, ref_id_conrod_small_end, eye,\n");
+%!         fputs(fd, "       rotation orientation, reference, ref_id_conrod_small_end, eye,\n");
+%!         fputs(fd, "       position, reference, ref_id_conrod_small_end, null,\n");
+%!         fputs(fd, "       position orientation, reference, ref_id_conrod_small_end, eye,\n");
+%!         fputs(fd, "       rotation orientation, reference, ref_id_conrod_small_end, eye,\n");
+%!         fputs(fd, "       position constraint,\n");
+%!         fputs(fd, "        active,\n");
+%!         fputs(fd, "        active,\n");
+%!         fputs(fd, "        active,\n");
+%!         fputs(fd, "        null,\n");
+%!         fputs(fd, "       orientation constraint,\n");
+%!         fputs(fd, "         active,\n");
+%!         fputs(fd, "         active,\n");
+%!         fputs(fd, "         active,\n");
+%!         fputs(fd, "         null;\n");
+%!         endswitch
 %!         fputs(fd, "  joint: joint_id_piston, total pin joint,\n");
 %!         fputs(fd, "       node_id_piston,\n");
 %!         fputs(fd, "       position, reference, ref_id_conrod_small_end, null,\n");
@@ -499,18 +529,18 @@
 %!         fputs(fd, "                                     pressure, const, 0.,\n");
 %!         fputs(fd, "                                     pressure, const, 0.,\n");
 %!         switch (k)
-%!           case 9
+%!           case 15
 %!             fputs(fd, "                  lubrication grooves, 1,\n");
 %!             fputs(fd, "                     at bearing,\n");
 %!             fprintf(fd, "                     pressure, mult, time, const, %g,\n", p2 * bearing_surf(2).options.reference_pressure);
 %!             fputs(fd, "                       position, 0., 0.,\n");
 %!             fputs(fd, "                       complete surface,\n");
-%!           case 10
+%!           case 16
 %!             fprintf(fd, "                       lubrication grooves, %d,\n", (numel(comp_mat(2).bearing_surf.grid_x) - 1) * numel(comp_mat(2).bearing_surf.grid_z));
 %!             for i=1:numel(comp_mat(2).bearing_surf.grid_x) - 1
 %!               for j=1:numel(comp_mat(2).bearing_surf.grid_z)
 %!                 fputs(fd, "                             at bearing,\n");
-%!                 fprintf(fd, "                                   pressure, mult, time, const, %g,\n", p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r).^2 * cos(pi * bearing_surf(2).grid_z(j) / w) + 1) * bearing_surf(2).options.reference_pressure);
+%!                 fprintf(fd, "                                   pressure, mult, time, const, %g,\n", p2 * (sin(bearing_surf(2).grid_x(i) / bearing_surf(2).r) * bearing_surf(2).grid_z(j) / w + 1) * bearing_surf(2).options.reference_pressure);
 %!                 fprintf(fd, "                                   position, %g, %g,\n", comp_mat(2).bearing_surf.grid_x(i), comp_mat(2).bearing_surf.grid_z(j));
 %!                 fprintf(fd, "                                   rectangle, width, %g, height, %g,\n", comp_mat(2).bearing_surf.grid_x(2) - comp_mat(2).bearing_surf.grid_x(1), comp_mat(2).bearing_surf.grid_z(2) - comp_mat(2).bearing_surf.grid_z(1));
 %!               endfor
@@ -552,8 +582,34 @@
 %!        res(k).global_reaction] = mbdyn_post_load_output_jnt(opt_mbd.output_file);
 %!       sol_mbd(k) = fem_post_cms_sol_import(opt_mbd.output_file, struct("cms_opt", cms_opt));
 %!       sol_mbd_exp.def(:, :, k) = fem_post_cms_expand_body(mesh, dof_map, mat_ass, sol_mbd(k).bodies(1).q);
+%!       Arb = repmat(eye(6), rows(mesh.nodes), 1);
+%!       switch (k)
+%!       case {1, 2, 3, 4, 5, 6, 7, 8}
+%!         node_idx_clamped = cms_opt.nodes.interfaces(2).number;
+%!       case {9, 10, 11, 12, 13, 14, 15, 16}
+%!         node_idx_clamped = cms_opt.nodes.interfaces(1).number;
+%!       endswitch
+%!       lrb = mesh.nodes(:, 1:3) - mesh.nodes(node_idx_clamped, 1:3);
+%!       ir = int32([3, 2;
+%!                   1, 3;
+%!                   2, 1]);
+%!       ic = int32([2, 3;
+%!                   3, 1;
+%!                   1, 2]);
+%!       dc = [1, -1];
+%!       for j=1:3
+%!         for i=1:2
+%!           Arb(ir(j, i):6:end, ic(j, i) + 3) = -dc(i) * lrb(:, j);
+%!         endfor
+%!       endfor
+%!       Phi_rb = zeros(dof_map.totdof, columns(Arb));
+%!       for j=1:columns(dof_map.ndof)
+%!         idx_act_dof = find(dof_map.ndof(:, j) > 0);
+%!         Phi_rb(dof_map.ndof(idx_act_dof, j), :) = Arb(6 * (idx_act_dof - 1) + j, :);
+%!       endfor
+%!       Phi_rb = Phi_rb(dof_map.idx_node, :);
 %!       Ured = mat_ass.Tred * sol_mbd(k).bodies(1).q;
-%!       Ured -= Phi_rb * Ured(dof_map.ndof(cms_opt.nodes.interfaces(2).number, :), :);
+%!       Ured -= Phi_rb * Ured(dof_map.ndof(node_idx_clamped, :), :);
 %!       sol_mbd_rb.def(:, :, k) = fem_post_def_nodal(mesh, dof_map, Ured);
 %!     endfor
 %!     w1 = zeros(rows(bearing_surf(1).nodes), columns(bearing_surf(1).nodes), size(sol_mbd_exp.def, 3));
@@ -572,41 +628,56 @@
 %!     endfor
 %!     assert_simple(rank(mat_ass.Kred), columns(mat_ass.Kred));
 %!     assert_simple(rank(mat_ass.Mred), columns(mat_ass.Mred));
-%!     mesh_post = mesh;
-%!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 3);
-%!     mesh_post.elements.joints(end + 1).nodes = cms_opt.nodes.interfaces(2).number;
-%!     mesh_post.elements.joints(end).C = eye(6);
-%!     load_case_post = fem_pre_load_case_create_empty(10);
+%!     mesh_post1 = mesh;
+%!     mesh_post1.elements.joints = mesh_post1.elements.joints(1:end - 3);
+%!     mesh_post1.elements.joints(end + 1).nodes = cms_opt.nodes.interfaces(2).number;
+%!     mesh_post1.elements.joints(end).C = eye(6);
+%!     load_case_post1 = fem_pre_load_case_create_empty(8);
 %!     for i=1:6
-%!       load_case_post(i).loaded_nodes = cms_opt.nodes.interfaces(1).number;
-%!       load_case_post(i).loads = zeros(1, 6);
-%!       load_case_post(i).loads(i) = 1;
+%!       load_case_post1(i).loaded_nodes = cms_opt.nodes.interfaces(1).number;
+%!       load_case_post1(i).loads = zeros(1, 6);
+%!       load_case_post1(i).loads(i) = 1;
 %!     endfor
-%!     load_case_post_dof.locked_dof = false(size(mesh_post.nodes));
-%!     x1 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(1);
-%!     y1 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(2);
-%!     z1 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(3);
+%!     mesh_post2 = mesh;
+%!     mesh_post2.elements.joints = mesh_post2.elements.joints(1:end - 3);
+%!     mesh_post2.elements.joints(end + 1).nodes = cms_opt.nodes.interfaces(1).number;
+%!     mesh_post2.elements.joints(end).C = eye(6);
+%!     load_case_post2 = fem_pre_load_case_create_empty(8);
+%!     for i=1:6
+%!       load_case_post2(i).loaded_nodes = cms_opt.nodes.interfaces(2).number;
+%!       load_case_post2(i).loads = zeros(1, 6);
+%!       load_case_post2(i).loads(i) = 1;
+%!     endfor
+%!     load_case_post_dof.locked_dof = false(size(mesh_post1.nodes));
+%!     x1 = mesh_post1.nodes(:, 1)(mesh_post1.elements.tria6(mesh_post1.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(1);
+%!     y1 = mesh_post1.nodes(:, 2)(mesh_post1.elements.tria6(mesh_post1.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(2);
+%!     z1 = mesh_post1.nodes(:, 3)(mesh_post1.elements.tria6(mesh_post1.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(3);
 %!     Phi1 = atan2(y1, x1);
-%!     x2 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(1);
-%!     y2 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(2);
-%!     z2 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(3);
+%!     x2 = mesh_post2.nodes(:, 1)(mesh_post2.elements.tria6(mesh_post2.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(1);
+%!     y2 = mesh_post2.nodes(:, 2)(mesh_post2.elements.tria6(mesh_post2.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(2);
+%!     z2 = mesh_post2.nodes(:, 3)(mesh_post2.elements.tria6(mesh_post2.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(3);
 %!     Phi2 = atan2(y2, x2);
-%!     load_case_post(7).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
-%!     load_case_post(8).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(8).pressure.tria6.p = p1 * (sin(Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
-%!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
-%!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi2).^2 .* cos(pi * z2 / w) + 1) * bearing_surf(2).options.reference_pressure;
-%!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
-%!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
-%!     sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
+%!     load_case_post1(7).pressure.tria6.elements = mesh_post1.elements.tria6(mesh_post1.groups.tria6(grp_idx_p1).elements, :);
+%!     load_case_post1(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post1.groups.tria6(grp_idx_p1).elements), 6);
+%!     load_case_post1(8).pressure.tria6.elements = mesh_post1.elements.tria6(mesh_post1.groups.tria6(grp_idx_p1).elements, :);
+%!     load_case_post1(8).pressure.tria6.p = p1 * (sin(Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
+%!     load_case_post2(7).pressure.tria6.elements = mesh_post2.elements.tria6(mesh_post2.groups.tria6(grp_idx_p2).elements, :);
+%!     load_case_post2(7).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post2.groups.tria6(grp_idx_p2).elements), 6);
+%!     load_case_post2(8).pressure.tria6.elements = mesh_post2.elements.tria6(mesh_post2.groups.tria6(grp_idx_p2).elements, :);
+%!     load_case_post2(8).pressure.tria6.p = p2 * (sin(Phi2) .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
+%!     dof_map_post1 = fem_ass_dof_map(mesh_post1, load_case_post_dof);
+%!     [mat_ass_post1.K, mat_ass_post1.R] = fem_ass_matrix(mesh_post1, dof_map_post1, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post1);
+%!     sol_post1 = fem_sol_static(mesh_post1, dof_map_post1, mat_ass_post1, cms_opt);
+%!     dof_map_post2 = fem_ass_dof_map(mesh_post2, load_case_post_dof);
+%!     [mat_ass_post2.K, mat_ass_post2.R] = fem_ass_matrix(mesh_post2, dof_map_post2, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post2);
+%!     sol_post2 = fem_sol_static(mesh_post2, dof_map_post2, mat_ass_post2, cms_opt);
+%!     sol_post.def(:, :, 1:8) = sol_post1.def;
+%!     sol_post.def(:, :, 9:16) = sol_post2.def;
 %!     mesh_data(1).mesh = mesh;
 %!     mesh_data(1).dof_map = dof_map;
 %!     mesh_data(1).mesh.nodes(:, 2) += 25e-3;
-%!     mesh_data(2).mesh = mesh_post;
-%!     mesh_data(2).dof_map = dof_map_post;
+%!     mesh_data(2).mesh = mesh;
+%!     mesh_data(2).dof_map = dof_map;
 %!     [mesh_comb, dof_map_comb] = fem_post_mesh_merge(mesh_data, struct());
 %!     sol_comb.def = zeros(rows(mesh_comb.nodes), columns(mesh_comb.nodes), size(sol_post.def, 3));
 %!     sol_comb.def(dof_map_comb.submesh.offset.nodes(1) + (1:rows(sol_mbd_rb.def)), :, :) = sol_mbd_rb.def;
@@ -624,7 +695,12 @@
 %!     endfor
 %!     err_mbd = zeros(1, numel(res));
 %!     for i=1:numel(res)
-%!       err_mbd(i) = max(abs(sol_post.def(cms_opt.nodes.interfaces(1).number, :, i) - res(i).deformation{res(i).node_id == res(i).log_dat.vars.node_id_conrod_small_end})) / norm(sol_post.def(cms_opt.nodes.interfaces(1).number, :, i));
+%!       switch (i)
+%!       case {1, 2, 3, 4, 5, 6, 7, 8}
+%!         err_mbd(i) = max(abs(sol_post.def(cms_opt.nodes.interfaces(1).number, :, i) - res(i).deformation{res(i).node_id == res(i).log_dat.vars.node_id_conrod_small_end})) / norm(sol_post.def(cms_opt.nodes.interfaces(1).number, :, i));
+%!       case {9, 10, 11, 12, 13, 14, 15, 16}
+%!         err_mbd(i) = max(abs(sol_post.def(cms_opt.nodes.interfaces(2).number, :, i) - res(i).deformation{res(i).node_id == res(i).log_dat.vars.node_id_conrod_big_end})) / norm(sol_post.def(cms_opt.nodes.interfaces(2).number, :, i));
+%!       endswitch
 %!     endfor
 %!     printf("difference between MBDyn and FEM conrod small end:\n");
 %!     for i=1:size(sol_post.def, 3)
