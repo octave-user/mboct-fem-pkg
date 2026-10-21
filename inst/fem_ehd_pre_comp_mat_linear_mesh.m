@@ -95,10 +95,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     options.elem_type = "tria6";
   endif
 
-  if (~isfield(cms_opt, "floating_frame"))
-    cms_opt.floating_frame = false;
-  endif
-
   if (~isfield(cms_opt, "svd_threshold"))
     cms_opt.svd_threshold = 1e-10;
   endif
@@ -121,12 +117,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   if (~isfield(cms_opt, "verbose"))
     cms_opt.verbose = int32(1);
-  endif
-
-  if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
-    for i=1:numel(cms_opt.nodes.interfaces)
-      cms_opt.nodes.interfaces(i).include_rigid_body_modes = true;
-    endfor
   endif
 
   for i=1:numel(bearing_surf)
@@ -326,11 +316,6 @@ function [mat_ass_itf, bearing_surf] = fem_ehd_pre_comp_mat_modes_combine(mesh, 
   for i=1:numel(bearing_surf)
     bearing_surf(i).options.mode_idx += columns(Phi_sn);
   endfor
-
-  if (cms_opt.floating_frame)
-    Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map_itf, cms_opt.nodes.modal.number);
-    mat_ass_itf.Tred -= Phi_rb * (Phi_rb \ mat_ass_itf.Tred);
-  endif
 endfunction
 
 function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
@@ -774,10 +759,7 @@ function [mesh, load_case] = fem_ehd_pre_comp_mat_gen_loads_cms(mesh, load_case_
   for i=1:numel(cms_opt.nodes.interfaces)
     joints_itf(i).nodes = cms_opt.nodes.interfaces(i).number;
     joints_itf(i).C = eye(6)(~load_case_dof.locked_dof(cms_opt.nodes.interfaces(i).number, :), :);
-
-    if (cms_opt.nodes.interfaces(i).include_rigid_body_modes)
-      num_modes_itf += rows(joints_itf(i).C);
-    endif
+    num_modes_itf += rows(joints_itf(i).C);
   endfor
 
   if (~isempty(joint_modal.C))
@@ -797,11 +779,9 @@ function [mesh, load_case] = fem_ehd_pre_comp_mat_gen_loads_cms(mesh, load_case_
   idx_mode_itf = int32(0);
 
   for i=1:numel(cms_opt.nodes.interfaces)
-    if (cms_opt.nodes.interfaces(i).include_rigid_body_modes)
-      for j=1:rows(mesh.elements.joints(idx_joint_itf + i - 1).C)
-        load_case(++idx_mode_itf).joints(idx_joint_itf + i - 1).U(j) = 1;
-      endfor
-    endif
+    for j=1:rows(mesh.elements.joints(idx_joint_itf + i - 1).C)
+      load_case(++idx_mode_itf).joints(idx_joint_itf + i - 1).U(j) = 1;
+    endfor
   endfor
 endfunction
 
@@ -969,37 +949,6 @@ function [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mes
     mesh.elements = rmfield(mesh.elements, "iso8");
     mesh.groups = rmfield(mesh.groups, "iso8");
   endif
-endfunction
-
-function Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map, ref_node_idx)
-  Arb = repmat(eye(6), rows(mesh.nodes), 1);
-
-  l = mesh.nodes(:, 1:3) - mesh.nodes(ref_node_idx, 1:3);
-
-  ir = int32([3, 2;
-              1, 3;
-              2, 1]);
-
-  ic = int32([2, 3;
-              3, 1;
-              1, 2]);
-
-  dc = [1, -1];
-
-  for j=1:3
-    for k=1:2
-      Arb(ir(j, k):6:end, ic(j, k) + 3) = -dc(k) * l(:, j);
-    endfor
-  endfor
-
-  Phi_rb = zeros(dof_map.totdof, columns(Arb));
-
-  for j=1:columns(dof_map.ndof)
-    idx_act_dof = find(dof_map.ndof(:, j) > 0);
-    Phi_rb(dof_map.ndof(idx_act_dof, j), :) = Arb(6 * (idx_act_dof - 1) + j, :);
-  endfor
-
-  Phi_rb = Phi_rb(dof_map.idx_node, :);
 endfunction
 
 %!test
@@ -3936,10 +3885,7 @@ endfunction
 %!     grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!     grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);
 %!     cms_opt.nodes.interfaces(1).number = rows(mesh.nodes) + 1;
-%!     cms_opt.nodes.interfaces(1).include_rigid_body_modes = true;
 %!     cms_opt.nodes.interfaces(2).number = rows(mesh.nodes) + 2;
-%!     cms_opt.nodes.interfaces(2).include_rigid_body_modes = true;
-%!     cms_opt.floating_frame = false;
 %!     cms_opt.nodes.modal.number = rows(mesh.nodes) + 3;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
