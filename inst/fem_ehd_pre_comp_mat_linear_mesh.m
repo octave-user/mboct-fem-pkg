@@ -402,8 +402,6 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
   comp_mat = struct("C", empty_cell, ...
                     "D", empty_cell, ...
                     "E", empty_cell, ...
-                    "xi", empty_cell, ...
-                    "zi", empty_cell, ...
                     "dX", empty_cell, ...
                     "dR", empty_cell, ...
                     "bearing_surf", empty_cell, ...
@@ -439,11 +437,6 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
     r = norm(n, "cols");
     n ./= r;
 
-    comp_mat(i).xi = mod(atan2(X(2, :), X(1, :)), 2 * pi) * bearing_surf(i).r;
-    comp_mat(i).zi = X(3, :);
-
-    comp_mat(i).D = zeros(numel(bs_nodes), columns(mat_ass_itf.Tred));
-
     dof_idx = dof_map_itf.ndof(bs_nodes, 1:3);
 
     Ustatn = zeros(rows(dof_idx), columns(mat_ass_itf.Tred), 3);
@@ -451,6 +444,8 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
     for k=1:columns(dof_idx)
       Ustatn(:, :, k) = mat_ass_itf.Tred(dof_idx(:, k), :);
     endfor
+
+    comp_mat(i).D = zeros(numel(bs_nodes), columns(mat_ass_itf.Tred));
 
     for k=1:rows(n)
       for l=1:columns(dof_idx)
