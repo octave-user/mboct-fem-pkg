@@ -15,14 +15,22 @@
 
 ## -*- texinfo -*-
 ## @deftypefn {Function File} [@var{joint}] = fem_pre_mesh_joint_rigid_body(@var{mesh}, @var{node_id}, @var{R}, @var{dof_idx})
-## Build a joint which imposes a rigid body constraint between node_id(1) and node_id(1)
+## Build a joint which imposes a rigid body constraint between @var{node_id}(1) and @var{node_id}(1)
+##
+## @var{mesh} @dots{} Finite Element mesh
+##
+## @var{node_id} @dots{} Node numbers
+##
+## @var{R} @dots{} Orientation of local coordinate system
+##
+## @var{dof_idx} @dots{} Degree of freedom index
 ## @end deftypefn
 
 function joint = fem_pre_mesh_joint_rigid_body(mesh, node_id, R, dof_idx)
   if (nargin < 2 || nargout > 1)
     print_usage();
   endif
-  
+
   if (nargin < 3)
     R = eye(3);
   endif
@@ -30,7 +38,7 @@ function joint = fem_pre_mesh_joint_rigid_body(mesh, node_id, R, dof_idx)
   if (nargin < 4)
     dof_idx = 1:6;
   endif
-  
+
   joint.nodes = node_id;
   l21 = mesh.nodes(node_id(2), 1:3) - mesh.nodes(node_id(1), 1:3);
   joint.C = [        R.', -R.' * skew(l21),        -R.', zeros(3, 3);
