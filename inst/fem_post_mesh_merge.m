@@ -84,7 +84,10 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
                               "gamma", empty_cell,
                               "tan_delta", empty_cell, ...
                               "k", empty_cell,
-                              "cp", empty_cell);
+                              "cp", empty_cell, ...
+                              "c", empty_cell, ...
+                              "eta", empty_cell, ...
+                              "zeta", empty_cell);
 
   if (nargout >= 2)
     dof_map.ndof = zeros(num_nodes, 6, "int32");
@@ -245,44 +248,96 @@ function [mesh, dof_map] = fem_post_mesh_merge(mesh_data, options)
     endif
   endif
 
-  num_joints = int32(0);
-  max_joint_dof = int32(0);
+  elem_type_joint = {"joints", "thermal_constr", "acoustic_constr"};
 
-  for i=1:numel(mesh_data)
-    if (isfield(mesh_data(i).mesh.elements, "joints"))
-      num_joints += numel(mesh_data(i).mesh.elements.joints);
-
-      for j=1:numel(mesh_data(i).mesh.elements.joints)
-        max_joint_dof = max(max_joint_dof, columns(mesh_data(i).dof_map.edof.joints));
-      endfor
-    endif
-  endfor
-
-  if (num_joints)
-    mesh.elements.joints = repmat(struct("nodes", [], "C", []), 1, num_joints);
-    dof_map.edof.joints = zeros(num_joints, max_joint_dof, "int32");
-    curr_joint = int32(0);
-    curr_joint_dof = int32(0);
+  for k=1:numel(elem_type_joint)
+    num_joints = int32(0);
 
     for i=1:numel(mesh_data)
-      if (isfield(mesh_data(i).mesh.elements, "joints"))
-        for j=1:numel(mesh_data(i).mesh.elements.joints)
-          ++curr_joint;
-          mesh.elements.joints(curr_joint).nodes = mesh_data(i).mesh.elements.joints(j).nodes + dof_map.submesh.offset.nodes(i);
-          mesh.elements.joints(curr_joint).C = mesh_data(i).mesh.elements.joints(j).C;
-        endfor
-
-        if (nargout >= 2)
-          dof_map.edof.joints(curr_joint_dof + (1:rows(mesh_data(i).dof_map.edof.joints)), 1:columns(mesh_data(i).dof_map.edof.joints)) = mesh_data(i).dof_map.edof.joints + (mesh_data(i).dof_map.edof.joints > 0) * dof_map.submesh.offset.dof(i);
-          curr_joint_dof += rows(mesh_data(i).dof_map.edof.joints);
-        endif
+      if (isfield(mesh_data(i).mesh.elements, elem_type_joint{k}))
+        num_joints += numel(getfield(mesh_data(i).mesh.elements, elem_type_joint{k}));
       endif
     endfor
 
-    if (nargout >= 2)
-      dof_map.idx_lambda = [dof_map.idx_lambda(:); dof_map.edof.joints(:)];
+    if (num_joints)
+      empty_cell = cell(1, num_joints);
+      elem_joints = struct("nodes", empty_cell, "C", empty_cell);
+      curr_joint = int32(0);
+
+      for i=1:numel(mesh_data)
+        if (isfield(mesh_data(i).mesh.elements, elem_type_joint{k}))
+          elem_joints_ik = getfield(mesh_data(i).mesh.elements, elem_type_joint{k});
+          for j=1:numel(elem_joints_ik)
+            ++curr_joint;
+            elem_joints(curr_joint).nodes = elem_joints_ik(j).nodes + dof_map.submesh.offset.nodes(i);
+            elem_joints(curr_joint).C = elem_joints_ik(j).C;
+            if (isfield(elem_joints_ik, "scale"))
+              elem_joints(curr_joint).scale = elem_joints_ik(j).scale;
+            endif
+          endfor
+        endif
+      endfor
+      mesh.elements = setfield(mesh.elements, elem_type_joint{k}, elem_joints);
     endif
+  endfor
+
+  if (nargout >= 2)
+    num_joint_dof = int32(0);
+    max_joint_dof = int32(0);
+
+    for i=1:numel(mesh_data)
+      if (isfield(mesh_data(i).dof_map, "edof") && isfield(mesh_data(i).dof_map.edof, "joints"))
+        max_joint_dof = max(max_joint_dof, columns(mesh_data(i).dof_map.edof.joints));
+        num_joint_dof += rows(mesh_data(i).dof_map.edof.joints);
+      endif
+    endfor
+
+    curr_joint_dof = int32(0);
+
+    dof_map.edof.joints = zeros(num_joint_dof, max_joint_dof);
+
+    for i=1:numel(mesh_data)
+      if (isfield(mesh_data(i).dof_map, "edof") && isfield(mesh_data(i).dof_map.edof, "joints"))
+        dof_map.edof.joints(curr_joint_dof + (1:rows(mesh_data(i).dof_map.edof.joints)), 1:columns(mesh_data(i).dof_map.edof.joints)) = mesh_data(i).dof_map.edof.joints + (mesh_data(i).dof_map.edof.joints > 0) * dof_map.submesh.offset.dof(i);
+        curr_joint_dof += rows(mesh_data(i).dof_map.edof.joints);
+      endif
+    endfor
+
+    dof_map.idx_lambda = [dof_map.idx_lambda(:); dof_map.edof.joints(:)(dof_map.edof.joints(:) > 0)];
   endif
+
+  elem_type_sfn = {"sfncon6", "sfncon6h", "sfncon10", "sfncon8", "sfncon8r", "sfncon9", "sfncon4"};
+
+  for k=1:numel(elem_type_sfn)
+    num_sfn = int32(0);
+
+    for i=1:numel(mesh_data)
+      if (isfield(mesh_data(i).mesh.elements, elem_type_sfn{k}))
+        num_sfn += numel(getfield(mesh_data(i).mesh.elements, elem_type_sfn{k}));
+      endif
+    endfor
+
+    if (num_sfn)
+      empty_cell = cell(1, num_sfn);
+      elem_sfn = struct("master", empty_cell, "slave", empty_cell, "maxdist", empty_cell, "constraint", empty_cell);
+      curr_sfn = int32(0);
+
+      for i=1:numel(mesh_data)
+        if (isfield(mesh_data(i).mesh.elements, elem_type_sfn{k}))
+          elem_sfn_ik = getfield(mesh_data(i).mesh.elements, elem_type_sfn{k});
+          for j=1:numel(elem_sfn_ik)
+            ++curr_sfn;
+            elem_sfn(curr_sfn).master = elem_sfn_ik(j).master + dof_map.submesh.offset.nodes(i);
+            elem_sfn(curr_sfn).slave = elem_sfn_ik(j).slave + dof_map.submesh.offset.nodes(i);
+            elem_sfn(curr_sfn).maxdist = elem_sfn_ik(j).maxdist;
+            elem_sfn(curr_sfn).constraint = elem_sfn_ik(j).constraint;
+          endfor
+        endif
+      endfor
+
+      mesh.elements = setfield(mesh.elements, elem_type_sfn{k}, elem_sfn);
+    endif
+  endfor
 
   for j=1:numel(elem_types)
     num_groups = int32(0);
