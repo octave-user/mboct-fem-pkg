@@ -16503,6 +16503,69 @@ DEFUN_DLD(fem_ass_dof_map, args, nargout,
                          }
                     }
                } break;
+               case ElementTypes::ELEM_JOINT:
+               case ElementTypes::ELEM_THERM_CONSTR:
+               case ElementTypes::ELEM_ACOUSTIC_CONSTR: {
+                    octave_map m_joints = m_elements.contents(iter_elem_type).map_value();
+                    const auto iter_nodes = m_joints.seek("nodes");
+                    const auto iter_C = m_joints.seek("C");
+
+                    if (iter_nodes == m_joints.end()) {
+                         error("missing field mesh.elements.joints.nodes");
+                         return retval;
+                    }
+
+                    if (iter_C == m_joints.end()) {
+                         error("missing field mesh.elements.joints.C");
+                         return retval;
+                    }
+
+                    Cell ov_nodes = m_joints.contents(iter_nodes);
+                    Cell ov_C = m_joints.contents(iter_C);
+
+                    octave_idx_type inumdof_elem = -1;
+
+                    switch (oElemType.type) {
+                    case ElementTypes::ELEM_JOINT:
+                         inumdof_elem = 6;
+                         break;
+                    case ElementTypes::ELEM_THERM_CONSTR:
+                    case ElementTypes::ELEM_ACOUSTIC_CONSTR:
+                         inumdof_elem = 1;
+                         break;
+                    default:
+                         FEM_ASSERT(0);
+                    }
+
+                    for (octave_idx_type j = 0; j < m_joints.numel(); ++j) {
+                         const int32NDArray elnodes = ov_nodes.xelem(j).int32_array_value();
+                         const Matrix C = ov_C.xelem(j).matrix_value();
+
+                         if (C.columns() != elnodes.numel() * inumdof_elem) {
+                              error("invalid number of columns of mesh.elements.%s(%Ld).C", oElemType.name, static_cast<long long>(j));
+                              return retval;
+                         }
+
+                         for (octave_idx_type k = 0; k < elnodes.numel(); ++k) {
+                              octave_idx_type inode = elnodes.xelem(k).value();
+                              if (inode < 1 || inode > nodes.rows()) {
+                                   error("invalid node index in mesh.elements.%s(%Ld).nodes(%Ld)", oElemType.name, static_cast<long long>(j), static_cast<long long>(k));
+                                   return retval;
+                              }
+                         }
+
+                         for (octave_idx_type k = 0; k < elnodes.numel(); ++k) {
+                              const octave_idx_type inode = elnodes.xelem(k).value();
+                              for (octave_idx_type l = 0; l < inumdof_elem; ++l) {
+                                   for (octave_idx_type m = 0; m < C.rows(); ++m) {
+                                        if (C.xelem(m, k * inumdof_elem + l)) {
+                                             dof_in_use(inode - 1, l) = true;
+                                        }
+                                   }
+                              }
+                         }
+                    }
+               } break;
                default:
                     continue;
                }
