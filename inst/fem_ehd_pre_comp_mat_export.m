@@ -91,10 +91,14 @@ function fem_ehd_pre_comp_mat_export(comp_mat, options, varargin)
       error("numel(comp_mat.bearing_surf.grid_x must be at least three")
     endif
 
-    if (abs((x(end) - x(1)) / (d * pi) - 1) >  sqrt(eps))
+    if (abs(x(end) / (d * pi) - 1) >  sqrt(eps))
       error("invalid range for comp_mat.bearing_surf.grid_x");
     endif
 
+    if (abs(x(1) / (d * pi)) >  sqrt(eps))
+      error("invalid range for comp_mat.bearing_surf.grid_x");
+    endif
+    
     ic = zeros(numel(x), numel(z), "int32");
 
     for i=1:numel(x)

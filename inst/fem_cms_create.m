@@ -112,10 +112,6 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     cms_opt.modal_node_constraint = true;
   endif
 
-  if (~isfield(cms_opt, "floating_frame"))
-    cms_opt.floating_frame = false;
-  endif
-
   if (cms_opt.modal_node_constraint)
     node_idx_itf = int32([cms_opt.nodes.modal.number]);
     istart_idx_joint = int32(2);
@@ -438,54 +434,6 @@ function [mesh, mat_ass, dof_map, sol_eig, cms_opt] = fem_cms_create(mesh, load_
     fprintf(stderr, "%s:%d\n", __FILE__, __LINE__);
     whos();
     fprintf(stderr, "building reduced matrices ...\n");
-  endif
-
-  if (cms_opt.floating_frame)
-    A = zeros(6 * rows(mesh.nodes), 6);
-
-    for j=1:6
-      A(j:6:end, j) = 1;
-    endfor
-
-    dX = mesh.nodes(:, 1:3) - mesh.nodes(cms_opt.nodes.modal.number, 1:3);
-
-    A(1:6:end, 5) = dX(:, 3);
-    A(2:6:end, 4) = -dX(:, 3);
-    A(1:6:end, 6) = -dX(:, 2);
-    A(3:6:end, 4) = dX(:, 2);
-    A(2:6:end, 6) = dX(:, 1);
-    A(3:6:end, 5) = -dX(:, 1);
-
-    idxtrans = zeros(3 * rows(mesh.nodes), 1, "int32");
-
-    for j=1:3
-      idxtrans(j:3:end) = j:6:6 * rows(mesh.nodes);
-    endfor
-
-    idxmodal = (cms_opt.nodes.modal.number - 1) * 6 + (1:6);
-
-    A(idxmodal, :) = 0;
-    Adisp = A(idxtrans, :);
-
-    for j=1:columns(mat_ass.Tred)
-      Uj = zeros(6 * rows(mesh.nodes), 1);
-
-      for k=1:6
-        ndofk = dof_map.ndof(:, k);
-        idxndofk = find(ndofk > 0);
-        idxnodek = k:6:rows(Uj);
-        Uj(idxnodek(idxndofk)) = mat_ass.Tred(ndofk(idxndofk), j);
-      endfor
-
-      Uj -= A * (Adisp \ Uj(idxtrans));
-
-      for k=1:6
-        ndofk = dof_map.ndof(:, k);
-        idxndofk = find(ndofk > 0);
-        idxnodek = k:6:rows(Uj);
-        mat_ass.Tred(ndofk(idxndofk), j) = Uj(idxnodek(idxndofk));
-      endfor
-    endfor
   endif
 
   mat_ass.Mred = fem_cms_matrix_trans(mat_ass.Tred, Msym(dof_map.idx_node, dof_map.idx_node), "Lower");

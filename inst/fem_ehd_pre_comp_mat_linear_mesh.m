@@ -23,13 +23,33 @@
 ##
 ## @var{dof_map} @dots{} Degree of freedom mapping returned from fem_cms_create.
 ##
-## @var{cms_opt} @dots{} Component mode synthesis options returned from fem_cms_create.
+## @var{cms_opt}.nodes.interfaces.number @dots{} Node numbers of the interface nodes
+##
+## @var{cms_opt}.nodes.interfaces.name @dots{} Node names of the interface nodes
+##
+## @var{cms_opt}.nodes.modal.number @dots{} Node number of the modal node
+##
+## @var{cms_opt}.nodes.modal.name @dots{} Node name of the modal node
+##
+## @var{cms_opt}.element.name @dots{} Name of the modal element
+##
+## @var{cms_opt}.modes.number @dots{} Number of dynamic mode shapes
+##
+## @var{cms_opt}.solver @dots{} Name of the linear solver
+##
+## @var{cms_opt}.number_of_threads @dots{} Number of threads to use for assembly and solver
+##
+## @var{cms_opt}.refine_max_iter @dots{} Maximum number of refinement iterations for the solver
 ##
 ## @var{bearing_surf} @dots{} Struct array describing all hydrodynamic bearings of this mesh.
 ##
 ## @var{bearing_surf}.options.bearing_type @dots{} One of "journal", "shell".
 ##
 ## @var{bearing_surf}.options.interpolate_interface @dots{} Generate a layer of iso8 elements in order to interpolate between nodes
+##
+## @var{bearing_surf}.options.number_of_nodes_x @dots{} Number of hydrodynamic nodes in x-direction
+##
+## @var{bearing_surf}.options.number_of_nodes_z @dots{} Number of hydroynamic nodes in z-direction
 ##
 ## @var{bearing_surf}.R @dots{} Orientation of the bearing surface. R(:, 3) represents the axis of the journal bearing.
 ##
@@ -39,9 +59,15 @@
 ##
 ## @var{bearing_surf}.w @dots{} Width of the cylindrical bearing surface.
 ##
-## @var{bearing_surf}.nodes @dots{} Node numbers of all Finite Element nodes at the bearing surface.
+## @var{bearing_surf}.group_idx @dots{} Group index of the bearing surface
 ##
-## @var{bearing_surf}.idx_load_case @dots{} Column indices of all load cases in @var{mat_ass}.R related to this bearing surface.
+## @var{bearing_surf}.group_id_interface @dots{} group id of the interface mesh of iso4 elements
+##
+## @var{bearing_surf}.name @dots{} Group name of the interface mesh of iso4 elements
+##
+## @var{bearing_surf}.absolute_tolerance @dots{} Absolute tolerance for projecting the nodes of the interface mesh to the surface mesh of the bearing
+##
+## @var{bearing_surf}.relative_tolerance @dots{} Relative tolerance for projecting the nodes of the interface mesh to the surface mesh of the bearing
 ##
 ## @var{options}.elem_type @dots{} Element type for the surface mesh at the bearing
 ##
@@ -69,10 +95,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     options.elem_type = "tria6";
   endif
 
-  if (~isfield(cms_opt, "floating_frame"))
-    cms_opt.floating_frame = false;
-  endif
-
   if (~isfield(cms_opt, "svd_threshold"))
     cms_opt.svd_threshold = 1e-10;
   endif
@@ -97,12 +119,6 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
     cms_opt.verbose = int32(1);
   endif
 
-  if (~isfield(cms_opt.nodes.interfaces, "include_rigid_body_modes"))
-    for i=1:numel(cms_opt.nodes.interfaces)
-      cms_opt.nodes.interfaces(i).include_rigid_body_modes = true;
-    endfor
-  endif
-
   for i=1:numel(bearing_surf)
     if (~isfield(bearing_surf(i).options, "interpolate_interface"))
       bearing_surf(i).options.interpolate_interface = false;
@@ -113,7 +129,7 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
 
   options.interpolate_interface = [[bearing_surf.options].interpolate_interface];
 
-  [bearing_surf] = fem_ehd_pre_comp_mat_grid(mesh, bearing_surf, options);
+  [load_case_p, bearing_surf] = fem_ehd_pre_comp_mat_load_case(mesh, bearing_surf, options);
 
   [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mesh, load_case_dof, bearing_surf);
 
@@ -124,6 +140,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [Phi_p, kappa_p, mat_ass_eig_p, dof_map_eig_p, load_case_eig_p, bearing_surf] = fem_ehd_pre_comp_mat_eig_p(mesh, load_case_dof, bearing_surf, cms_opt, options);
 
   [Phi_s, Phi_n, lambda_n, mat_ass_itf, dof_map_itf] = fem_ehd_pre_comp_mat_modes_itf(mesh, load_case_dof, load_case_itf, cms_opt);
+
+  [~, mat_ass_p.R, mat_ass_p.mat_info, mat_ass_p.mesh_info] = fem_ass_matrix(mesh, dof_map_itf, [FEM_MAT_STIFFNESS_SYM_L, FEM_VEC_LOAD_CONSISTENT], load_case_p);
 
   num_modes_cb = columns(Phi_s) + columns(Phi_n);
 
@@ -147,7 +165,8 @@ function [mesh, mat_ass_itf, dof_map_itf, cms_opt, comp_mat, bearing_surf, sol_e
   [mat_ass_itf, sol_eig] = fem_ehd_pre_comp_mat_gen_cms(mesh, dof_map_itf, mat_ass_itf, load_case_itf, lambda_n, kappa_p, cms_opt);
 
   for i=1:numel(comp_mat)
-    comp_mat(i).E = comp_mat(i).D.' * diag(comp_mat(i).A) * comp_mat(i).reference_pressure;
+    comp_mat(i).E = mat_ass_itf.Tred.' * mat_ass_p.R(dof_map_itf.idx_node, bearing_surf(i).idx_load_case);
+    comp_mat(i).E = [comp_mat(i).E, comp_mat(i).E(:, 1:numel(comp_mat(i).bearing_surf.grid_z))];
   endfor
 
   if (nargout >= 8)
@@ -297,11 +316,6 @@ function [mat_ass_itf, bearing_surf] = fem_ehd_pre_comp_mat_modes_combine(mesh, 
   for i=1:numel(bearing_surf)
     bearing_surf(i).options.mode_idx += columns(Phi_sn);
   endfor
-
-  if (cms_opt.floating_frame)
-    Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map_itf, cms_opt.nodes.modal.number);
-    mat_ass_itf.Tred -= Phi_rb * (Phi_rb \ mat_ass_itf.Tred);
-  endif
 endfunction
 
 function [D, A] = fem_ehd_comp_mat_tot(mat_ass_itf, comp_mat)
@@ -388,8 +402,6 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
   comp_mat = struct("C", empty_cell, ...
                     "D", empty_cell, ...
                     "E", empty_cell, ...
-                    "xi", empty_cell, ...
-                    "zi", empty_cell, ...
                     "dX", empty_cell, ...
                     "dR", empty_cell, ...
                     "bearing_surf", empty_cell, ...
@@ -425,11 +437,6 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
     r = norm(n, "cols");
     n ./= r;
 
-    comp_mat(i).xi = mod(atan2(X(2, :), X(1, :)), 2 * pi) * bearing_surf(i).r;
-    comp_mat(i).zi = X(3, :);
-
-    comp_mat(i).D = zeros(numel(bs_nodes), columns(mat_ass_itf.Tred));
-
     dof_idx = dof_map_itf.ndof(bs_nodes, 1:3);
 
     Ustatn = zeros(rows(dof_idx), columns(mat_ass_itf.Tred), 3);
@@ -438,17 +445,55 @@ function [comp_mat] = fem_ehd_pre_comp_mat_gen(mesh, dof_map_itf, mat_ass_itf, l
       Ustatn(:, :, k) = mat_ass_itf.Tred(dof_idx(:, k), :);
     endfor
 
+    comp_mat(i).D = zeros(numel(bs_nodes), columns(mat_ass_itf.Tred));
+
     for k=1:rows(n)
       for l=1:columns(dof_idx)
         comp_mat(i).D += diag(n(k, :)) * Ustatn(:, :, l) * bearing_surf(i).R(l, k);
       endfor
     endfor
 
-    Ai = repmat((bearing_surf(i).grid_x(2) - bearing_surf(i).grid_x(1)) * (bearing_surf(i).grid_z(2) - bearing_surf(i).grid_z(1)), numel(bs_nodes), 1);
+    Ai = zeros(numel(bs_nodes), 1);
 
-    Ai(1:numel(bearing_surf(i).grid_z):end) /= 2;
-    Ai(numel(bearing_surf(i).grid_z):numel(bearing_surf(i).grid_z):end) /= 2;
-    Ai((numel(bearing_surf(i).grid_x) - 1) * numel(bearing_surf(i).grid_z) + 1:end) = 0;
+    for k=1:numel(bearing_surf(i).grid_z) - 1
+      Ai(k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+    endfor
+
+    for k=2:numel(bearing_surf(i).grid_z)
+      Ai(k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+    endfor
+
+    for k=1:numel(bearing_surf(i).grid_z) - 1
+      Ai((numel(bearing_surf(i).grid_x) - 2) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+    endfor
+
+    for k=2:numel(bearing_surf(i).grid_z)
+      Ai((numel(bearing_surf(i).grid_x) - 2) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(end) - bearing_surf(i).grid_x(end - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+    endfor
+
+    for j=1:numel(bearing_surf(i).grid_x) - 2
+      for k=1:numel(bearing_surf(i).grid_z) - 1
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+      endfor
+    endfor
+
+    for j=2:numel(bearing_surf(i).grid_x) - 1
+      for k=2:numel(bearing_surf(i).grid_z)
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+      endfor
+    endfor
+
+    for j=2:numel(bearing_surf(i).grid_x) - 1
+      for k=1:numel(bearing_surf(i).grid_z) - 1
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j) - bearing_surf(i).grid_x(j - 1)) * (bearing_surf(i).grid_z(k + 1) - bearing_surf(i).grid_z(k));
+      endfor
+    endfor
+
+    for j=1:numel(bearing_surf(i).grid_x) - 2
+      for k=2:numel(bearing_surf(i).grid_z)
+        Ai((j - 1) * numel(bearing_surf(i).grid_z) + k) += 0.25 * (bearing_surf(i).grid_x(j + 1) - bearing_surf(i).grid_x(j)) * (bearing_surf(i).grid_z(k) - bearing_surf(i).grid_z(k - 1));
+      endfor
+    endfor
 
     comp_mat(i).A = Ai;
   endfor
@@ -709,10 +754,7 @@ function [mesh, load_case] = fem_ehd_pre_comp_mat_gen_loads_cms(mesh, load_case_
   for i=1:numel(cms_opt.nodes.interfaces)
     joints_itf(i).nodes = cms_opt.nodes.interfaces(i).number;
     joints_itf(i).C = eye(6)(~load_case_dof.locked_dof(cms_opt.nodes.interfaces(i).number, :), :);
-
-    if (cms_opt.nodes.interfaces(i).include_rigid_body_modes)
-      num_modes_itf += rows(joints_itf(i).C);
-    endif
+    num_modes_itf += rows(joints_itf(i).C);
   endfor
 
   if (~isempty(joint_modal.C))
@@ -732,11 +774,9 @@ function [mesh, load_case] = fem_ehd_pre_comp_mat_gen_loads_cms(mesh, load_case_
   idx_mode_itf = int32(0);
 
   for i=1:numel(cms_opt.nodes.interfaces)
-    if (cms_opt.nodes.interfaces(i).include_rigid_body_modes)
-      for j=1:rows(mesh.elements.joints(idx_joint_itf + i - 1).C)
-        load_case(++idx_mode_itf).joints(idx_joint_itf + i - 1).U(j) = 1;
-      endfor
-    endif
+    for j=1:rows(mesh.elements.joints(idx_joint_itf + i - 1).C)
+      load_case(++idx_mode_itf).joints(idx_joint_itf + i - 1).U(j) = 1;
+    endfor
   endfor
 endfunction
 
@@ -830,25 +870,27 @@ function [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mes
     Phi_i = x_S / bearing_surf(i).r;
     x_i = cos(Phi_i) * bearing_surf(i).r;
     y_i = sin(Phi_i) * bearing_surf(i).r;
-    X_i = zeros(rows(x_S) * columns(x_S), 3);
+    X_i = zeros((columns(x_S) - 1) * rows(x_S), 3);
 
-    for j=1:rows(x_S)
-      X_i((j - 1) * columns(x_S) + (1:columns(x_S)), :) = (X0_i + R_i * [x_i(j, :); y_i(j, :); z_S(j, :)]).';
+    for j=1:columns(x_S) - 1
+      X_i((j - 1) * rows(x_S) + (1:rows(x_S)), :) = (X0_i + R_i * [x_i(:, j).'; y_i(:, j).'; z_S(:, j).']).';
     endfor
 
     node_idx = zeros(rows(x_S), columns(x_S), "int32");
 
-    for j=1:rows(x_S)
-      node_idx(j, :) = (j - 1) * columns(x_S) + [1:columns(x_S) - 1, 1];
+    for j=1:columns(x_S) - 1
+      node_idx(:, j) = (j - 1) * rows(x_S) + (1:rows(x_S));
     endfor
 
-    elem_iso4 = zeros((columns(x_S) - 1) * (rows(x_S) - 1), 4, "int32");
+    node_idx(:, end) = node_idx(:, 1);
 
-    for j=1:rows(x_S) - 1
-      elem_iso4((j - 1) * (columns(x_S) - 1) + (1:columns(x_S) - 1), :) = [node_idx(j + 1, (1:end - 1) + 1);
-                                                                           node_idx(j + 1, (1:end - 1));
-                                                                           node_idx(j, (1:end - 1));
-                                                                           node_idx(j, (1:end - 1) + 1)].';
+    elem_iso4 = zeros((rows(node_idx) - 1) * (columns(node_idx) - 1), 4, "int32");
+
+    for j=1:columns(node_idx) - 1
+      elem_iso4((j - 1) * (rows(node_idx) - 1) + (1:rows(node_idx) - 1), :) = [node_idx(2:end, j + 1), ...
+                                                                               node_idx(2:end, j), ...
+                                                                               node_idx(1:end - 1, j), ...
+                                                                               node_idx(1:end - 1, j + 1)];
     endfor
 
     switch (bearing_surf(i).options.bearing_type)
@@ -904,37 +946,6 @@ function [mesh, load_case_dof, bearing_surf] = fem_ehd_pre_comp_mat_gen_mesh(mes
   endif
 endfunction
 
-function Phi_rb = fem_ehd_pre_comp_mat_gen_rigid_body_mode(mesh, dof_map, ref_node_idx)
-  Arb = repmat(eye(6), rows(mesh.nodes), 1);
-
-  l = mesh.nodes(:, 1:3) - mesh.nodes(ref_node_idx, 1:3);
-
-  ir = int32([3, 2;
-              1, 3;
-              2, 1]);
-
-  ic = int32([2, 3;
-              3, 1;
-              1, 2]);
-
-  dc = [1, -1];
-
-  for j=1:3
-    for k=1:2
-      Arb(ir(j, k):6:end, ic(j, k) + 3) = -dc(k) * l(:, j);
-    endfor
-  endfor
-
-  Phi_rb = zeros(dof_map.totdof, columns(Arb));
-
-  for j=1:columns(dof_map.ndof)
-    idx_act_dof = find(dof_map.ndof(:, j) > 0);
-    Phi_rb(dof_map.ndof(idx_act_dof, j), :) = Arb(6 * (idx_act_dof - 1) + j, :);
-  endfor
-
-  Phi_rb = Phi_rb(dof_map.idx_node, :);
-endfunction
-
 %!test
 %! try
 %!   ## TEST 1
@@ -960,7 +971,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -1110,7 +1120,7 @@ endfunction
 %!     if (ispc())
 %!       filename(filename == "\\") = "/";
 %!     endif
-%!     tol_red = 3e-2;
+%!     tol_red = 0.5e-2;
 %!     num_modes_cms = int32(10);
 %!     num_modes = int32(60);
 %!     unwind_protect
@@ -1127,7 +1137,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -1196,7 +1205,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "pardiso";
 %!     cms_opt.verbose = int32(1);
@@ -1205,8 +1213,16 @@ endfunction
 %!     bearing_surf(1).material_id_interface = int32(2);
 %!     bearing_surf(1).name = "p1";
 %!     bearing_surf(1).options.reference_pressure = 1e9;
-%!     bearing_surf(1).options.number_of_nodes_x = 60;
-%!     bearing_surf(1).options.number_of_nodes_z = 20;
+%!     bearing_surf(1).options.number_of_nodes_x = [];
+%!     bearing_surf(1).options.number_of_nodes_z = [];
+%!     x = linspace(0, 2 * pi, 60);
+%!     z = linspace(-0.5, 0.5, 20);
+%!     dx = 2 + cos(x);
+%!     dz = 2 + cos(2 * pi * z);
+%!     dx *= d * pi / sum(dx);
+%!     dz *= w / sum(dz);
+%!     bearing_surf(1).grid_x = [0, cumsum(dx)];
+%!     bearing_surf(1).grid_z = [0, cumsum(dz)] - 0.5 * w;
 %!     bearing_surf(1).options.bearing_type = "shell";
 %!     bearing_surf(1).options.matrix_type = "modal substruct total";
 %!     bearing_surf(1).options.interpolate_interface = true;
@@ -1225,6 +1241,8 @@ endfunction
 %!     bearing_surf(2).options.reference_pressure = 1e9;
 %!     bearing_surf(2).options.number_of_nodes_x = 60;
 %!     bearing_surf(2).options.number_of_nodes_z = 20;
+%!     bearing_surf(2).grid_x = [];
+%!     bearing_surf(2).grid_z = [];
 %!     bearing_surf(2).options.bearing_type = "shell";
 %!     bearing_surf(2).options.matrix_type = "modal substruct total";
 %!     bearing_surf(2).options.interpolate_interface = true;
@@ -1268,10 +1286,10 @@ endfunction
 %!     p1red2 = zeros((nx1 - 1) * nz1, 1);
 %!     p2red2 = zeros((nx2 - 1) * nz2, 1);
 %!     for i=1:nx1 - 1
-%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * sin(bearing_surf(1).grid_x(i) / bearing_surf(1).r) * bearing_surf(1).options.reference_pressure;
+%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * sin(bearing_surf(1).grid_x(i) / bearing_surf(1).r) * bearing_surf(1).grid_z / w * bearing_surf(1).options.reference_pressure;
 %!     endfor
 %!     for i=1:nx2 - 1
-%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 * bearing_surf(2).options.reference_pressure;
+%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 * bearing_surf(2).grid_z / w * bearing_surf(2).options.reference_pressure;
 %!     endfor
 %!     Fred = [comp_mat(1).E(:, 1:end - nz1) * [p1red1, p1red2] / bearing_surf(1).options.reference_pressure, ...
 %!             comp_mat(2).E(:, 1:end - nz2) * [p2red1, p2red2] / bearing_surf(2).options.reference_pressure];
@@ -1279,7 +1297,7 @@ endfunction
 %!     qred = mat_ass.Kred \ Fred;
 %!     sol_red.def = fem_post_cms_expand_body(mesh, dof_map, mat_ass, qred);
 %!     mesh_post = mesh;
-%!     mesh_post.elements = rmfield(mesh_post.elements, "joints");
+%!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 2);
 %!     load_case_post = fem_pre_load_case_create_empty(10);
 %!     load_case_post_dof.locked_dof = false(size(mesh_post.nodes));
 %!     for i=1:6
@@ -1289,20 +1307,22 @@ endfunction
 %!     endfor
 %!     x1 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(1);
 %!     y1 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(2);
+%!     z1 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(3);
 %!     x2 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(1);
 %!     y2 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(2);
+%!     z2 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(3);
 %!     Phi1 = atan2(y1, x1);
 %!     Phi2 = atan2(y2, x2);
 %!     load_case_post(7).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
 %!     load_case_post(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
 %!     load_case_post(8).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(8).pressure.tria6.p = sin(Phi1) * p1 * bearing_surf(1).options.reference_pressure;
+%!     load_case_post(8).pressure.tria6.p = sin(Phi1) * p1 .* z1 / w * bearing_surf(1).options.reference_pressure;
 %!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
 %!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
 %!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(10).pressure.tria6.p = cos(Phi2).^2 * p2 * bearing_surf(2).options.reference_pressure;
-%!     mesh_post.elements.joints.C = eye(6);
-%!     mesh_post.elements.joints.nodes = cms_opt.nodes.modal.number;
+%!     load_case_post(10).pressure.tria6.p = cos(Phi2).^2 * p2 .* z2 / w * bearing_surf(2).options.reference_pressure;
+%!     mesh_post.elements.joints(end + 1).C = eye(6);
+%!     mesh_post.elements.joints(end).nodes = cms_opt.nodes.modal.number;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
 %!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
 %!     sol_post = fem_sol_static(mesh_post, dof_map_post, mat_ass_post, cms_opt);
@@ -1319,9 +1339,8 @@ endfunction
 %!       sol_comb.def(:, :, i) *= 10e-3 / max(max(abs(sol_comb.def(:, 1:3, i))));
 %!     endfor
 %!     err_red = zeros(1, size(sol_post.def, 3));
-%!     idx_node = [[mesh.groups.tet10].nodes, cms_opt.nodes.modal.number, cms_opt.nodes.interfaces.number];
 %!     for i=1:size(sol_post.def, 3)
-%!       err_red(i) = max(max(abs(sol_post.def(idx_node, :, i) - sol_red.def(idx_node, :, i)))) / max(max(abs(sol_post.def(idx_node, :, i))));
+%!       err_red(i) = max(max(abs(sol_post.def(:, :, i) - sol_red.def(:, :, i)))) / max(max(abs(sol_post.def(:, :, i))));
 %!     endfor
 %!     for i=1:size(sol_post.def, 3)
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
@@ -1376,7 +1395,6 @@ endfunction
 %!       h = 5e-3;
 %!       grp_id_p1 = 2;
 %!       grp_id_p2 = 3;
-%!       scale_def = 5e-3;
 %!       mesh_size = 1.5e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d1 = %g;\n", d1);
@@ -1691,7 +1709,6 @@ endfunction
 %!       h = 5e-3;
 %!       grp_id_p1 = 2;
 %!       grp_id_clamp = 3;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2.5e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d1 = %g;\n", d1);
@@ -1768,7 +1785,6 @@ endfunction
 %!     cms_opt.inveriants = true;
 %!     cms_opt.static_modes = false;
 %!     cms_opt.modal_node_constraint = false;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
@@ -1967,7 +1983,6 @@ endfunction
 %!       grp_id_p1 = 2;
 %!       grp_id_clamp = 3;
 %!       grp_id_itf2 = 4;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d1 = %g;\n", d1);
@@ -2248,7 +2263,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 1.5e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -2547,7 +2561,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -2617,7 +2630,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     bearing_surf(1).group_idx = grp_idx_p1;
@@ -2794,7 +2806,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -2979,7 +2990,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3160,7 +3170,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3347,7 +3356,6 @@ endfunction
 %!       h = 20e-3;
 %!       c = 6e-3;
 %!       b = h - 2 * c;
-%!       scale_def = 5e-3;
 %!       mesh_size = 3e-3;
 %!       num_modes = 10;
 %!       fprintf(fd, "SetFactory(\"OpenCASCADE\");\n");
@@ -3537,7 +3545,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 4e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -3606,7 +3613,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     bearing_surf(1).group_idx = grp_idx_p1;
@@ -3805,9 +3811,9 @@ endfunction
 %!       h = 5e-3;
 %!       grp_id_p1 = 2;
 %!       grp_id_p2 = 3;
+%!       grp_id_rod = 4;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -3855,6 +3861,7 @@ endfunction
 %!       fputs(fd, "Mesh.HighOrderOptimize = 2;\n");
 %!       fprintf(fd, "Physical Surface(\"small-end\", %d) = {tmp[8],tmp[9],tmp[10],tmp[11]};\n", grp_id_p1);
 %!       fprintf(fd, "Physical Surface(\"big-end\", %d) = {tmp[12],tmp[13],tmp[14],tmp[15]};\n", grp_id_p2);
+%!       fprintf(fd, "Physical Surface(\"rod\", %d) = {19, 22};\n", grp_id_rod);
 %!     unwind_protect_cleanup
 %!       if (fd ~= -1)
 %!         fclose(fd);
@@ -3873,16 +3880,12 @@ endfunction
 %!     grp_idx_p1 = find([[mesh.groups.tria6].id] == grp_id_p1);
 %!     grp_idx_p2 = find([[mesh.groups.tria6].id] == grp_id_p2);
 %!     cms_opt.nodes.interfaces(1).number = rows(mesh.nodes) + 1;
-%!     cms_opt.nodes.interfaces(1).include_rigid_body_modes = true;
 %!     cms_opt.nodes.interfaces(2).number = rows(mesh.nodes) + 2;
-%!     cms_opt.nodes.interfaces(2).include_rigid_body_modes = false;
-%!     cms_opt.floating_frame = true;
 %!     cms_opt.nodes.modal.number = rows(mesh.nodes) + 3;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
-%!     cms_opt.solver = "umfpack";
+%!     cms_opt.solver = "pardiso";
 %!     bearing_surf(1).group_idx = grp_idx_p1;
 %!     bearing_surf(1).group_id_interface = grp_id_p1 + 100;
 %!     bearing_surf(1).material_id_interface = int32(2);
@@ -3921,9 +3924,8 @@ endfunction
 %!     for i=1:numel(bearing_surf)
 %!       mesh.nodes(cms_opt.nodes.interfaces(i).number, 1:3) = bearing_surf(i).X0.';
 %!     endfor
-%!     mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, [grp_id_p1, grp_id_p2], [cms_opt.nodes.interfaces.number]);
+%!     mesh.elements.rbe3 = fem_pre_mesh_rbe3_from_surf(mesh, [grp_id_p1, grp_id_p2, grp_id_rod], [cms_opt.nodes.interfaces.number, cms_opt.nodes.modal.number]);
 %!     load_case_dof.locked_dof = false(rows(mesh.nodes), 6);
-%!     load_case_dof.locked_dof(cms_opt.nodes.modal.number, 1:6) = true;
 %!     mesh.materials.tet10 = ones(rows(mesh.elements.tet10), 1, "int32");
 %!     mesh.material_data(1).E = 210000e6;
 %!     mesh.material_data(1).nu = 0.3;
@@ -3954,10 +3956,10 @@ endfunction
 %!     p1red2 = zeros((nx1 - 1) * nz1, 1);
 %!     p2red2 = zeros((nx2 - 1) * nz2, 1);
 %!     for i=1:nx1 - 1
-%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * sin(2 * bearing_surf(1).grid_x(i) / bearing_surf(1).r) * bearing_surf(1).options.reference_pressure;
+%!       p1red2((i - 1) * nz1 + 1:i * nz1) = p1 * (sin(bearing_surf(1).grid_x(i) / bearing_surf(1).r) .* bearing_surf(1).grid_z / w + 1) * bearing_surf(1).options.reference_pressure;
 %!     endfor
 %!     for i=1:nx2 - 1
-%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 * bearing_surf(2).options.reference_pressure;
+%!       p2red2((i - 1) * nz2 + 1:i * nz2) = p2 * (cos(bearing_surf(2).grid_x(i) / bearing_surf(2).r)^2 .* bearing_surf(2).grid_z / w + 1) * bearing_surf(2).options.reference_pressure;
 %!     endfor
 %!     Fred = [comp_mat(1).E(:, 1:end -  nz1) * [p1red1, p1red2] / bearing_surf(1).options.reference_pressure, ...
 %!             comp_mat(2).E(:, 1:end - nz2) * [p2red1, p2red2] / bearing_surf(2).options.reference_pressure];
@@ -3969,31 +3971,35 @@ endfunction
 %!     Ured(dof_map.idx_node, :) -= Phi_rb * (Phi_rb \ Ured(dof_map.idx_node, :));
 %!     sol_red.def = fem_post_def_nodal(mesh, dof_map, Ured);
 %!     mesh_post = mesh;
-%!     mesh_post.elements = rmfield(mesh_post.elements, "joints");
+%!     mesh_post.elements.joints = mesh_post.elements.joints(1:end - 3);
+%!     mesh_post.elements.joints(end + 1).C = eye(6);
+%!     mesh_post.elements.joints(end).nodes = cms_opt.nodes.modal.number;
 %!     load_case_post = fem_pre_load_case_create_empty(10);
 %!     load_case_post_dof.locked_dof = false(size(mesh_post.nodes));
-%!     load_case_post_dof.locked_dof(cms_opt.nodes.modal.number, 1:6) = true;
+%!     l12 = mesh_post.nodes(cms_opt.nodes.interfaces(1).number, 1:3) - mesh_post.nodes(cms_opt.nodes.interfaces(2).number, 1:3);
 %!     for i=1:6
-%!       load_case_post(i).loaded_nodes = cms_opt.nodes.interfaces(1).number;
-%!       load_case_post(i).loads = zeros(1, 6);
-%!       load_case_post(i).loads(i) = 1;
+%!       load_case_post(i).loaded_nodes = [cms_opt.nodes.interfaces.number](:);
+%!       load_case_post(i).loads = zeros(2, 6);
+%!       load_case_post(i).loads(1, i) = 1;
+%!       load_case_post(i).loads(2, :) = -load_case_post(i).loads(1, :);
+%!       load_case_post(i).loads(2, 4:6) -= cross(l12, load_case_post(i).loads(1, 1:3));
 %!     endfor
 %!     x1 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(1);
 %!     y1 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(2);
+%!     z1 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p1).elements, :)) - bearing_surf(1).X0(3);
 %!     x2 = mesh.nodes(:, 1)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(1);
 %!     y2 = mesh.nodes(:, 2)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(2);
+%!     z2 = mesh.nodes(:, 3)(mesh.elements.tria6(mesh.groups.tria6(grp_idx_p2).elements, :)) - bearing_surf(2).X0(3);
 %!     Phi1 = atan2(y1, x1);
 %!     Phi2 = atan2(y2, x2);
 %!     load_case_post(7).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
 %!     load_case_post(7).pressure.tria6.p = repmat(p1 * bearing_surf(1).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p1).elements), 6);
 %!     load_case_post(8).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p1).elements, :);
-%!     load_case_post(8).pressure.tria6.p = sin(2 * Phi1) * p1 * bearing_surf(1).options.reference_pressure;
+%!     load_case_post(8).pressure.tria6.p = p1 * (sin(Phi1) .* z1 / w + 1) * bearing_surf(1).options.reference_pressure;
 %!     load_case_post(9).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
 %!     load_case_post(9).pressure.tria6.p = repmat(p2 * bearing_surf(2).options.reference_pressure, numel(mesh_post.groups.tria6(grp_idx_p2).elements), 6);
 %!     load_case_post(10).pressure.tria6.elements = mesh_post.elements.tria6(mesh_post.groups.tria6(grp_idx_p2).elements, :);
-%!     load_case_post(10).pressure.tria6.p = cos(Phi2).^2 * p2 * bearing_surf(2).options.reference_pressure;
-%!     mesh_post.elements.joints.C = eye(6);
-%!     mesh_post.elements.joints.nodes = cms_opt.nodes.interfaces(2).number;
+%!     load_case_post(10).pressure.tria6.p = p2 * (cos(Phi2).^2 .* z2 / w + 1) * bearing_surf(2).options.reference_pressure;
 %!     dof_map_post = fem_ass_dof_map(mesh_post, load_case_post_dof);
 %!     [mat_ass_post.K, mat_ass_post.R] = fem_ass_matrix(mesh_post, dof_map_post, [FEM_MAT_STIFFNESS, FEM_VEC_LOAD_CONSISTENT], load_case_post);
 %!     Phi_rb_post = gen_rigid_body_modes(mesh_post, dof_map_post, cms_opt.nodes.interfaces(2).number);
@@ -4014,9 +4020,8 @@ endfunction
 %!       sol_comb.def(:, :, i) *= 10e-3 / max(max(abs(sol_comb.def(:, 1:3, i))));
 %!     endfor
 %!     err_red = zeros(1, size(sol_post.def, 3));
-%!     idx_node = [[mesh.groups.tet10].nodes];
 %!     for i=1:size(sol_post.def, 3)
-%!       err_red(i) = max(max(abs(sol_post.def(idx_node, :, i) - sol_red.def(idx_node, :, i)))) / max(max(abs(sol_post.def(idx_node, :, i))));
+%!       err_red(i) = max(max(abs(sol_post.def(:, :, i) - sol_red.def(:, :, i)))) / max(max(abs(sol_post.def(:, :, i))));
 %!     endfor
 %!     for i=1:size(sol_post.def, 3)
 %!       fprintf(stderr, "mode %d: %.1f%%\n", i, 100 * err_red(i));
@@ -4073,7 +4078,6 @@ endfunction
 %!       grp_id_p2 = 3;
 %!       p1 = 1;
 %!       p2 = 2;
-%!       scale_def = 5e-3;
 %!       mesh_size = 2e-3;
 %!       fputs(fd, "SetFactory(\"OpenCASCADE\");\n");
 %!       fprintf(fd, "d = %g;\n", d);
@@ -4145,7 +4149,6 @@ endfunction
 %!     cms_opt.nodes.interfaces.number = rows(mesh.nodes) + 1;
 %!     cms_opt.number_of_threads = mbdyn_solver_num_threads_default();
 %!     cms_opt.modes.number = num_modes_cms;
-%!     cms_opt.load_cases = "index";
 %!     cms_opt.refine_max_iter = int32(10);
 %!     cms_opt.solver = "umfpack";
 %!     cms_opt.verbose = int32(1);
